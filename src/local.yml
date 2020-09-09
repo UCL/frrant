@@ -13,6 +13,10 @@ services:
     container_name: django
     depends_on:
       - postgres
+      - elasticsearch
+    links:
+      - postgres
+      - elasticsearch
     volumes:
       - .:/app:z
     env_file:
@@ -33,6 +37,15 @@ services:
       - local_postgres_data_backups:/backups:z
     env_file:
       - ./.envs/.local/.postgres
+
+  elasticsearch:
+    container_name: elasticsearch
+    image: elasticsearch:7.4.0
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    ports:
+      - 9200:9200
 
   docs:
     image: rard_local_docs
