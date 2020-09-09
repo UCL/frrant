@@ -46,9 +46,9 @@ class TestUserUpdateView:
         data = {'first_name': 'New First Name', 'last_name': 'New Last Name'}
         url = reverse('users:detail', kwargs={'username': user.username})
         request = rf.post(url)
-        request.data = data
         request.user = user
-        request._messages = messages.storage.default_storage(request)
+        setattr(request, 'data', data)
+        setattr(request, '_messages', messages.storage.default_storage(request))
         response = UserUpdateView.as_view()(request)
 
         # should have single success message

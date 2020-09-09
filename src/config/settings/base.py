@@ -2,7 +2,7 @@
 Base settings to build other settings files upon.
 """
 from pathlib import Path
-
+from typing import List
 import environ
 
 ROOT_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
@@ -63,8 +63,8 @@ DJANGO_APPS = [
     "django.contrib.admin",
     "django.forms",
 ]
-THIRD_PARTY_APPS = [
-]
+
+THIRD_PARTY_APPS: List[str] = []
 
 LOCAL_APPS = [
     "rard.users.apps.UsersConfig",
