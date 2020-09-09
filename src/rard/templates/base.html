@@ -39,7 +39,7 @@
         <button class="navbar-toggler navbar-toggler-right" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
-        <a class="navbar-brand" href="{% url 'home' %}">Republican Antiquarians Research Database</a>
+        <a class="navbar-brand" href="{% url 'home' %}">{% trans "Republican Antiquarians Research Database" %}</a>
 
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
           <ul class="navbar-nav mr-auto">
@@ -73,7 +73,15 @@
       {% endif %}
 
       {% block content %}
-        <p class='text-center my-5 lead'>Welcome to the Republican Antiquarians Research Database Project.</p>
+        {% if request.user.is_authenticated %}
+          <p class='text-center my-5 lead'>
+            {% blocktrans with name=request.user.display_name %}
+              {{ name }}, welcome to the Republican Antiquarians Research Database Project.
+            {% endblocktrans %}
+          </p>
+        {% else %}
+          <p class='text-center my-5 lead'>{% trans "Welcome to the Republican Antiquarians Research Database Project." %}</p>
+        {% endif %}
       {% endblock content %}
 
     </div> <!-- /container -->
