@@ -65,6 +65,9 @@ https://docs.docker.com/docker-for-mac/#file-sharing
 
 ```cd ~/projects/rard/src```
 
+```docker-compose -f local.yml build```
+
+to ensure everything is built from scratch, you can add `--no-cache`
 ```docker-compose -f local.yml build --no-cache```
 
 - Bring up the project
@@ -82,6 +85,11 @@ NB the output will be hidden when run in the background. To inspect the logs aft
 (the `-f` will update the output as more log messages come in. Omit `-f` to just see a snapshot).
 
 - With the container running, browse to `localhost:8000` in your browser and you should see the project's home page.
+
+To restart the project, e.g. if some changes have been made to code that don't need the container to be rebuilt then use:
+
+```docker-compose -f local.yml down```
+```docker-compose -f local.yml up```
 
 
 ### 6. User Accounts
