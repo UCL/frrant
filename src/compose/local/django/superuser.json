@@ -1,0 +1,21 @@
+[
+{
+  "model": "users.user",
+  "pk": 1,
+  "fields": {
+    "password": "argon2$argon2i$v=19$m=512,t=2,p=2$S2RYRU11bXBBaDNV$Zd1h0ihNR693XjzmjUXj9g",
+    "last_login": "2020-09-09T14:12:42.885Z",
+    "is_superuser": true,
+    "username": "developer",
+    "first_name": "Developer",
+    "last_name": "Account",
+    "is_staff": true,
+    "is_active": true,
+    "date_joined": "2020-09-09T13:40:47.696Z",
+    "email": "developer@example.com",
+    "name": "",
+    "groups": [],
+    "user_permissions": []
+  }
+}
+]
