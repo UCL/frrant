@@ -43,13 +43,15 @@ This project uses containers. Below are set up instructions and useful commands.
 
 ### 4. Tell Docker about your folder
 
-Docker needs to know the full path of your project folder 
+Docker needs to know the full path of your project folder (so it can look for changes)
 
 - Open the Docker application
 - Find 'Preferences' and then 'Resources'
 - Click 'File Sharing'
+- Remove any unnecesary folders e.g. `/tmp`, `/var` 
+(Docker can use a lot of resources when watching folders for changes so it is best to keep this list to the absolute minimum)
 - Click 'Add' (or '+') to add a new folder
-- Browse to the project folder and click 'Open'
+- Browse to your projects folder and click 'Open'
 - Click 'Apply and Restart'
 
 (Docker needs to restart for the changes to take effect).
@@ -128,6 +130,10 @@ The `-v` option will delete any volume data e.g. Postgres data
 ```docker-compose -f local.yml run django coverage run -m pytest```
 
 NB to view coverage results, 
+
+```docker-compose -f local.yml run django coverage report```
+
+which prints a top-level summary to the console. Alternatively for more detail, run
 
 ```docker-compose -f local.yml run django coverage html```
 
