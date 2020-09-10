@@ -92,7 +92,7 @@ Create users in the standard Django admin.
 
 Log out of the admin and navigate to `localhost:8000` and follow the links to log in with the credentials you entered.
 
-### 6. Useful Docker commands
+### 7. Useful Docker commands
 
 Commands (shell or Django commands etc) are run on the Docker container via `docker-compose` using the local configuration. 
 
@@ -133,7 +133,13 @@ NB to view coverage results,
 
 which creates a local folder `htmlcov`. Browse to the file `index.html` in that folder
 
-#### Check code style:
+#### Check code comprehensively:
+
+```docker-compose -f local.yml run django flake8```
+
+(no errors means check passed)
+
+#### Check code style only:
 
 ```docker-compose -f local.yml run django pycodestyle```
 
