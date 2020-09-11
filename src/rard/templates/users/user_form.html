@@ -1,16 +1,23 @@
 {% extends "base.html" %}
+{% load i18n bootstrap4 %}
 
 {% block title %}{{ user.username }}{% endblock %}
 
 {% block content %}
-  <h1>{{ user.display_name }}</h1>
-  <form class="form-horizontal" method="post" action="{% url 'users:update' %}">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <div class="control-group">
-      <div class="controls">
-        <button type="submit" class="btn btn-primary">Update</button>
-      </div>
+<div class="container">
+  <div class="row">
+    <div class="col">
+      <h2>{{ user.display_name }}</h2>
+      <form class="form-horizontal" method="post" action="{% url 'users:update' %}">
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        <div class="control-group">
+          <div class="controls">
+            <button type="submit" class="btn btn-primary">{% trans 'Update' %}</button>
+          </div>
+        </div>
+      </form>
     </div>
-  </form>
+  </div>
+</div>
 {% endblock %}
