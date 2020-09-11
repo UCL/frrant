@@ -11,6 +11,8 @@ class User(AbstractUser, BaseModel):
     """Default user for Republican Antiquarians Research Database."""
 
     email = models.EmailField(_('email address'), unique=True, blank=False)
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS: List[str] = []
 
     def display_name(self):
         return self.get_full_name() or self.username
