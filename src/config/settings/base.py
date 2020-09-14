@@ -2,7 +2,7 @@
 Base settings to build other settings files upon.
 """
 from pathlib import Path
-from typing import List
+
 import environ
 
 ROOT_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
@@ -64,7 +64,9 @@ DJANGO_APPS = [
     "django.forms",
 ]
 
-THIRD_PARTY_APPS: List[str] = []
+THIRD_PARTY_APPS = [
+    "bootstrap4",
+]
 
 LOCAL_APPS = [
     "rard.users.apps.UsersConfig",
@@ -88,6 +90,8 @@ AUTHENTICATION_BACKENDS = [
 AUTH_USER_MODEL = "users.User"
 # https://docs.djangoproject.com/en/dev/ref/settings/#login-redirect-url
 LOGIN_REDIRECT_URL = "home"
+# To return to the homepage after logout uncomment below
+# LOGOUT_REDIRECT_URL = "home"
 # https://docs.djangoproject.com/en/dev/ref/settings/#login-url
 LOGIN_URL = "login"
 
@@ -245,5 +249,8 @@ LOGGING = {
 }
 
 
-# Your stuff...
+# Other Settings
 # ------------------------------------------------------------------------------
+BOOTSTRAP4 = {
+    'success_css_class': 'success'
+}

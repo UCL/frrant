@@ -1,0 +1,22 @@
+{% load i18n %}
+
+{% blocktrans %}Greetings{% endblocktrans %} {{ user.get_display_name }},
+
+{% blocktrans %}
+You are receiving this email because you have had an account created on the {{ domain }} site. 
+{% endblocktrans %}
+
+{% blocktrans %}
+To verify your email address and set a password, please click the following link, or copy and paste it
+into your web browser:
+{% endblocktrans %}
+
+<a rel="noreferrer" href="{{ protocol }}://{{ domain }}{% url 'password_reset_confirm' uid token %}">
+  {{ protocol }}://{{ domain }}{% url 'password_reset_confirm' uid token %}
+</a>
+
+{% blocktrans %}Your username on the site is: {% endblocktrans %} {{ user.get_username }}
+
+
+{% blocktrans %}Best regards{% endblocktrans %},
+{{ site_name }} {% blocktrans %}Team{% endblocktrans %}

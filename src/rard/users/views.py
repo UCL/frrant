@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
-from django.views.generic import DetailView, RedirectView, UpdateView
+from django.views.generic import DetailView, UpdateView
 
 User = get_user_model()
 
@@ -26,7 +26,9 @@ class UserUpdateView(LoginRequiredMixin, UpdateView):
     SUCCESS_MESSAGE = _("Details successfully updated")
 
     def get_success_url(self):
-        return reverse("users:detail", kwargs={"username": self.request.user.username})
+        return reverse(
+            "users:detail", kwargs={"username": self.request.user.username}
+        )
 
     def get_object(self):
         return User.objects.get(username=self.request.user.username)

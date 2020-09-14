@@ -3,6 +3,6 @@
 
 {% block title %}{% trans "Logged out" %}{% endblock %}
 
-{% block content %}
-<p>{% trans "Successfully logged out" %}.</p>
+{% block inner %}
+<p>{% trans "Successfully logged out" %}. Log in again <a href="{% url 'login' %}">here</a>.</p>
 {% endblock %}

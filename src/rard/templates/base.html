@@ -50,12 +50,17 @@
               <li class="nav-item">
                 <a class="nav-link" href="{% url 'users:detail' request.user.username  %}">{% trans "My Profile" %}</a>
               </li>
+              {% if request.user.is_staff %}
               <li class="nav-item">
-                <a class="nav-link" href="{% url 'logout' %}">{% trans "Sign Out" %}</a>
+                <a class="nav-link" href="{% url 'admin:login' %}">{% trans "Admin Area" %}</a>
+              </li>
+              {% endif %}
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'logout' %}">{% trans "Log Out" %}</a>
               </li>
             {% else %}
               <li class="nav-item">
-                <a id="log-in-link" class="nav-link" href="{% url 'login' %}">{% trans "Sign In" %}</a>
+                <a id="log-in-link" class="nav-link" href="{% url 'login' %}">{% trans "Log In" %}</a>
               </li>
             {% endif %}
           </ul>
@@ -64,7 +69,7 @@
 
     </div>
 
-    <div class="container">
+    <div class="container mt-5">
 
       {% if messages %}
           {% for message in messages %}
