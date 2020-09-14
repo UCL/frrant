@@ -50,6 +50,11 @@
               <li class="nav-item">
                 <a class="nav-link" href="{% url 'users:detail' request.user.username  %}">{% trans "My Profile" %}</a>
               </li>
+              {% if request.user.is_staff %}
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'admin:login' %}">{% trans "Admin Area" %}</a>
+              </li>
+              {% endif %}
               <li class="nav-item">
                 <a class="nav-link" href="{% url 'logout' %}">{% trans "Log Out" %}</a>
               </li>
