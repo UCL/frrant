@@ -6,7 +6,7 @@ from pathlib import Path
 import environ
 
 ROOT_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
-# rard/
+# rard/ is where we create new apps
 APPS_DIR = ROOT_DIR / "rard"
 env = environ.Env()
 
@@ -254,3 +254,5 @@ LOGGING = {
 BOOTSTRAP4 = {
     'success_css_class': 'success'
 }
+
+UPLOAD_ROOT = str(ROOT_DIR / "uploads")

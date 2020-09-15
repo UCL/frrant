@@ -267,11 +267,10 @@ tags
 
 ### Project template
 
+*.crt
+*.key
 rard/media/
-
 .pytest_cache/
-
-
 .ipython/
 .env
 .envs/*
