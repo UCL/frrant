@@ -134,7 +134,7 @@ The `-v` option will delete any volume data e.g. Postgres data
 
 ```docker-compose -f local.yml run django python manage.py <command> [arguments]```
 
-### 7. Running Tests:
+### 8. Running Tests:
 
 #### Run unit tests:
 
