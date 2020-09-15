@@ -65,6 +65,8 @@ https://docs.docker.com/docker-for-mac/#file-sharing
 
 ```cd ~/projects/rard/src```
 
+Note that for running locally (on our own machines) we use the `local.yml` config and not `development.yml` which is for deployment to the target development platform.
+
 ```docker-compose -f local.yml build```
 
 to ensure everything is built from scratch, you can add `--no-cache`
