@@ -91,12 +91,15 @@ NB the output will be hidden when run in the background. To inspect the logs aft
 To restart the project, e.g. if some changes have been made to code that don't need the container to be rebuilt then use:
 
 ```docker-compose -f local.yml down```
+
 ```docker-compose -f local.yml up```
 
 If any changes are made to the machine configuration, e.g. new pip packages installed, then the project will need to be rebuilt. Safest is to rebuild with no cache (see above) though this will take longer. Depending on the change it might be advisable to try rebuilding first without the `--no-cache` option to save time.
 
 ```docker-compose -f local.yml down```
+
 ```docker-compose -f local.yml build [--no-cache]```
+
 ```docker-compose -f local.yml up```
 
 ### 6. User Accounts
@@ -193,6 +196,7 @@ If you have made a change to a model and need to generate a migration file:
 You will then either need to restart your container so that these changes are applied:
 
 ```docker-compose -f local.yml down```
+
 ```docker-compose -f local.yml up```
 
 and these migrations are applied. Alternatively, to apply the latest migrations without restarting the container:
