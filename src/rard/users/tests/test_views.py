@@ -34,7 +34,10 @@ class TestUserUpdateView(TestCase):
 
         view.request = request
 
-        self.assertEqual(view.get_success_url(), f"/users/{self.user.username}/")
+        self.assertEqual(
+            view.get_success_url(),
+            f"/users/{self.user.username}/"
+        )
 
     def test_get_object(self):
         view = UserUpdateView()

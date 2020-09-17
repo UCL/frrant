@@ -12,7 +12,7 @@ pytestmark = pytest.mark.django_db
 
 
 class TestCommentableText(TestCase):
-    
+
     def test_required_fields(self):
         self.assertTrue(CommentableText._meta.get_field('content').blank)
 

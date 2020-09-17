@@ -2,10 +2,10 @@ import pytest
 from django.test import TestCase
 from django.urls import resolve, reverse
 
-from rard.users.models import User
 from rard.users.tests.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
+
 
 class TestUserProfile(TestCase):
 
@@ -18,7 +18,6 @@ class TestUserProfile(TestCase):
         self.assertEqual(
             resolve(f"/users/{user.username}/").view_name, "users:detail"
         )
-
 
     def test_update(self):
         self.assertEqual(reverse("users:update"), "/users/update-profile/")
