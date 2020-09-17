@@ -1,6 +1,7 @@
 import pytest
 
 from rard.users.forms import UserCreationForm
+from rard.users.models import User
 from rard.users.tests.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
@@ -32,6 +33,23 @@ class TestUserCreationForm:
             {
                 "username": proto_user.username,
                 "email": 'different_email@example.com',
+                "password1": proto_user._password,
+                "password2": proto_user._password,
+            }
+        )
+
+        assert not form.is_valid()
+        assert len(form.errors) == 1
+        assert "username" in form.errors
+
+    def test_reserved_username(self):
+        # A user with proto_user params does not exist yet.
+        proto_user = UserFactory.build()
+
+        form = UserCreationForm(
+            {
+                "username": User.SENTINEL_USERNAME,
+                "email": 'email@example.com',
                 "password1": proto_user._password,
                 "password2": proto_user._password,
             }
