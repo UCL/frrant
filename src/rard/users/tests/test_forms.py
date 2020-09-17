@@ -1,4 +1,5 @@
 import pytest
+from django.test import TestCase
 
 from rard.users.forms import UserCreationForm
 from rard.users.models import User
@@ -7,7 +8,7 @@ from rard.users.tests.factories import UserFactory
 pytestmark = pytest.mark.django_db
 
 
-class TestUserCreationForm:
+class TestUserCreationForm(TestCase):
     def test_clean_username(self):
         # A user with proto_user params does not exist yet.
         proto_user = UserFactory.build()
@@ -21,8 +22,8 @@ class TestUserCreationForm:
             }
         )
 
-        assert form.is_valid()
-        assert form.clean_username() == proto_user.username
+        self.assertTrue(form.is_valid())
+        self.assertEqual(form.clean_username(), proto_user.username)
 
         # Creating a user.
         form.save()
@@ -38,9 +39,9 @@ class TestUserCreationForm:
             }
         )
 
-        assert not form.is_valid()
-        assert len(form.errors) == 1
-        assert "username" in form.errors
+        self.assertFalse(form.is_valid())
+        self.assertEqual(len(form.errors), 1)
+        self.assertIn("username", form.errors)
 
     def test_reserved_username(self):
         # A user with proto_user params does not exist yet.
@@ -55,9 +56,9 @@ class TestUserCreationForm:
             }
         )
 
-        assert not form.is_valid()
-        assert len(form.errors) == 1
-        assert "username" in form.errors
+        self.assertFalse(form.is_valid())
+        self.assertEqual(len(form.errors), 1)
+        self.assertIn("username", form.errors)
 
     def test_unique_email(self):
         # A user with proto_user params does not exist yet.
@@ -72,7 +73,7 @@ class TestUserCreationForm:
             }
         )
 
-        assert form.is_valid()
+        self.assertTrue(form.is_valid())
 
         # Create the with this email address
         form.save()
@@ -88,6 +89,6 @@ class TestUserCreationForm:
             }
         )
 
-        assert not form.is_valid()
-        assert len(form.errors) == 1
-        assert "email" in form.errors
+        self.assertFalse(form.is_valid())
+        self.assertEqual(len(form.errors), 1)
+        self.assertIn("email", form.errors)
