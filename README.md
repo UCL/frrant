@@ -138,37 +138,47 @@ The `-v` option will delete any volume data e.g. Postgres data
 
 #### Run unit tests:
 
-```docker-compose -f local.yml run django pytest```
+Note that by adding `--rm` to the commands then the container in which the tests are run is deleted once the tests have finished.
+
+```docker-compose -f local.yml run --rm django pytest```
 
 #### Run unit tests with coverage:
 
-```docker-compose -f local.yml run django coverage run -m pytest```
+```docker-compose -f local.yml run --rm django coverage run -m pytest```
 
 NB to view coverage results, 
 
-```docker-compose -f local.yml run django coverage report```
+```docker-compose -f local.yml run --rm django coverage report```
 
 which prints a top-level summary to the console. Alternatively for more detail, run
 
-```docker-compose -f local.yml run django coverage html```
+```docker-compose -f local.yml run --rm django coverage html```
 
 which creates a local folder `htmlcov`. Browse to the file `index.html` in that folder
 
 #### Check code comprehensively:
 
-```docker-compose -f local.yml run django flake8```
+```docker-compose -f local.yml run --rm django flake8```
 
 (no errors means check passed)
 
 #### Check code style only:
 
-```docker-compose -f local.yml run django pycodestyle```
+```docker-compose -f local.yml run --rm django pycodestyle```
 
 (no errors means style check passed)
 
 #### Check object types:
 
-```docker-compose -f local.yml run django mypy rard```
+```docker-compose -f local.yml run --rm django mypy rard```
+
+#### Fix import order:
+
+The command below will correct the order of your python imports to meet the standard
+
+```docker-compose -f local.yml run --rm django isort .```
+
+(import order errors when running the flake8 command should be fixed automatically by running the above command)
 
 ### Django Migrations
 
