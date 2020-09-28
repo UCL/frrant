@@ -1,17 +1,19 @@
 [
 {
   "model": "users.user",
-  "pk": "a5e4965a-d06d-4ac8-abe4-509c518c59d3",
+  "pk": 1,
   "fields": {
-    "password": "argon2$argon2i$v=19$m=512,t=2,p=2$S2RYRU11bXBBaDNV$Zd1h0ihNR693XjzmjUXj9g",
-    "last_login": "2020-09-09T14:12:42.885Z",
+    "password": "argon2$argon2i$v=19$m=512,t=2,p=2$MUp0Qmh1UnN0TnNR$hRdp1RTcKR8BDamfOvSrvg",
+    "last_login": null,
     "is_superuser": true,
     "username": "developer",
-    "first_name": "Developer",
-    "last_name": "Account",
+    "first_name": "",
+    "last_name": "",
     "is_staff": true,
     "is_active": true,
-    "date_joined": "2020-09-09T13:40:47.696Z",
+    "date_joined": "2020-09-22T10:49:54.376Z",
+    "created": "2020-09-22T10:49:54.376Z",
+    "modified": "2020-09-22T10:49:54.376Z",
     "email": "developer@example.com",
     "groups": [],
     "user_permissions": []

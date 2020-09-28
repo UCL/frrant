@@ -1,5 +1,3 @@
-from uuid import UUID
-
 import pytest
 from django.test import TestCase
 
@@ -23,21 +21,6 @@ class TestUser(TestCase):
         data = {'username': 'jsmith'}
         user = User(**data)
         self.assertEqual(user.display_name(), data['username'])
-
-    def test_user_primary_key(self):
-
-        data = {
-            'first_name': 'John',
-            'last_name': 'Smith',
-            'username': 'jsmith'
-        }
-        user = User(**data)
-
-        # check we are using uuids as primary keys
-        self.assertIsInstance(user.pk, UUID)
-
-        # check the short reference is correct
-        self.assertEqual(user.reference, user.pk.hex[:8])
 
     def test_sentinel_user(self):
 
