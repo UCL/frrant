@@ -1,0 +1,16 @@
+{% extends "research/base.html" %}
+{% load i18n %}
+
+{% block outer %}
+<div class='row'>
+    <div class='col-md-4'>
+        <a href='{% url "fragment:create" %}' class='btn btn-block btn-outline-secondary'>{% trans 'Create Fragment' %}</a>
+    </div>
+    <div class='col-md-4'>
+        <a href='{% url "antiquarian:create" %}' class='btn btn-block btn-outline-secondary'>{% trans 'Create Antiquarian' %}</a>
+    </div>
+    <div class='col-md-4'>
+        <a href='javascript:alert("TODO");' class='btn btn-block btn-outline-secondary'>{% trans 'Create Testimonium' %}</a>
+    </div>
+</div>
+{% endblock %}

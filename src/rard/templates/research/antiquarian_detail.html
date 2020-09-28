@@ -1,0 +1,90 @@
+{% extends "research/base.html" %}
+{% load i18n %}
+
+{% block heading %}{{ object.name }}{% endblock %}
+
+{% block inner %}
+    <hr>
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Details' %}</h5>
+            </div>
+            <div>
+                <a href='{% url "antiquarian:update" object.pk %}'>{% trans 'edit' %}</a>
+            </div>
+        </div>
+
+        <dl class="row mb-0">
+            <dt class="col-sm-3">{% trans 'Name' %}</dt>
+            <dd class="col-sm-9">{{ object.name }}</dd>
+        
+            <dt class="col-sm-3">{% trans 'RE Code' %}</dt>
+            <dd class="col-sm-9">{{ object.re_code }}</dd>
+            
+        
+            <dt class="col-sm-3">{% trans 'Biography' %}</dt>
+            <dd class="col-sm-9">{{ object.biography.content|linebreaks }}</dd>
+        </dl>
+    </section>
+
+    <hr>
+
+    <section>
+
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Works' %}</h5>
+            </div>
+            <div>
+                <a href='{% url "antiquarian:create_work" object.pk %}'>{% trans 'add new' %}</a> |
+                <a href='{% url "antiquarian:update_works" object.pk %}'>{% trans 'edit' %}</a>
+            </div>
+        </div>
+
+        {% for work in object.works.all %}
+
+        {% include 'research/partials/work_list_item.html' with work=work %}
+        
+        {% endfor %}
+    </section>
+
+    <hr>
+
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Definite Fragments' %}</h5>
+            </div>
+            <div>
+                <a href='{% url "fragment:create" %}'>{% trans 'add new' %}</a>
+            </div>
+        </div>
+
+        {% for fragment in object.definite_fragments.all %}
+
+        {% include 'research/partials/fragment_list_item.html' with fragment=fragment %}
+
+        {% endfor %}
+    </section>
+
+    <hr>
+
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Possible Fragments' %}</h5>
+            </div>
+            <div>
+                <a href='{% url "fragment:create" %}'>{% trans 'add new' %}</a>
+            </div>
+        </div>
+
+        {% for fragment in object.possible_fragments.all %}
+
+        {% include 'research/partials/fragment_list_item.html' with fragment=fragment %}
+
+        {% endfor %}
+    </section>
+
+{% endblock %}

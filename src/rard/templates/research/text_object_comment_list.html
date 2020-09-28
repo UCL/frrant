@@ -1,0 +1,32 @@
+{% extends "research/list_base.html" %}
+{% load i18n bootstrap4 %}
+
+{% block heading %}
+    {% trans 'Comments' %}
+{% endblock %}
+
+{% block action %}
+{% endblock %}
+
+{% block inner %}
+    {% for comment in page_obj %}
+    {% include 'research/partials/comment_list_item.html' with comment=comment %}
+    {% endfor %}
+
+    {{ block.super }}
+
+    <hr>
+    <form enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        <div class='d-flex justify-content-between'>
+            <div>
+                <button type="submit" class="btn btn-primary">
+                    {% trans 'Add Comment' %}
+                </button>
+            </div>
+            <div><small>Commenting as {{ request.user.display_name }}</small></div>
+        </div>
+    </form>
+
+{% endblock %}

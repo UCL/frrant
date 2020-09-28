@@ -1,0 +1,81 @@
+{# Assumes a context object named 'antiquarian' #}
+
+{% load i18n %}
+
+<div class='list-item d-flex justify-content-between'>
+    <div>
+        <li>
+            <a href='{% url "antiquarian:detail" antiquarian.pk %}'>
+                {{ antiquarian.name }} 
+            </a> 
+        </li>
+    </div>
+    <div class='list-item-actions'>
+        <form class='form-inline' action='{% url "antiquarian:delete" antiquarian.pk %}' method='POST'>
+            {% csrf_token %}
+            <div class='form-group'>
+                <button type='submit' class='btn btn-link btn-sm text-danger confirm-delete p-0 ml-2'
+                    data-what='antiquarian'>{% trans 'delete' %}</button>
+            </div>
+        </form>        
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+{% comment %}
+
+<style>
+    .collapsing {
+        -webkit-transition: none;
+        transition: none;
+        display: none;
+    }
+    a.collapsable {
+        text-decoration: none;
+    }
+    a.collapsable:after {
+        content: '-';
+    }
+    a.collapsable.collapsed:after {
+        content: '+';
+    }
+</style>
+{% endcomment %}
+
+{% comment %}
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">{{ antiquarian.name }}</h5>
+        <div class='d-flex justify-content-between'>
+            <div class="card-text text-muted">
+                {{ antiquarian.re_code }}
+            </div>
+            <div>
+                <form class='form-inline' action='{% url "antiquarian:delete" antiquarian.pk %}' method='POST'>
+                    {% csrf_token %}
+                    <div class='form-group'>
+                        <a href='{% url "antiquarian:detail" antiquarian.pk %}'
+                            class='ml-2 align-middle'>{% trans 'View' %}</a>
+                        <button type='submit' class='btn btn-link btn-sm text-danger confirm-delete p-0 ml-2'
+                            data-what='antiquarian'>{% trans 'Delete' %}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<a class='collapsable collapsed' data-toggle="collapse" href="#antiquarian_{{ antiquarian.pk }}" role="button" aria-expanded="false"></a> 
+    <a href='{% url "antiquarian:detail" antiquarian.pk %}' class='align-middle'>
+        {{ antiquarian.name }} 
+    </a>
+
+{% endcomment %}

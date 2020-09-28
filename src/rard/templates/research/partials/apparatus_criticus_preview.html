@@ -1,0 +1,9 @@
+{# Assumes a context object named 'apparatus_criticus' #}
+
+<div class="card mb-3">
+    <div class="card-body">
+        <div class='card-text'>
+            {{ apparatus_criticus|default:'Not specified'|linebreaks }}
+        </div>
+    </div>
+</div>

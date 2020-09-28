@@ -1,0 +1,55 @@
+{% extends "research/base.html" %}
+{% load i18n %}
+
+{% block heading %}{{ object.name }}{% endblock %}
+
+
+{% block inner %}
+    <div class='d-flex justify-content-between'>
+        <div>
+            <dl>
+                <dt>{% trans 'Name' %}:</dt>
+                <dd>{{ object.name }}</dd>
+            </dl>
+
+        </div>
+
+        <div>
+            <a href='{% url "topic:update" object.slug %}' class='btn btn-outline-secondary btn-sm'>{% trans 'Edit Details' %}</a>
+        </div>
+    </div>
+
+
+    {% comment %}
+    <hr>
+
+    <h3>{% trans 'Fragments' %}:</h3>
+    <p>
+        {% blocktrans count number=object.fragment_set.count %}
+        One fragment found
+        {% plural %}
+        {{ number }} fragments found 
+        {% endblocktrans %}
+    </p>
+    {% endcomment %}
+
+    <hr>
+
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Fragments' %}</h5>
+            </div>
+            <div>
+            </div>
+        </div>
+
+        {% for fragment in object.fragment_set.all %}
+
+        {% include 'research/partials/fragment_list_item.html' with fragment=fragment %}
+
+        {% endfor %}
+    </section>
+
+
+{% endblock %}

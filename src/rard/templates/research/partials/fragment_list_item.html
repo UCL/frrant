@@ -1,0 +1,57 @@
+{# Assumes a context object named 'fragment' #}
+
+{% load i18n %}
+
+
+
+<div class='list-item d-flex justify-content-between'>
+    <div>
+        <li>
+            <a href='{% url "fragment:detail" fragment.pk %}'>
+                {{ fragment.name|default:'Unnamed fragment' }}
+            </a> 
+        </li>
+    </div>
+    <div class='list-item-actions'>
+        <form class='form-inline' action='{% url "fragment:delete" fragment.pk %}' method='POST'>
+            {% csrf_token %}
+            <div class='form-group'>
+                <button type='submit' class='btn btn-link btn-sm text-danger confirm-delete p-0 ml-2'
+                    data-what='fragment'>{% trans 'delete' %}</button>
+            </div>
+        </form>        
+    </div>
+</div>
+
+{% comment %}
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">{{ fragment.name|default:'Unnamed fragment' }}</h5>
+        <div class='d-flex justify-content-between'>
+            <div class='card-text text-muted'>
+                {% if fragment.definite_antiquarians.count > 0 %}
+                {{ fragment.definite_antiquarians.all|join:', ' }} [definite]
+                {% endif %}
+                {% if fragment.possible_antiquarians.count > 0 %}
+                {{ fragment.possible_antiquarians.all|join:', ' }} [possible]
+                {% endif %}
+
+            </div>
+            <div class='d-flex justify-content-end'>
+                <div>
+                    <a href='{% url "fragment:detail" fragment.pk %}' class='ml-2 align-middle'>{% trans 'View' %}</a>
+                </div>
+                <div>
+                    <form class='form-inline' action='{% url "fragment:delete" fragment.pk %}' method='POST'>
+                        {% csrf_token %}
+                        <div class='form-group'>
+                            <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+                                data-what='fragment'>{% trans 'Delete' %}</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endcomment %}
