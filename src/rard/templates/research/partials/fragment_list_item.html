@@ -1,0 +1,15 @@
+{# Assumes a context object named 'fragment' #}
+
+{% load i18n %}
+
+<div class='list-item d-flex justify-content-between'>
+    <div>
+        <li>
+            <a href='{% url "fragment:detail" fragment.pk %}'>
+                {{ fragment.name|default:'Unnamed fragment' }}
+            </a> 
+        </li>
+    </div>
+    <div class='list-item-actions'>
+    </div>
+</div>

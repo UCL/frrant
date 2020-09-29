@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% load i18n %}
+
+{% block content %}
+<div class='row mt-5'>
+  <div class='col-md-2'>
+    <nav class='nav flex-column'>
+      <a class='nav-link {% if "antiquarian" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
+        href='{% url "antiquarian:list" %}'>
+        {% trans 'Antiquarians' %}
+      </a>
+      <a class='nav-link {% if "fragment" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
+        href='{% url "fragment:list" %}'>
+        {% trans 'Fragments' %}
+      </a>
+      <a class='nav-link {% if "testimonium" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
+        href='{% url "testimonium:list" %}'>
+        {% trans 'Testimonia' %}
+      </a>
+      <a class='nav-link {% if "topic" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
+        href='{% url "topic:list" %}'>
+        {% trans 'Topics' %}
+      </a>
+      <a class='nav-link {% if "work" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
+        href='{% url "work:list" %}'>
+        {% trans 'Works' %}
+      </a>
+    </nav>
+  </div>
+  <div class='col'>
+    {% block outer %}
+    <div class="d-flex">
+      <div>
+        <h3 class='historical mb-3'>{% block heading %}{% endblock %}</h3>
+      </div>
+      <div class='ml-auto'>{% block action %}{% endblock %}</div>
+    </div>
+    <div class='mt-5'>
+      {% block inner %}{% endblock %}
+    </div>
+    {% endblock %}
+  </div>
+  <div class='col-md-3' style='display:none'>
+    <h6 class='mb-4'>Editorial Comments</h6>
+    <div class="card mb-3">
+
+      <div class="card-body">
+        <h5 class="card-title">Special title treatment</h5>
+        <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+      </div>
+    </div>
+    <div class="card mb-3">
+
+      <div class="card-body">
+        <h5 class="card-title">Special title treatment</h5>
+        <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,9 @@
+{# Assumes a context object named 'original_text' #}
+
+<div class="card mt-3 mb-5 bg-light">
+    <div class="card-body">
+        <div class='card-text'>
+            {{ original_text.content|linebreaks }}
+        </div>
+    </div>
+</div>

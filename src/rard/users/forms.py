@@ -13,7 +13,10 @@ class UserChangeForm(forms.UserChangeForm):
 class UserCreationForm(forms.UserCreationForm):
 
     error_message = forms.UserCreationForm.error_messages.update(
-        {"duplicate_username": _("This username has already been taken.")}
+        {
+            "duplicate_username": _("This username has already been taken."),
+            "reserved_username": _("This username is reserved."),
+        }
     )
 
     def __init__(self, *args, **kwargs):
@@ -27,6 +30,9 @@ class UserCreationForm(forms.UserCreationForm):
 
     def clean_username(self):
         username = self.cleaned_data["username"]
+
+        if username == User.SENTINEL_USERNAME:
+            raise ValidationError(self.error_messages["reserved_username"])
 
         try:
             User.objects.get(username=username)

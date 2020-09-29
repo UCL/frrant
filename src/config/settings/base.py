@@ -70,7 +70,7 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     "rard.users.apps.UsersConfig",
-    # Your stuff: custom apps go here
+    "rard.research",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -255,4 +255,5 @@ BOOTSTRAP4 = {
     'success_css_class': 'success'
 }
 
-UPLOAD_ROOT = str(ROOT_DIR / "uploads")
+UPLOAD_FOLDER = 'uploads'
+UPLOAD_ROOT = str(ROOT_DIR / UPLOAD_FOLDER)

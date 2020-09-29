@@ -1,0 +1,55 @@
+{% extends "research/base.html" %}
+{% load i18n %}
+
+{% block heading %}{{ object.name }}{% endblock %}
+
+{% block action %}
+    <form class='form-inline' action='{% url "topic:delete" topic.slug %}' method='POST'>
+        {% csrf_token %}
+        <div class='form-group'>
+            <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+                data-what='topic'>{% trans 'Delete' %}</button>
+        </div>
+    </form>    
+{% endblock %}
+
+{% block inner %}
+
+    <hr>
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Details' %}</h5>
+            </div>
+            <div>
+                <a href='{% url "topic:update" object.slug %}'>{% trans 'Edit' %}</a>
+            </div>
+        </div>
+
+        <dl class="row mb-0">
+            <dt class="col-sm-3">{% trans 'Name' %}</dt>
+            <dd class="col-sm-9">{{ object.name }}</dd>
+        
+        </dl>
+    </section>
+
+    <hr>
+
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Fragments' %}</h5>
+            </div>
+            <div>
+            </div>
+        </div>
+
+        {% for fragment in object.fragment_set.all %}
+
+        {% include 'research/partials/fragment_list_item.html' with fragment=fragment %}
+
+        {% endfor %}
+    </section>
+
+
+{% endblock %}

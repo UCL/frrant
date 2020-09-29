@@ -1,0 +1,139 @@
+{% extends "research/base.html" %}
+{% load i18n %}
+
+{% block heading %}{{ object.name }}{% endblock %}
+
+{% block action %}
+<form class='form-inline' action='{% url "antiquarian:delete" antiquarian.pk %}' method='POST'>
+    {% csrf_token %}
+    <div class='form-group'>
+        <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+            data-what='work'>{% trans 'Delete' %}</button>
+    </div>
+</form>     
+{% endblock %}
+
+{% block inner %}
+    <hr>
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Details' %}</h5>
+            </div>
+            <div>
+                <a href='{% url "antiquarian:update" object.pk %}'>{% trans 'Edit' %}</a>
+            </div>
+        </div>
+
+        <dl class="row mb-0">
+            <dt class="col-sm-3">{% trans 'Name' %}</dt>
+            <dd class="col-sm-9">{{ object.name }}</dd>
+        
+            <dt class="col-sm-3">{% trans 'RE Code' %}</dt>
+            <dd class="col-sm-9">{{ object.re_code }}</dd>
+            
+        
+            <dt class="col-sm-3">{% trans 'Biography' %}</dt>
+            <dd class="col-sm-9">{{ object.biography.content|linebreaks }}</dd>
+        </dl>
+    </section>
+
+    <hr>
+
+    <section>
+
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Works' %}</h5>
+            </div>
+            <div>
+                <a href='{% url "antiquarian:create_work" object.pk %}'>{% trans 'Add' %}</a> |
+                <a href='{% url "antiquarian:update_works" object.pk %}'>{% trans 'Edit' %}</a>
+            </div>
+        </div>
+
+        {% for work in object.works.all %}
+
+        {% include 'research/partials/work_list_item.html' with work=work %}
+        
+        {% endfor %}
+    </section>
+
+    <hr>
+
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Definite Fragments' %}</h5>
+            </div>
+            <div>
+                <a href='{% url "fragment:create" %}'>{% trans 'Add' %}</a>
+            </div>
+        </div>
+
+        {% for fragment in object.definite_fragments.all %}
+
+        {% include 'research/partials/fragment_list_item.html' with fragment=fragment %}
+
+        {% endfor %}
+    </section>
+
+    <hr>
+
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Possible Fragments' %}</h5>
+            </div>
+            <div>
+                <a href='{% url "fragment:create" %}'>{% trans 'Add' %}</a>
+            </div>
+        </div>
+
+        {% for fragment in object.possible_fragments.all %}
+
+        {% include 'research/partials/fragment_list_item.html' with fragment=fragment %}
+
+        {% endfor %}
+    </section>
+
+    <hr>
+
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Definite Testimonia' %}</h5>
+            </div>
+            <div>
+                <a href='{% url "testimonium:create" %}'>{% trans 'Add' %}</a>
+            </div>
+        </div>
+
+        {% for testimonium in object.definite_testimoniums.all %}
+
+        {% include 'research/partials/testimonium_list_item.html' with testimonium=testimonium %}
+
+        {% endfor %}
+    </section>
+
+    <hr>
+
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Possible Testimonia' %}</h5>
+            </div>
+            <div>
+                <a href='{% url "testimonium:create" %}'>{% trans 'Add' %}</a>
+            </div>
+        </div>
+
+        {% for testimonium in object.possible_testimoniums.all %}
+
+        {% include 'research/partials/testimonium_list_item.html' with testimonium=testimonium %}
+
+        {% endfor %}
+    </section>
+
+
+{% endblock %}

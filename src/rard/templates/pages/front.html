@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block content %}
+    {% if request.user.is_authenticated %}
+        <p class='text-center my-5 lead'>
+        {% blocktrans with name=request.user.display_name %}
+            {{ name }}, welcome to the Republican Antiquarians Research Database Project.
+        {% endblocktrans %}
+        </p>
+    {% else %}
+        <p class='text-center my-5 lead'>{% trans "Welcome to the Republican Antiquarians Research Database Project." %}</p>
+    {% endif %}
+{% endblock %}

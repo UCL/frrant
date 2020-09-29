@@ -1,0 +1,15 @@
+{# Assumes a context object named 'work' #}
+
+{% load i18n %}
+
+<div class='list-item d-flex justify-content-between'>
+    <div>
+        <li>
+            <a href='{% url "work:detail" work.pk %}'>
+                {{ work }} 
+            </a> 
+        </li>
+    </div>
+    <div class='list-item-actions'>
+    </div>
+</div>

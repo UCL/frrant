@@ -1,0 +1,52 @@
+{% extends "research/list_base.html" %}
+{% load i18n bootstrap4 %}
+
+{% block heading %}
+    {% trans 'Comments' %}
+{% endblock %}
+
+{% block action %}
+    {% if parent_object.fragment %}
+        <a href='{{ parent_object.fragment.get_detail_url }}'>Back to Fragment</a>
+    {% elif parent_object.testimonium %}
+        <a href='{{ parent_object.testimonium.get_detail_url }}'>Back to Testimonium</a>
+    {% elif parent_object.antiquarian %}
+        <a href='{% url "antiquarian:detail" parent_object.antiquarian.pk %}'>Back to Antiquarian</a>
+    {% endif %}
+{% endblock %}
+
+{% block inner %}
+
+    <label>{% trans 'Commenting On' %}</label>
+    <div>
+    
+        <div class="card mt-3 mb-5 bg-light">
+            <div class="card-body">
+                <div class='card-text'>
+                    {{ parent_object|linebreaks }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <form enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        <div class='d-flex justify-content-between'>
+            <div class='text-muted'><small>Commenting as {{ request.user.display_name }}</small></div>
+            <div>
+                <button type="submit" class="btn btn-primary">
+                    {% trans 'Add Comment' %}
+                </button>
+            </div>
+        </div>
+    </form>
+
+    {% for comment in page_obj %}
+    {% include 'research/partials/comment_list_item.html' with comment=comment %}
+    {% endfor %}
+
+    {{ block.super }}
+
+ 
+{% endblock %}

@@ -12,3 +12,15 @@ class User(AbstractUser, BaseModel):
 
     def display_name(self):
         return self.get_full_name() or self.username
+
+    SENTINEL_USERNAME = 'deleteduser'
+
+    @classmethod
+    def get_sentinel_user(cls):
+        # for when users are deleted and we don't want
+        # everything they created to go with them
+        return User.objects.get_or_create(
+            first_name='Deleted',
+            last_name='User',
+            username=cls.SENTINEL_USERNAME
+        )[0]

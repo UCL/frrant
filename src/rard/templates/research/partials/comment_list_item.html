@@ -1,0 +1,28 @@
+{# Assumes a context object named 'comment' #}
+
+{% load i18n humanize %}
+
+<hr>
+
+<p>
+    {{ comment.content|linebreaks }}
+</p>
+
+<div class="d-flex w-100">
+    <div class='mr-auto'>
+        <small class='text-muted'>
+            {{ comment.user.display_name }} {{ comment.created|naturaltime }}
+        </small>
+    </div>
+    <div class='ml-auto'>
+        {% if request.user == comment.user %}
+        <form class='form-inline' action='{% url "delete_comment" comment.pk %}' method='POST'>
+            {% csrf_token %}
+            <div class='form-group'>
+                <button type='submit' class='btn btn-link text-danger confirm-delete p-0'
+                    data-what='comment'>{% trans 'Delete' %}</button>
+            </div>
+        </form>
+        {% endif %}
+    </div>
+</div>

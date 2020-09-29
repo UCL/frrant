@@ -4,21 +4,18 @@ from django.contrib import admin
 from django.contrib.auth.decorators import login_required
 from django.urls import include, path
 from django.views import defaults as default_views
-from django.views.generic import TemplateView
 
 admin.autodiscover()
 admin.site.login = login_required(admin.site.login)
 
 urlpatterns = [
-    path("", TemplateView.as_view(
-        template_name="pages/home.html"), name="home"
-    ),
     path("users/", include("rard.users.urls", namespace="users")),
     # Django Admin, use {% url 'admin:index' %}
     path(settings.ADMIN_URL, admin.site.urls),
     # User management
     path("accounts/", include("django.contrib.auth.urls")),
-    # Your stuff: custom urls includes go here
+    # research urls
+    path("", include("rard.research.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 

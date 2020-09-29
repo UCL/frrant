@@ -91,12 +91,15 @@ NB the output will be hidden when run in the background. To inspect the logs aft
 To restart the project, e.g. if some changes have been made to code that don't need the container to be rebuilt then use:
 
 ```docker-compose -f local.yml down```
+
 ```docker-compose -f local.yml up```
 
 If any changes are made to the machine configuration, e.g. new pip packages installed, then the project will need to be rebuilt. Safest is to rebuild with no cache (see above) though this will take longer. Depending on the change it might be advisable to try rebuilding first without the `--no-cache` option to save time.
 
 ```docker-compose -f local.yml down```
+
 ```docker-compose -f local.yml build [--no-cache]```
+
 ```docker-compose -f local.yml up```
 
 ### 6. User Accounts
@@ -138,37 +141,47 @@ The `-v` option will delete any volume data e.g. Postgres data
 
 #### Run unit tests:
 
-```docker-compose -f local.yml run django pytest```
+Note that by adding `--rm` to the commands then the container in which the tests are run is deleted once the tests have finished.
+
+```docker-compose -f local.yml run --rm django pytest```
 
 #### Run unit tests with coverage:
 
-```docker-compose -f local.yml run django coverage run -m pytest```
+```docker-compose -f local.yml run --rm django coverage run -m pytest```
 
 NB to view coverage results, 
 
-```docker-compose -f local.yml run django coverage report```
+```docker-compose -f local.yml run --rm django coverage report```
 
 which prints a top-level summary to the console. Alternatively for more detail, run
 
-```docker-compose -f local.yml run django coverage html```
+```docker-compose -f local.yml run --rm django coverage html```
 
 which creates a local folder `htmlcov`. Browse to the file `index.html` in that folder
 
 #### Check code comprehensively:
 
-```docker-compose -f local.yml run django flake8```
+```docker-compose -f local.yml run --rm django flake8```
 
 (no errors means check passed)
 
 #### Check code style only:
 
-```docker-compose -f local.yml run django pycodestyle```
+```docker-compose -f local.yml run --rm django pycodestyle```
 
 (no errors means style check passed)
 
 #### Check object types:
 
-```docker-compose -f local.yml run django mypy rard```
+```docker-compose -f local.yml run --rm django mypy rard```
+
+#### Fix import order:
+
+The command below will correct the order of your python imports to meet the standard
+
+```docker-compose -f local.yml run --rm django isort .```
+
+(import order errors when running the flake8 command should be fixed automatically by running the above command)
 
 ### Django Migrations
 
@@ -183,6 +196,7 @@ If you have made a change to a model and need to generate a migration file:
 You will then either need to restart your container so that these changes are applied:
 
 ```docker-compose -f local.yml down```
+
 ```docker-compose -f local.yml up```
 
 and these migrations are applied. Alternatively, to apply the latest migrations without restarting the container:

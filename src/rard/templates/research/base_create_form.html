@@ -1,0 +1,41 @@
+{# Common form to create either a fragment or testimonium #}
+
+{% extends "research/base.html" %}
+{% load i18n bootstrap4 %}
+
+{% block heading %}
+    {{ title }}
+{% endblock %}
+
+{% block inner %}
+
+    <form enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
+        {% csrf_token %}
+
+        {% bootstrap_field forms.original_text.citing_work %}
+
+        <div class='rard-toggle-control' data-on-show='#newCitingWorkArea' data-on-disable='#id_citing_work'>
+            {% bootstrap_field forms.new_citing_work.new_citing_work %}
+        </div>
+
+        <div class="collapse mb-3" id="newCitingWorkArea">
+            <div class="card card-body">
+                {% bootstrap_field forms.new_citing_work.author %}
+                {% bootstrap_field forms.new_citing_work.title %}
+                {% bootstrap_field forms.new_citing_work.edition %}
+            </div>
+        </div>
+
+        {% bootstrap_field forms.original_text.reference %}
+        {% bootstrap_field forms.original_text.content %}
+        {% bootstrap_field forms.original_text.apparatus_criticus %}
+
+        {% for field in forms.object %}
+            {% bootstrap_field field %}
+        {% endfor %}
+
+        <button type="submit" class="btn btn-primary">
+            {% trans 'Create' %}
+        </button>
+    </form>
+{% endblock %}

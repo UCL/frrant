@@ -1,0 +1,21 @@
+{% extends "research/list_base.html" %}
+{% load i18n %}
+
+{% block heading %}
+    {% trans 'Fragments' %}
+{% endblock %}
+
+{% block action %}
+    <a href='{% url "fragment:create" %}'>{% trans 'Create New' %}</a>
+{% endblock %}
+
+{% block inner %}
+    {% for object in page_obj %}
+
+        {% include 'research/partials/fragment_list_item.html' with fragment=object %}
+
+    {% endfor %}
+
+    {{ block.super }}
+
+{% endblock %}

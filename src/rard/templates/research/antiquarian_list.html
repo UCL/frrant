@@ -1,0 +1,22 @@
+{% extends "research/list_base.html" %}
+{% load i18n %}
+
+{% block heading %}
+    {% trans 'Antiquarians' %}
+{% endblock %}
+
+{% block action %}
+    <a href='{% url "antiquarian:create" %}'>{% trans 'Create New' %}</a>
+{% endblock %}
+
+{% block inner %}
+
+    {% for object in page_obj %}
+
+    {% include 'research/partials/antiquarian_list_item.html' with antiquarian=object %}
+
+    {% endfor %}
+
+    {{ block.super }}
+
+{% endblock %}

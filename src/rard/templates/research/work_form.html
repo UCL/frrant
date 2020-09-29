@@ -1,0 +1,33 @@
+{% extends "research/base.html" %}
+{% load i18n bootstrap4 %}
+
+{% block heading %}
+    {% if object %}
+        {% trans 'Update Work' %}
+    {% else %}
+        {% trans 'Create Work' %}
+
+        {% if antiquarian %}
+        <small>
+            {% blocktrans with name=antiquarian.name %}
+                For {{ name }}
+            {% endblocktrans %}
+        </small>
+        {% endif %}
+        
+    {% endif %}
+{% endblock %}
+
+{% block inner %}
+    <form enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        <button type="submit" class="btn btn-primary">
+            {% if object %}
+                {% trans 'Save' %}
+            {% else %}
+                {% trans 'Create' %}
+            {% endif %}
+        </button>
+    </form>
+{% endblock %}

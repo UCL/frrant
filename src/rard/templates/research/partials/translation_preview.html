@@ -1,0 +1,34 @@
+{# Assumes a context object named 'translation' #}
+
+{% load i18n humanize %}
+
+<div class="card mb-3 {% if translation.approved %}border-success{% endif %}">
+    <div class="card-body">
+        <div class='card-text'>
+            <div class='d-flex justify-content-between'>
+                <div>
+                    {{ translation.translated_text }}
+                </div>
+                {% if translation.approved %}
+                <div class='text-success'>
+                    <small>{% trans 'Approved Translation' %}</small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        <div class='d-flex justify-content-between'>
+            <div class='text-muted'><small>{% trans 'Translated by' %} {{ translation.translator_name }}</small></div>
+            <div>
+                <form class='form-inline' action='{% url "fragment:delete_translation" translation.pk %}' method='POST'>
+                    {% csrf_token %}
+                    <div class="form-row align-items-center">
+                        <a href='{% url "fragment:update_translation" translation.pk %}'>Edit</a>
+                        <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+                            data-what='translation'>{% trans 'Delete' %}</button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </div>
+</div>
