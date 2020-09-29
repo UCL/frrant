@@ -14,16 +14,10 @@ from rard.research.models import Comment, TextObjectField
 class CommentDeleteView(LoginRequiredMixin, DeleteView):
     model = Comment
 
-    def get_success_url(self):
-        # TODO this won't work if comments not on text object
-        return reverse(
-            '{}:list_comments_on_text'.format(
-                self.request.resolver_match.namespace
-            ),
-            kwargs={
-                'pk': self.object.parent.pk
-            }
-        )
+    def get_success_url(self, *args, **kwargs):
+        # send to the refering page. Should have one as
+        # delete must be done using post
+        return self.request.META.get('HTTP_REFERER', reverse('home'))
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -55,6 +49,10 @@ class CommentListViewBase(LoginRequiredMixin, FormMixin, ListView):
         return self.request.path
 
     def get_context_data(self, *args, **kwargs):
+        queryset = kwargs.pop('object_list', None)
+        if queryset is None:
+            self.object_list = self.get_queryset()
+
         context = super().get_context_data(*args, **kwargs)
         context.update({
             'parent_object': self.get_parent_object(),

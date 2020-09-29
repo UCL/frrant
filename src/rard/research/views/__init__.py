@@ -8,7 +8,11 @@ from .fragment import (FragmentCreateView, FragmentDeleteView,
                        FragmentUpdateView)
 from .home import HomeView
 from .original_text import (FragmentOriginalTextCreateView,
-                            OriginalTextDeleteView, OriginalTextUpdateView)
+                            OriginalTextDeleteView, OriginalTextUpdateView,
+                            TestimoniumOriginalTextCreateView)
+from .testimonium import (TestimoniumCreateView, TestimoniumDeleteView,
+                          TestimoniumDetailView, TestimoniumListView,
+                          TestimoniumUpdateView)
 from .topic import (TopicCreateView, TopicDeleteView, TopicDetailView,
                     TopicListView, TopicUpdateView)
 from .translation import (TranslationCreateView, TranslationDeleteView,
@@ -34,7 +38,13 @@ __all__ = [
     'HomeView',
     'OriginalTextDeleteView',
     'OriginalTextUpdateView',
+    'TestimoniumCreateView',
+    'TestimoniumDeleteView',
+    'TestimoniumDetailView',
+    'TestimoniumListView',
+    'TestimoniumUpdateView',
     'TextObjectFieldCommentListView',
+    'TestimoniumOriginalTextCreateView',
     'TopicCreateView',
     'TopicDeleteView',
     'TopicDetailView',

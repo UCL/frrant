@@ -1,5 +1,7 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse, reverse_lazy
+from django.utils.decorators import method_decorator
+from django.views.decorators.http import require_POST
 from django.views.generic import ListView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
@@ -31,6 +33,7 @@ class WorkUpdateView(LoginRequiredMixin, UpdateView):
         return reverse('work:detail', kwargs={'pk': self.object.pk})
 
 
+@method_decorator(require_POST, name='dispatch')
 class WorkDeleteView(LoginRequiredMixin, DeleteView):
     model = Work
     success_url = reverse_lazy('work:list')

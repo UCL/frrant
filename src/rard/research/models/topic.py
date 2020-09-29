@@ -5,7 +5,7 @@ from rard.utils.basemodel import BaseModel
 
 
 class Topic(BaseModel):
-    
+
     class Meta:
         ordering = ['name']
 
