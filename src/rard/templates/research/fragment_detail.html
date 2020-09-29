@@ -3,6 +3,15 @@
 
 {% block heading %}{{ object.name|default:'Unnamed fragment' }}{% endblock %}
 
+{% block action %}
+    <form class='form-inline' action='{% url "fragment:delete" fragment.pk %}' method='POST'>
+        {% csrf_token %}
+        <div class='form-group'>
+            <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+                data-what='fragment'>{% trans 'Delete' %}</button>
+        </div>
+    </form>        
+{% endblock %}
 
 {% block inner %}
     <hr>
@@ -12,7 +21,7 @@
                 <h5>{% trans 'Details' %}</h5>
             </div>
             <div>
-                <a href='{% url "fragment:update" object.pk %}'>{% trans 'edit' %}</a>
+                <a href='{% url "fragment:update" object.pk %}'>{% trans 'Edit' %}</a>
             </div>
         </div>
 
@@ -20,14 +29,16 @@
             <dt class="col-sm-3">{% trans 'Name' %}</dt>
             <dd class="col-sm-9">{{ object.name|default:'Unnamed fragment' }}</dd>
                 
+            {% if object.topics is not None %}
             <dt class="col-sm-3">{% trans 'Topics' %}</dt>
             <dd class="col-sm-9">
                 {% if object.topics.count == 0%}-{% endif %}
                 {% for topic in object.topics.all %}{% if forloop.counter0 > 0 %}, {% endif %}<a href='{% url "topic:detail" topic.slug %}'>{{ topic.name }}</a>{% endfor %}
             </dd>
+            {% endif %}
 
             <dt class="col-sm-3">{% trans 'Original Texts' %}</dt>
-            <dd class="col-sm-9">{{ object.original_texts.count }}</dd>
+            <dd class="col-sm-9">{{ object.original_texts.count }} <a href='{% url "fragment:create_original_text" object.pk %}'>Add</a></dd>
 
             <dt class="col-sm-3">{% trans 'Apparatus Criticus' %}</dt>
             <dd class="col-sm-9">{{ object.apparatus_criticus|default:'-'|linebreaks }}</dd>
@@ -48,8 +59,8 @@
                 <form class='form-inline' action='{% url "fragment:delete_original_text" original_text.pk %}' method='POST'>
                     {% csrf_token %}
                     <div class="form-row align-items-center">
-                        <a href='{% url "fragment:update_original_text" original_text.pk %}'>edit</a>        
-                        <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2' data-what='original text'>{% trans 'delete' %}</button>
+                        <a href='{% url "fragment:update_original_text" original_text.pk %}'>Edit</a>        
+                        <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2' data-what='original text'>{% trans 'Delete' %}</button>
                     </div>
                 </form>
         
@@ -62,7 +73,7 @@
 
         <dl class="row mb-0">
             <dt class="col-sm-3">{% trans 'Citing Work' %}</dt>
-            <dd class="col-sm-9"><a href='{% url "work:detail" original_text.citing_work.pk %}'>{{ original_text.citing_work }}</a></dd>
+            <dd class="col-sm-9">{{ original_text.citing_work }}</dd>
 
             <dt class="col-sm-3">{% trans 'Translations' %}</dt>
             <dd class="col-sm-9">{{ original_text.translation_set.count }}</dd>
@@ -83,7 +94,7 @@
                 </h6>
             </div>
             <div>
-                <a href='{% url "fragment:create_translation" original_text.pk %}'>{% trans 'add' %}</a>
+                <a href='{% url "fragment:create_translation" original_text.pk %}'>{% trans 'Add' %}</a>
             </div>
         </div>
 
@@ -107,7 +118,7 @@
                 <h5>{% trans 'Definite Works' %}</h5>
             </div>
             <div>
-                <a href='{% url "fragment:update" object.pk %}'>{% trans 'edit' %}</a>
+                <a href='{% url "fragment:update" object.pk %}'>{% trans 'Edit' %}</a>
             </div>
         </div>
 
@@ -127,7 +138,7 @@
                 <h5>{% trans 'Possible Works' %}</h5>
             </div>
             <div>
-                <a href='{% url "fragment:update" object.pk %}'>{% trans 'edit' %}</a>
+                <a href='{% url "fragment:update" object.pk %}'>{% trans 'Edit' %}</a>
             </div>
         </div>
 
@@ -147,7 +158,7 @@
             </div>
             <div>
 
-                <a href='{% url "fragment:update" object.pk %}'>{% trans 'edit' %}</a>
+                <a href='{% url "fragment:update" object.pk %}'>{% trans 'Edit' %}</a>
             </div>
         </div>
 
@@ -169,7 +180,7 @@
             </div>
             <div>
 
-                <a href='{% url "fragment:update" object.pk %}'>{% trans 'edit' %}</a>
+                <a href='{% url "fragment:update" object.pk %}'>{% trans 'Edit' %}</a>
             </div>
         </div>
 
@@ -191,7 +202,7 @@
             </div>
             <div>
 
-                <a href='{% url "fragment:update" object.pk %}'>{% trans 'edit' %}</a>
+                <a href='{% url "fragment:update" object.pk %}'>{% trans 'Edit' %}</a>
             </div>
         </div>
 
@@ -208,137 +219,5 @@
         </div>
     </section>
 
-    {% comment %}
-
-    <h5>{% trans 'Commentary' %}:</h5>
-    <p>{{ object.commentary.content|linebreaks|default:'Not specified' }}</p>
-
-    <p>{{ object.commentary.comments.count }} comments</p>
-    <p>Most recent <a href='{% url "fragment:list_comments_on_text" object.commentary.pk %}'>View All</a></p>
-    {% for comment in object.commentary.comments.all|slice:':3' %}
-    {% include 'research/partials/comment_list_item.html' with comment=comment %}
-    {% endfor %}
-
-    <h5>
-        {% blocktrans count number=object.original_texts.count %}
-        One original text:
-        {% plural %}
-        {{ number }} original texts:
-        {% endblocktrans %}
-    </h5>
-    <p><a href='{% url "fragment:create_original_text" object.pk %}'>Create New</a></p>
-
-    {% for original_text in object.original_texts.all %}
-        <p>
-            {% trans 'Original Text' %} {{ forloop.counter }} 
-        </p>
-
-        <div><a href='{% url "fragment:update_original_text" original_text.pk %}'>Edit</a></div>
-        <div>
-            <form class='form-inline' action='{% url "fragment:delete_original_text" original_text.pk %}' method='POST'>
-                {% csrf_token %}
-                <div class='form-group'>
-                    <button type='submit' class='btn btn-link text-danger confirm-delete p-0' data-what='original text'>{% trans 'Delete' %}</button>
-                </div>
-            </form>
-        </div>
-        <br>
-        <p>{% trans 'Cited Work' %}</p>
-        <pre>{{ original_text.citing_work }}</pre>
-
-        {% include 'research/partials/original_text_preview.html' with original_text=original_text %}
-
-        <p>{% trans 'Apparatus Criticus' %}</p>
-        {% include 'research/partials/apparatus_criticus_preview.html' with apparatus_criticus=original_text.apparatus_criticus %}
-    <hr>
-        <h5>
-            {% blocktrans count number=original_text.translation_set.count %}
-            One translation
-            {% plural %}
-            {{ number }} translations
-            {% endblocktrans %}
-
-            <a href='{% url "fragment:create_translation" original_text.pk %}'>{% trans 'Create New' %}</a>
-        </h5>
-        {% for translation in original_text.translation_set.all %}
-
-            {% include 'research/partials/translation_preview.html' with translation=translation %}
-
-        {% endfor %}
-    {% endfor %}
-
-    <hr>
-    <h5>{% trans 'Apparatus Criticus' %}</h5>
-
-    {% include 'research/partials/apparatus_criticus_preview.html' with apparatus_criticus=object.apparatus_criticus %}
-
-    <hr>
-    
-    <h5>{% trans 'Definite Works' %}:</h5>
-    <p>
-        {% blocktrans count number=object.definite_works.count %}
-        One work found
-        {% plural %}
-        {{ number }} works found 
-        {% endblocktrans %}
-    </p>
-    {% for work in object.definite_works.all %}
-    {% include 'research/partials/work_list_item.html' with work=work %}
-    {% endfor %}
-
-    <hr>
-    
-    <h6>{% trans 'Possible' %}:</h6>
-    <p>
-        {% blocktrans count number=object.possible_works.count %}
-        One work found
-        {% plural %}
-        {{ number }} works found 
-        {% endblocktrans %}
-    </p>
-    {% for work in object.possible_works.all %}
-    {% include 'research/partials/work_list_item.html' with work=work %}
-    {% endfor %}
-
-    <hr>
-    
-    <h5>{% trans 'Antiquarians' %}:</h5>
-    <h6>{% trans 'Definite' %}:</h6>
-    <p>
-        {% blocktrans count number=object.definite_antiquarians.count %}
-        One antiquarian found
-        {% plural %}
-        {{ number }} antiquarians found 
-        {% endblocktrans %}
-    </p>
-    {% for antiquarian in object.definite_antiquarians.all %}
-    {% include 'research/partials/antiquarian_list_item.html' with antiquarian=antiquarian %}
-    {% endfor %}
-
-    <h6>{% trans 'Possible' %}:</h6>
-    <p>
-        {% blocktrans count number=object.possible_antiquarians.count %}
-        One antiquarian found
-        {% plural %}
-        {{ number }} antiquarians found 
-        {% endblocktrans %}
-    </p>
-    {% for antiquarian in object.possible_antiquarians.all %}
-    {% include 'research/partials/antiquarian_list_item.html' with antiquarian=antiquarian %}
-    {% endfor %}
-
-    <hr>
-    
-    <h5>{% trans 'Commentary' %}:</h5>
-    <p>{{ object.commentary.content|default:'Not specified' }}</p>
-
-    <p>{{ object.commentary.comments.count }} comments</p>
-    <p>Most recent <a href='{% url "fragment:list_comments_on_text" object.commentary.pk %}'>View All</a></p>
-    {% for comment in object.commentary.comments.all|slice:':3' %}
-    {% include 'research/partials/comment_list_item.html' with comment=comment %}
-    {% endfor %}
-
-
-    {% endcomment %}
 
 {% endblock %}

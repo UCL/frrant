@@ -3,35 +3,35 @@
 
 {% block heading %}{{ object.name }}{% endblock %}
 
+{% block action %}
+    <form class='form-inline' action='{% url "topic:delete" topic.slug %}' method='POST'>
+        {% csrf_token %}
+        <div class='form-group'>
+            <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+                data-what='topic'>{% trans 'Delete' %}</button>
+        </div>
+    </form>    
+{% endblock %}
 
 {% block inner %}
-    <div class='d-flex justify-content-between'>
-        <div>
-            <dl>
-                <dt>{% trans 'Name' %}:</dt>
-                <dd>{{ object.name }}</dd>
-            </dl>
 
-        </div>
-
-        <div>
-            <a href='{% url "topic:update" object.slug %}' class='btn btn-outline-secondary btn-sm'>{% trans 'Edit Details' %}</a>
-        </div>
-    </div>
-
-
-    {% comment %}
     <hr>
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Details' %}</h5>
+            </div>
+            <div>
+                <a href='{% url "topic:update" object.slug %}'>{% trans 'Edit' %}</a>
+            </div>
+        </div>
 
-    <h3>{% trans 'Fragments' %}:</h3>
-    <p>
-        {% blocktrans count number=object.fragment_set.count %}
-        One fragment found
-        {% plural %}
-        {{ number }} fragments found 
-        {% endblocktrans %}
-    </p>
-    {% endcomment %}
+        <dl class="row mb-0">
+            <dt class="col-sm-3">{% trans 'Name' %}</dt>
+            <dd class="col-sm-9">{{ object.name }}</dd>
+        
+        </dl>
+    </section>
 
     <hr>
 

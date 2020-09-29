@@ -3,7 +3,6 @@
 {% load i18n %}
 
 
-
 <div class='list-item d-flex justify-content-between'>
     <div>
         <li>
@@ -13,14 +12,5 @@
         </li>
     </div>
     <div class='list-item-actions'>
-        {% comment %}
-        <form class='form-inline' action='{% url "testimonium:delete" testimonium.pk %}' method='POST'>
-            {% csrf_token %}
-            <div class='form-group'>
-                <button type='submit' class='btn btn-link btn-sm text-danger confirm-delete p-0 ml-2'
-                    data-what='testimonium'>{% trans 'delete' %}</button>
-            </div>
-        </form>       
-        {% endcomment %} 
     </div>
 </div>

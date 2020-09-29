@@ -11,31 +11,9 @@
 
 {% block inner %}
     {% for object in page_obj %}
+
         {% include 'research/partials/topic_list_item.html' with topic=object %}
 
-        {% comment %}
-        <div class='d-flex justify-content-between'>
-            <div>
-                {{ object.name }} / 
-                {% blocktrans count number=object.fragment_set.count %}
-                    One fragment
-                    {% plural %}
-                    {{ number }} fragments 
-                {% endblocktrans %}
-
-            </div>
-            <div>
-                <form class='form-inline' action='{% url "topic:delete" object.slug %}' method='POST'>
-                    {% csrf_token %}
-                    <div class='form-group'>
-                        <a href='{% url "topic:detail" object.slug %}' class='ml-2 align-middle'>{% trans 'View' %}</a>
-                        <a href='{% url "topic:update" object.slug %}'class='ml-2 align-middle'>{% trans 'Edit' %}</a>
-                        <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2' data-what='topic'>{% trans 'Delete' %}</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-        {% endcomment %}
     {% endfor %}
 
     {{ block.super }}

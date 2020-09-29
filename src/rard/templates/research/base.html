@@ -14,7 +14,7 @@
         {% trans 'Fragments' %}
       </a>
       <a class='nav-link {% if "testimonium" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
-        href='javascript:alert("TODO");'>
+        href='{% url "testimonium:list" %}'>
         {% trans 'Testimonia' %}
       </a>
       <a class='nav-link {% if "topic" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'

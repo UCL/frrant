@@ -3,6 +3,16 @@
 
 {% block heading %}{{ object.name }}{% endblock %}
 
+{% block action %}
+<form class='form-inline' action='{% url "antiquarian:delete" antiquarian.pk %}' method='POST'>
+    {% csrf_token %}
+    <div class='form-group'>
+        <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+            data-what='work'>{% trans 'Delete' %}</button>
+    </div>
+</form>     
+{% endblock %}
+
 {% block inner %}
     <hr>
     <section>
@@ -11,7 +21,7 @@
                 <h5>{% trans 'Details' %}</h5>
             </div>
             <div>
-                <a href='{% url "antiquarian:update" object.pk %}'>{% trans 'edit' %}</a>
+                <a href='{% url "antiquarian:update" object.pk %}'>{% trans 'Edit' %}</a>
             </div>
         </div>
 
@@ -37,8 +47,8 @@
                 <h5>{% trans 'Works' %}</h5>
             </div>
             <div>
-                <a href='{% url "antiquarian:create_work" object.pk %}'>{% trans 'add new' %}</a> |
-                <a href='{% url "antiquarian:update_works" object.pk %}'>{% trans 'edit' %}</a>
+                <a href='{% url "antiquarian:create_work" object.pk %}'>{% trans 'Add' %}</a> |
+                <a href='{% url "antiquarian:update_works" object.pk %}'>{% trans 'Edit' %}</a>
             </div>
         </div>
 
@@ -57,7 +67,7 @@
                 <h5>{% trans 'Definite Fragments' %}</h5>
             </div>
             <div>
-                <a href='{% url "fragment:create" %}'>{% trans 'add new' %}</a>
+                <a href='{% url "fragment:create" %}'>{% trans 'Add' %}</a>
             </div>
         </div>
 
@@ -76,7 +86,7 @@
                 <h5>{% trans 'Possible Fragments' %}</h5>
             </div>
             <div>
-                <a href='{% url "fragment:create" %}'>{% trans 'add new' %}</a>
+                <a href='{% url "fragment:create" %}'>{% trans 'Add' %}</a>
             </div>
         </div>
 
@@ -86,5 +96,44 @@
 
         {% endfor %}
     </section>
+
+    <hr>
+
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Definite Testimonia' %}</h5>
+            </div>
+            <div>
+                <a href='{% url "testimonium:create" %}'>{% trans 'Add' %}</a>
+            </div>
+        </div>
+
+        {% for testimonium in object.definite_testimoniums.all %}
+
+        {% include 'research/partials/testimonium_list_item.html' with testimonium=testimonium %}
+
+        {% endfor %}
+    </section>
+
+    <hr>
+
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Possible Testimonia' %}</h5>
+            </div>
+            <div>
+                <a href='{% url "testimonium:create" %}'>{% trans 'Add' %}</a>
+            </div>
+        </div>
+
+        {% for testimonium in object.possible_testimoniums.all %}
+
+        {% include 'research/partials/testimonium_list_item.html' with testimonium=testimonium %}
+
+        {% endfor %}
+    </section>
+
 
 {% endblock %}

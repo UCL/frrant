@@ -1,8 +1,10 @@
+{# Common form to create either a fragment or testimonium #}
+
 {% extends "research/base.html" %}
 {% load i18n bootstrap4 %}
 
 {% block heading %}
-    {% trans 'Create Fragment' %}
+    {{ title }}
 {% endblock %}
 
 {% block inner %}
@@ -28,7 +30,7 @@
         {% bootstrap_field forms.original_text.content %}
         {% bootstrap_field forms.original_text.apparatus_criticus %}
 
-        {% for field in forms.fragment %}
+        {% for field in forms.object %}
             {% bootstrap_field field %}
         {% endfor %}
 

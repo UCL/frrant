@@ -11,17 +11,9 @@
 
 {% block inner %}
     {% for object in page_obj %}
-    {% include 'research/partials/fragment_list_item.html' with fragment=object %}
-    {% comment %}
-        <div class='d-flex justify-content-between'>
-            <div>
-                {{ object.name }}
-            </div>
-            <div>
-                <a href='{% url "fragment:detail" object.pk %}' class='align-middle'>{% trans 'View' %}</a>
-            </div>
-        </div>
-    {% endcomment %}
+
+        {% include 'research/partials/fragment_list_item.html' with fragment=object %}
+
     {% endfor %}
 
     {{ block.super }}

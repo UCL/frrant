@@ -2,7 +2,6 @@
 
 {% load i18n %}
 
-
 <div class='list-item d-flex justify-content-between'>
     <div>
         <li>
@@ -12,42 +11,5 @@
         </li>
     </div>
     <div class='list-item-actions'>
-        <form class='form-inline' action='{% url "topic:delete" topic.slug %}' method='POST'>
-            {% csrf_token %}
-            <div class='form-group'>
-                <button type='submit' class='btn btn-link btn-sm text-danger confirm-delete p-0 ml-2'
-                    data-what='work'>{% trans 'delete' %}</button>
-            </div>
-        </form>        
     </div>
 </div>
-
-
-{% comment %}
-<div class="card mb-3">
-    <div class="card-body">
-        <h5 class="card-title">{{ topic.name }}</h5>
-        <div class='d-flex justify-content-between'>
-            <div class="card-text text-muted">
-                <small>
-                {% blocktrans count number=topic.fragment_set.count %}
-                    One fragment
-                    {% plural %}
-                    {{ number }} fragments 
-                {% endblocktrans %}
-                </small>
-            </div>
-            <div>
-                <form class='form-inline' action='{% url "topic:delete" topic.slug %}' method='POST'>
-                    {% csrf_token %}
-                    <div class='form-group'>
-                        <a href='{% url "topic:detail" object.slug %}' class='ml-2 align-middle'>{% trans 'View' %}</a>
-                        <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
-                            data-what='topic'>{% trans 'Delete' %}</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-{% endcomment %}

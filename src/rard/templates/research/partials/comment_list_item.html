@@ -2,21 +2,21 @@
 
 {% load i18n humanize %}
 
-
 <hr>
+
 <p>
     {{ comment.content|linebreaks }}
 </p>
-<p>
+
 <div class="d-flex w-100">
     <div class='mr-auto'>
         <small class='text-muted'>
-            {% trans 'Left by' %} {{ comment.user.display_name }} {{ comment.created|naturaltime }}
+            {{ comment.user.display_name }} {{ comment.created|naturaltime }}
         </small>
     </div>
     <div class='ml-auto'>
         {% if request.user == comment.user %}
-        <form class='form-inline' action='{% url "fragment:delete_comment" comment.pk %}' method='POST'>
+        <form class='form-inline' action='{% url "delete_comment" comment.pk %}' method='POST'>
             {% csrf_token %}
             <div class='form-group'>
                 <button type='submit' class='btn btn-link text-danger confirm-delete p-0'
@@ -26,27 +26,3 @@
         {% endif %}
     </div>
 </div>
-</p>
-
-{% comment %}
-<div class='card mb-3'>
-    <div class='card-body'>
-        <div class='card-text'>
-            {{ comment.content }}
-            <div class='text-muted'>
-                {% trans 'Left by' %} {{ comment.user.display_name }} {{ comment.created|naturaltime }}
-                {% if request.user == comment.user %}
-                    <form class='form-inline' action='{% url "fragment:delete_comment" comment.pk %}' method='POST'>
-                        {% csrf_token %}
-                        <div class='form-group'>
-                            <button type='submit' class='btn btn-link text-danger confirm-delete p-0'
-                                data-what='comment'>{% trans 'Delete' %}</button>
-                        </div>
-                    </form>
-                {% endif %}
-            </div>
-        </div>
-    </div>
-</div>
-
-{% endcomment %}

@@ -32,48 +32,4 @@
 </div>
 
 
-
-
-
-
-
-
-
-{% comment %}
-<div class="d-flex w-100 mt-2">
-{% if page_obj.has_other_pages %}
-    <nav>
-      <ul class="pagination">
-          <li class="page-item {% if not page_obj.has_previous %}disabled{% endif %}">
-          <a class="page-link" href="{% if page_obj.has_previous %}?page={{ page_obj.previous_page_number }}{% endif %}" aria-label="Previous">
-              <span aria-hidden="true">&laquo;</span>
-          </a>
-          </li>
-          {% for page in page_obj.paginator.page_range %}
-              <li class="page-item {% if page_obj.number == page %}active{% endif %}"><a class="page-link" href="?page={{ page }}">{{ page }}</a></li>
-          {% endfor %}
-          <li class="page-item {% if not page_obj.has_next %}disabled{% endif %}">
-          <a class="page-link" href="{% if page_obj.has_next %}?page={{ page_obj.next_page_number }}{% endif %}" aria-label="Next">
-              <span aria-hidden="true">&raquo;</span>
-          </a>
-          </li>
-      </ul>
-    </nav>
-    <div class='ml-auto text-muted'>
-      <small>
-        Displaying {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} item{{ page_obj.paginator.count|pluralize }}
-      </small>
-    </div>
-{% else %}
-  <div class='ml-auto text-muted'>
-    <small>
-      Displaying {{ page_obj.paginator.count }} item{{ page_obj.paginator.count|pluralize }}
-    </small>
-  </div>
-{% endif %}
-</div>
-{% endcomment %}
-
-
-
 {% endblock %}

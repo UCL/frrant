@@ -2,7 +2,6 @@
 
 {% load i18n %}
 
-
 <div class='list-item d-flex justify-content-between'>
     <div>
         <li>
@@ -12,56 +11,5 @@
         </li>
     </div>
     <div class='list-item-actions'>
-        <form class='form-inline' action='{% url "work:delete" work.pk %}' method='POST'>
-            {% csrf_token %}
-            <div class='form-group'>
-                <button type='submit' class='btn btn-link btn-sm text-danger confirm-delete p-0 ml-2'
-                    data-what='work'>{% trans 'delete' %}</button>
-            </div>
-        </form>        
     </div>
 </div>
-
-
-{% comment %}
-<div class="card mb-3">
-    <div class="card-body">
-        <h5 class="card-title">{{ work.name }}</h5>
-        <div class='d-flex justify-content-between'>
-            <div class='card-text text-muted'>
-                {% if work.antiquarian_set.count > 0 %}
-                    {{ work.antiquarian_set.all|join:', ' }}
-                {% else %}
-                    {% trans 'Anonymous' %}
-                {% endif %}
-                <br>
-                {{ work.subtitle }}
-                <br>
-                {% if work.number_of_volumes is not None %}
-                    {% blocktrans count number=work.number_of_volumes %}
-                        One volume
-                        {% plural %}
-                        {{ number }} volumes 
-                    {% endblocktrans %}
-                {% endif %}
-            </div>
-            <div class='d-flex justify-content-end'>
-                <div>
-                    <form class='form-inline' action='{% url "work:delete" work.pk %}' method='POST'>
-                        {% csrf_token %}
-                        <div class='form-group'>
-                            <a href='{% url "work:detail" work.pk %}' class='ml-2 align-middle'>{% trans 'View' %}</a>
-                            <a href='{% url "work:update" work.pk %}'
-                                class='ml-2 align-middle'>{% trans 'Edit' %}
-                            </a>
-                            <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
-                                data-what='work'>{% trans 'Delete' %}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-{% endcomment %}
