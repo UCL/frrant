@@ -1,0 +1,19 @@
+{% extends "research/list_base.html" %}
+{% load i18n %}
+
+{% block heading %}
+    {% trans 'Testimonia' %}
+{% endblock %}
+
+{% block action %}
+    <a href='{% url "testimonium:create" %}'>{% trans 'Create New' %}</a>
+{% endblock %}
+
+{% block inner %}
+    {% for object in page_obj %}
+    {% include 'research/partials/testimonium_list_item.html' with testimonium=object %}
+    {% endfor %}
+
+    {{ block.super }}
+
+{% endblock %}

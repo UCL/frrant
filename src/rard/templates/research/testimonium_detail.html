@@ -1,0 +1,224 @@
+{% extends "research/base.html" %}
+{% load i18n humanize %}
+
+{% block heading %}{{ object.name|default:'Unnamed testimonium' }}{% endblock %}
+
+{% block action %}
+<form class='form-inline' action='{% url "testimonium:delete" testimonium.pk %}' method='POST'>
+    {% csrf_token %}
+    <div class='form-group'>
+        <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+            data-what='testimonium'>{% trans 'Delete' %}</button>
+    </div>
+</form>        
+{% endblock %}
+
+{% block inner %}
+    <hr>
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Details' %}</h5>
+            </div>
+            <div>
+                <a href='{% url "testimonium:update" object.pk %}'>{% trans 'Edit' %}</a>
+            </div>
+        </div>
+
+        <dl class="row mb-0">
+            <dt class="col-sm-3">{% trans 'Name' %}</dt>
+            <dd class="col-sm-9">{{ object.name|default:'Unnamed testimonium' }}</dd>
+            
+            {% if object.topics is not None %}
+            <dt class="col-sm-3">{% trans 'Topics' %}</dt>
+            <dd class="col-sm-9">
+                {% if object.topics.count == 0%}-{% endif %}
+                {% for topic in object.topics.all %}{% if forloop.counter0 > 0 %}, {% endif %}<a href='{% url "topic:detail" topic.slug %}'>{{ topic.name }}</a>{% endfor %}
+            </dd>
+            {% endif %}
+
+            <dt class="col-sm-3">{% trans 'Original Texts' %}</dt>
+            <dd class="col-sm-9">{{ object.original_texts.count }} <a href='{% url "testimonium:create_original_text" object.pk %}'>Add</a></dd>
+
+            <dt class="col-sm-3">{% trans 'Apparatus Criticus' %}</dt>
+            <dd class="col-sm-9">{{ object.apparatus_criticus|default:'-'|linebreaks }}</dd>
+        </dl>
+
+    </section>
+
+    {% for original_text in object.original_texts.all %}
+    <hr>
+
+    <section>
+
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Original Text' %} {{ forloop.counter }}</h5>
+            </div>
+            <div>
+                <form class='form-inline' action='{% url "testimonium:delete_original_text" original_text.pk %}' method='POST'>
+                    {% csrf_token %}
+                    <div class="form-row align-items-center">
+                        <a href='{% url "testimonium:update_original_text" original_text.pk %}'>Edit</a>        
+                        <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2' data-what='original text'>{% trans 'Delete' %}</button>
+                    </div>
+                </form>
+        
+            </div>
+        </div>
+
+        <div>
+            {% include 'research/partials/original_text_preview.html' with original_text=original_text %}
+        </div>
+
+        <dl class="row mb-0">
+            <dt class="col-sm-3">{% trans 'Citing Work' %}</dt>
+            <dd class="col-sm-9">{{ original_text.citing_work }}</dd>
+
+            <dt class="col-sm-3">{% trans 'Translations' %}</dt>
+            <dd class="col-sm-9">{{ original_text.translation_set.count }}</dd>
+
+            <dt class="col-sm-3">{% trans 'Apparatus Criticus' %}</dt>
+            <dd class="col-sm-9">{{ original_text.apparatus_criticus|default:'-'|linebreaks }}</dd>
+
+        </dl>
+
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h6>
+                    {% if original_text.translation_set.count > 0 %}
+                        {% trans 'Translations' %}
+                    {% else %}
+                        {% trans 'No translations' %}
+                    {% endif %}
+                </h6>
+            </div>
+            <div>
+                <a href='{% url "testimonium:create_translation" original_text.pk %}'>{% trans 'Add' %}</a>
+            </div>
+        </div>
+
+        {% for translation in original_text.translation_set.all %}
+
+            {% include 'research/partials/translation_preview.html' with translation=translation %}
+
+        {% endfor %}
+    
+
+    </section>
+
+    {% endfor %}
+
+
+    <hr>
+
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Definite Works' %}</h5>
+            </div>
+            <div>
+                <a href='{% url "testimonium:update" object.pk %}'>{% trans 'Edit' %}</a>
+            </div>
+        </div>
+
+        {% for work in object.definite_works.all %}
+
+        {% include 'research/partials/work_list_item.html' with work=work %}
+
+        {% endfor %}
+    </section>
+
+
+    <hr>
+
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Possible Works' %}</h5>
+            </div>
+            <div>
+                <a href='{% url "testimonium:update" object.pk %}'>{% trans 'Edit' %}</a>
+            </div>
+        </div>
+
+        {% for work in object.possible_works.all %}
+
+        {% include 'research/partials/work_list_item.html' with work=work %}
+
+        {% endfor %}
+    </section>
+
+    <hr>
+    
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Definite Antiquarians' %}</h5>
+            </div>
+            <div>
+
+                <a href='{% url "testimonium:update" object.pk %}'>{% trans 'Edit' %}</a>
+            </div>
+        </div>
+
+        {% for antiquarian in object.definite_antiquarians.all %}
+
+        {% include 'research/partials/antiquarian_list_item.html' with antiquarian=antiquarian %}
+        
+        {% endfor %}
+    
+    </section>
+
+
+    <hr>
+
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Possible Antiquarians' %}</h5>
+            </div>
+            <div>
+
+                <a href='{% url "testimonium:update" object.pk %}'>{% trans 'Edit' %}</a>
+            </div>
+        </div>
+
+        {% for antiquarian in object.possible_antiquarians.all %}
+
+        {% include 'research/partials/antiquarian_list_item.html' with antiquarian=antiquarian %}
+        
+        {% endfor %}
+    
+    </section>
+
+
+    <hr>
+
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Commentary' %}</h5>
+            </div>
+            <div>
+
+                <a href='{% url "testimonium:update" object.pk %}'>{% trans 'Edit' %}</a>
+            </div>
+        </div>
+
+        <div class='row'>
+            <div class="col">
+                <p>
+                    {{ object.commentary.content|linebreaks|default:'Not specified' }}
+                </p>
+                <p>{{ object.commentary.comments.count }} comments
+                    <a href='{% url "testimonium:list_comments_on_text" object.commentary.pk %}'>view</a>
+                </p>
+
+            </div>
+        </div>
+    </section>
+
+
+
+{% endblock %}
