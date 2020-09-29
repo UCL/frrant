@@ -95,9 +95,9 @@ class TestAntiquarian(TestCase):
             Antiquarian.objects.create(
                 name=name, re_code='code{}'.format(counter)
             )
-        
+
         db_names = []
         for a in Antiquarian.objects.all():
             db_names.append(a.name)
 
-        self.assertEquals(db_names, sorted(names))
+        self.assertEqual(db_names, sorted(names))

@@ -96,9 +96,9 @@ class TestWork(TestCase):
             Work.objects.create(
                 name=name
             )
-        
+
         db_names = []
         for a in Work.objects.all():
             db_names.append(a.name)
 
-        self.assertEquals(db_names, sorted(names))
+        self.assertEqual(db_names, sorted(names))

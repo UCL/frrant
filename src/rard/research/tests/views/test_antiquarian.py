@@ -118,3 +118,19 @@ class TestAntiquarianWorkCreateView(TestCase):
         self.assertEqual(
             antiquarian.works.count(), 0
         )
+
+
+class TestAntiquarianDeleteView(TestCase):
+    def test_post_only(self):
+
+        antiquarian = Antiquarian.objects.create()
+        url = reverse(
+            'antiquarian:delete',
+            kwargs={'pk': antiquarian.pk}
+        )
+        request = RequestFactory().get(url)
+        request.user = UserFactory.create()
+        response = AntiquarianDeleteView.as_view()(
+            request, pk=antiquarian.pk
+        )
+        self.assertEqual(response.status_code, 405)

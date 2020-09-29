@@ -83,9 +83,9 @@ class TestTopic(TestCase):
             Topic.objects.create(
                 name=name
             )
-        
+
         db_names = []
         for a in Topic.objects.all():
             db_names.append(a.name)
 
-        self.assertEquals(db_names, sorted(names))
+        self.assertEqual(db_names, sorted(names))

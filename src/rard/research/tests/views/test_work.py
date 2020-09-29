@@ -40,3 +40,19 @@ class TestWorkSuccessUrls(TestCase):
             view.get_success_url(),
             reverse('work:list')
         )
+
+
+class TestWorkDeleteView(TestCase):
+    def test_post_only(self):
+
+        work = Work.objects.create(name='name')
+        url = reverse(
+            'work:delete',
+            kwargs={'pk': work.pk}
+        )
+        request = RequestFactory().get(url)
+        request.user = UserFactory.create()
+        response = WorkDeleteView.as_view()(
+            request, pk=work.pk
+        )
+        self.assertEqual(response.status_code, 405)

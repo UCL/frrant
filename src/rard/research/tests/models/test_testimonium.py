@@ -1,5 +1,6 @@
 import pytest
 from django.test import TestCase
+from django.urls import reverse
 
 from rard.research.models import Testimonium, TextObjectField
 
@@ -63,9 +64,9 @@ class TestTestimonium(TestCase):
         with self.assertRaises(TextObjectField.DoesNotExist):
             TextObjectField.objects.get(pk=commentary_pk)
 
-    # def test_detail_url(self):
-    #     testimonium = Testimonium.objects.create(name='name')
-    #     self.assertEqual(
-    #         testimonium.get_detail_url(),
-    #         reverse('testimonium:detail', kwargs={'pk': testimonium.pk})
-    #     )
+    def test_detail_url(self):
+        testimonium = Testimonium.objects.create(name='name')
+        self.assertEqual(
+            testimonium.get_detail_url(),
+            reverse('testimonium:detail', kwargs={'pk': testimonium.pk})
+        )

@@ -13,22 +13,30 @@ pytestmark = pytest.mark.django_db
 class TestTopicSuccessUrls(TestCase):
 
     def test_update_success_url(self):
-        views = [
-            TopicCreateView,
-            TopicUpdateView,
-        ]
-        for view_class in views:
-            view = view_class()
-            request = RequestFactory().get("/")
-            request.user = UserFactory.create()
+        view = TopicUpdateView()
+        request = RequestFactory().get("/")
+        request.user = UserFactory.create()
 
-            view.request = request
-            view.object = Topic.objects.create(name=view_class.__name__)
+        view.request = request
+        view.object = Topic.objects.create(name='some name')
 
-            self.assertEqual(
-                view.get_success_url(),
-                reverse('topic:detail', kwargs={'slug': view.object.slug})
-            )
+        self.assertEqual(
+            view.get_success_url(),
+            reverse('topic:detail', kwargs={'slug': view.object.slug})
+        )
+
+    def test_create_success_url(self):
+        view = TopicCreateView()
+        request = RequestFactory().get("/")
+        request.user = UserFactory.create()
+
+        view.request = request
+        view.object = Topic.objects.create(name='some name')
+
+        self.assertEqual(
+            view.get_success_url(),
+            reverse('topic:list')
+        )
 
     def test_delete_success_url(self):
         view = TopicDeleteView()
@@ -42,3 +50,19 @@ class TestTopicSuccessUrls(TestCase):
             view.get_success_url(),
             reverse('topic:list')
         )
+
+
+class TestTopicDeleteView(TestCase):
+    def test_post_only(self):
+
+        topic = Topic.objects.create(name='name')
+        url = reverse(
+            'topic:delete',
+            kwargs={'slug': topic.slug}
+        )
+        request = RequestFactory().get(url)
+        request.user = UserFactory.create()
+        response = TopicDeleteView.as_view()(
+            request, pk=topic.pk
+        )
+        self.assertEqual(response.status_code, 405)

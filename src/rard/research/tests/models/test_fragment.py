@@ -1,6 +1,7 @@
 
 import pytest
 from django.test import TestCase
+from django.urls import reverse
 
 from rard.research.models import Fragment, TextObjectField
 
@@ -67,9 +68,9 @@ class TestFragment(TestCase):
         with self.assertRaises(TextObjectField.DoesNotExist):
             TextObjectField.objects.get(pk=commentary_pk)
 
-    # def test_detail_url(self):
-    #     fragment = Fragment.objects.create(name='name')
-    #     self.assertEqual(
-    #         fragment.get_detail_url(),
-    #         reverse('fragment:detail', kwargs={'pk': fragment.pk})
-    #     )
+    def test_detail_url(self):
+        fragment = Fragment.objects.create(name='name')
+        self.assertEqual(
+            fragment.get_detail_url(),
+            reverse('fragment:detail', kwargs={'pk': fragment.pk})
+        )
