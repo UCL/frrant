@@ -69,7 +69,7 @@ class TestCommentListView(TestCase):
 
         fragment = Fragment.objects.create(name='fragment1')
         url = reverse(
-            'fragment:list_comments_on_text',
+            'list_comments_on_text',
             kwargs={'pk': fragment.commentary.pk}
         )
         request = RequestFactory().get(url)
@@ -86,7 +86,7 @@ class TestCommentListView(TestCase):
         fragment = Fragment.objects.create(name='name')
 
         url = reverse(
-            'fragment:list_comments_on_text',
+            'list_comments_on_text',
             kwargs={'pk': fragment.commentary.pk}
         )
 
@@ -114,7 +114,7 @@ class TestCommentListView(TestCase):
         fragment = Fragment.objects.create(name='name')
 
         url = reverse(
-            'fragment:list_comments_on_text',
+            'list_comments_on_text',
             kwargs={'pk': fragment.commentary.pk}
         )
 
