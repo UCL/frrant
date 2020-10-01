@@ -229,6 +229,30 @@ and
 
 Requirements are applied when the containers are built. 
 
-## Continuos Integration
+## Continuous Integration
 
 # Deployment
+
+If your deployment machine is light on space on `/var` then it is possible to request that Docker builds containers elsewhere by modifying the following files:
+
+```sudo vi /lib/systemd/system/docker.service```
+
+Modify the line starting with `ExecStart` and add `-d /data/docker` to the end
+
+```ExecStart=/usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock -g /data/docker```
+
+This example will build containers on the `/data` directory instead of `/var`
+
+
+# Troubleshooting
+
+To view running containers as a list:
+
+`sudo docker ps`
+
+to view logs for a particular container in the above list 
+
+`sudo docker logs <containerid> -f`
+
+the `-f` prints new lines as they are written. The `<containerid>` is the same shown in the output of `docker ps`
+
