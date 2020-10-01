@@ -4,7 +4,7 @@
 {% block heading %}{{ object.name|default:'Unnamed fragment' }}{% endblock %}
 
 {% block action %}
-    <form class='form-inline' action='{% url "fragment:delete" fragment.pk %}' method='POST'>
+    <form novalidate class='form-inline' action='{% url "fragment:delete" fragment.pk %}' method='POST'>
         {% csrf_token %}
         <div class='form-group'>
             <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
@@ -56,7 +56,7 @@
                 <h5>{% trans 'Original Text' %} {{ forloop.counter }}</h5>
             </div>
             <div>
-                <form class='form-inline' action='{% url "fragment:delete_original_text" original_text.pk %}' method='POST'>
+                <form novalidate class='form-inline' action='{% url "fragment:delete_original_text" original_text.pk %}' method='POST'>
                     {% csrf_token %}
                     <div class="form-row align-items-center">
                         <a href='{% url "fragment:update_original_text" original_text.pk %}'>Edit</a>        
@@ -212,7 +212,7 @@
                     {{ object.commentary.content|linebreaks|default:'Not specified' }}
                 </p>
                 <p>{{ object.commentary.comments.count }} comments
-                    <a href='{% url "fragment:list_comments_on_text" object.commentary.pk %}'>view</a>
+                    <a href='{% url "list_comments_on_text" object.commentary.pk %}'>view</a>
                 </p>
 
             </div>

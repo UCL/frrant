@@ -1,4 +1,5 @@
 from django.db import models
+from django.urls import reverse
 
 from rard.research.mixins import TextObjectFieldMixin
 from rard.utils.basemodel import BaseModel
@@ -24,6 +25,9 @@ class Antiquarian(TextObjectFieldMixin, BaseModel):
 
     def __str__(self):
         return self.name
+
+    def get_absolute_url(self):
+        return reverse('antiquarian:detail', kwargs={'pk': self.pk})
 
 
 Antiquarian.init_text_object_fields()

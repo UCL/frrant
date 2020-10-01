@@ -19,7 +19,7 @@
         <div class='d-flex justify-content-between'>
             <div class='text-muted'><small>{% trans 'Translated by' %} {{ translation.translator_name }}</small></div>
             <div>
-                <form class='form-inline' action='{% url "fragment:delete_translation" translation.pk %}' method='POST'>
+                <form novalidate class='form-inline' action='{% url "fragment:delete_translation" translation.pk %}' method='POST'>
                     {% csrf_token %}
                     <div class="form-row align-items-center">
                         <a href='{% url "fragment:update_translation" translation.pk %}'>Edit</a>

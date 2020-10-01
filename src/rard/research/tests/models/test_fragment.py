@@ -1,5 +1,6 @@
 
 import pytest
+from django.db.utils import IntegrityError
 from django.test import TestCase
 from django.urls import reverse
 
@@ -36,6 +37,15 @@ class TestFragment(TestCase):
             Fragment._meta.get_field('possible_antiquarians').blank
         )
 
+    def test_name_unique(self):
+        data = {
+            'name': 'name',
+            'apparatus_criticus': 'app_criticus',
+        }
+        Fragment.objects.create(**data)
+        with self.assertRaises(IntegrityError):
+            Fragment.objects.create(**data)
+
     def test_display(self):
         # the __str__ function should show the name
         data = {
@@ -68,9 +78,9 @@ class TestFragment(TestCase):
         with self.assertRaises(TextObjectField.DoesNotExist):
             TextObjectField.objects.get(pk=commentary_pk)
 
-    def test_detail_url(self):
+    def test_get_absolute_url(self):
         fragment = Fragment.objects.create(name='name')
         self.assertEqual(
-            fragment.get_detail_url(),
+            fragment.get_absolute_url(),
             reverse('fragment:detail', kwargs={'pk': fragment.pk})
         )

@@ -16,7 +16,7 @@
     </div>
     <div class='ml-auto'>
         {% if request.user == comment.user %}
-        <form class='form-inline' action='{% url "delete_comment" comment.pk %}' method='POST'>
+        <form novalidate class='form-inline' action='{% url "delete_comment" comment.pk %}' method='POST'>
             {% csrf_token %}
             <div class='form-group'>
                 <button type='submit' class='btn btn-link text-danger confirm-delete p-0'

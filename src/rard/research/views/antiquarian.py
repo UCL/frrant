@@ -41,9 +41,6 @@ class AntiquarianDeleteView(LoginRequiredMixin, DeleteView):
     model = Antiquarian
     success_url = reverse_lazy('antiquarian:list')
 
-    def get_success_url(self, *args, **kwargs):
-        return self.request.META.get('HTTP_REFERER', self.success_url)
-
 
 class AntiquarianWorksUpdateView(LoginRequiredMixin, UpdateView):
     model = Antiquarian

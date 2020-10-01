@@ -11,14 +11,13 @@ common_patterns = [
     path("original-text/<pk>/create-translation/", views.TranslationCreateView.as_view(), name="create_translation"),
     path("translation/<pk>/update/", views.TranslationUpdateView.as_view(), name="update_translation"),
     path("translation/<pk>/delete/", views.TranslationDeleteView.as_view(), name="delete_translation"),
-    path("text-field/<pk>/comments/", views.TextObjectFieldCommentListView.as_view(), name="list_comments_on_text"),
-    # path("text-field/<pk>/comment/add/", views.TextObjectFieldCommentCreateView.as_view(), name="add_comment_on_text"),
 ]
 
 # app_name = "research"
 urlpatterns = [
     path("", views.HomeView.as_view(), name="home"),
     path("comment/<pk>/delete/", views.CommentDeleteView.as_view(), name="delete_comment"),
+    path("text-field/<pk>/comments/", views.TextObjectFieldCommentListView.as_view(), name="list_comments_on_text"),
     path('antiquarian/', include(([
         path('list/', views.AntiquarianListView.as_view(), name='list'),
         path("create/", views.AntiquarianCreateView.as_view(), name="create"),

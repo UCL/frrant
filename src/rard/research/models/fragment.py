@@ -14,7 +14,7 @@ class Fragment(HistoricalBaseModel):
         'OriginalText', related_query_name='original_texts'
     )
 
-    def get_detail_url(self):
+    def get_absolute_url(self):
         return reverse('fragment:detail', kwargs={'pk': self.pk})
 
 

@@ -11,7 +11,7 @@ class HistoricalBaseModel(TextObjectFieldMixin, BaseModel):
         abstract = True
         ordering = ['name']
 
-    name = models.CharField(max_length=128, blank=False)
+    name = models.CharField(max_length=128, blank=False, unique=True)
 
     apparatus_criticus = models.TextField(default='', blank=True)
 
@@ -43,8 +43,8 @@ class HistoricalBaseModel(TextObjectFieldMixin, BaseModel):
     def __str__(self):
         return self.name
 
-    def get_detail_url(self):  # pragma: no cover
+    def get_absolute_url(self):  # pragma: no cover
         class_name = self.__class__.__name__
         raise NotImplementedError(
-            '%s must provide a get_detail_url() method' % class_name
+            '%s must provide a get_absolute_url() method' % class_name
         )

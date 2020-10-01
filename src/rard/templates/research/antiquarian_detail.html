@@ -4,7 +4,7 @@
 {% block heading %}{{ object.name }}{% endblock %}
 
 {% block action %}
-<form class='form-inline' action='{% url "antiquarian:delete" antiquarian.pk %}' method='POST'>
+<form novalidate class='form-inline' action='{% url "antiquarian:delete" antiquarian.pk %}' method='POST'>
     {% csrf_token %}
     <div class='form-group'>
         <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
@@ -34,7 +34,15 @@
             
         
             <dt class="col-sm-3">{% trans 'Biography' %}</dt>
-            <dd class="col-sm-9">{{ object.biography.content|linebreaks }}</dd>
+            <dd class="col-sm-9">
+                {{ object.biography.content|linebreaks }}
+                <br>
+                {{ object.biography.comments.count }} comments <a href='{% url "list_comments_on_text" object.biography.pk %}'>view</a>
+            </dd>
+            <p>
+                
+            </p>
+
         </dl>
     </section>
 

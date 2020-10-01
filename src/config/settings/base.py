@@ -252,7 +252,8 @@ LOGGING = {
 # Other Settings
 # ------------------------------------------------------------------------------
 BOOTSTRAP4 = {
-    'success_css_class': 'success'
+    'success_css_class': 'success',
+    'required_css_class': 'required',
 }
 
 UPLOAD_FOLDER = 'uploads'

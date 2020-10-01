@@ -12,7 +12,7 @@ class TranslationCreateView(LoginRequiredMixin, CreateView):
     fields = ['translated_text', 'translator_name', 'approved']
 
     def get_success_url(self, *args, **kwargs):
-        return self.get_original_text().owner.get_detail_url()
+        return self.get_original_text().owner.get_absolute_url()
 
     def form_valid(self, form):
         translation = form.save(commit=False)
@@ -41,7 +41,7 @@ class TranslationUpdateView(LoginRequiredMixin, UpdateView):
     fields = ['translated_text', 'translator_name', 'approved']
 
     def get_success_url(self, *args, **kwargs):
-        return self.object.original_text.owner.get_detail_url()
+        return self.object.original_text.owner.get_absolute_url()
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
@@ -56,4 +56,4 @@ class TranslationDeleteView(LoginRequiredMixin, DeleteView):
     model = Translation
 
     def get_success_url(self, *args, **kwargs):
-        return self.object.original_text.owner.get_detail_url()
+        return self.object.original_text.owner.get_absolute_url()
