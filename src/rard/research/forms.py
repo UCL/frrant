@@ -1,6 +1,6 @@
 from django import forms
 from django.core.exceptions import FieldDoesNotExist
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from rard.research.models import (Antiquarian, CitingWork, Comment, Fragment,
                                   OriginalText, Testimonium, Work)
@@ -86,7 +86,10 @@ class OriginalTextForm(forms.ModelForm):
     class Meta:
         model = OriginalText
         fields = ('citing_work', 'reference', 'content', 'apparatus_criticus')
-        labels = {'content': _('Original Text')}
+        labels = {
+            'content': _('Original Text'),
+            'citing_work': _('Choose Existing'),
+        }
         widgets = {
           'apparatus_criticus': forms.Textarea(attrs={'rows': 3}),
         }
