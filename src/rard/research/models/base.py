@@ -11,7 +11,7 @@ class HistoricalBaseModel(TextObjectFieldMixin, BaseModel):
         abstract = True
         ordering = ['name']
 
-    name = models.CharField(max_length=128, blank=False)
+    name = models.CharField(max_length=128, blank=False, unique=True)
 
     apparatus_criticus = models.TextField(default='', blank=True)
 
