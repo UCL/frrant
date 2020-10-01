@@ -1,5 +1,6 @@
 import pytest
 from django.test import TestCase
+from django.urls import reverse
 
 from rard.research.models import Antiquarian, Work
 
@@ -102,3 +103,14 @@ class TestWork(TestCase):
             db_names.append(a.name)
 
         self.assertEqual(db_names, sorted(names))
+
+    def test_get_absolute_url(self):
+        data = {
+            'name': 'Work Name',
+            'subtitle': 'Subtitle',
+        }
+        work = Work.objects.create(**data)
+        self.assertEqual(
+            work.get_absolute_url(),
+            reverse('work:detail', kwargs={'pk': work.pk})
+        )

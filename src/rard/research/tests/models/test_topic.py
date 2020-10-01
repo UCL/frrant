@@ -2,6 +2,7 @@
 import pytest
 from django.db.utils import IntegrityError
 from django.test import TestCase
+from django.urls import reverse
 from django.utils.text import slugify
 
 from rard.research.models import Fragment, Topic
@@ -32,9 +33,14 @@ class TestTopic(TestCase):
             Topic.objects.create(name=name)
 
     def test_slug_field(self):
-        name = 'Some Name Or Other'
+        name = 'Some Name or Other'
         topic = Topic.objects.create(name=name)
         self.assertEqual(topic.slug, slugify(name))
+        new_name = 'We Have Changed the Name'
+        topic.name = new_name
+        topic.save()
+        self.assertEqual(topic.slug, slugify(new_name))
+
 
     def test_fragment_can_have_multiple_topics(self):
         fragment = Fragment.objects.create(name='name')
@@ -89,3 +95,11 @@ class TestTopic(TestCase):
             db_names.append(a.name)
 
         self.assertEqual(db_names, sorted(names))
+
+    def test_get_absolute_url(self):
+        name = 'the_name'
+        topic = Topic.objects.create(name=name)
+        self.assertEqual(
+            topic.get_absolute_url(),
+            reverse('topic:detail', kwargs={'slug': topic.slug})
+        )

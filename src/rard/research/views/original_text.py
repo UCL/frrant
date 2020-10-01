@@ -13,7 +13,7 @@ class OriginalTextCreateViewBase(LoginRequiredMixin, CreateView):
     form_class = OriginalTextForm
 
     def get_success_url(self, *args, **kwargs):
-        return self.get_parent_object().get_detail_url()
+        return self.get_parent_object().get_absolute_url()
 
     def get_parent_object(self, *args, **kwargs):
         if not getattr(self, 'parent_object', False):
@@ -43,7 +43,7 @@ class OriginalTextUpdateView(LoginRequiredMixin, UpdateView):
     form_class = OriginalTextForm
 
     def get_success_url(self, *args, **kwargs):
-        return self.object.owner.get_detail_url()
+        return self.object.owner.get_absolute_url()
 
 
 @method_decorator(require_POST, name='dispatch')
@@ -51,4 +51,4 @@ class OriginalTextDeleteView(LoginRequiredMixin, DeleteView):
     model = OriginalText
 
     def get_success_url(self, *args, **kwargs):
-        return self.object.owner.get_detail_url()
+        return self.object.owner.get_absolute_url()

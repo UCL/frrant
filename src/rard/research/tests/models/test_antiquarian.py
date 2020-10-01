@@ -1,6 +1,7 @@
 import pytest
 from django.db.utils import IntegrityError
 from django.test import TestCase
+from django.urls import reverse
 
 from rard.research.models import Antiquarian, TextObjectField
 
@@ -101,3 +102,14 @@ class TestAntiquarian(TestCase):
             db_names.append(a.name)
 
         self.assertEqual(db_names, sorted(names))
+
+    def test_get_absolute_url(self):
+        data = {
+            'name': 'John Smith',
+            're_code': 'smitre001'
+        }
+        a = Antiquarian.objects.create(**data)
+        self.assertEqual(
+            a.get_absolute_url(),
+            reverse('antiquarian:detail', kwargs={'pk': a.pk})
+        )

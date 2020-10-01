@@ -1,4 +1,5 @@
 from django.db import models
+from django.urls import reverse
 
 from rard.research.mixins import TextObjectFieldMixin
 from rard.utils.basemodel import BaseModel
@@ -43,8 +44,8 @@ class HistoricalBaseModel(TextObjectFieldMixin, BaseModel):
     def __str__(self):
         return self.name
 
-    def get_detail_url(self):  # pragma: no cover
+    def get_absolute_url(self):  # pragma: no cover
         class_name = self.__class__.__name__
         raise NotImplementedError(
-            '%s must provide a get_detail_url() method' % class_name
+            '%s must provide a get_absolute_url() method' % class_name
         )

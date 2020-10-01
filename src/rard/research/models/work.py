@@ -1,4 +1,5 @@
 from django.db import models
+from django.urls import reverse
 
 from rard.utils.basemodel import BaseModel
 
@@ -19,3 +20,6 @@ class Work(BaseModel):
     def __str__(self):
         author_str = ', '.join([a.name for a in self.antiquarian_set.all()])
         return '{}: {}'.format(self.name, author_str or 'Anonymous')
+
+    def get_absolute_url(self):
+        return reverse('work:detail', kwargs={'pk': self.pk})

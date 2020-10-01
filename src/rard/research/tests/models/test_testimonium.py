@@ -74,9 +74,9 @@ class TestTestimonium(TestCase):
         with self.assertRaises(TextObjectField.DoesNotExist):
             TextObjectField.objects.get(pk=commentary_pk)
 
-    def test_detail_url(self):
+    def test_get_absolute_url(self):
         testimonium = Testimonium.objects.create(name='name')
         self.assertEqual(
-            testimonium.get_detail_url(),
+            testimonium.get_absolute_url(),
             reverse('testimonium:detail', kwargs={'pk': testimonium.pk})
         )

@@ -31,7 +31,7 @@ class TestOriginalTextCreateViews(TestCase):
         view.object = text
         self.assertEqual(
             view.get_success_url(),
-            fragment.get_detail_url()
+            fragment.get_absolute_url()
         )
 
     def test_create_get_parent_and_success_url(self):
@@ -49,7 +49,7 @@ class TestOriginalTextCreateViews(TestCase):
         )
         self.assertEqual(
             view.get_success_url(),
-            fragment.get_detail_url()
+            fragment.get_absolute_url()
         )
 
     def test_creation_post(self):
@@ -95,7 +95,7 @@ class TestOriginalTextCreateViews(TestCase):
 
         self.assertEqual(
             view.get_success_url(),
-            fragment.get_detail_url()
+            fragment.get_absolute_url()
         )
 
 

@@ -34,7 +34,7 @@ class TestTranslationCreateView(TestCase):
 
         self.assertEqual(
             view.get_success_url(),
-            translation.original_text.owner.get_detail_url()
+            translation.original_text.owner.get_absolute_url()
         )
 
     def test_context_data(self):
@@ -149,7 +149,7 @@ class TestTranslationUpdateView(TestCase):
 
         self.assertEqual(
             view.get_success_url(),
-            translation.original_text.owner.get_detail_url()
+            translation.original_text.owner.get_absolute_url()
         )
 
     def test_context_data(self):
@@ -210,5 +210,5 @@ class TestTranslationDeleteView(TestCase):
 
         self.assertEqual(
             view.get_success_url(),
-            translation.original_text.owner.get_detail_url()
+            translation.original_text.owner.get_absolute_url()
         )

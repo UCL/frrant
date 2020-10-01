@@ -10,7 +10,7 @@ class Testimonium(HistoricalBaseModel):
         'OriginalText', related_query_name='original_texts'
     )
 
-    def get_detail_url(self):
+    def get_absolute_url(self):
         return reverse('testimonium:detail', kwargs={'pk': self.pk})
 
 

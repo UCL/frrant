@@ -78,9 +78,9 @@ class TestFragment(TestCase):
         with self.assertRaises(TextObjectField.DoesNotExist):
             TextObjectField.objects.get(pk=commentary_pk)
 
-    def test_detail_url(self):
+    def test_get_absolute_url(self):
         fragment = Fragment.objects.create(name='name')
         self.assertEqual(
-            fragment.get_detail_url(),
+            fragment.get_absolute_url(),
             reverse('fragment:detail', kwargs={'pk': fragment.pk})
         )
