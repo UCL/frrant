@@ -1,5 +1,4 @@
 from django.db import models
-from django.urls import reverse
 
 from rard.research.mixins import TextObjectFieldMixin
 from rard.utils.basemodel import BaseModel

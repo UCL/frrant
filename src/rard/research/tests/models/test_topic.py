@@ -41,7 +41,6 @@ class TestTopic(TestCase):
         topic.save()
         self.assertEqual(topic.slug, slugify(new_name))
 
-
     def test_fragment_can_have_multiple_topics(self):
         fragment = Fragment.objects.create(name='name')
         length = 10

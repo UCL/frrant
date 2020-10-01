@@ -42,7 +42,7 @@ class TestTestimonium(TestCase):
             'name': 'name',
             'apparatus_criticus': 'app_criticus',
         }
-        testimonium = Testimonium.objects.create(**data)
+        Testimonium.objects.create(**data)
         with self.assertRaises(IntegrityError):
             Testimonium.objects.create(**data)
 

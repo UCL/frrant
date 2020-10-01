@@ -42,7 +42,7 @@ class TestFragment(TestCase):
             'name': 'name',
             'apparatus_criticus': 'app_criticus',
         }
-        fragment = Fragment.objects.create(**data)
+        Fragment.objects.create(**data)
         with self.assertRaises(IntegrityError):
             Fragment.objects.create(**data)
 
