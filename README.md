@@ -233,6 +233,73 @@ Requirements are applied when the containers are built.
 
 # Deployment
 
+To deploy we need to set some variables.
+
+(example shown for development, replace with production folder on production)
+
+Under the folder `.envs` in the project folder (`ls -la` shows folders starting with `.`)
+
+`mkdir .development`
+
+`cd .development`
+
+`sudo vi .django`
+
+And enter the following:
+
+```
+USE_DOCKER=yes
+IPYTHONDIR=/app/.ipython
+DJANGO_SETTINGS_MODULE=config.settings.development
+DJANGO_SECRET_KEY=<secret key>
+DJANGO_ADMIN_URL=admin/
+DJANGO_ALLOWED_HOSTS=<domain name>
+```
+
+In the above, the domain name will be e.g. `frrd-dev.addev.ucl.ac.uk` for development. If more than one are required then they can be comma-separated (NB do not put inside braces `[]`)
+
+Next
+
+`sudo vi .pgadmin`
+
+enter the following:
+
+```
+PGADMIN_DEFAULT_EMAIL=<username>
+PGADMIN_DEFAULT_PASSWORD=<password>
+```
+
+for the username/password combo to use for pgadmin. This admin interface allows you to manage backups etc.
+
+Finally
+
+`sudo vi .postgres`
+
+and enter the following
+
+```
+POSTGRES_HOST=postgres
+POSTGRES_PORT=5432
+POSTGRES_DB=rard
+POSTGRES_USER=<secret username>
+POSTGRES_PASSWORD=<secret password>
+```
+
+for the username/password to use for postgres database.
+
+
+## SSL Certificates
+
+Before building the nginx container we need to do the following (example shown for development, replace with production folder on production)
+
+`cd compose/development/nginx/certs`
+
+`sudo openssl req -x509 -nodes -days 365 -config rardselfsigned.cnf -newkey rsa:2048 -keyout rardselfsigned.key -out rardselfsigned.crt`
+
+
+
+# Troubleshooting
+
 If your deployment machine is light on space on `/var` then it is possible to request that Docker builds containers elsewhere by modifying the following files:
 
 ```sudo vi /lib/systemd/system/docker.service```
@@ -244,7 +311,6 @@ Modify the line starting with `ExecStart` and add `-d /data/docker` to the end
 This example will build containers on the `/data` directory instead of `/var`
 
 
-# Troubleshooting
 
 To view running containers as a list:
 
@@ -256,3 +322,13 @@ to view logs for a particular container in the above list
 
 the `-f` prints new lines as they are written. The `<containerid>` is the same shown in the output of `docker ps`
 
+
+# To clean up space on /var
+
+Remove yum caches
+
+`sudo yum clean all`
+
+If your containers are built to `/var` this will clean those up
+
+`sudo docker system prune`
