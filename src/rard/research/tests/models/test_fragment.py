@@ -1,5 +1,6 @@
 
 import pytest
+from django.db.utils import IntegrityError
 from django.test import TestCase
 from django.urls import reverse
 
@@ -35,6 +36,15 @@ class TestFragment(TestCase):
         self.assertTrue(
             Fragment._meta.get_field('possible_antiquarians').blank
         )
+
+    def test_name_unique(self):
+        data = {
+            'name': 'name',
+            'apparatus_criticus': 'app_criticus',
+        }
+        fragment = Fragment.objects.create(**data)
+        with self.assertRaises(IntegrityError):
+            Fragment.objects.create(**data)
 
     def test_display(self):
         # the __str__ function should show the name

@@ -48,7 +48,7 @@ class TestTopic(TestCase):
         topic = Topic.objects.create(name='The Topic')
         length = 10
         for i in range(0, length):
-            fragment = Fragment.objects.create(name='name')
+            fragment = Fragment.objects.create(name='name{}'.format(i))
             fragment.topics.add(topic)
         self.assertEqual(topic.fragment_set.count(), length)
 
