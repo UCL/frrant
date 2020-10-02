@@ -31,7 +31,11 @@ $('body').on("submit", "form", function (e) {
     return true; // proceed as normal
 })
 
+// prevent double-submit either from RTN or button press
 $('body').on("submit", "form", function (e) {
-    // disable the clicked button to prevent resubmit
-    var $clicked = $(document.activeElement).attr('disabled', true);
+    console.dir($(this).get(0));
+    if ($(this).data('submitted')) {
+        return false;
+    }
+    $(this).data('submitted', true);
 });
