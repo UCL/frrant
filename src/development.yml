@@ -1,4 +1,4 @@
-version: '3.8'
+version: '3.3'
 
 volumes:
   development_postgres_data: {}
@@ -75,20 +75,15 @@ services:
       context: .
       dockerfile: ./compose/development/nginx/Dockerfile
     image: rard_development_nginx
+    container_name: nginx
     ports:
       - "0.0.0.0:80:80"
       - "0.0.0.0:443:443"
       - "0.0.0.0:2345:2345"
     volumes:
-      - type: bind
-        source: ./compose/development/nginx/conf.d
-        target: /etc/nginx/conf.d
-      - type: bind
-        source: ./compose/development/nginx/certs
-        target: /etc/nginx/certs
-      - type: bind
-        source: ./compose/development/nginx/snippets
-        target: /etc/nginx/snippets
+      - ./compose/development/nginx/conf.d:/etc/nginx/conf.d
+      - ./compose/development/nginx/certs:/etc/nginx/certs
+      - ./compose/development/nginx/snippets:/etc/nginx/snippets
       - type: volume
         source: staticfiles
         target: /static
