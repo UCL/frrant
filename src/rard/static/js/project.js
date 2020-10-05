@@ -54,6 +54,7 @@ $('.rich-editor').trumbowyg(
         tagsToKeep: ['img'],
         btns: [
             ['characters'],
+            ['vinculum_on', 'vinculum_off'], 
             ['undo', 'redo'],
             ['superscript', 'subscript', 'removeformat'],
         ],

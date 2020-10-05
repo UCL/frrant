@@ -28,6 +28,31 @@ Provides an interface to select special characters for Antiquarian project
                     };
 
                     trumbowyg.addBtnDef('characters', charactersBtnDef);
+
+                    var vinculumOnBtnDef = {
+                        fn: function() {
+                            trumbowyg.saveRange();
+                            var text = trumbowyg.getRangeText();
+                            var html = '<span class="vinculum">'+text+'</span>'
+                            trumbowyg.execCmd('insertHTML', html);
+                        },
+                        title: 'Add Vinculum',
+                        text: 'V',
+                        hasIcon: false,
+                    }
+                    var vinculumOffBtnDef = {
+                        fn: function() {
+                            trumbowyg.saveRange();
+                            var text = trumbowyg.getRangeText();
+                            var html = '<span>'+text+'</span>'
+                            trumbowyg.execCmd('insertHTML', html);
+                        },
+                        title: 'Remove Vinculum',
+                        text: 'V',
+                        hasIcon: false,
+                    }
+                    trumbowyg.addBtnDef('vinculum_on', vinculumOnBtnDef);
+                    trumbowyg.addBtnDef('vinculum_off', vinculumOffBtnDef);
                 }
             }
         }

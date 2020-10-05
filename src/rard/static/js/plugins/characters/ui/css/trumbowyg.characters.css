@@ -61,3 +61,11 @@
     background-position-x: 5px!important ;
     /* width: 20px; */
 }   
+
+.vinculum {
+    text-decoration:overline;
+}
+
+.trumbowyg-vinculum_on-button {
+    text-decoration:overline;
+}
