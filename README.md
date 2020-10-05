@@ -332,3 +332,18 @@ Remove yum caches
 If your containers are built to `/var` this will clean those up
 
 `sudo docker system prune`
+
+
+# If your server becomes unreachable 30 minutes after restarting Docker
+
+You need to ensure IP forwarding is enabled:
+
+Edit or create the file `/etc/sysctl.conf`
+
+add or change the following line:
+
+`net.ipv4.ip_forward = 1`
+
+Then apply the settings with e.g.
+
+`service network restart`
