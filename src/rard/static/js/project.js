@@ -19,7 +19,6 @@ $('.rard-toggle-control input').change(function (e, init) {
 // initialise any checkbox-driven toggle areas on initialising page
 $('.rard-toggle-control input').trigger('change', true);
 
-
 // confirm delete of objects when forms submitted
 $('body').on("submit", "form", function (e) {
     // get clicked button
@@ -33,9 +32,48 @@ $('body').on("submit", "form", function (e) {
 
 // prevent double-submit either from RTN or button press
 $('body').on("submit", "form", function (e) {
-    console.dir($(this).get(0));
     if ($(this).data('submitted')) {
         return false;
     }
     $(this).data('submitted', true);
+
+    $('.rich-editor').each(function() {
+        // copy each rich editor's content to its related control
+        var for_id = $(this).data('for');
+        var html = $(this).trumbowyg('html');
+        $(`#${for_id}`).html(html);
+    })
+});
+
+$('.rich-editor').trumbowyg(
+    {
+        resetCss: true,
+        autogrow: true,
+        // removeformatPasted: true,
+        // tagsToRemove: ['script', 'span'],
+        tagsToKeep: ['img'],
+        btns: [
+            ['characters'],
+            ['undo', 'redo'],
+            ['superscript', 'subscript', 'removeformat'],
+        ],
+    }
+).on('tbwinit', function(e, a)
+    {
+        // set our initial html from the related control
+        var for_id = $(this).data('for');
+        var $for = $(`#${for_id}`);
+        var html = $for.text();
+        $for.hide();
+        $(this).trumbowyg('html', html);
+
+        // set the tooltip of the characters in the list and blank their content
+        // as background images are set in css
+        $('.trumbowyg-dropdown-characters > button').each(function() {
+            $(this).attr('title', $(this).text());
+            $(this).text('')
+        });
+    }
+).on('tbwchange', function() {
+}).on('keyup', function(e) {
 });

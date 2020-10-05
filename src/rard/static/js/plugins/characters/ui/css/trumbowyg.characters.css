@@ -1,0 +1,63 @@
+.trumbowyg-symbol-\&nbsp-dropdown-button {
+    display: none !important;
+}
+.trumbowyg-symbol-\&nbsp-dropdown-button + button {
+    clear: both;
+}
+
+.trumbowyg-dropdown-characters {
+    width: 248px;
+    padding: 5px 3px 3px;
+}
+
+.trumbowyg-dropdown-characters button {
+    display: block;
+    position: relative;
+    float: left;
+    height: 26px;
+    width: 26px;
+    padding: 0;
+    margin: 2px;
+    line-height: 24px;
+    text-align: center;
+}
+
+.trumbowyg-dropdown-characters button:hover::after, .trumbowyg-dropdown-characters button:focus::after {
+    display: block;
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    height: 27px;
+    width: 27px;
+    background: inherit;
+    box-shadow: #000 0 0 2px;
+    z-index: 10;
+    background-color: transparent;
+}
+
+.trumbowyg .characters {
+    width: 22px;
+    height: 22px;
+    display: inline-block;
+}
+
+.trumbowyg-dropdown-characters > button {
+    padding-left: 25px!important;
+    background-size: auto 15px!important;
+    margin-left: 10px;
+}
+
+.trumbowyg-symbol-asterisk-dropdown-button {
+    background: url("/static/images/characters/asterisk.svg") no-repeat left center!important;
+}
+
+.trumbowyg-symbol-diple_periestigmene-dropdown-button {
+    background: url("/static/images/characters/diple_periestigmene.svg") no-repeat left center!important;
+}
+
+.trumbowyg-characters-button {
+    background: url("/static/images/characters/asterisk.svg") no-repeat left center!important;
+    background-size: auto 15px!important;
+    background-position-x: 5px!important ;
+    /* width: 20px; */
+}   
