@@ -9,13 +9,13 @@
         href='{% url "antiquarian:list" %}'>
         {% trans 'Antiquarians' %}
       </a>
-      <a class='nav-link {% if "fragment" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
-        href='{% url "fragment:list" %}'>
-        {% trans 'Fragments' %}
-      </a>
       <a class='nav-link {% if "testimonium" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
         href='{% url "testimonium:list" %}'>
         {% trans 'Testimonia' %}
+      </a>
+      <a class='nav-link {% if "fragment" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
+        href='{% url "fragment:list" %}'>
+        {% trans 'Fragments' %}
       </a>
       <a class='nav-link {% if "topic" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
         href='{% url "topic:list" %}'>
@@ -24,6 +24,10 @@
       <a class='nav-link {% if "work" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
         href='{% url "work:list" %}'>
         {% trans 'Works' %}
+      </a>
+      <a class='nav-link {% if "concordance" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
+        href='{% url "concordance:list" %}'>
+        {% trans 'Concordance' %}
       </a>
     </nav>
   </div>
