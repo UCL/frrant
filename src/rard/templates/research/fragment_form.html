@@ -1,12 +1,11 @@
+{# For editing details of existing fragments #}
+
+
 {% extends "research/base.html" %}
 {% load i18n bootstrap4 %}
 
 {% block heading %}
-    {% if object %}
-        {% trans 'Update Fragment' %}
-    {% else %}
-        {% trans 'Create Fragment' %}
-    {% endif %}
+    {% trans 'Update Fragment' %}
 {% endblock %}
 
 {% block inner %}
@@ -14,11 +13,7 @@
         {% csrf_token %}
         {% bootstrap_form form %}
         <button type="submit" class="btn btn-primary">
-            {% if object %}
-                {% trans 'Save' %}
-            {% else %}
-                {% trans 'Create' %}
-            {% endif %}
+        {% trans 'Save' %}
         </button>
     </form>
 {% endblock %}
