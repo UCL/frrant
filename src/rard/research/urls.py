@@ -61,5 +61,11 @@ urlpatterns = [
         path("<slug>/update/", views.TopicUpdateView.as_view(), name="update"),
         path("<slug>/delete/", views.TopicDeleteView.as_view(), name="delete"),
     ], 'research'), namespace='topic')),
+    path('concordance/', include(([
+        path('list/', views.ConcordanceListView.as_view(), name='list'),
+        path("original-text/<pk>/create/", views.ConcordanceCreateView.as_view(), name="create"),
+        path("<pk>/update/", views.ConcordanceUpdateView.as_view(), name="update"),
+        path("<pk>/delete/", views.ConcordanceDeleteView.as_view(), name="delete"),
+    ], 'research'), namespace='concordance')),
 
 ]
