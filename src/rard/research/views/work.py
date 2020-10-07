@@ -19,7 +19,6 @@ class WorkDetailView(LoginRequiredMixin, DetailView):
 
 
 class WorkCreateView(LoginRequiredMixin, CreateView):
-    # create a work and optionally assign to an antiquarian
     model = Work
     fields = '__all__'
     success_url = reverse_lazy('work:list')
