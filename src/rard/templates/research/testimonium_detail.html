@@ -71,17 +71,9 @@
             {% include 'research/partials/original_text_preview.html' with original_text=original_text %}
         </div>
 
-        <dl class="row mb-0">
-            <dt class="col-sm-3">{% trans 'Citing Work' %}</dt>
-            <dd class="col-sm-9">{{ original_text.citing_work }}</dd>
 
-            <dt class="col-sm-3">{% trans 'Translations' %}</dt>
-            <dd class="col-sm-9">{{ original_text.translation_set.count }}</dd>
+        {% include 'research/partials/section/original_text_details.html' with original_text=original_text %}
 
-            <dt class="col-sm-3">{% trans 'Apparatus Criticus' %}</dt>
-            <dd class="col-sm-9">{{ original_text.apparatus_criticus|default:'-'|linebreaks }}</dd>
-
-        </dl>
 
         <div class='d-flex justify-content-between mb-3'>
             <div>
