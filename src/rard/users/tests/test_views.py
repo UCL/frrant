@@ -1,7 +1,7 @@
 import pytest
 from django.contrib import messages
 from django.contrib.admin.sites import AdminSite
-from django.contrib.auth.models import AnonymousUser
+from django.contrib.auth.models import AnonymousUser, Group
 from django.http.response import Http404
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
@@ -104,15 +104,20 @@ class TestUserAdminCreateView(TestCase):
     def test_admin_create_user(self):
         request = RequestFactory().get("/admin/")
         request.user = UserFactory()
+        Group.objects.create(name='test')
 
         site = AdminSite()
         admin = UserAdmin(User, site)
 
         data = {
             'username': 'jsmith',
-            'email': 'jsmith@example.com'
+            'email': 'jsmith@example.com',
+            'groups': Group.objects.all(),
         }
-        new_user = User(**data)
+        new_user = User(
+            username=data['username'],
+            email=data['email']
+        )
 
         form = UserCreationForm(data=data)
         self.assertTrue(form.is_valid())  # create cleaned_data

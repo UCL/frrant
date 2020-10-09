@@ -9,15 +9,15 @@ from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from rard.research.models import Concordance, OriginalText
 
 
-class ConcordanceListView(LoginRequiredMixin,
-        PermissionRequiredMixin, ListView):
+class ConcordanceListView(
+        LoginRequiredMixin, PermissionRequiredMixin, ListView):
     paginate_by = 10
     model = Concordance
     permission_required = ('research.view_concordance',)
 
 
-class ConcordanceCreateView(LoginRequiredMixin,
-        PermissionRequiredMixin, CreateView):
+class ConcordanceCreateView(
+        LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     # create a concordance for an original text
     model = Concordance
     permission_required = ('research.add_concordance',)
@@ -50,8 +50,8 @@ class ConcordanceCreateView(LoginRequiredMixin,
         return context
 
 
-class ConcordanceUpdateView(LoginRequiredMixin,
-        PermissionRequiredMixin, UpdateView):
+class ConcordanceUpdateView(
+        LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     model = Concordance
     permission_required = ('research.change_concordance',)
     fields = ('source', 'identifier')
@@ -71,8 +71,8 @@ class ConcordanceUpdateView(LoginRequiredMixin,
 
 
 @method_decorator(require_POST, name='dispatch')
-class ConcordanceDeleteView(LoginRequiredMixin,
-        PermissionRequiredMixin, DeleteView):
+class ConcordanceDeleteView(
+        LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     model = Concordance
     permission_required = ('research.delete_concordance',)
 

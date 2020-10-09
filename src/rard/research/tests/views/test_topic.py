@@ -4,8 +4,7 @@ from django.urls import reverse
 
 from rard.research.models import Topic
 from rard.research.views import (TopicCreateView, TopicDeleteView,
-                                 TopicDetailView,
-                                 TopicListView,
+                                 TopicDetailView, TopicListView,
                                  TopicUpdateView)
 from rard.users.tests.factories import UserFactory
 

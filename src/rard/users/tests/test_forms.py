@@ -1,4 +1,5 @@
 import pytest
+from django.contrib.auth.models import Group
 from django.test import TestCase
 
 from rard.users.forms import UserCreationForm
@@ -12,6 +13,7 @@ class TestUserCreationForm(TestCase):
     def test_clean_username(self):
         # A user with proto_user params does not exist yet.
         proto_user = UserFactory.build()
+        Group.objects.create(name='test')
 
         form = UserCreationForm(
             {
@@ -19,6 +21,7 @@ class TestUserCreationForm(TestCase):
                 "email": 'email@example.com',
                 "password1": proto_user._password,
                 "password2": proto_user._password,
+                'groups': Group.objects.all(),
             }
         )
 
@@ -36,6 +39,7 @@ class TestUserCreationForm(TestCase):
                 "email": 'different_email@example.com',
                 "password1": proto_user._password,
                 "password2": proto_user._password,
+                'groups': Group.objects.all(),
             }
         )
 
@@ -46,6 +50,7 @@ class TestUserCreationForm(TestCase):
     def test_reserved_username(self):
         # A user with proto_user params does not exist yet.
         proto_user = UserFactory.build()
+        Group.objects.create(name='test')
 
         form = UserCreationForm(
             {
@@ -53,6 +58,7 @@ class TestUserCreationForm(TestCase):
                 "email": 'email@example.com',
                 "password1": proto_user._password,
                 "password2": proto_user._password,
+                'groups': Group.objects.all(),
             }
         )
 
@@ -63,6 +69,7 @@ class TestUserCreationForm(TestCase):
     def test_unique_email(self):
         # A user with proto_user params does not exist yet.
         proto_user = UserFactory.build()
+        Group.objects.create(name='test')
 
         form = UserCreationForm(
             {
@@ -70,6 +77,7 @@ class TestUserCreationForm(TestCase):
                 "email": proto_user.email,
                 "password1": proto_user._password,
                 "password2": proto_user._password,
+                'groups': Group.objects.all(),
             }
         )
 
@@ -86,9 +94,29 @@ class TestUserCreationForm(TestCase):
                 "email": proto_user.email,  # NB same email
                 "password1": proto_user._password,
                 "password2": proto_user._password,
+                'groups': Group.objects.all(),
             }
         )
 
         self.assertFalse(form.is_valid())
         self.assertEqual(len(form.errors), 1)
         self.assertIn("email", form.errors)
+
+    def test_groups_required(self):
+        # A user with proto_user params does not exist yet.
+        proto_user = UserFactory.build()
+
+        # Try and create a user with no groups and you should
+        # raise an error.
+        form = UserCreationForm(
+            {
+                "username": 'different_username',
+                "email": proto_user.email,  # NB same email
+                "password1": proto_user._password,
+                "password2": proto_user._password,
+            }
+        )
+
+        self.assertFalse(form.is_valid())
+        self.assertEqual(len(form.errors), 1)
+        self.assertIn("groups", form.errors)

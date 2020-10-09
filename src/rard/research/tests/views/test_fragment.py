@@ -4,8 +4,7 @@ from django.urls import reverse
 
 from rard.research.models import CitingWork, Fragment
 from rard.research.views import (FragmentCreateView, FragmentDeleteView,
-                                 FragmentDetailView,
-                                 FragmentListView,
+                                 FragmentDetailView, FragmentListView,
                                  FragmentUpdateView)
 from rard.users.tests.factories import UserFactory
 

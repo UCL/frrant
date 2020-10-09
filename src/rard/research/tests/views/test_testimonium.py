@@ -4,8 +4,7 @@ from django.urls import reverse
 
 from rard.research.models import CitingWork, Testimonium
 from rard.research.views import (TestimoniumCreateView, TestimoniumDeleteView,
-                                 TestimoniumDetailView,
-                                 TestimoniumListView,
+                                 TestimoniumDetailView, TestimoniumListView,
                                  TestimoniumUpdateView)
 from rard.users.tests.factories import UserFactory
 

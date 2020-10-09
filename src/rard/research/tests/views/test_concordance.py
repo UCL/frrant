@@ -5,8 +5,7 @@ from django.urls import reverse
 from rard.research.models import (CitingWork, Concordance, Fragment,
                                   OriginalText)
 from rard.research.views import (ConcordanceCreateView, ConcordanceDeleteView,
-                                 ConcordanceListView,
-                                 ConcordanceUpdateView)
+                                 ConcordanceListView, ConcordanceUpdateView)
 from rard.users.tests.factories import UserFactory
 
 pytestmark = pytest.mark.django_db

@@ -85,22 +85,22 @@ class FragmentListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     permission_required = ('research.view_fragment',)
 
 
-class FragmentDetailView(LoginRequiredMixin,
-        PermissionRequiredMixin, DetailView):
+class FragmentDetailView(
+        LoginRequiredMixin, PermissionRequiredMixin, DetailView):
     model = Fragment
     permission_required = ('research.view_fragment',)
 
 
 @method_decorator(require_POST, name='dispatch')
-class FragmentDeleteView(LoginRequiredMixin,
-        PermissionRequiredMixin, DeleteView):
+class FragmentDeleteView(
+        LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     model = Fragment
     success_url = reverse_lazy('fragment:list')
     permission_required = ('research.delete_fragment',)
 
 
-class FragmentUpdateView(LoginRequiredMixin,
-        PermissionRequiredMixin, UpdateView):
+class FragmentUpdateView(
+        LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     model = Fragment
     form_class = FragmentForm
     permission_required = ('research.change_fragment',)

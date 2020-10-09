@@ -9,8 +9,8 @@ from rard.research.forms import OriginalTextForm
 from rard.research.models import Fragment, OriginalText, Testimonium
 
 
-class OriginalTextCreateViewBase(LoginRequiredMixin,
-        PermissionRequiredMixin, CreateView):
+class OriginalTextCreateViewBase(
+        LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = OriginalText
     form_class = OriginalTextForm
 

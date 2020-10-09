@@ -12,8 +12,8 @@ from rard.research.forms import AntiquarianForm, WorkForm
 from rard.research.models import Antiquarian, Work
 
 
-class AntiquarianListView(LoginRequiredMixin,
-        PermissionRequiredMixin, ListView):
+class AntiquarianListView(
+        LoginRequiredMixin, PermissionRequiredMixin, ListView):
     paginate_by = 10
     model = Antiquarian
     permission_required = ('research.view_antiquarian',)
@@ -53,8 +53,8 @@ class AntiquarianDeleteView(
     success_url = reverse_lazy('antiquarian:list')
 
 
-class AntiquarianWorksUpdateView(LoginRequiredMixin,
-        PermissionRequiredMixin, UpdateView):
+class AntiquarianWorksUpdateView(
+        LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     model = Antiquarian
     fields = ['works']
     permission_required = ('research.change_antiquarian',)
@@ -63,8 +63,8 @@ class AntiquarianWorksUpdateView(LoginRequiredMixin,
         return reverse('antiquarian:detail', kwargs={'pk': self.object.pk})
 
 
-class AntiquarianWorkCreateView(LoginRequiredMixin,
-        PermissionRequiredMixin, CreateView):
+class AntiquarianWorkCreateView(
+        LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = Work
     form_class = WorkForm
     permission_required = (

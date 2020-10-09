@@ -4,8 +4,7 @@ from django.urls import reverse
 
 from rard.research.models import Antiquarian
 from rard.research.views import (AntiquarianCreateView, AntiquarianDeleteView,
-                                 AntiquarianDetailView,
-                                 AntiquarianListView,
+                                 AntiquarianDetailView, AntiquarianListView,
                                  AntiquarianUpdateView,
                                  AntiquarianWorkCreateView,
                                  AntiquarianWorksUpdateView)

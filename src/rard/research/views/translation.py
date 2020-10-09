@@ -8,8 +8,8 @@ from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from rard.research.models import OriginalText, Translation
 
 
-class TranslationCreateView(LoginRequiredMixin,
-        PermissionRequiredMixin, CreateView):
+class TranslationCreateView(
+        LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = Translation
     fields = ['translated_text', 'translator_name', 'approved']
     permission_required = ('research.add_translation',)
@@ -39,8 +39,8 @@ class TranslationCreateView(LoginRequiredMixin,
         return context
 
 
-class TranslationUpdateView(LoginRequiredMixin,
-        PermissionRequiredMixin, UpdateView):
+class TranslationUpdateView(
+        LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     model = Translation
     fields = ['translated_text', 'translator_name', 'approved']
     permission_required = ('research.change_translation',)
@@ -57,8 +57,8 @@ class TranslationUpdateView(LoginRequiredMixin,
 
 
 @method_decorator(require_POST, name='dispatch')
-class TranslationDeleteView(LoginRequiredMixin,
-        PermissionRequiredMixin, DeleteView):
+class TranslationDeleteView(
+        LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     model = Translation
     permission_required = ('research.delete_translation',)
 

@@ -13,8 +13,8 @@ from rard.research.models import Comment, TextObjectField
 
 
 @method_decorator(require_POST, name='dispatch')
-class CommentDeleteView(LoginRequiredMixin,
-        PermissionRequiredMixin, DeleteView):
+class CommentDeleteView(
+        LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     model = Comment
     permission_required = ('research.delete_comment',)
 
@@ -33,8 +33,8 @@ class CommentDeleteView(LoginRequiredMixin,
     permission_required('research.add_comment', raise_exception=True),
     name='post'
 )
-class CommentListViewBase(LoginRequiredMixin,
-        PermissionRequiredMixin, FormMixin, ListView):
+class CommentListViewBase(
+        LoginRequiredMixin, PermissionRequiredMixin, FormMixin, ListView):
     paginate_by = 10
     model = Comment
     form_class = CommentForm

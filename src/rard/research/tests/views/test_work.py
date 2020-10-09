@@ -3,7 +3,8 @@ from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
 from rard.research.models import Work
-from rard.research.views import WorkCreateView, WorkDeleteView, WorkDetailView, WorkListView, WorkUpdateView
+from rard.research.views import (WorkCreateView, WorkDeleteView,
+                                 WorkDetailView, WorkListView, WorkUpdateView)
 from rard.users.tests.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
