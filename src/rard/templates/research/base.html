@@ -5,30 +5,42 @@
 <div class='row mt-5'>
   <div class='col-md-2'>
     <nav class='nav flex-column'>
+      {% if perms.research.view_antiquarian %}
       <a class='nav-link {% if "antiquarian" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
         href='{% url "antiquarian:list" %}'>
         {% trans 'Antiquarians' %}
       </a>
+      {% endif %}
+      {% if perms.research.view_testimonium %}
       <a class='nav-link {% if "testimonium" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
         href='{% url "testimonium:list" %}'>
         {% trans 'Testimonia' %}
       </a>
+      {% endif %}
+      {% if perms.research.view_fragment %}
       <a class='nav-link {% if "fragment" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
         href='{% url "fragment:list" %}'>
         {% trans 'Fragments' %}
       </a>
+      {% endif %}
+      {% if perms.research.view_topic %}
       <a class='nav-link {% if "topic" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
         href='{% url "topic:list" %}'>
         {% trans 'Topics' %}
       </a>
+      {% endif %}
+      {% if perms.research.view_work %}
       <a class='nav-link {% if "work" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
         href='{% url "work:list" %}'>
         {% trans 'Works' %}
       </a>
+      {% endif %}
+      {% if perms.research.view_concordance %}
       <a class='nav-link {% if "concordance" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
         href='{% url "concordance:list" %}'>
         {% trans 'Concordance' %}
       </a>
+      {% endif %}
     </nav>
   </div>
   <div class='col'>

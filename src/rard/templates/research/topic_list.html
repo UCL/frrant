@@ -6,7 +6,9 @@
 {% endblock %}
 
 {% block action %}
+    {% if perms.research.add_topic %}
     <a href='{% url "topic:create" %}'>{% trans 'Create New' %}</a>
+    {% endif %}
 {% endblock %}
 
 {% block inner %}

@@ -4,6 +4,7 @@
 {% block heading %}{{ object.name|default:'Unnamed fragment' }}{% endblock %}
 
 {% block action %}
+    {% if perms.research.delete_fragment %}
     <form novalidate class='form-inline' action='{% url "fragment:delete" fragment.pk %}' method='POST'>
         {% csrf_token %}
         <div class='form-group'>
@@ -11,6 +12,7 @@
                 data-what='fragment'>{% trans 'Delete' %}</button>
         </div>
     </form>        
+    {% endif %}
 {% endblock %}
 
 {% block inner %}
@@ -21,7 +23,9 @@
                 <h5>{% trans 'Details' %}</h5>
             </div>
             <div>
+                {% if perms.research.change_fragment %}
                 <a href='{% url "fragment:update" object.pk %}'>{% trans 'Edit' %}</a>
+                {% endif %}
             </div>
         </div>
 
@@ -33,13 +37,21 @@
             <dt class="col-sm-3">{% trans 'Topics' %}</dt>
             <dd class="col-sm-9">
                 {% if object.topics.count == 0%}-{% endif %}
-                {% for topic in object.topics.all %}{% if forloop.counter0 > 0 %}, {% endif %}<a href='{% url "topic:detail" topic.slug %}'>{{ topic.name }}</a>{% endfor %}
+                {% for topic in object.topics.all %}{% if forloop.counter0 > 0 %}, {% endif %}
+                    {% if perms.research.view_topic %}
+                    <a href='{% url "topic:detail" topic.slug %}'>{{ topic.name }}</a>
+                    {% else %}
+                    {{ topic.name }}
+                    {% endif %}
+                {% endfor %}
             </dd>
             {% endif %}
 
             <dt class="col-sm-3">{% trans 'Original Texts' %}</dt>
-            <dd class="col-sm-9">{{ object.original_texts.count }} <a href='{% url "fragment:create_original_text" object.pk %}'>Add</a></dd>
-
+            <dd class="col-sm-9">{{ object.original_texts.count }} 
+                {% if perms.research.change_fragment and perms.research.add_originaltext %}
+                    <a href='{% url "fragment:create_original_text" object.pk %}'>Add</a></dd>
+                {% endif %}
             <dt class="col-sm-3">{% trans 'Apparatus Criticus' %}</dt>
             <dd class="col-sm-9">{{ object.apparatus_criticus|default:'-'|linebreaks }}</dd>
         </dl>
@@ -56,14 +68,19 @@
                 <h5>{% trans 'Original Text' %} {{ forloop.counter }}</h5>
             </div>
             <div>
+                {% if perms.research.change_fragment %}
                 <form novalidate class='form-inline' action='{% url "fragment:delete_original_text" original_text.pk %}' method='POST'>
                     {% csrf_token %}
                     <div class="form-row align-items-center">
-                        <a href='{% url "fragment:update_original_text" original_text.pk %}'>Edit</a>        
+                        {% if perms.research.change_originaltext %}
+                        <a href='{% url "fragment:update_original_text" original_text.pk %}'>Edit</a>      
+                        {% endif %}  
+                        {% if perms.research.delete_originaltext %}
                         <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2' data-what='original text'>{% trans 'Delete' %}</button>
+                        {% endif %}  
                     </div>
                 </form>
-        
+                {% endif %}
             </div>
         </div>
 
@@ -71,7 +88,7 @@
             {% include 'research/partials/original_text_preview.html' with original_text=original_text %}
         </div>
 
-        {% include 'research/partials/section/original_text_details.html' with original_text=original_text %}
+        {% include 'research/partials/section/original_text_details.html' with original_text=original_text can_edit=perms.research.change_fragment %}
 
 
         <div class='d-flex justify-content-between mb-3'>
@@ -85,7 +102,9 @@
                 </h6>
             </div>
             <div>
+                {% if perms.research.change_fragment and perms.research.add_translation %}
                 <a href='{% url "fragment:create_translation" original_text.pk %}'>{% trans 'Add' %}</a>
+                {% endif %}
             </div>
         </div>
 
@@ -109,7 +128,9 @@
                 <h5>{% trans 'Definite Works' %}</h5>
             </div>
             <div>
+                {% if perms.research.change_fragment %}
                 <a href='{% url "fragment:update" object.pk %}'>{% trans 'Edit' %}</a>
+                {% endif %}
             </div>
         </div>
 
@@ -129,7 +150,9 @@
                 <h5>{% trans 'Possible Works' %}</h5>
             </div>
             <div>
+                {% if perms.research.change_fragment %}
                 <a href='{% url "fragment:update" object.pk %}'>{% trans 'Edit' %}</a>
+                {% endif %}
             </div>
         </div>
 
@@ -148,8 +171,9 @@
                 <h5>{% trans 'Definite Antiquarians' %}</h5>
             </div>
             <div>
-
+                {% if perms.research.change_fragment %}
                 <a href='{% url "fragment:update" object.pk %}'>{% trans 'Edit' %}</a>
+                {% endif %}
             </div>
         </div>
 
@@ -170,8 +194,9 @@
                 <h5>{% trans 'Possible Antiquarians' %}</h5>
             </div>
             <div>
-
+                {% if perms.research.change_fragment %}
                 <a href='{% url "fragment:update" object.pk %}'>{% trans 'Edit' %}</a>
+                {% endif %}
             </div>
         </div>
 
@@ -192,8 +217,9 @@
                 <h5>{% trans 'Commentary' %}</h5>
             </div>
             <div>
-
+                {% if perms.research.change_fragment %}
                 <a href='{% url "fragment:update" object.pk %}'>{% trans 'Edit' %}</a>
+                {% endif %}
             </div>
         </div>
 
@@ -202,8 +228,11 @@
                 <p>
                     {{ object.commentary.content|linebreaks|default:'Not specified' }}
                 </p>
-                <p>{{ object.commentary.comments.count }} comments
+                <p>
+                    {% if perms.research.view_comment %}                   
+                    {{ object.commentary.comments.count }} comments
                     <a href='{% url "list_comments_on_text" object.commentary.pk %}'>view</a>
+                    {% endif %}
                 </p>
 
             </div>

@@ -4,13 +4,15 @@
 {% block heading %}{{ object.name }}{% endblock %}
 
 {% block action %}
+    {% if perms.research.delete_topic %}
     <form novalidate class='form-inline' action='{% url "topic:delete" topic.slug %}' method='POST'>
         {% csrf_token %}
         <div class='form-group'>
             <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
                 data-what='topic'>{% trans 'Delete' %}</button>
         </div>
-    </form>    
+    </form> 
+    {% endif %}   
 {% endblock %}
 
 {% block inner %}
@@ -22,7 +24,9 @@
                 <h5>{% trans 'Details' %}</h5>
             </div>
             <div>
+                {% if perms.research.edit_topic %}
                 <a href='{% url "topic:update" object.slug %}'>{% trans 'Edit' %}</a>
+                {% endif %}
             </div>
         </div>
 

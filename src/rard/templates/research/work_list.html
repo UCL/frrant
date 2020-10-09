@@ -6,7 +6,9 @@
 {% endblock %}
 
 {% block action %}
+    {% if perms.research.add_work %}
     <a href='{% url "work:create_anonymous" %}'>{% trans 'Create New' %}</a>
+    {% endif %}
 {% endblock %}
 
 {% block inner %}

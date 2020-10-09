@@ -6,7 +6,11 @@
 {% endblock %}
 
 {% block action %}
-    <a href='{% url "antiquarian:create" %}'>{% trans 'Create New' %}</a>
+
+    {% if perms.research.add_antiquarian %}
+        <a href='{% url "antiquarian:create" %}'>{% trans 'Create New' %}</a>
+    {% endif %}
+
 {% endblock %}
 
 {% block inner %}

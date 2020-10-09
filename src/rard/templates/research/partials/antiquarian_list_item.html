@@ -5,9 +5,15 @@
 <div class='list-item d-flex justify-content-between'>
     <div>
         <li>
-            <a href='{% url "antiquarian:detail" antiquarian.pk %}'>
-                {{ antiquarian.name }} 
-            </a> 
+            {% with antiquarian.name as link_text %}
+                {% if perms.research.view_antiquarian %}
+                <a href='{% url "antiquarian:detail" antiquarian.pk %}'>
+                    {{ link_text }} 
+                </a> 
+                {% else %}
+                    {{ link_text }}
+                {% endif %}
+            {% endwith %}
         </li>
     </div>
     <div class='list-item-actions'>

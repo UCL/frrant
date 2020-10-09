@@ -6,9 +6,15 @@
 <div class='list-item d-flex justify-content-between'>
     <div>
         <li>
-            <a href='{% url "testimonium:detail" testimonium.pk %}'>
-                {{ testimonium.name|default:'Unnamed testimonium' }}
-            </a> 
+            {% with testimonium.name|default:'Unnamed testimonium' as link_text %}
+                {% if perms.research.view_testimonium %}
+                <a href='{% url "testimonium:detail" testimonium.pk %}'>
+                    {{ link_text }}
+                </a> 
+                {% else %}
+                    {{ link_text }}
+                {% endif %}
+            {% endwith %}
         </li>
     </div>
     <div class='list-item-actions'>

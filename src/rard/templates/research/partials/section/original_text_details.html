@@ -21,17 +21,25 @@
             <div class='d-flex justify-content-between mb-3'>
             <div>{{ concordance.source }}:{{ concordance.identifier }}</div>
             <div>
+            {% if can_edit %}
             <form novalidate class='form-inline' action='{% url "concordance:delete" concordance.pk %}' method='POST'>
                 {% csrf_token %}
                 <div class='form-row align-items-center'>
+                    {% if perms.research.change_concordance %}
                     <a href='{% url "concordance:update" concordance.pk %}'>Edit</a>
+                    {% endif %}
+                    {% if perms.research.delete_concordance %}
                     <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
                         data-what='concordance'>{% trans 'Delete' %}</button>
+                    {% endif %}
                 </div>
-            </form>        
+            </form>    
+            {% endif %}    
             </div>
         </div>
         {% endfor %}
     </dd>
+    {% if can_edit and perms.research.add_concordance %}
     <dd class="col-sm-2"><a style='float:right' href='{% url "concordance:create" original_text.pk %}'>Add</a></dd>
+    {% endif %}
 </dl>
