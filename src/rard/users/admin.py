@@ -35,6 +35,7 @@ class UserAdmin(auth_admin.UserAdmin):
                 'last_name',
                 'username',
                 'email',
+                'groups',
             ),
         }),
     )
@@ -54,7 +55,8 @@ class UserAdmin(auth_admin.UserAdmin):
             # the email templates
             subject_template = \
                 'registration/account_creation_email_subject.txt'
-            email_template = 'registration/account_creation_email.html'
+            email_template = 'registration/account_creation_email.txt'
+            html_email_template = 'registration/account_creation_email.html'
             reset_form = PasswordResetForm({'email': obj.email})
             if reset_form.is_valid():
                 reset_form.save(
@@ -63,4 +65,5 @@ class UserAdmin(auth_admin.UserAdmin):
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     subject_template_name=subject_template,
                     email_template_name=email_template,
+                    html_email_template_name=html_email_template,
                 )

@@ -12,9 +12,7 @@ To verify your email address and set a password, please click the following link
 into your web browser:
 {% endblocktrans %}
 
-<a rel="noreferrer" href="{{ protocol }}://{{ domain }}{% url 'password_reset_confirm' uid token %}">
-  {{ protocol }}://{{ domain }}{% url 'password_reset_confirm' uid token %}
-</a>
+{{ protocol }}://{{ domain }}{% url 'password_reset_confirm' uid token %}
 
 {% blocktrans %}Your username on the site is: {% endblocktrans %} {{ user.get_username }}
 

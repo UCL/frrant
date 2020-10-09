@@ -16,6 +16,7 @@ class UserCreationForm(forms.UserCreationForm):
         {
             "duplicate_username": _("This username has already been taken."),
             "reserved_username": _("This username is reserved."),
+            "no_groups": _("Please add the user to at least one group."),
         }
     )
 
@@ -26,7 +27,7 @@ class UserCreationForm(forms.UserCreationForm):
 
     class Meta(forms.UserCreationForm.Meta):
         model = User
-        fields = ('username', 'first_name', 'last_name', 'email',)
+        fields = ('username', 'first_name', 'last_name', 'email', 'groups',)
 
     def clean_username(self):
         username = self.cleaned_data["username"]
@@ -40,3 +41,9 @@ class UserCreationForm(forms.UserCreationForm):
             return username
 
         raise ValidationError(self.error_messages["duplicate_username"])
+
+    def clean_groups(self):
+        groups = self.cleaned_data["groups"]
+        if len(groups) == 0:
+            raise ValidationError(self.error_messages["no_groups"])
+        return groups
