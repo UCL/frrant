@@ -229,3 +229,16 @@ class TestCommentDeleteView(TestCase):
             view.get_success_url(),
             dummy_url
         )
+
+
+class TestCommentViewPermissions(TestCase):
+
+    def test_permissions(self):
+        self.assertIn(
+            'research.delete_comment',
+            CommentDeleteView.permission_required
+        )
+        self.assertIn(
+            'research.view_comment',
+            TextObjectFieldCommentListView.permission_required
+        )

@@ -4,6 +4,8 @@ from django.urls import reverse
 
 from rard.research.models import Topic
 from rard.research.views import (TopicCreateView, TopicDeleteView,
+                                 TopicDetailView,
+                                 TopicListView,
                                  TopicUpdateView)
 from rard.users.tests.factories import UserFactory
 
@@ -66,3 +68,23 @@ class TestTopicDeleteView(TestCase):
             request, pk=topic.pk
         )
         self.assertEqual(response.status_code, 405)
+
+
+class TestTopicViewPermissions(TestCase):
+
+    def test_permissions(self):
+        self.assertIn(
+            'research.add_topic', TopicCreateView.permission_required
+        )
+        self.assertIn(
+            'research.delete_topic', TopicDeleteView.permission_required
+        )
+        self.assertIn(
+            'research.change_topic', TopicUpdateView.permission_required
+        )
+        self.assertIn(
+            'research.view_topic', TopicListView.permission_required
+        )
+        self.assertIn(
+            'research.view_topic', TopicDetailView.permission_required
+        )
