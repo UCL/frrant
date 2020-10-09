@@ -1,4 +1,5 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import (LoginRequiredMixin,
+                                        PermissionRequiredMixin)
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
@@ -7,9 +8,11 @@ from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from rard.research.models import OriginalText, Translation
 
 
-class TranslationCreateView(LoginRequiredMixin, CreateView):
+class TranslationCreateView(LoginRequiredMixin,
+        PermissionRequiredMixin, CreateView):
     model = Translation
     fields = ['translated_text', 'translator_name', 'approved']
+    permission_required = ('research.add_translation',)
 
     def get_success_url(self, *args, **kwargs):
         return self.get_original_text().owner.get_absolute_url()
@@ -36,9 +39,11 @@ class TranslationCreateView(LoginRequiredMixin, CreateView):
         return context
 
 
-class TranslationUpdateView(LoginRequiredMixin, UpdateView):
+class TranslationUpdateView(LoginRequiredMixin,
+        PermissionRequiredMixin, UpdateView):
     model = Translation
     fields = ['translated_text', 'translator_name', 'approved']
+    permission_required = ('research.change_translation',)
 
     def get_success_url(self, *args, **kwargs):
         return self.object.original_text.owner.get_absolute_url()
@@ -52,8 +57,10 @@ class TranslationUpdateView(LoginRequiredMixin, UpdateView):
 
 
 @method_decorator(require_POST, name='dispatch')
-class TranslationDeleteView(LoginRequiredMixin, DeleteView):
+class TranslationDeleteView(LoginRequiredMixin,
+        PermissionRequiredMixin, DeleteView):
     model = Translation
+    permission_required = ('research.delete_translation',)
 
     def get_success_url(self, *args, **kwargs):
         return self.object.original_text.owner.get_absolute_url()

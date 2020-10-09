@@ -1,4 +1,5 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import (LoginRequiredMixin,
+                                        PermissionRequiredMixin)
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
@@ -8,7 +9,8 @@ from rard.research.forms import OriginalTextForm
 from rard.research.models import Fragment, OriginalText, Testimonium
 
 
-class OriginalTextCreateViewBase(LoginRequiredMixin, CreateView):
+class OriginalTextCreateViewBase(LoginRequiredMixin,
+        PermissionRequiredMixin, CreateView):
     model = OriginalText
     form_class = OriginalTextForm
 
@@ -32,15 +34,22 @@ class OriginalTextCreateViewBase(LoginRequiredMixin, CreateView):
 
 class FragmentOriginalTextCreateView(OriginalTextCreateViewBase):
     parent_object_class = Fragment
+    permission_required = (
+        'research.add_originaltext', 'research.change_fragment',
+    )
 
 
 class TestimoniumOriginalTextCreateView(OriginalTextCreateViewBase):
     parent_object_class = Testimonium
+    permission_required = (
+        'research.add_originaltext', 'research.change_testimonium',
+    )
 
 
 class OriginalTextUpdateView(LoginRequiredMixin, UpdateView):
     model = OriginalText
     form_class = OriginalTextForm
+    permission_required = ('research.change_originaltext',)
 
     def get_success_url(self, *args, **kwargs):
         return self.object.owner.get_absolute_url()
@@ -49,6 +58,7 @@ class OriginalTextUpdateView(LoginRequiredMixin, UpdateView):
 @method_decorator(require_POST, name='dispatch')
 class OriginalTextDeleteView(LoginRequiredMixin, DeleteView):
     model = OriginalText
+    permission_required = ('research.delete_originaltext',)
 
     def get_success_url(self, *args, **kwargs):
         return self.object.owner.get_absolute_url()

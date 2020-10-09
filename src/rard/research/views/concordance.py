@@ -1,4 +1,5 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import (LoginRequiredMixin,
+                                        PermissionRequiredMixin)
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
@@ -8,14 +9,18 @@ from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from rard.research.models import Concordance, OriginalText
 
 
-class ConcordanceListView(LoginRequiredMixin, ListView):
+class ConcordanceListView(LoginRequiredMixin,
+        PermissionRequiredMixin, ListView):
     paginate_by = 10
     model = Concordance
+    permission_required = ('research.view_concordance',)
 
 
-class ConcordanceCreateView(LoginRequiredMixin, CreateView):
+class ConcordanceCreateView(LoginRequiredMixin,
+        PermissionRequiredMixin, CreateView):
     # create a concordance for an original text
     model = Concordance
+    permission_required = ('research.add_concordance',)
     fields = ('source', 'identifier')
 
     # success_url = reverse_lazy('concordance:list')
@@ -45,8 +50,10 @@ class ConcordanceCreateView(LoginRequiredMixin, CreateView):
         return context
 
 
-class ConcordanceUpdateView(LoginRequiredMixin, UpdateView):
+class ConcordanceUpdateView(LoginRequiredMixin,
+        PermissionRequiredMixin, UpdateView):
     model = Concordance
+    permission_required = ('research.change_concordance',)
     fields = ('source', 'identifier')
     # success_url = reverse_lazy('concordance:list')
 
@@ -64,8 +71,10 @@ class ConcordanceUpdateView(LoginRequiredMixin, UpdateView):
 
 
 @method_decorator(require_POST, name='dispatch')
-class ConcordanceDeleteView(LoginRequiredMixin, DeleteView):
+class ConcordanceDeleteView(LoginRequiredMixin,
+        PermissionRequiredMixin, DeleteView):
     model = Concordance
+    permission_required = ('research.delete_concordance',)
 
     def get_success_url(self, *args, **kwargs):
         return self.object.original_text.owner.get_absolute_url()

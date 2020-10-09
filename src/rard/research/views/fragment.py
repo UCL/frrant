@@ -1,4 +1,5 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import (LoginRequiredMixin,
+                                        PermissionRequiredMixin)
 from django.shortcuts import redirect
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
@@ -71,30 +72,38 @@ class HistoricalBaseCreateView(LoginRequiredMixin, TemplateView):
         return self.render_to_response(context)
 
 
-class FragmentCreateView(HistoricalBaseCreateView):
+class FragmentCreateView(PermissionRequiredMixin, HistoricalBaseCreateView):
     form_class = FragmentForm
     success_url_name = 'fragment:detail'
     title = 'Create Fragment'
+    permission_required = ('research.add_fragment',)
 
 
-class FragmentListView(LoginRequiredMixin, ListView):
+class FragmentListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     paginate_by = 10
     model = Fragment
+    permission_required = ('research.view_fragment',)
 
 
-class FragmentDetailView(LoginRequiredMixin, DetailView):
+class FragmentDetailView(LoginRequiredMixin,
+        PermissionRequiredMixin, DetailView):
     model = Fragment
+    permission_required = ('research.view_fragment',)
 
 
 @method_decorator(require_POST, name='dispatch')
-class FragmentDeleteView(LoginRequiredMixin, DeleteView):
+class FragmentDeleteView(LoginRequiredMixin,
+        PermissionRequiredMixin, DeleteView):
     model = Fragment
     success_url = reverse_lazy('fragment:list')
+    permission_required = ('research.delete_fragment',)
 
 
-class FragmentUpdateView(LoginRequiredMixin, UpdateView):
+class FragmentUpdateView(LoginRequiredMixin,
+        PermissionRequiredMixin, UpdateView):
     model = Fragment
     form_class = FragmentForm
+    permission_required = ('research.change_fragment',)
 
     def get_success_url(self, *args, **kwargs):
         return reverse('fragment:detail', kwargs={'pk': self.object.pk})
