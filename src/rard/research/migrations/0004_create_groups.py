@@ -57,8 +57,10 @@ def create_default_groups(apps, schema_editor):
 
 def delete_default_groups(apps, schema_editor):
     Group = apps.get_model("auth", "Group")
-    Group.objects.get(name=ADMIN_GROUP_NAME).delete()
-    Group.objects.get(name=PROJECT_GROUP_NAME).delete()
+    # NB they might not still be there so be cautious
+    Group.objects.filter(
+        name__in=[ADMIN_GROUP_NAME, PROJECT_GROUP_NAME]
+    ).delete()
 
 
 class Migration(migrations.Migration):
