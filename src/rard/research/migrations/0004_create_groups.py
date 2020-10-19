@@ -5,6 +5,7 @@ from django.db import migrations
 
 PROJECT_GROUP_NAME = 'Project Team'
 ADMIN_GROUP_NAME = 'Admin Team'
+ADVISORY_BOARD_NAME = 'Advisory Board'
 
 
 def add_model_permissions(group, model, ContentType, Permission):
@@ -39,27 +40,26 @@ def create_default_groups(apps, schema_editor):
         model = apps.get_model("research", model_name)
         add_model_permissions(project_group, model, ContentType, Permission)
 
+    advisory_board = Group.objects.create(name=ADVISORY_BOARD_NAME)
+    for model_name in RESEARCH_MODELS:
+        model = apps.get_model("research", model_name)
+        add_model_permissions(advisory_board, model, ContentType, Permission)
+    # need to disallow deletion of models for advisory board
+    advisory_board.permissions.filter(codename__startswith='delete').delete()
+
     # set up specific admin permissions here
     admin_group = Group.objects.create(name=ADMIN_GROUP_NAME)
     User = apps.get_model("users", "User")
     add_model_permissions(admin_group, User, ContentType, Permission)
-    # add extra permissions here
-    ADMIN_EXTRA_PERMS = [
-        'view_logentry',
-        'change_group',
-        'view_group',
-        'change_permission',
-        'view_permission'
-    ]
-    for codename in ADMIN_EXTRA_PERMS:
-        admin_group.permissions.add(Permission.objects.get(codename=codename))
+    add_model_permissions(admin_group, Group, ContentType, Permission)
+    add_model_permissions(admin_group, Permission, ContentType, Permission)
 
 
 def delete_default_groups(apps, schema_editor):
     Group = apps.get_model("auth", "Group")
     # NB they might not still be there so be cautious
     Group.objects.filter(
-        name__in=[ADMIN_GROUP_NAME, PROJECT_GROUP_NAME]
+        name__in=[ADMIN_GROUP_NAME, PROJECT_GROUP_NAME, ADVISORY_BOARD_NAME]
     ).delete()
 
 
