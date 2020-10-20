@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models.signals import pre_delete
 from django.urls import reverse
 
 from rard.research.mixins import TextObjectFieldMixin
@@ -23,11 +24,43 @@ class Antiquarian(TextObjectFieldMixin, BaseModel):
 
     works = models.ManyToManyField('Work', blank=True)
 
+    fragments = models.ManyToManyField(
+        'Fragment', related_name='linked_%(class)ss', blank=True,
+        through='FragmentLink'
+    )
+
+    testimonia = models.ManyToManyField(
+        'Testimonium', related_name='linked_%(class)ss', blank=True,
+        through='TestimoniumLink'
+    )
+
     def __str__(self):
         return self.name
 
     def get_absolute_url(self):
         return reverse('antiquarian:detail', kwargs={'pk': self.pk})
+
+    def ordered_fragments(self):
+        return self.fragments.order_by('antiquarian_fragment_links__order')
+
+
+def remove_stale_antiquarian_links(sender, instance, **kwargs):
+    # any fragment or testimonium links to this antiquarian
+    # (and not via a work) should be deleted
+    from rard.research.models.base import FragmentLink, TestimoniumLink
+
+    qs = FragmentLink.objects.filter(
+        antiquarian=instance, work__isnull=True
+    )
+    qs.delete()
+
+    qs = TestimoniumLink.objects.filter(
+        antiquarian=instance, work__isnull=True
+    )
+    qs.delete()
+
+
+pre_delete.connect(remove_stale_antiquarian_links, sender=Antiquarian)
 
 
 Antiquarian.init_text_object_fields()

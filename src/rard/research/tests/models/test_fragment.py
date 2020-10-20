@@ -1,10 +1,10 @@
 
 import pytest
-from django.db.utils import IntegrityError
 from django.test import TestCase
 from django.urls import reverse
 
-from rard.research.models import Fragment, TextObjectField
+from rard.research.models import (CitingWork, Fragment, OriginalText,
+                                  TextObjectField)
 
 pytestmark = pytest.mark.django_db
 
@@ -28,23 +28,6 @@ class TestFragment(TestCase):
         self.assertTrue(Fragment._meta.get_field('apparatus_criticus').blank)
         self.assertTrue(Fragment._meta.get_field('images').blank)
         self.assertTrue(Fragment._meta.get_field('topics').blank)
-        self.assertTrue(Fragment._meta.get_field('definite_works').blank)
-        self.assertTrue(Fragment._meta.get_field('possible_works').blank)
-        self.assertTrue(
-            Fragment._meta.get_field('definite_antiquarians').blank
-        )
-        self.assertTrue(
-            Fragment._meta.get_field('possible_antiquarians').blank
-        )
-
-    def test_name_unique(self):
-        data = {
-            'name': 'name',
-            'apparatus_criticus': 'app_criticus',
-        }
-        Fragment.objects.create(**data)
-        with self.assertRaises(IntegrityError):
-            Fragment.objects.create(**data)
 
     def test_display(self):
         # the __str__ function should show the name
@@ -53,7 +36,7 @@ class TestFragment(TestCase):
             'apparatus_criticus': 'app_criticus',
         }
         fragment = Fragment.objects.create(**data)
-        self.assertEqual(str(fragment), data['name'])
+        self.assertEqual(str(fragment), 'Fragment {}'.format(fragment.pk))
 
     def test_initial_images(self):
         fragment = Fragment.objects.create(name='name')
@@ -84,3 +67,34 @@ class TestFragment(TestCase):
             fragment.get_absolute_url(),
             reverse('fragment:detail', kwargs={'pk': fragment.pk})
         )
+
+    def test_get_display_name(self):
+        # we need to show the name of the first citing work of original texts
+        fragment = Fragment.objects.create(name='name')
+        citing_work = CitingWork.objects.create(title='title')
+        data = {
+            'content': 'content',
+            'apparatus_criticus': 'apparatus_criticus',
+            'citing_work': citing_work,
+        }
+        OriginalText.objects.create(**data, owner=fragment)
+        self.assertEqual(
+            fragment.get_display_name(),
+            citing_work
+        )
+        # add a second citing work and we should indicate it
+        citing_work = CitingWork.objects.create(title='title')
+        data = {
+            'content': 'content',
+            'apparatus_criticus': 'apparatus_criticus',
+            'citing_work': citing_work,
+        }
+        OriginalText.objects.create(**data, owner=fragment)
+        self.assertEqual(
+            fragment.get_display_name(),
+            '{} +1 more'.format(citing_work)
+        )
+
+    def test_get_display_name_no_original_text(self):
+        fragment = Fragment.objects.create(name='name')
+        self.assertEqual(fragment.get_display_name(), str(fragment))

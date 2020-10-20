@@ -1,8 +1,10 @@
 import pytest
+from django.db.utils import IntegrityError
 from django.test import TestCase
 from django.urls import reverse
 
-from rard.research.models import Antiquarian, Work
+from rard.research.models import Antiquarian, Fragment, Work
+from rard.research.models.base import FragmentLink
 
 pytestmark = pytest.mark.django_db
 
@@ -66,11 +68,34 @@ class TestWork(TestCase):
         work = Work.objects.create(**data)
         length = 10
         for counter in range(0, length):
-            work.antiquarian_set.create(
+            antiquarian = Antiquarian.objects.create(
                 name='John Smith', re_code='smitre%03d' % counter
             )
+            antiquarian.works.add(work)
 
         self.assertEqual(work.antiquarian_set.count(), length)
+
+    def test_disallow_reverse_relator_addition(self):
+        # to maintain links between antiquarians and fragments when
+        # works are added and removed, we only support addition of
+        # works to antiquarians in one direction
+        antiquarian = Antiquarian.objects.create(
+            name='John Smith', re_code='smitre001'
+        )
+        data = {
+            'name': 'Work Name',
+            'subtitle': 'Subtitle',
+        }
+        work = Work.objects.create(**data)
+
+        # allowed
+        antiquarian.works.add(work)
+
+        antiquarian.works.clear()
+
+        # not allowed
+        with self.assertRaises(IntegrityError):
+            work.antiquarian_set.add(antiquarian)
 
     def test_deleting_work_leaves_antiquarian(self):
         # check we are using uuids as primary keys
@@ -79,7 +104,8 @@ class TestWork(TestCase):
             'subtitle': 'Subtitle',
         }
         work = Work.objects.create(**data)
-        antiquarian = work.antiquarian_set.create(name='John Smith')
+        antiquarian = Antiquarian.objects.create(name='John Smith')
+        antiquarian.works.add(work)
         antiquarian_pk = antiquarian.pk
         # delete the work
         work.delete()
@@ -114,3 +140,77 @@ class TestWork(TestCase):
             work.get_absolute_url(),
             reverse('work:detail', kwargs={'pk': work.pk})
         )
+
+    def test_fragment_methods(self):
+        data = {
+            'name': 'Work Name1',
+            'subtitle': 'Subtitle',
+        }
+        work1 = Work.objects.create(**data)
+        data = {
+            'name': 'Work Name2',
+            'subtitle': 'Subtitle',
+        }
+        work2 = Work.objects.create(**data)
+
+        # create some fragments
+        for i in range(0, 10):
+            data = {
+                'name': 'name{}'.format(i),
+                'apparatus_criticus': 'app_criticus',
+            }
+            Fragment.objects.create(**data)
+
+        # link to work1
+        for fragment in Fragment.objects.all():
+            FragmentLink.objects.create(
+                work=work1,
+                fragment=fragment,
+                definite=True,
+            )
+        # shoud appear in work1's definite fragments only
+        self.assertEqual(
+            [x.pk for x in work1.definite_fragments()],
+            [x.pk for x in Fragment.objects.all()]
+        )
+        self.assertEqual(0, len(work1.possible_fragments()))
+        # and not in work2's
+        self.assertEqual(0, len(work2.definite_fragments()))
+        self.assertEqual(0, len(work2.possible_fragments()))
+
+        # make these links possible...
+        FragmentLink.objects.update(definite=False)
+        # shoud appear in work1's possible fragments only
+        self.assertEqual(
+            [x.pk for x in work1.possible_fragments()],
+            [x.pk for x in Fragment.objects.all()]
+        )
+        self.assertEqual(0, len(work1.definite_fragments()))
+        # and not in work2's
+        self.assertEqual(0, len(work2.definite_fragments()))
+        self.assertEqual(0, len(work2.possible_fragments()))
+
+        # switch all fragment links to work2 and make definite...
+        FragmentLink.objects.update(work=work2, definite=True)
+
+        # shoud appear in work2's definite fragments only
+        self.assertEqual(
+            [x.pk for x in work2.definite_fragments()],
+            [x.pk for x in Fragment.objects.all()]
+        )
+        self.assertEqual(0, len(work2.possible_fragments()))
+        # and not in work1's
+        self.assertEqual(0, len(work1.definite_fragments()))
+        self.assertEqual(0, len(work1.possible_fragments()))
+
+        # finally make possible and check...
+        FragmentLink.objects.update(definite=False)
+        # shoud appear in work2's possible fragments only
+        self.assertEqual(
+            [x.pk for x in work2.possible_fragments()],
+            [x.pk for x in Fragment.objects.all()]
+        )
+        self.assertEqual(0, len(work2.definite_fragments()))
+        # and not in work1's
+        self.assertEqual(0, len(work1.definite_fragments()))
+        self.assertEqual(0, len(work1.possible_fragments()))

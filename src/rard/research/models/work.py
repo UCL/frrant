@@ -23,3 +23,17 @@ class Work(BaseModel):
 
     def get_absolute_url(self):
         return reverse('work:detail', kwargs={'pk': self.pk})
+
+    def definite_fragments(self):
+        from rard.research.models import Fragment
+        links = self.antiquarian_work_fragment_links.filter(definite=True)
+        return Fragment.objects.filter(
+            antiquarian_fragment_links__in=links
+        ).distinct()
+
+    def possible_fragments(self):
+        from rard.research.models import Fragment
+        links = self.antiquarian_work_fragment_links.filter(definite=False)
+        return Fragment.objects.filter(
+            antiquarian_fragment_links__in=links
+        ).distinct()
