@@ -3,6 +3,8 @@ from .antiquarian import (AntiquarianCreateView, AntiquarianDeleteView,
                           AntiquarianUpdateView, AntiquarianWorkCreateView,
                           AntiquarianWorksUpdateView)
 from .comments import CommentDeleteView, TextObjectFieldCommentListView
+from .concordance import (ConcordanceCreateView, ConcordanceDeleteView,
+                          ConcordanceListView, ConcordanceUpdateView)
 from .fragment import (FragmentCreateView, FragmentDeleteView,
                        FragmentDetailView, FragmentListView,
                        FragmentUpdateView)
@@ -29,6 +31,10 @@ __all__ = [
     'AntiquarianUpdateView',
     'AntiquarianWorksUpdateView',
     'CommentDeleteView',
+    'ConcordanceCreateView',
+    'ConcordanceDeleteView',
+    'ConcordanceListView',
+    'ConcordanceUpdateView',
     'FragmentCreateView',
     'FragmentDeleteView',
     'FragmentDetailView',

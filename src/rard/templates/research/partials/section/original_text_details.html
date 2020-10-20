@@ -1,0 +1,37 @@
+{# Assumes context objects named 'original_text' #}
+
+{% load i18n %}
+
+<dl class="row mb-0">
+    <dt class="col-sm-3">{% trans 'Citing Work' %}</dt>
+    <dd class="col-sm-9">{{ original_text.citing_work }}</dd>
+
+    <dt class="col-sm-3">{% trans 'Translations' %}</dt>
+    <dd class="col-sm-9">{{ original_text.translation_set.count }}</dd>
+
+    <dt class="col-sm-3">{% trans 'Apparatus Criticus' %}</dt>
+    <dd class="col-sm-9">{{ original_text.apparatus_criticus|default:'-'|linebreaks }}</dd>
+
+    <dt class="col-sm-3">{% trans 'Concordances' %}</dt>
+    <dd class="col-sm-7">
+        {% if original_text.concordance_set.count == 0 %}
+            None
+        {% endif %}
+        {% for concordance in original_text.concordance_set.all %}
+            <div class='d-flex justify-content-between mb-3'>
+            <div>{{ concordance.source }}:{{ concordance.identifier }}</div>
+            <div>
+            <form novalidate class='form-inline' action='{% url "concordance:delete" concordance.pk %}' method='POST'>
+                {% csrf_token %}
+                <div class='form-row align-items-center'>
+                    <a href='{% url "concordance:update" concordance.pk %}'>Edit</a>
+                    <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+                        data-what='concordance'>{% trans 'Delete' %}</button>
+                </div>
+            </form>        
+            </div>
+        </div>
+        {% endfor %}
+    </dd>
+    <dd class="col-sm-2"><a style='float:right' href='{% url "concordance:create" original_text.pk %}'>Add</a></dd>
+</dl>

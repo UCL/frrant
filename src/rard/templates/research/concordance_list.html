@@ -1,0 +1,36 @@
+{% extends "research/list_base.html" %}
+{% load i18n %}
+
+{% block heading %}
+    {% trans 'Concordance Table' %}
+{% endblock %}
+
+{% block action %}
+{% endblock %}
+
+{% block inner %}
+
+<table class="table">
+  <thead>
+    <tr>
+      <th scope="col">Author One</th>
+      <th scope="col">Author Two</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for object in page_obj %}
+    <tr>
+      <td>FRRAnt {{ object.original_text.concordance_identifier }} 
+         {% comment %} 
+            <a href='{{ object.original_text.owner.get_absolute_url }}'>View</a>
+        {% endcomment %}
+        </td>
+      <td>{{ object.source}} {{ object.identifier }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+    {{ block.super }}
+
+{% endblock %}

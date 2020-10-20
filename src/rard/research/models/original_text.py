@@ -10,9 +10,7 @@ class OriginalText(BaseModel):
 
     # original text can belong to either a fragment or a testimonium
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-
     object_id = models.PositiveIntegerField()
-
     owner = GenericForeignKey()
 
     citing_work = models.ForeignKey('CitingWork', on_delete=models.CASCADE)
@@ -24,6 +22,15 @@ class OriginalText(BaseModel):
 
     apparatus_criticus = models.TextField(default='', blank=True)
 
+    # internal identifier for this original text (for eventual
+    # use with concordance)
+    # identifier = models.CharField(max_length=128, blank=False, default='')
+
+    # the ID to use in the concordance table
+    @property
+    def concordance_identifier(self):
+        return self.pk  # pragma: no cover
+
 
 class Concordance(BaseModel):
 
@@ -32,6 +39,9 @@ class Concordance(BaseModel):
     source = models.CharField(max_length=128, blank=False)
 
     identifier = models.CharField(max_length=128, blank=False)
+
+    class Meta:
+        ordering = ('source', 'identifier')
 
 
 class Translation(BaseModel):
