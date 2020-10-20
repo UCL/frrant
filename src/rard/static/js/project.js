@@ -78,3 +78,17 @@ $('.rich-editor').trumbowyg(
 ).on('tbwchange', function() {
 }).on('keyup', function(e) {
 });
+
+// store scroll position on save and reload - useful for inline posts not
+// returning the user to the top of the page
+document.addEventListener("DOMContentLoaded", function (event) {
+    var scrollpos = sessionStorage.getItem('scrollpos');
+    if (scrollpos) {
+        window.scrollTo(0, scrollpos);
+        sessionStorage.removeItem('scrollpos');
+    }
+});
+
+window.addEventListener("beforeunload", function (e) {
+    sessionStorage.setItem('scrollpos', window.scrollY);
+});
