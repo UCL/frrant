@@ -7,9 +7,9 @@
 
 {% block action %}
     {% if parent_object.fragment %}
-        <a href='{{ parent_object.fragment.get_detail_url }}'>Back to Fragment</a>
+        <a href='{{ parent_object.fragment.get_absolute_url }}'>Back to Fragment</a>
     {% elif parent_object.testimonium %}
-        <a href='{{ parent_object.testimonium.get_detail_url }}'>Back to Testimonium</a>
+        <a href='{{ parent_object.testimonium.get_absolute_url }}'>Back to Testimonium</a>
     {% elif parent_object.antiquarian %}
         <a href='{% url "antiquarian:detail" parent_object.antiquarian.pk %}'>Back to Antiquarian</a>
     {% endif %}

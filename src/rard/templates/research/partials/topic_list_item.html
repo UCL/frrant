@@ -5,9 +5,15 @@
 <div class='list-item d-flex justify-content-between'>
     <div>
         <li>
-            <a href='{% url "topic:detail" topic.slug %}'>
-                {{ topic.name }} 
-            </a> 
+            {% with topic.name as link_text %}
+                {% if perms.research.view_topic %}
+                <a href='{% url "topic:detail" topic.slug %}'>
+                    {{ link_text }} 
+                </a> 
+                {% else %}
+                    {{ link_text }} 
+                {% endif %}
+            {% endwith %}
         </li>
     </div>
     <div class='list-item-actions'>

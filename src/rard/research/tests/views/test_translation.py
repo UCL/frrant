@@ -212,3 +212,20 @@ class TestTranslationDeleteView(TestCase):
             view.get_success_url(),
             translation.original_text.owner.get_absolute_url()
         )
+
+
+class TestTranslationViewPermissions(TestCase):
+
+    def test_permissions(self):
+        self.assertIn(
+            'research.add_translation',
+            TranslationCreateView.permission_required
+        )
+        self.assertIn(
+            'research.delete_translation',
+            TranslationDeleteView.permission_required
+        )
+        self.assertIn(
+            'research.change_translation',
+            TranslationUpdateView.permission_required
+        )

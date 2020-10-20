@@ -4,6 +4,7 @@ from django.urls import reverse
 
 from rard.research.models import CitingWork, Fragment
 from rard.research.views import (FragmentCreateView, FragmentDeleteView,
+                                 FragmentDetailView, FragmentListView,
                                  FragmentUpdateView)
 from rard.users.tests.factories import UserFactory
 
@@ -142,3 +143,29 @@ class TestFragmentDeleteView(TestCase):
             request, pk=fragment.pk
         )
         self.assertEqual(response.status_code, 405)
+
+
+class TestFragmentViewPermissions(TestCase):
+
+    def test_permissions(self):
+
+        self.assertIn(
+            'research.add_fragment',
+            FragmentCreateView.permission_required
+        )
+        self.assertIn(
+            'research.change_fragment',
+            FragmentUpdateView.permission_required
+        )
+        self.assertIn(
+            'research.delete_fragment',
+            FragmentDeleteView.permission_required
+        )
+        self.assertIn(
+            'research.view_fragment',
+            FragmentListView.permission_required
+        )
+        self.assertIn(
+            'research.view_fragment',
+            FragmentDetailView.permission_required
+        )

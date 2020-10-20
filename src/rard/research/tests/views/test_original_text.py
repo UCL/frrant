@@ -5,7 +5,8 @@ from django.urls import reverse
 from rard.research.models import CitingWork, Fragment, OriginalText
 from rard.research.views import (FragmentOriginalTextCreateView,
                                  OriginalTextDeleteView,
-                                 OriginalTextUpdateView)
+                                 OriginalTextUpdateView,
+                                 TestimoniumOriginalTextCreateView)
 from rard.users.tests.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
@@ -121,3 +122,32 @@ class TestOriginalTextDeleteView(TestCase):
             request, pk=text.pk
         )
         self.assertEqual(response.status_code, 405)
+
+
+class TestOriginalTextViewPermissions(TestCase):
+
+    def test_permissions(self):
+        self.assertIn(
+            'research.add_originaltext',
+            FragmentOriginalTextCreateView.permission_required
+        )
+        self.assertIn(
+            'research.change_fragment',
+            FragmentOriginalTextCreateView.permission_required
+        )
+        self.assertIn(
+            'research.add_originaltext',
+            TestimoniumOriginalTextCreateView.permission_required
+        )
+        self.assertIn(
+            'research.change_testimonium',
+            TestimoniumOriginalTextCreateView.permission_required
+        )
+        self.assertIn(
+            'research.change_originaltext',
+            OriginalTextUpdateView.permission_required
+        )
+        self.assertIn(
+            'research.delete_originaltext',
+            OriginalTextDeleteView.permission_required
+        )

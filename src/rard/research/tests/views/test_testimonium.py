@@ -4,6 +4,7 @@ from django.urls import reverse
 
 from rard.research.models import CitingWork, Testimonium
 from rard.research.views import (TestimoniumCreateView, TestimoniumDeleteView,
+                                 TestimoniumDetailView, TestimoniumListView,
                                  TestimoniumUpdateView)
 from rard.users.tests.factories import UserFactory
 
@@ -83,3 +84,29 @@ class TestTestimoniumDeleteView(TestCase):
             request, pk=testimonium.pk
         )
         self.assertEqual(response.status_code, 405)
+
+
+class TestTestimoniumViewPermissions(TestCase):
+
+    def test_permissions(self):
+
+        self.assertIn(
+            'research.add_testimonium',
+            TestimoniumCreateView.permission_required
+        )
+        self.assertIn(
+            'research.change_testimonium',
+            TestimoniumUpdateView.permission_required
+        )
+        self.assertIn(
+            'research.delete_testimonium',
+            TestimoniumDeleteView.permission_required
+        )
+        self.assertIn(
+            'research.view_testimonium',
+            TestimoniumListView.permission_required
+        )
+        self.assertIn(
+            'research.view_testimonium',
+            TestimoniumDetailView.permission_required
+        )

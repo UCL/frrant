@@ -1,4 +1,6 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import permission_required
+from django.contrib.auth.mixins import (LoginRequiredMixin,
+                                        PermissionRequiredMixin)
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -11,8 +13,10 @@ from rard.research.models import Comment, TextObjectField
 
 
 @method_decorator(require_POST, name='dispatch')
-class CommentDeleteView(LoginRequiredMixin, DeleteView):
+class CommentDeleteView(
+        LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     model = Comment
+    permission_required = ('research.delete_comment',)
 
     def get_success_url(self, *args, **kwargs):
         # send to the refering page. Should have one as
@@ -25,10 +29,16 @@ class CommentDeleteView(LoginRequiredMixin, DeleteView):
         return qs.filter(user=self.request.user)
 
 
-class CommentListViewBase(LoginRequiredMixin, FormMixin, ListView):
+@method_decorator(
+    permission_required('research.add_comment', raise_exception=True),
+    name='post'
+)
+class CommentListViewBase(
+        LoginRequiredMixin, PermissionRequiredMixin, FormMixin, ListView):
     paginate_by = 10
     model = Comment
     form_class = CommentForm
+    permission_required = ('research.view_comment',)
 
     def get_parent_object(self):
         if not getattr(self, 'parent_object', False):

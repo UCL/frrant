@@ -1,4 +1,5 @@
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import (LoginRequiredMixin,
+                                        PermissionRequiredMixin)
 from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
@@ -11,25 +12,33 @@ from rard.research.forms import AntiquarianForm, WorkForm
 from rard.research.models import Antiquarian, Work
 
 
-class AntiquarianListView(LoginRequiredMixin, ListView):
+class AntiquarianListView(
+        LoginRequiredMixin, PermissionRequiredMixin, ListView):
     paginate_by = 10
     model = Antiquarian
+    permission_required = ('research.view_antiquarian',)
 
 
-class AntiquarianDetailView(LoginRequiredMixin, DetailView):
+class AntiquarianDetailView(
+        LoginRequiredMixin, PermissionRequiredMixin, DetailView):
     model = Antiquarian
+    permission_required = ('research.view_antiquarian',)
 
 
-class AntiquarianCreateView(LoginRequiredMixin, CreateView):
+class AntiquarianCreateView(
+        LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = Antiquarian
+    permission_required = ('research.add_antiquarian',)
     form_class = AntiquarianForm
 
     def get_success_url(self, *args, **kwargs):
         return reverse('antiquarian:detail', kwargs={'pk': self.object.pk})
 
 
-class AntiquarianUpdateView(LoginRequiredMixin, UpdateView):
+class AntiquarianUpdateView(
+        LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     model = Antiquarian
+    permission_required = ('research.change_antiquarian',)
     form_class = AntiquarianForm
 
     def get_success_url(self, *args, **kwargs):
@@ -37,22 +46,31 @@ class AntiquarianUpdateView(LoginRequiredMixin, UpdateView):
 
 
 @method_decorator(require_POST, name='dispatch')
-class AntiquarianDeleteView(LoginRequiredMixin, DeleteView):
+class AntiquarianDeleteView(
+        LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     model = Antiquarian
+    permission_required = ('research.delete_antiquarian',)
     success_url = reverse_lazy('antiquarian:list')
 
 
-class AntiquarianWorksUpdateView(LoginRequiredMixin, UpdateView):
+class AntiquarianWorksUpdateView(
+        LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     model = Antiquarian
     fields = ['works']
+    permission_required = ('research.change_antiquarian',)
 
     def get_success_url(self, *args, **kwargs):
         return reverse('antiquarian:detail', kwargs={'pk': self.object.pk})
 
 
-class AntiquarianWorkCreateView(LoginRequiredMixin, CreateView):
+class AntiquarianWorkCreateView(
+        LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = Work
     form_class = WorkForm
+    permission_required = (
+        'research.change_antiquarian',
+        'research.add_work',
+    )
 
     def get_success_url(self, *args, **kwargs):
         return reverse(

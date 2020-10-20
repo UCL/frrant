@@ -3,7 +3,8 @@ from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
 from rard.research.models import Work
-from rard.research.views import WorkDeleteView, WorkUpdateView
+from rard.research.views import (WorkCreateView, WorkDeleteView,
+                                 WorkDetailView, WorkListView, WorkUpdateView)
 from rard.users.tests.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
@@ -56,3 +57,28 @@ class TestWorkDeleteView(TestCase):
             request, pk=work.pk
         )
         self.assertEqual(response.status_code, 405)
+
+
+class TestWorkViewPermissions(TestCase):
+
+    def test_permissions(self):
+        self.assertIn(
+            'research.add_work',
+            WorkCreateView.permission_required
+        )
+        self.assertIn(
+            'research.delete_work',
+            WorkDeleteView.permission_required
+        )
+        self.assertIn(
+            'research.change_work',
+            WorkUpdateView.permission_required
+        )
+        self.assertIn(
+            'research.view_work',
+            WorkListView.permission_required
+        )
+        self.assertIn(
+            'research.view_work',
+            WorkDetailView.permission_required
+        )

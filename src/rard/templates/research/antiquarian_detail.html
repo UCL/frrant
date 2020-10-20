@@ -4,13 +4,17 @@
 {% block heading %}{{ object.name }}{% endblock %}
 
 {% block action %}
-<form novalidate class='form-inline' action='{% url "antiquarian:delete" antiquarian.pk %}' method='POST'>
-    {% csrf_token %}
-    <div class='form-group'>
-        <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
-            data-what='work'>{% trans 'Delete' %}</button>
-    </div>
-</form>     
+
+    {% if perms.research.delete_antiquarian %}
+    <form novalidate class='form-inline' action='{% url "antiquarian:delete" antiquarian.pk %}' method='POST'>
+        {% csrf_token %}
+        <div class='form-group'>
+            <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+                data-what='work'>{% trans 'Delete' %}</button>
+        </div>
+    </form>    
+    {% endif %} 
+
 {% endblock %}
 
 {% block inner %}
@@ -21,7 +25,9 @@
                 <h5>{% trans 'Details' %}</h5>
             </div>
             <div>
+                {% if perms.research.change_antiquarian %}
                 <a href='{% url "antiquarian:update" object.pk %}'>{% trans 'Edit' %}</a>
+                {% endif %}
             </div>
         </div>
 
@@ -36,8 +42,10 @@
             <dt class="col-sm-3">{% trans 'Biography' %}</dt>
             <dd class="col-sm-9">
                 {{ object.biography.content|linebreaks }}
+                {% if perms.research.view_comment %}
                 <br>
                 {{ object.biography.comments.count }} comments <a href='{% url "list_comments_on_text" object.biography.pk %}'>view</a>
+                {% endif %}
             </dd>
             <p>
                 
@@ -55,8 +63,12 @@
                 <h5>{% trans 'Works' %}</h5>
             </div>
             <div>
-                <a href='{% url "antiquarian:create_work" object.pk %}'>{% trans 'Add' %}</a> |
+                {% if perms.research.change_antiquarian %}
+                    {% if perms.research.add_work %}
+                    <a href='{% url "antiquarian:create_work" object.pk %}'>{% trans 'Add' %}</a> |
+                    {% endif %}
                 <a href='{% url "antiquarian:update_works" object.pk %}'>{% trans 'Edit' %}</a>
+                {% endif %}
             </div>
         </div>
 
@@ -75,7 +87,9 @@
                 <h5>{% trans 'Definite Fragments' %}</h5>
             </div>
             <div>
+                {% if perms.research.change_antiquarian %}
                 <a href='{% url "fragment:create" %}'>{% trans 'Add' %}</a>
+                {% endif %}
             </div>
         </div>
 
@@ -94,7 +108,9 @@
                 <h5>{% trans 'Possible Fragments' %}</h5>
             </div>
             <div>
+                {% if perms.research.change_antiquarian %}
                 <a href='{% url "fragment:create" %}'>{% trans 'Add' %}</a>
+                {% endif %}
             </div>
         </div>
 
@@ -113,7 +129,9 @@
                 <h5>{% trans 'Definite Testimonia' %}</h5>
             </div>
             <div>
+                {% if perms.research.change_antiquarian %}
                 <a href='{% url "testimonium:create" %}'>{% trans 'Add' %}</a>
+                {% endif %}
             </div>
         </div>
 
@@ -132,7 +150,9 @@
                 <h5>{% trans 'Possible Testimonia' %}</h5>
             </div>
             <div>
+                {% if perms.research.change_antiquarian %}
                 <a href='{% url "testimonium:create" %}'>{% trans 'Add' %}</a>
+                {% endif %}
             </div>
         </div>
 

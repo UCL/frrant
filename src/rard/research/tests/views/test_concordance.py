@@ -5,7 +5,7 @@ from django.urls import reverse
 from rard.research.models import (CitingWork, Concordance, Fragment,
                                   OriginalText)
 from rard.research.views import (ConcordanceCreateView, ConcordanceDeleteView,
-                                 ConcordanceUpdateView)
+                                 ConcordanceListView, ConcordanceUpdateView)
 from rard.users.tests.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
@@ -136,4 +136,26 @@ class TestConcordanceViews(TestCase):
         # check the new concordance is associated with the original text
         self.assertEqual(
             self.original_text.concordance_set.count(), 1
+        )
+
+
+class TestConcordanceViewPermissions(TestCase):
+
+    def test_permissions(self):
+
+        self.assertIn(
+            'research.add_concordance',
+            ConcordanceCreateView.permission_required
+        )
+        self.assertIn(
+            'research.change_concordance',
+            ConcordanceUpdateView.permission_required
+        )
+        self.assertIn(
+            'research.delete_concordance',
+            ConcordanceDeleteView.permission_required
+        )
+        self.assertIn(
+            'research.view_concordance',
+            ConcordanceListView.permission_required
         )

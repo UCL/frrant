@@ -4,6 +4,7 @@ from django.urls import reverse
 
 from rard.research.models import Antiquarian
 from rard.research.views import (AntiquarianCreateView, AntiquarianDeleteView,
+                                 AntiquarianDetailView, AntiquarianListView,
                                  AntiquarianUpdateView,
                                  AntiquarianWorkCreateView,
                                  AntiquarianWorksUpdateView)
@@ -134,3 +135,40 @@ class TestAntiquarianDeleteView(TestCase):
             request, pk=antiquarian.pk
         )
         self.assertEqual(response.status_code, 405)
+
+
+class TestAntiquarianViewPermissions(TestCase):
+
+    def test_permissions(self):
+        self.assertIn(
+            'research.add_antiquarian',
+            AntiquarianCreateView.permission_required
+        )
+        self.assertIn(
+            'research.delete_antiquarian',
+            AntiquarianDeleteView.permission_required
+        )
+        self.assertIn(
+            'research.change_antiquarian',
+            AntiquarianUpdateView.permission_required
+        )
+        self.assertIn(
+            'research.change_antiquarian',
+            AntiquarianWorkCreateView.permission_required
+        )
+        self.assertIn(
+            'research.add_work',
+            AntiquarianWorkCreateView.permission_required
+        )
+        self.assertIn(
+            'research.change_antiquarian',
+            AntiquarianWorksUpdateView.permission_required
+        )
+        self.assertIn(
+            'research.view_antiquarian',
+            AntiquarianListView.permission_required
+        )
+        self.assertIn(
+            'research.view_antiquarian',
+            AntiquarianDetailView.permission_required
+        )
