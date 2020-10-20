@@ -3,20 +3,46 @@
 {% load i18n %}
 
 
-<div class='list-item d-flex justify-content-between'>
+<div class='rard-list-item d-flex justify-content-between'>
     <div>
         <li>
-            {% with testimonium.name|default:'Unnamed testimonium' as link_text %}
-                {% if perms.research.view_testimonium %}
-                <a href='{% url "testimonium:detail" testimonium.pk %}'>
-                    {{ link_text }}
-                </a> 
-                {% else %}
-                    {{ link_text }}
-                {% endif %}
-            {% endwith %}
+            <span>
+                {% with testimonium.get_display_name as link_text %}
+                    {% if perms.research.view_testimonium %}
+                    <a href='{% url "testimonium:detail" testimonium.pk %}'>
+                        {{ link_text }}
+                    </a> 
+                    {% else %}
+                        {{ link_text }}
+                    {% endif %}
+                {% endwith %}
+            </span>
+            <span>
+                <span class="text-muted ml-2 show-detail collapsed" type="button" data-toggle="collapse" data-target="#detail_{{ testimonium.pk }}" aria-expanded="false" aria-controls="collapseExample">
+                </span>  
+            </span>  
         </li>
+        <div class="collapse" id="detail_{{ testimonium.pk }}">
+            <div class="card border-0 pb-0 bg-transparent card-body">
+            <small>
+                <span class='text-muted'>
+
+                    {% if not testimonium.get_all_names %}
+                        No links
+                    {% else %}
+                    <ul class='pl-3'>
+                        {% for name in testimonium.get_all_names %}
+                        <li>
+                            {{ name }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </span>
+            </small>
+            </div>
+        </div>  
     </div>
-    <div class='list-item-actions'>
+    <div class='rard-list-item-actions'>
     </div>
 </div>
