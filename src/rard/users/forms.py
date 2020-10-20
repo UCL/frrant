@@ -27,7 +27,14 @@ class UserCreationForm(forms.UserCreationForm):
 
     class Meta(forms.UserCreationForm.Meta):
         model = User
-        fields = ('username', 'first_name', 'last_name', 'email', 'groups',)
+        fields = (
+            'username',
+            'first_name',
+            'last_name',
+            'email',
+            'is_staff',
+            'groups',
+        )
 
     def clean_username(self):
         username = self.cleaned_data["username"]

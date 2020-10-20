@@ -35,6 +35,7 @@ class UserAdmin(auth_admin.UserAdmin):
                 'last_name',
                 'username',
                 'email',
+                'is_staff',
                 'groups',
             ),
         }),
