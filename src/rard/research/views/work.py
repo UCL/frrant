@@ -7,6 +7,7 @@ from django.views.generic import ListView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
+from rard.research.forms import WorkForm
 from rard.research.models import Work
 
 
@@ -23,7 +24,7 @@ class WorkDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
 
 class WorkCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = Work
-    fields = '__all__'
+    form_class = WorkForm
     success_url = reverse_lazy('work:list')
     permission_required = ('research.add_work',)
 
