@@ -2,7 +2,7 @@
 
 {% load i18n humanize %}
 
-<div class="card mb-3 {% if translation.approved %}border-success{% endif %}">
+<div class="card mb-3 bg-light {% if translation.approved %}border-success{% endif %}">
     <div class="card-body">
         <div class='card-text'>
             <div class='d-flex justify-content-between'>
@@ -10,8 +10,8 @@
                     {{ translation.translated_text }}
                 </div>
                 {% if translation.approved %}
-                <div class='text-success'>
-                    <small>{% trans 'Approved Translation' %}</small>
+                <div class='text-success mt-n3'>
+                    <small>{% trans 'Approved' %}</small>
                 </div>
                 {% endif %}
             </div>
@@ -28,7 +28,6 @@
                     </div>
                 </form>
             </div>
-
         </div>
     </div>
 </div>
