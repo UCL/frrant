@@ -34,7 +34,7 @@ class TestSearchView(TestCase):
                 url
             )
         )
-        # if we have an authenticated user it should work
+        # but if we have an authenticated user it should work
         request.user = UserFactory()
 
         response = SearchView.as_view()(
@@ -85,6 +85,42 @@ class TestSearchView(TestCase):
         request = RequestFactory().get(url, data=data)
         view.request = request
         self.assertEqual(3, len(view.get_queryset()))
+
+    def test_empty_search_redirects(self):
+
+        # any empty sring should be ignored
+        for search_term in ('', ' ', '              '):
+            data = {
+                'what': 'antiquarians',
+                'q': search_term,
+            }
+            url = reverse('search:home')
+            request = RequestFactory().get(url, data=data)
+            request.user = UserFactory()
+            view = SearchView()
+            view.request = request
+            response = SearchView.as_view()(request)
+
+            # check we redirect to the home page without GET params
+            self.assertEqual(response.status_code, 302)
+            self.assertEqual(response.url, url)
+
+    def test_get_only(self):
+        # we only allow GET-based search
+        data = {
+            'what': 'antiquarians',
+            'q': 'hai',
+        }
+        url = reverse('search:home')
+        # create a POST request instead...
+        request = RequestFactory().post(url, data=data)
+        request.user = UserFactory()
+        view = SearchView()
+        view.request = request
+        response = SearchView.as_view()(request)
+
+        # verboten
+        self.assertEqual(response.status_code, 405)
 
     def test_search_classes(self):
         # the types of objects we can search
