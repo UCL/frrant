@@ -11,6 +11,7 @@ class AntiquarianForm(forms.ModelForm):
     class Meta:
         model = Antiquarian
         fields = ('name', 're_code')
+        labels = {'re_code': _('RE Code')}
 
     biography_text = forms.CharField(
         widget=forms.Textarea,
