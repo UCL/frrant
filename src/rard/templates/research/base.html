@@ -41,6 +41,10 @@
         {% trans 'Concordance' %}
       </a>
       {% endif %}
+      <a class='nav-link {% if "search" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
+        href='{% url "search:home" %}'>
+        {% trans 'Search' %}
+      </a>
     </nav>
   </div>
   <div class='col'>
@@ -51,7 +55,7 @@
       </div>
       <div class='ml-auto'>{% block action %}{% endblock %}</div>
     </div>
-    <div class='mt-5'>
+    <div class='my-5'>
       {% block inner %}{% endblock %}
     </div>
     {% endblock %}

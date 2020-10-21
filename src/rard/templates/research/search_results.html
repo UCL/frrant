@@ -1,0 +1,57 @@
+{% extends "research/list_base.html" %}
+{% load i18n get_object_class %}
+
+
+{% block heading %}
+    {% trans 'Search' %}
+{% endblock %}
+
+{% block action %}
+    {% if search_term %}
+    <a href='{% url "search:home" %}'>{% trans 'Clear Search' %}</a>
+    {% endif %}
+{% endblock %}
+
+{% block inner %}
+
+    <p>
+        {% if search_term %}Results for '{{ search_term }}'{% endif %}
+        {% if to_search %}
+          in {{ to_search|join:', ' }}
+        {% endif %}
+
+    </p>
+    <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form mb-5" method='GET'>
+        <div class="form-row align-items-center">
+            <div class="col-sm-7 my-1">
+                <input type="text" class="form-control" name='q' placeholder="Enter search terms">
+            </div>
+            <div class="col-sm-3 my-1">
+                <select class="form-control" name='what'>
+                <option value='all'>Search Everything</option>
+                {% for class in search_classes %}
+                <option value='{{ class }}'>{{ class|capfirst }}</option>
+                {% endfor %}
+                </select>
+            </div>
+            <div class='col-auto'>
+                <button type="submit" class="btn btn-block btn-primary">
+                        {% trans 'Search' %}
+                </button>
+            </div>
+        </div>
+
+    </form>
+
+    <ul class="list-group list-group-flush">
+    {% for object in page_obj %}
+        <li class="rard-list-item border-0  d-flex justify-content-between align-items-center">
+            <a href='{{ object.get_absolute_url }}'>{{ object }}</a>
+            <span class='badge badge-secondary badge-pill'>{{ object|get_object_class }}</span>
+        </li>
+    {% endfor %}
+    </ul>
+
+    {{ block.super }}
+
+{% endblock %}
