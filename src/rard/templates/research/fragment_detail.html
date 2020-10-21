@@ -1,7 +1,9 @@
 {% extends "research/base.html" %}
 {% load i18n humanize %}
 
-{% block heading %}{{ object.name|default:'Unnamed fragment' }}{% endblock %}
+{% block heading %}
+    {{ object.get_display_name }}
+{% endblock %}
 
 {% block action %}
     {% if perms.research.delete_fragment %}

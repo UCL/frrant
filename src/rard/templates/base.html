@@ -33,17 +33,17 @@
       .historical {
         font-family: Georgia, "Times New Roman", Times, serif;
       }
-      .list-item-actions {
+      .rard-list-item-actions {
         visibility: hidden;
       }
-      .list-item:hover .list-item-actions {
+      .rard-list-item:hover .rard-list-item-actions {
           visibility: visible;
       }
-      .list-item {
+      .rard-list-item {
         padding-top: 10px;
         padding-bottom: 10px;
       }
-      .list-item:hover {
+      .rard-list-item:hover {
         background: #f8f9fa;
       }
       .required label::after {
@@ -64,7 +64,12 @@
       img.character.diple_periestigmene {
           content:url("/static/images/characters/diple_periestigmene.svg");
       }
-
+      .show-detail.collapsed::after {
+        content: '+'
+      }
+      .show-detail::after {
+        content: '-'
+      }
 
     </style>
 

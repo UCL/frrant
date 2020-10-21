@@ -4,6 +4,7 @@ from django.utils.translation import gettext_lazy as _
 
 from rard.research.models import (Antiquarian, CitingWork, Comment, Fragment,
                                   OriginalText, Testimonium, Work)
+from rard.research.models.base import FragmentLink, TestimoniumLink
 
 
 class AntiquarianForm(forms.ModelForm):
@@ -36,7 +37,7 @@ class AntiquarianForm(forms.ModelForm):
 class WorkForm(forms.ModelForm):
     class Meta:
         model = Work
-        fields = '__all__'
+        exclude = ('fragments',)
 
 
 class CommentForm(forms.ModelForm):
@@ -110,17 +111,33 @@ class OriginalTextForm(forms.ModelForm):
 
 class HistoricalFormBase(forms.ModelForm):
 
-    multiselect_help_string = _(
-        'Hold down the \"Control\" key on a PC'
-        ' or \"Command\" key on a Mac, to select or deselect'
-        ' more than one'
-    )
-    multiselect_help_fields = ()
-
     commentary_text = forms.CharField(
         widget=forms.Textarea,
         required=False,
         label='Commentary',
+    )
+
+    definite_works = forms.ModelMultipleChoiceField(
+        widget=forms.CheckboxSelectMultiple,
+        queryset=Work.objects.all(),
+        required=False,
+    )
+    possible_works = forms.ModelMultipleChoiceField(
+        widget=forms.CheckboxSelectMultiple,
+        queryset=Work.objects.all(),
+        required=False,
+    )
+
+    definite_antiquarians = forms.ModelMultipleChoiceField(
+        widget=forms.CheckboxSelectMultiple,
+        queryset=Antiquarian.objects.all(),
+        required=False,
+    )
+
+    possible_antiquarians = forms.ModelMultipleChoiceField(
+        widget=forms.CheckboxSelectMultiple,
+        queryset=Antiquarian.objects.all(),
+        required=False,
     )
 
     def __init__(self, *args, **kwargs):
@@ -128,49 +145,133 @@ class HistoricalFormBase(forms.ModelForm):
         if self.instance.commentary:
             self.fields['commentary_text'].initial = \
                 self.instance.commentary.content
-        for name in self.multiselect_help_fields:
-            self.fields[name].help_text = self.multiselect_help_string
+        self.fields['definite_antiquarians'].initial = \
+            self.instance.definite_antiquarians()
+        self.fields['definite_works'].initial = self.instance.definite_works()
+        self.fields['possible_antiquarians'].initial = \
+            self.instance.possible_antiquarians()
+        self.fields['possible_works'].initial = self.instance.possible_works()
 
     def save(self, commit=True):
         instance = super().save(commit=False)
         if commit:
+
+            link_classes = {
+                Testimonium: TestimoniumLink,
+                Fragment: FragmentLink
+            }
+            link_class = link_classes[self._meta.model]
             instance.save()
+
             # commentary will have been created at this point via post_save
             instance.commentary.content = self.cleaned_data['commentary_text']
             instance.commentary.save()
             self.save_m2m()
+
+            # create links for the antiquarians and works mentioned
+            definite_antiquarians = self.cleaned_data['definite_antiquarians']
+            for a in definite_antiquarians.all():
+                data = {
+                    'antiquarian': a,
+                    link_class.linked_field: instance,
+                    'definite': True,
+                    'work': None
+                }
+                link_class.objects.get_or_create(**data)
+
+            # clear others
+            data = {
+                link_class.linked_field: instance,
+                'work': None,
+                'definite': True
+            }
+            link_class.objects.filter(**data).exclude(
+                antiquarian__in=definite_antiquarians
+            ).delete()
+
+            possible_antiquarians = self.cleaned_data['possible_antiquarians']
+            for a in possible_antiquarians.all():
+                data = {
+                    'antiquarian': a,
+                    link_class.linked_field: instance,
+                    'definite': False,
+                    'work': None
+                }
+                link_class.objects.get_or_create(**data)
+
+            # clear others
+            data = {
+                link_class.linked_field: instance,
+                'definite': False,
+                'work': None
+            }
+            link_class.objects.filter(**data).exclude(
+                antiquarian__in=possible_antiquarians
+            ).delete()
+
+            definite_works = self.cleaned_data['definite_works']
+            for work in definite_works.all():
+                link_to_antiquarians = work.antiquarian_set.all() or [None]
+                for a in link_to_antiquarians:
+
+                    data = {
+                        'antiquarian': a,
+                        link_class.linked_field: instance,
+                        'work': work,
+                        'definite': True
+                    }
+                    link_class.objects.get_or_create(**data)
+
+            # clear all work links
+            data = {
+                link_class.linked_field: instance,
+                'work__isnull': False,
+                'definite': True
+            }
+            stale = link_class.objects.filter(**data).exclude(
+                work__in=definite_works
+            )
+            stale.delete()
+
+            possible_works = self.cleaned_data['possible_works']
+            for work in possible_works.all():
+                link_to_antiquarians = work.antiquarian_set.all() or [None]
+
+                for a in link_to_antiquarians:
+                    data = {
+                        'antiquarian': a,
+                        link_class.linked_field: instance,
+                        'work': work,
+                        'definite': False
+                    }
+                    link_class.objects.get_or_create(**data)
+
+            # clear all stale work links
+            data = {
+                link_class.linked_field: instance,
+                'work__isnull': False,
+                'definite': False
+            }
+            stale = link_class.objects.filter(**data).exclude(
+                work__in=possible_works
+            )
+            stale.delete()
+
         return instance
 
 
 class FragmentForm(HistoricalFormBase):
 
-    multiselect_help_fields = (
-        'definite_works', 'possible_works', 'topics',
-        'definite_antiquarians', 'possible_antiquarians'
-    )
-
     class Meta:
         model = Fragment
-        fields = (
-            'name', 'topics',
-            'definite_works', 'possible_works',
-            'definite_antiquarians', 'possible_antiquarians',
-        )
+        fields = ('topics',)
         labels = {'name': _('Fragment Name')}
+        widgets = {'topics': forms.CheckboxSelectMultiple}
 
 
 class TestimoniumForm(HistoricalFormBase):
 
-    multiselect_help_fields = (
-        'definite_works', 'possible_works',
-        'definite_antiquarians', 'possible_antiquarians'
-    )
-
     class Meta:
         model = Testimonium
-        fields = (
-            'name',
-            'definite_works', 'possible_works',
-            'definite_antiquarians', 'possible_antiquarians',
-        )
+        fields = ()
         labels = {'name': _('Testimonium Name')}

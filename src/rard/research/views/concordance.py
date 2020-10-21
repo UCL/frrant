@@ -11,7 +11,7 @@ from rard.research.models import Concordance, OriginalText
 
 class ConcordanceListView(
         LoginRequiredMixin, PermissionRequiredMixin, ListView):
-    paginate_by = 10
+    paginate_by = 5
     model = Concordance
     permission_required = ('research.view_concordance',)
 

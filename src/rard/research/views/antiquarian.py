@@ -1,5 +1,6 @@
 from django.contrib.auth.mixins import (LoginRequiredMixin,
                                         PermissionRequiredMixin)
+from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
@@ -23,6 +24,27 @@ class AntiquarianDetailView(
         LoginRequiredMixin, PermissionRequiredMixin, DetailView):
     model = Antiquarian
     permission_required = ('research.view_antiquarian',)
+
+    def post(self, *args, **kwargs):
+
+        link_pk = self.request.POST.get('link_id', None)
+        object_type = self.request.POST.get('object_type', None)
+        if link_pk and object_type:
+            from rard.research.models.base import FragmentLink, TestimoniumLink
+            model_classes = {
+                'fragment': FragmentLink,
+                'testimonium': TestimoniumLink,
+            }
+            try:
+                model_class = model_classes[object_type]
+                link = model_class.objects.get(pk=link_pk)
+                if 'up' in self.request.POST:
+                    link.up()
+                elif 'down' in self.request.POST:
+                    link.down()
+            except (FragmentLink.DoesNotExist, KeyError):
+                pass
+        return HttpResponseRedirect(self.request.path)
 
 
 class AntiquarianCreateView(

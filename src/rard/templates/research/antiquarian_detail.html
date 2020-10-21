@@ -79,54 +79,13 @@
         {% endfor %}
     </section>
 
-    <hr>
-
-    <section>
-        <div class='d-flex justify-content-between mb-3'>
-            <div>
-                <h5>{% trans 'Definite Fragments' %}</h5>
-            </div>
-            <div>
-                {% if perms.research.change_antiquarian %}
-                <a href='{% url "fragment:create" %}'>{% trans 'Add' %}</a>
-                {% endif %}
-            </div>
-        </div>
-
-        {% for fragment in object.definite_fragments.all %}
-
-        {% include 'research/partials/fragment_list_item.html' with fragment=fragment %}
-
-        {% endfor %}
-    </section>
 
     <hr>
 
     <section>
         <div class='d-flex justify-content-between mb-3'>
             <div>
-                <h5>{% trans 'Possible Fragments' %}</h5>
-            </div>
-            <div>
-                {% if perms.research.change_antiquarian %}
-                <a href='{% url "fragment:create" %}'>{% trans 'Add' %}</a>
-                {% endif %}
-            </div>
-        </div>
-
-        {% for fragment in object.possible_fragments.all %}
-
-        {% include 'research/partials/fragment_list_item.html' with fragment=fragment %}
-
-        {% endfor %}
-    </section>
-
-    <hr>
-
-    <section>
-        <div class='d-flex justify-content-between mb-3'>
-            <div>
-                <h5>{% trans 'Definite Testimonia' %}</h5>
+                <h5>{% trans 'Ordered Testimonia' %}</h5>
             </div>
             <div>
                 {% if perms.research.change_antiquarian %}
@@ -135,30 +94,32 @@
             </div>
         </div>
 
-        {% for testimonium in object.definite_testimoniums.all %}
+        {% for link in object.testimoniumlinks.all %}
 
-        {% include 'research/partials/testimonium_list_item.html' with testimonium=testimonium %}
+        {% include 'research/partials/testimonium_link_list_item.html' with link=link testimonium=link.linked %}
 
         {% endfor %}
+
     </section>
+
 
     <hr>
 
     <section>
         <div class='d-flex justify-content-between mb-3'>
             <div>
-                <h5>{% trans 'Possible Testimonia' %}</h5>
+                <h5>{% trans 'Ordered Fragments' %}</h5>
             </div>
             <div>
                 {% if perms.research.change_antiquarian %}
-                <a href='{% url "testimonium:create" %}'>{% trans 'Add' %}</a>
+                <a href='{% url "fragment:create" %}'>{% trans 'Add' %}</a>
                 {% endif %}
             </div>
         </div>
 
-        {% for testimonium in object.possible_testimoniums.all %}
+        {% for link in object.fragmentlinks.all %}
 
-        {% include 'research/partials/testimonium_list_item.html' with testimonium=testimonium %}
+        {% include 'research/partials/fragment_link_list_item.html' with link=link fragment=link.linked %}
 
         {% endfor %}
     </section>

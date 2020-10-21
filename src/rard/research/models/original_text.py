@@ -22,14 +22,16 @@ class OriginalText(BaseModel):
 
     apparatus_criticus = models.TextField(default='', blank=True)
 
-    # internal identifier for this original text (for eventual
-    # use with concordance)
-    # identifier = models.CharField(max_length=128, blank=False, default='')
-
     # the ID to use in the concordance table
     @property
-    def concordance_identifier(self):
-        return self.pk  # pragma: no cover
+    def concordance_identifiers(self):
+        ordinal = ''
+        if self.owner.original_texts.count() > 1:
+            index = (*self.owner.original_texts.all(),).index(self)
+            ordinal = chr(ord('a')+index)
+        return [
+            '{}{}'.format(name, ordinal) for name in self.owner.get_all_names()
+        ]
 
 
 class Concordance(BaseModel):
