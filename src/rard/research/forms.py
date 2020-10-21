@@ -101,8 +101,7 @@ class OriginalTextForm(forms.ModelForm):
         # of creating a new citing work. Hence we allow the selection
         # of an existing instance to be blank and assign a newly-created
         # work to the original text instance in the view
-        # self.fields['citing_work'].required = False
-        self.set_citing_work_required(False)
+        self.set_citing_work_required(True)
 
     def set_citing_work_required(self, required):
         # to allow set/reset required fields dynically in the view

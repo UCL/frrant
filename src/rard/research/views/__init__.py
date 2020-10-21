@@ -12,6 +12,7 @@ from .home import HomeView
 from .original_text import (FragmentOriginalTextCreateView,
                             OriginalTextDeleteView, OriginalTextUpdateView,
                             TestimoniumOriginalTextCreateView)
+from .search import SearchView
 from .testimonium import (TestimoniumCreateView, TestimoniumDeleteView,
                           TestimoniumDetailView, TestimoniumListView,
                           TestimoniumUpdateView)
@@ -44,6 +45,7 @@ __all__ = [
     'HomeView',
     'OriginalTextDeleteView',
     'OriginalTextUpdateView',
+    'SearchView',
     'TestimoniumCreateView',
     'TestimoniumDeleteView',
     'TestimoniumDetailView',
