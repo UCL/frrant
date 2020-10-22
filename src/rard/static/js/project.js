@@ -16,6 +16,12 @@ $('.rard-toggle-control input').change(function (e, init) {
     }
 })
 
+$('#id_year_type').change(function(e) {
+    $('#id_year2').closest('.form-group').toggle($(this).val() === 'range')
+});
+
+$('#id_year_type').trigger('change', true);
+
 // initialise any checkbox-driven toggle areas on initialising page
 $('.rard-toggle-control input').trigger('change', true);
 

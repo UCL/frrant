@@ -12,7 +12,30 @@
 {% block inner %}
     <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
         {% csrf_token %}
-        {% bootstrap_form form %}
+        {% bootstrap_field form.name %}
+        {% bootstrap_field form.re_code %}
+        <div class="form-group">
+            <div>
+                <label for="id_re_code">Dates Active</label>
+            </div>
+            <div class="row align-items-top">
+                <div class="col-md-1 pt-1">
+                    {% bootstrap_field form.circa layout='horizontal' show_label=False %}
+                </div>
+                <div class="col-md-2">
+                    {% bootstrap_field form.year_type show_label=False field_class='ml-3' %}
+                </div>
+                <div class="col-md-3">
+                    {% bootstrap_field form.year1 layout='horizontal' show_label=False field_class='ml-3' %}
+                </div>
+                <div class="col-md-3">
+                    {% bootstrap_field form.year2 layout='horizontal' show_label=False field_class='ml-3' %}
+                </div>
+            </div>
+            <small class="form-text text-muted">Enter a negative value for BC, positive for AD. Select "Circa" if dates are approximate.</small>
+        </div>
+
+        {% bootstrap_field form.biography_text %}
         <button type="submit" class="btn btn-primary">
             {% if object %}
                 {% trans 'Save' %}
