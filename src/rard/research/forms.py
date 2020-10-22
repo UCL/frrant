@@ -8,10 +8,16 @@ from rard.research.models.base import FragmentLink, TestimoniumLink
 
 
 class AntiquarianForm(forms.ModelForm):
+
     class Meta:
         model = Antiquarian
-        fields = ('name', 're_code')
-        labels = {'re_code': _('RE Code')}
+        fields = ('name', 're_code', 'circa', 'year_type', 'year1', 'year2')
+        labels = {
+            're_code': _('RE Code'),
+            'year1': '',
+            'year2': '',
+            'year_type': 'Dates',
+        }
 
     biography_text = forms.CharField(
         widget=forms.Textarea,
@@ -24,6 +30,41 @@ class AntiquarianForm(forms.ModelForm):
         if self.instance.biography:
             self.fields['biography_text'].initial = \
                 self.instance.biography.content
+        self.fields['year1'].widget.attrs['placeholder'] = 'Enter Year'
+        self.fields['year2'].widget.attrs['placeholder'] = 'Enter Year'
+
+    def clean(self):
+        cleaned_data = super().clean()
+        year_type = self.cleaned_data.get('year_type', None)
+        if year_type:
+            to_validate = ('year1', )
+            if year_type == Antiquarian.YEAR_RANGE:
+                to_validate = ('year1', 'year2')
+
+            for name in to_validate:
+                value = self.cleaned_data.get(name)
+                try:
+                    # test it's an acceptable number
+                    int(value)
+                except (TypeError, ValueError):
+                    self.add_error(name, _('Please enter a whole number.'))
+
+        year1 = self.cleaned_data.get('year1', None)
+        year2 = self.cleaned_data.get('year2', None)
+
+        if not year_type:
+            cleaned_data['year1'] = None
+            cleaned_data['year2'] = None
+        elif year_type == Antiquarian.YEAR_RANGE:
+            if year1 and year2:
+                if int(year1) >= int(year2):
+                    ERR = _('The first date must be earlier.')
+                    self.add_error('year1', ERR)
+                    self.add_error('year2', ERR)
+        else:
+            # force year2 off unless we are a range
+            cleaned_data['year2'] = None
+        return cleaned_data
 
     def save(self, commit=True):
         instance = super().save(commit=False)
