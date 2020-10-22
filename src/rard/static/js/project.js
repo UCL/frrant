@@ -16,6 +16,11 @@ $('.rard-toggle-control input').change(function (e, init) {
     }
 })
 
+$('.submit-on-change').change(function(e){
+    // submit the form it belongs to
+    $(this).closest('form').submit();
+});
+
 $('#id_year_type').change(function(e) {
     $('#id_year2').closest('.form-group').toggle($(this).val() === 'range')
 });

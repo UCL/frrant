@@ -172,3 +172,55 @@ class TestAntiquarianViewPermissions(TestCase):
             'research.view_antiquarian',
             AntiquarianDetailView.permission_required
         )
+
+
+class TestAntiquarianListView(TestCase):
+
+    def test_context_data_default_ordering_off(self):
+
+        antiquarian = Antiquarian.objects.create()
+        order = 'earliest'
+        url = reverse('antiquarian:list')
+        request = RequestFactory().get(url)
+        request.user = UserFactory.create()
+        response = AntiquarianListView.as_view()(request)
+
+        self.assertIsNone(response.context_data['order'], order)
+
+    def test_context_data_has_ordering(self):
+
+        antiquarian = Antiquarian.objects.create()
+        order = 'earliest'
+        url = reverse('antiquarian:list') + "?order={}".format(order)
+        request = RequestFactory().get(url)
+        request.user = UserFactory.create()
+        response = AntiquarianListView.as_view()(request)
+
+        self.assertEqual(response.context_data['order'], order)
+
+    def test_ordered_queryset(self):
+        view = AntiquarianListView()
+
+        # create some data to search
+        a1 = Antiquarian.objects.create(name='name', re_code='1', year1=100)
+        a2 = Antiquarian.objects.create(name='name', re_code='2', year1=500)
+
+        # search for 'me' in the antiquarians
+        data = {
+            'order': 'earliest',
+        }
+        url = reverse('antiquarian:list')
+        request = RequestFactory().get(url, data=data)
+        view.request = request
+        qs = view.get_queryset()
+        self.assertEqual(2, len(qs))
+        self.assertEqual([a.pk for a in qs.all()], [a1.pk, a2.pk])
+
+        data = {
+            'order': 'latest',
+        }
+        request = RequestFactory().get(url, data=data)
+        view.request = request
+        qs = view.get_queryset()
+        self.assertEqual(2, len(qs))
+        self.assertEqual([a.pk for a in qs.all()], [a2.pk, a1.pk])

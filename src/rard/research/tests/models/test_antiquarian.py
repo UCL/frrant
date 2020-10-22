@@ -123,7 +123,7 @@ class TestAntiquarian(TestCase):
         # check the default with nothing set
         self.assertEqual(
             a.display_date_range(),
-            '-'
+            ''
         )
 
         a.year_type = Antiquarian.YEAR_RANGE

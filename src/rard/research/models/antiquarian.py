@@ -80,7 +80,7 @@ class Antiquarian(TextObjectFieldMixin, BaseModel):
 
     def display_date_range(self):
         if not self.year_type:
-            return '-'
+            return ''
 
         if self.year_type == self.YEAR_RANGE:
             if self.year1 * self.year2 < 0:

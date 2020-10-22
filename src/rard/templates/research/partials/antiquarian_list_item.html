@@ -13,6 +13,9 @@
                 {% else %}
                     {{ link_text }}
                 {% endif %}
+                {% if antiquarian.display_date_range %}
+                <span class='text-muted'><small>[{{ antiquarian.display_date_range }}]</small></span>
+                {% endif %}
             {% endwith %}
         </li>
     </div>

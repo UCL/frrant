@@ -40,7 +40,7 @@
             
             <dt class="col-sm-3">{% trans 'Date Range' %}</dt>
             <dd class="col-sm-9">
-                {{ object.display_date_range }}
+                {{ object.display_date_range|default:'-' }}
             </dd>
 
             <dt class="col-sm-3">{% trans 'Biography' %}</dt>
