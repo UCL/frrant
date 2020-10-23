@@ -178,7 +178,7 @@ class TestAntiquarianListView(TestCase):
 
     def test_context_data_default_ordering_off(self):
 
-        antiquarian = Antiquarian.objects.create()
+        Antiquarian.objects.create()
         order = 'earliest'
         url = reverse('antiquarian:list')
         request = RequestFactory().get(url)
@@ -189,7 +189,7 @@ class TestAntiquarianListView(TestCase):
 
     def test_context_data_has_ordering(self):
 
-        antiquarian = Antiquarian.objects.create()
+        Antiquarian.objects.create()
         order = 'earliest'
         url = reverse('antiquarian:list') + "?order={}".format(order)
         request = RequestFactory().get(url)
