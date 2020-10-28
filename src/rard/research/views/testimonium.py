@@ -10,7 +10,7 @@ from django.views.generic.detail import DetailView
 from django.views.generic.edit import DeleteView, UpdateView
 
 from rard.research.forms import TestimoniumForm, TestimoniumLinkWorkForm
-from rard.research.models import Testimonium, Work, Book
+from rard.research.models import Book, Testimonium, Work
 from rard.research.models.base import TestimoniumLink
 from rard.research.views.fragment import HistoricalBaseCreateView
 

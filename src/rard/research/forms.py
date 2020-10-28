@@ -2,8 +2,8 @@ from django import forms
 from django.core.exceptions import FieldDoesNotExist
 from django.utils.translation import gettext_lazy as _
 
-from rard.research.models import (Antiquarian, Book, CitingWork, Comment, Fragment,
-                                  OriginalText, Testimonium, Work, Book)
+from rard.research.models import (Antiquarian, Book, CitingWork, Comment,
+                                  Fragment, OriginalText, Testimonium, Work)
 from rard.research.models.base import FragmentLink, TestimoniumLink
 
 
@@ -105,8 +105,8 @@ class BookForm(forms.ModelForm):
             ERR = _('Please give a number or a subtitle.')
             self.add_error('number', ERR)
             self.add_error('subtitle', ERR)
-            
         return cleaned_data
+
 
 class CommentForm(forms.ModelForm):
     class Meta:

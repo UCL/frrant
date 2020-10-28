@@ -9,7 +9,7 @@ from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from rard.research.forms import BookForm, WorkForm
-from rard.research.models import Work, Book
+from rard.research.models import Book, Work
 
 
 class WorkListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):

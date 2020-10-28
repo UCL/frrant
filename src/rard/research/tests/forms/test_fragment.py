@@ -1,8 +1,8 @@
 import pytest
 from django.test import TestCase
 
-from rard.research.forms import FragmentForm
-from rard.research.models import Antiquarian, Fragment
+from rard.research.forms import FragmentForm, FragmentLinkWorkForm
+from rard.research.models import Antiquarian, Book, Fragment, Work
 
 pytestmark = pytest.mark.django_db
 
@@ -43,3 +43,25 @@ class TestFragmentForm(TestCase):
             [x.pk for x in fragment.possible_antiquarians()],
             [x.pk for x in Antiquarian.objects.filter(pk=b.pk)]
         )
+
+
+class TestFragmentLinkWorkForm(TestCase):
+
+    def test_required_fields_no_work_selected(self):
+        # if no work specified we have no books to select
+        # and all the works are possible
+        form = FragmentLinkWorkForm(work=None)
+        self.assertIsNone(form.fields['work'].initial)
+        self.assertTrue(form.fields['book'].disabled)
+        self.assertEqual(form.fields['book'].queryset.count(), 0)
+
+    def test_required_fields_with_work_selected(self):
+        work = Work.objects.create(name='foo')
+        NUM_BOOKS = 5
+        for i in range(0, NUM_BOOKS):
+            Book.objects.create(number=i, work=work)
+
+        form = FragmentLinkWorkForm(work=work)
+        self.assertEqual(form.fields['work'].initial, work)
+        self.assertFalse(form.fields['book'].disabled)
+        self.assertEqual(form.fields['book'].queryset.count(), NUM_BOOKS)

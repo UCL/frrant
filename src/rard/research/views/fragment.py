@@ -11,7 +11,7 @@ from django.views.generic.edit import DeleteView, UpdateView
 
 from rard.research.forms import (CitingWorkForm, FragmentForm,
                                  FragmentLinkWorkForm, OriginalTextForm)
-from rard.research.models import Fragment, Work, Book
+from rard.research.models import Book, Fragment, Work
 from rard.research.models.base import FragmentLink
 
 

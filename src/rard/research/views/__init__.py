@@ -25,9 +25,9 @@ from .topic import (TopicCreateView, TopicDeleteView, TopicDetailView,
                     TopicListView, TopicUpdateView)
 from .translation import (TranslationCreateView, TranslationDeleteView,
                           TranslationUpdateView)
-from .work import (WorkCreateView, WorkDeleteView, WorkDetailView,
-                   WorkListView, WorkUpdateView, BookCreateView,
-                   BookDeleteView, BookUpdateView)
+from .work import (BookCreateView, BookDeleteView, BookUpdateView,
+                   WorkCreateView, WorkDeleteView, WorkDetailView,
+                   WorkListView, WorkUpdateView)
 
 __all__ = [
     'AntiquarianCreateView',

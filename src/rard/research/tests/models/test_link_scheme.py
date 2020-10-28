@@ -1,7 +1,7 @@
 import pytest
 from django.test import TestCase
 
-from rard.research.models import Antiquarian, Fragment, Testimonium, Work
+from rard.research.models import Antiquarian, Book, Fragment, Testimonium, Work
 from rard.research.models.base import FragmentLink, TestimoniumLink
 
 pytestmark = pytest.mark.django_db
@@ -620,7 +620,7 @@ class TestFragmentOrderingScheme(TestCase):
         )
 
 
-class TestFragmentLinkScheme(TestCase):
+class TestLinkScheme(TestCase):
 
     def setUp(self):
         # add an antiquarian with a work
@@ -630,12 +630,14 @@ class TestFragmentLinkScheme(TestCase):
         )
         self.work = Work.objects.create(name='work')
         self.antiquarian.works.add(self.work)
+        self.book = Book.objects.create(work=self.work, number=1)
 
         data = {
             'name': 'name',
             'apparatus_criticus': 'app_criticus',
         }
         self.fragment = Fragment.objects.create(**data)
+        self.testimonium = Testimonium.objects.create(**data)
 
     def test_add_work_fragment_updates_antiquarian(self):
         FragmentLink.objects.create(
@@ -680,6 +682,13 @@ class TestFragmentLinkScheme(TestCase):
         self.assertEqual(0, self.fragment.definite_antiquarians().count())
         self.assertEqual(0, self.fragment.possible_antiquarians().count())
 
+        link.book = self.book
+        link.save()
+        self.assertEqual(0, len(self.fragment.definite_works_and_books()))
+        self.assertEqual(1, len(self.fragment.possible_works_and_books()))
+        self.assertEqual(0, self.fragment.definite_antiquarians().count())
+        self.assertEqual(0, self.fragment.possible_antiquarians().count())
+
         link.work = None
         link.definite = True
         link.save()
@@ -696,6 +705,56 @@ class TestFragmentLinkScheme(TestCase):
         self.assertEqual(0, len(self.fragment.possible_works_and_books()))
         self.assertEqual(0, self.fragment.definite_antiquarians().count())
         self.assertEqual(1, self.fragment.possible_antiquarians().count())
+
+    def test_testimonium_queryset_methods(self):
+        self.assertEqual(0, len(self.testimonium.definite_works_and_books()))
+        self.assertEqual(0, len(self.testimonium.possible_works_and_books()))
+        self.assertEqual(0, self.testimonium.definite_antiquarians().count())
+        self.assertEqual(0, self.testimonium.possible_antiquarians().count())
+
+        link = TestimoniumLink.objects.create(
+            antiquarian=self.antiquarian,
+            work=self.work,
+            testimonium=self.testimonium,
+            definite=True
+        )
+
+        self.assertEqual(1, len(self.testimonium.definite_works_and_books()))
+        self.assertEqual(0, len(self.testimonium.possible_works_and_books()))
+        self.assertEqual(0, self.testimonium.definite_antiquarians().count())
+        self.assertEqual(0, self.testimonium.possible_antiquarians().count())
+
+        link.definite = False
+        link.save()
+
+        self.assertEqual(0, len(self.testimonium.definite_works_and_books()))
+        self.assertEqual(1, len(self.testimonium.possible_works_and_books()))
+        self.assertEqual(0, self.testimonium.definite_antiquarians().count())
+        self.assertEqual(0, self.testimonium.possible_antiquarians().count())
+
+        link.book = self.book
+        link.save()
+        self.assertEqual(0, len(self.testimonium.definite_works_and_books()))
+        self.assertEqual(1, len(self.testimonium.possible_works_and_books()))
+        self.assertEqual(0, self.testimonium.definite_antiquarians().count())
+        self.assertEqual(0, self.testimonium.possible_antiquarians().count())
+
+        link.work = None
+        link.definite = True
+        link.save()
+
+        self.assertEqual(0, len(self.testimonium.definite_works_and_books()))
+        self.assertEqual(0, len(self.testimonium.possible_works_and_books()))
+        self.assertEqual(1, self.testimonium.definite_antiquarians().count())
+        self.assertEqual(0, self.testimonium.possible_antiquarians().count())
+
+        link.definite = False
+        link.save()
+
+        self.assertEqual(0, len(self.testimonium.definite_works_and_books()))
+        self.assertEqual(0, len(self.testimonium.possible_works_and_books()))
+        self.assertEqual(0, self.testimonium.definite_antiquarians().count())
+        self.assertEqual(1, self.testimonium.possible_antiquarians().count())
 
     def test_add_antiquarian_fragment_ignores_work(self):
         FragmentLink.objects.create(

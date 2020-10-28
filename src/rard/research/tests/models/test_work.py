@@ -3,7 +3,7 @@ from django.db.utils import IntegrityError
 from django.test import TestCase
 from django.urls import reverse
 
-from rard.research.models import Antiquarian, Fragment, Work
+from rard.research.models import Antiquarian, Book, Fragment, Work
 from rard.research.models.base import FragmentLink
 
 pytestmark = pytest.mark.django_db
@@ -214,3 +214,69 @@ class TestWork(TestCase):
         # and not in work1's
         self.assertEqual(0, len(work1.definite_fragments()))
         self.assertEqual(0, len(work1.possible_fragments()))
+
+
+class TestBook(TestCase):
+
+    def setUp(self):
+        self.work = Work.objects.create(name='book_name')
+
+    def test_creation(self):
+        # test happy path
+        data = {
+            'number': '1',
+            'subtitle': 'Subtitle',
+            'work': self.work
+        }
+        book = Book.objects.create(**data)
+        for key, val in data.items():
+            self.assertEqual(getattr(book, key), val)
+
+    def test_work_required(self):
+        data_no_work = {
+            'number': '1',
+            'subtitle': 'Subtitle',
+        }
+        with self.assertRaises(IntegrityError):
+            Book.objects.create(**data_no_work)
+
+    def test_required_fields(self):
+        self.assertTrue(Book._meta.get_field('number').blank)
+        self.assertTrue(Book._meta.get_field('subtitle').blank)
+
+    def test_get_absolute_url(self):
+        # the work url is the absolute url for its book objects
+        data = {
+            'number': '1',
+            'subtitle': 'Subtitle',
+            'work': self.work,
+        }
+        book = Book.objects.create(**data)
+        self.assertEqual(
+            book.get_absolute_url(),
+            reverse('work:detail', kwargs={'pk': self.work.pk})
+        )
+
+    def test_display(self):
+        # the __str__ function should show the name
+        data = {
+            'number': '1',
+            'subtitle': 'Subtitle',
+            'work': self.work,
+        }
+        book = Book.objects.create(**data)
+        self.assertEqual(
+            str(book),
+            'Book 1: Subtitle'
+        )
+        book.number = ''
+        self.assertEqual(
+            str(book),
+            'Subtitle'
+        )
+        book.number = '1'
+        book.subtitle = ''
+        self.assertEqual(
+            str(book),
+            'Book 1'
+        )
