@@ -17,7 +17,7 @@
             <br>
             <small>
                 <span class='ml-4 text-muted'>
-                    [{{ link.get_display_name }}] - <b>{{ link.definite|yesno:"Definite,Possible"}}</b> link {% if link.work %}via work {{ link.work }} {% if link.volume %} vol. {{ link.volume.number }}{% endif %}{% endif %}
+                    [{{ link.get_display_name }}] - <b>{{ link.definite|yesno:"Definite,Possible"}}</b> link {% if link.work %}via work {{ link.work }} {% if link.book %} vol. {{ link.book.number }}{% endif %}{% endif %}
                 </span>
             </small>
         </li>

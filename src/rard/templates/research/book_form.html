@@ -3,19 +3,18 @@
 
 {% block heading %}
     {% if object %}
-        {% trans 'Update Volume' %}
+        {% trans 'Update Book' %}
     {% else %}
-        {% trans 'Create Volume' %}
-
-        {% if work %}
-        <small>
-            {% blocktrans with name=work.name %}
-                For {{ name }}
-            {% endblocktrans %}
-        </small>
-        {% endif %}
-        
+        {% trans 'Create Book' %}
     {% endif %}
+    {% if work %}
+    <small>
+        {% blocktrans with name=work.name %}
+            For {{ name }}
+        {% endblocktrans %}
+    </small>
+    {% endif %}
+        
 {% endblock %}
 
 {% block inner %}

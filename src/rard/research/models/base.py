@@ -90,12 +90,12 @@ class TestimoniumLink(LinkBaseModel):
         related_name='antiquarian_work_testimonium_links',
         on_delete=models.CASCADE
     )
-    # optional additional volume information
-    volume = models.ForeignKey(
-        'WorkVolume',
+    # optional additional book information
+    book = models.ForeignKey(
+        'Book',
         null=True,
         default=None,
-        related_name='antiquarian_workvolume_testimonium_links',
+        related_name='antiquarian_book_testimonium_links',
         on_delete=models.CASCADE,
         blank=True
     )
@@ -120,12 +120,12 @@ class FragmentLink(LinkBaseModel):
         related_name='antiquarian_work_fragment_links',
         on_delete=models.CASCADE
     )
-    # optional additional volume information
-    volume = models.ForeignKey(
-        'WorkVolume',
+    # optional additional book information
+    book = models.ForeignKey(
+        'Book',
         null=True,
         default=None,
-        related_name='antiquarian_workvolume_fragment_links',
+        related_name='antiquarian_book_fragment_links',
         on_delete=models.CASCADE
     )
 

@@ -36,30 +36,30 @@
             <dt class="col-sm-3">{% trans 'Subtitle' %}</dt>
             <dd class="col-sm-9">{{ object.subtitle|default:'-' }}</dd>
 
-            <dt class="col-sm-3">{% trans 'Number of Volumes' %}</dt>
-            <dd class="col-sm-7">{{ object.number_of_volumes|default:'-' }}</dd>
-            {% if perms.research.change_work and perms.research.add_workvolume %}
-            <dd class="col-sm-2"><a style='float:right' href='{% url "work:create_volume" object.pk %}'>Add</a></dd>
+            <dt class="col-sm-3">{% trans 'Number of Books' %}</dt>
+            <dd class="col-sm-7">{{ object.number_of_books|default:'-' }}</dd>
+            {% if perms.research.change_work and perms.research.add_book %}
+            <dd class="col-sm-2"><a style='float:right' href='{% url "work:create_book" object.pk %}'>Add</a></dd>
             {% endif %}
 
-            {% if object.number_of_volumes %}
+            {% if object.number_of_books %}
 
-            <dt class="col-sm-3">{% trans 'Volumes' %}</dt>
+            <dt class="col-sm-3">{% trans 'Books' %}</dt>
             <dd class="col-sm-9">
 
-            {% for volume in object.workvolume_set.all %}
+            {% for book in object.book_set.all %}
                 <div class='d-flex justify-content-between mb-3'>
-                    <div>{{ volume.number }}: {{ volume.subtitle }}</div>
+                    <div>{{ book }}</div>
                     <div>
-                        <form novalidate class='form-inline' action='{% url "work:delete_volume" volume.pk %}' method='POST'>
+                        <form novalidate class='form-inline' action='{% url "work:delete_book" book.pk %}' method='POST'>
                             {% csrf_token %}
                             <div class='form-row align-items-center'>
-                                {% if perms.research.change_work and perms.research.change_workvolume %}
-                                <a href='{% url "work:update_volume" volume.pk %}'>Edit</a>
+                                {% if perms.research.change_work and perms.research.change_book %}
+                                <a href='{% url "work:update_book" book.pk %}'>Edit</a>
                                 {% endif %}
-                                {% if perms.research.change_work and perms.research.delete_workvolume %}
+                                {% if perms.research.change_work and perms.research.delete_book %}
                                 <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
-                                    data-what='volume'>{% trans 'Delete' %}</button>
+                                    data-what='book'>{% trans 'Delete' %}</button>
                                 {% endif %}
                             </div>
                         </form>

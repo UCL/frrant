@@ -3,7 +3,7 @@
 
 {% block heading %}
     {% blocktrans with name=form.instance.linked_field %}
-        Add link to work / volume to {{ name }}
+        Add link to work / book to {{ name }}
     {% endblocktrans %}
 {% endblock %}
 
@@ -14,10 +14,10 @@
         {% bootstrap_field form.work field_class='submit-on-change' %}
     </form>
 
-    {# where a work has been specified add it as a hidden control and show the relevant volumes (if any) #}
+    {# where a work has been specified add it as a hidden control and show the relevant books (if any) #}
     <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
         {% csrf_token %}
-        {% bootstrap_field form.volume %}
+        {% bootstrap_field form.book %}
         {% bootstrap_field form.definite %}
 
         <input type='hidden' name='work' value='{{ work.pk }}' />

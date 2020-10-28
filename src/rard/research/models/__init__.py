@@ -7,7 +7,7 @@ from .original_text import CitingWork, Concordance, OriginalText, Translation
 from .testimonium import Testimonium
 from .text_object_field import TextObjectField
 from .topic import Topic
-from .work import Work, WorkVolume
+from .work import Work, Book
 
 __all__ = [
     'Antiquarian',
@@ -23,5 +23,5 @@ __all__ = [
     'Topic',
     'Translation',
     'Work',
-    'WorkVolume',
+    'Book',
 ]

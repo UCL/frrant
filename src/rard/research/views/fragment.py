@@ -11,7 +11,7 @@ from django.views.generic.edit import DeleteView, UpdateView
 
 from rard.research.forms import (CitingWorkForm, FragmentForm,
                                  FragmentLinkWorkForm, OriginalTextForm)
-from rard.research.models import Fragment, Work, WorkVolume
+from rard.research.models import Fragment, Work, Book
 from rard.research.models.base import FragmentLink
 
 
@@ -142,13 +142,13 @@ class FragmentAddWorkLinkView(
     def form_valid(self, form):
         data = form.cleaned_data
         work = data['work']
-        volume = data['volume']
+        book = data['book']
         link_to_antiquarians = work.antiquarian_set.all() or [None]
 
         for antiquarian in link_to_antiquarians:
             data['fragment'] = self.get_fragment()
             data['antiquarian'] = antiquarian
-            data['volume'] = volume
+            data['book'] = book
             FragmentLink.objects.get_or_create(**data)
 
         return super().form_valid(form)
@@ -180,15 +180,13 @@ class FragmentAddWorkLinkView(
     def get_form_kwargs(self):
         values = super().get_form_kwargs()
         values['work'] = self.get_work()
-        # if self.work:
-        #     values['volumes'] = self.work.workvolume_set.all()
         return values
 
 
 class FragmentRemoveLinkView(
         LoginRequiredMixin, PermissionRequiredMixin, RedirectView):
 
-    # base class for both remove work and remove volume from a fragment
+    # base class for both remove work and remove book from a fragment
     permission_required = ('research.edit_fragment',)
 
     def get_success_url(self, *args, **kwargs):
@@ -231,7 +229,7 @@ class FragmentRemoveWorkLinkView(FragmentRemoveLinkView):
 
 
 @method_decorator(require_POST, name='dispatch')
-class FragmentRemoveVolumeLinkView(FragmentRemoveLinkView):
+class FragmentRemoveBookLinkView(FragmentRemoveLinkView):
 
-    linked_class = WorkVolume
-    link_object_field_name = 'volume'
+    linked_class = Book
+    link_object_field_name = 'book'

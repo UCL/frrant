@@ -114,7 +114,7 @@
     <section>
         <div class='d-flex justify-content-between mb-3'>
             <div>
-                <h5>{% trans 'Definite Works and Volumes' %}</h5>
+                <h5>{% trans 'Definite Works and Books' %}</h5>
             </div>
             <div>
                 {% if perms.research.change_testimonium %}
@@ -123,14 +123,14 @@
             </div>
         </div>
 
-        {% for item in object.definite_works_and_volumes %}
+        {% for item in object.definite_works_and_books %}
 
         {% if item.work %}
-            {# Then it's a volume object #}
-            {% include 'research/partials/work_list_item.html' with work=item.work volume=item %}
+            {# Then it's a book object #}
+            {% include 'research/partials/work_list_item.html' with work=item.work book=item %}
         {% else %}
             {# it's a work object #}
-            {% include 'research/partials/work_list_item.html' with work=item volume=None %}
+            {% include 'research/partials/work_list_item.html' with work=item book=None %}
         {% endif %}
 
         {% endfor %}
@@ -141,7 +141,7 @@
     <section>
         <div class='d-flex justify-content-between mb-3'>
             <div>
-                <h5>{% trans 'Possible Works and Volumes' %}</h5>
+                <h5>{% trans 'Possible Works and Books' %}</h5>
             </div>
             <div>
                 {% if perms.research.change_testimonium %}
@@ -150,14 +150,14 @@
             </div>
         </div>
 
-        {% for item in object.possible_works_and_volumes %}
+        {% for item in object.possible_works_and_books %}
 
         {% if item.work %}
-            {# Then it's a volume object #}
-            {% include 'research/partials/work_list_item.html' with work=item.work volume=item %}
+            {# Then it's a book object #}
+            {% include 'research/partials/work_list_item.html' with work=item.work book=item %}
         {% else %}
             {# it's a work object #}
-            {% include 'research/partials/work_list_item.html' with work=item volume=None %}
+            {% include 'research/partials/work_list_item.html' with work=item book=None %}
         {% endif %}
 
         {% endfor %}

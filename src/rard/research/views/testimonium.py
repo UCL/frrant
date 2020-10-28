@@ -10,7 +10,7 @@ from django.views.generic.detail import DetailView
 from django.views.generic.edit import DeleteView, UpdateView
 
 from rard.research.forms import TestimoniumForm, TestimoniumLinkWorkForm
-from rard.research.models import Testimonium, Work, WorkVolume
+from rard.research.models import Testimonium, Work, Book
 from rard.research.models.base import TestimoniumLink
 from rard.research.views.fragment import HistoricalBaseCreateView
 
@@ -83,13 +83,13 @@ class TestimoniumAddWorkLinkView(
     def form_valid(self, form):
         data = form.cleaned_data
         work = data['work']
-        volume = data['volume']
+        book = data['book']
         link_to_antiquarians = work.antiquarian_set.all() or [None]
 
         for antiquarian in link_to_antiquarians:
             data['testimonium'] = self.get_testimonium()
             data['antiquarian'] = antiquarian
-            data['volume'] = volume
+            data['book'] = book
             TestimoniumLink.objects.get_or_create(**data)
 
         return super().form_valid(form)
@@ -127,7 +127,7 @@ class TestimoniumAddWorkLinkView(
 class TestimoniumRemoveLinkView(
         LoginRequiredMixin, PermissionRequiredMixin, RedirectView):
 
-    # base class for both remove work and remove volume from a testimonium
+    # base class for both remove work and remove book from a testimonium
     permission_required = ('research.edit_testimonium',)
 
     def get_success_url(self, *args, **kwargs):
@@ -170,7 +170,7 @@ class TestimoniumRemoveWorkLinkView(TestimoniumRemoveLinkView):
 
 
 @method_decorator(require_POST, name='dispatch')
-class TestimoniumRemoveVolumeLinkView(TestimoniumRemoveLinkView):
+class TestimoniumRemoveBookLinkView(TestimoniumRemoveLinkView):
 
-    linked_class = WorkVolume
-    link_object_field_name = 'volume'
+    linked_class = Book
+    link_object_field_name = 'book'

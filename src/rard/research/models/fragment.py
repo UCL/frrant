@@ -14,26 +14,26 @@ class Fragment(HistoricalBaseModel):
         'OriginalText', related_query_name='original_texts'
     )
 
-    def _get_linked_works_and_volumes(self, definite):
-        # a list of definite linked works and volumes
+    def _get_linked_works_and_books(self, definite):
+        # a list of definite linked works and books
         all_links = self.antiquarian_fragment_links.filter(
             definite=definite,
             work__isnull=False,
-        ).order_by('work', '-volume').distinct()
+        ).order_by('work', '-book').distinct()
 
         rtn = set()
         for link in all_links:
-            if link.volume:
-                rtn.add(link.volume)
+            if link.book:
+                rtn.add(link.book)
             else:
                 rtn.add(link.work)
         return rtn
 
-    def possible_works_and_volumes(self):
-        return self._get_linked_works_and_volumes(definite=False)
+    def possible_works_and_books(self):
+        return self._get_linked_works_and_books(definite=False)
 
-    def definite_works_and_volumes(self):
-        return self._get_linked_works_and_volumes(definite=True)
+    def definite_works_and_books(self):
+        return self._get_linked_works_and_books(definite=True)
 
     def definite_antiquarians(self):
         from rard.research.models import Antiquarian

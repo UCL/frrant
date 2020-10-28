@@ -7,7 +7,7 @@ from .concordance import (ConcordanceCreateView, ConcordanceDeleteView,
                           ConcordanceListView, ConcordanceUpdateView)
 from .fragment import (FragmentAddWorkLinkView, FragmentCreateView,
                        FragmentDeleteView, FragmentDetailView,
-                       FragmentListView, FragmentRemoveVolumeLinkView,
+                       FragmentListView, FragmentRemoveBookLinkView,
                        FragmentRemoveWorkLinkView,
                        FragmentUpdateAntiquariansView, FragmentUpdateView)
 from .home import HomeView
@@ -17,7 +17,7 @@ from .original_text import (FragmentOriginalTextCreateView,
 from .search import SearchView
 from .testimonium import (TestimoniumAddWorkLinkView, TestimoniumCreateView,
                           TestimoniumDeleteView, TestimoniumDetailView,
-                          TestimoniumListView, TestimoniumRemoveVolumeLinkView,
+                          TestimoniumListView, TestimoniumRemoveBookLinkView,
                           TestimoniumRemoveWorkLinkView,
                           TestimoniumUpdateAntiquariansView,
                           TestimoniumUpdateView)
@@ -26,8 +26,8 @@ from .topic import (TopicCreateView, TopicDeleteView, TopicDetailView,
 from .translation import (TranslationCreateView, TranslationDeleteView,
                           TranslationUpdateView)
 from .work import (WorkCreateView, WorkDeleteView, WorkDetailView,
-                   WorkListView, WorkUpdateView, WorkVolumeCreateView,
-                   WorkVolumeDeleteView, WorkVolumeUpdateView)
+                   WorkListView, WorkUpdateView, BookCreateView,
+                   BookDeleteView, BookUpdateView)
 
 __all__ = [
     'AntiquarianCreateView',
@@ -37,6 +37,9 @@ __all__ = [
     'AntiquarianListView',
     'AntiquarianUpdateView',
     'AntiquarianWorksUpdateView',
+    'BookCreateView',
+    'BookUpdateView',
+    'BookDeleteView',
     'CommentDeleteView',
     'ConcordanceCreateView',
     'ConcordanceDeleteView',
@@ -49,7 +52,7 @@ __all__ = [
     'FragmentListView',
     'FragmentOriginalTextCreateView',
     'FragmentRemoveWorkLinkView',
-    'FragmentRemoveVolumeLinkView',
+    'FragmentRemoveBookLinkView',
     'FragmentUpdateView',
     'FragmentUpdateAntiquariansView',
     'HomeView',
@@ -62,7 +65,7 @@ __all__ = [
     'TestimoniumDetailView',
     'TestimoniumListView',
     'TestimoniumRemoveWorkLinkView',
-    'TestimoniumRemoveVolumeLinkView',
+    'TestimoniumRemoveBookLinkView',
     'TestimoniumUpdateView',
     'TestimoniumUpdateAntiquariansView',
     'TextObjectFieldCommentListView',
@@ -80,7 +83,4 @@ __all__ = [
     'WorkDetailView',
     'WorkListView',
     'WorkUpdateView',
-    'WorkVolumeCreateView',
-    'WorkVolumeUpdateView',
-    'WorkVolumeDeleteView',
 ]

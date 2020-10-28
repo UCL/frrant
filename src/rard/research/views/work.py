@@ -8,8 +8,8 @@ from django.views.generic import ListView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
-from rard.research.forms import WorkForm
-from rard.research.models import Work, WorkVolume
+from rard.research.forms import BookForm, WorkForm
+from rard.research.models import Work, Book
 
 
 class WorkListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
@@ -46,12 +46,12 @@ class WorkDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     permission_required = ('research.delete_work',)
 
 
-class WorkVolumeCreateView(
+class BookCreateView(
         LoginRequiredMixin, PermissionRequiredMixin, CreateView):
-    model = WorkVolume
-    fields = ('number', 'subtitle',)
+    model = Book
+    form_class = BookForm
     permission_required = (
-        'research.change_work', 'research.add_workvolume',
+        'research.change_work', 'research.add_book',
     )
 
     def get_success_url(self, *args, **kwargs):
@@ -66,9 +66,9 @@ class WorkVolumeCreateView(
         return self.work
 
     def form_valid(self, form):
-        volume = form.save(commit=False)
-        volume.work = self.get_work()
-        volume.save()
+        book = form.save(commit=False)
+        book.work = self.get_work()
+        book.save()
         return super().form_valid(form)
 
     def get_context_data(self, *args, **kwargs):
@@ -79,24 +79,31 @@ class WorkVolumeCreateView(
         return context
 
 
-class WorkVolumeUpdateView(
+class BookUpdateView(
         LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
-    model = WorkVolume
-    fields = '__all__'
+    model = Book
+    form_class = BookForm
     permission_required = (
-        'research.change_work', 'research.change_workvolume',
+        'research.change_work', 'research.change_book',
     )
 
     def get_success_url(self, *args, **kwargs):
         return reverse('work:detail', kwargs={'pk': self.object.work.pk})
 
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update({
+            'work': self.get_object().work,
+        })
+        return context
+
 
 @method_decorator(require_POST, name='dispatch')
-class WorkVolumeDeleteView(
+class BookDeleteView(
         LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
-    model = WorkVolume
+    model = Book
     permission_required = (
-        'research.change_work', 'research.delete_workvolume',
+        'research.change_work', 'research.delete_book',
     )
 
     def get_success_url(self, *args, **kwargs):

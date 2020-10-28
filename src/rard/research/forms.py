@@ -2,8 +2,8 @@ from django import forms
 from django.core.exceptions import FieldDoesNotExist
 from django.utils.translation import gettext_lazy as _
 
-from rard.research.models import (Antiquarian, CitingWork, Comment, Fragment,
-                                  OriginalText, Testimonium, Work, WorkVolume)
+from rard.research.models import (Antiquarian, Book, CitingWork, Comment, Fragment,
+                                  OriginalText, Testimonium, Work, Book)
 from rard.research.models.base import FragmentLink, TestimoniumLink
 
 
@@ -91,6 +91,22 @@ class WorkForm(forms.ModelForm):
         model = Work
         exclude = ('fragments',)
 
+
+class BookForm(forms.ModelForm):
+    class Meta:
+        model = Book
+        fields = ('number', 'subtitle',)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        number = self.cleaned_data.get('number', None)
+        subtitle = self.cleaned_data.get('subtitle', None)
+        if not (number or subtitle):
+            ERR = _('Please give a number or a subtitle.')
+            self.add_error('number', ERR)
+            self.add_error('subtitle', ERR)
+            
+        return cleaned_data
 
 class CommentForm(forms.ModelForm):
     class Meta:
@@ -271,20 +287,20 @@ class TestimoniumForm(HistoricalFormBase):
 
 class BaseLinkWorkForm(forms.ModelForm):
     class Meta:
-        fields = ('work', 'volume', 'definite',)
+        fields = ('work', 'book', 'definite',)
         labels = {'definite': _('Definite Link')}
 
     def __init__(self, *args, **kwargs):
         work = kwargs.pop('work')
 
         super().__init__(*args, **kwargs)
-        self.fields['volume'].required = False
+        self.fields['book'].required = False
         if work:
             self.fields['work'].initial = work
-            self.fields['volume'].queryset = work.workvolume_set.all()
+            self.fields['book'].queryset = work.book_set.all()
         else:
-            self.fields['volume'].queryset = WorkVolume.objects.none()
-            self.fields['volume'].disabled = True
+            self.fields['book'].queryset = Book.objects.none()
+            self.fields['book'].disabled = True
 
 
 class FragmentLinkWorkForm(BaseLinkWorkForm):

@@ -13,8 +13,8 @@ class Work(BaseModel):
 
     subtitle = models.CharField(max_length=128, blank=True)
 
-    def number_of_volumes(self):
-        return self.workvolume_set.count()
+    def number_of_books(self):
+        return self.book_set.count()
 
     def __str__(self):
         author_str = ', '.join([a.name for a in self.antiquarian_set.all()])
@@ -38,7 +38,7 @@ class Work(BaseModel):
         ).distinct()
 
 
-class WorkVolume(BaseModel):
+class Book(BaseModel):
 
     class Meta:
         ordering = ['number']
@@ -55,9 +55,11 @@ class WorkVolume(BaseModel):
     subtitle = models.CharField(max_length=128, blank=True)
 
     def __str__(self):
-        if self.subtitle:
-            return 'Volume {}: {}'.format(self.number, self.subtitle)
-        return 'Volume {}'.format(self.number)
+        if self.subtitle and self.number:
+            return 'Book {}: {}'.format(self.number, self.subtitle)
+        elif self.number:
+            return 'Book {}'.format(self.number)
+        return self.subtitle
 
     def get_absolute_url(self):
         # link to its owning work

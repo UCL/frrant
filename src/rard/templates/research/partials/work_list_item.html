@@ -1,4 +1,4 @@
-{# Assumes context objects named 'work', optional 'volume' and testimonium or fragment object named 'testimonium' or 'fragment' #}
+{# Assumes context objects named 'work', optional 'book' and testimonium or fragment object named 'testimonium' or 'fragment' #}
 
 {% load i18n %}
 
@@ -8,15 +8,15 @@
             <a href='{% url "work:detail" work.pk %}'>
                 {{ work }} 
             </a> 
-            {% if volume %}
-            vol. {{ volume.number }}
+            {% if book %}
+            book {{ book }}
             {% endif %}
         </li>
     </div>
     <div class='rard-list-item-actions'>
         {% if testimonium %}
-            {% if volume %}
-            <form novalidate class='form-inline' action='{% url "testimonium:remove_volume_link" testimonium.pk volume.pk %}' method='POST'>
+            {% if book %}
+            <form novalidate class='form-inline' action='{% url "testimonium:remove_book_link" testimonium.pk book.pk %}' method='POST'>
             {% else %}
             <form novalidate class='form-inline' action='{% url "testimonium:remove_work_link" testimonium.pk work.pk %}' method='POST'>
             {% endif %}
@@ -27,8 +27,8 @@
                 </div>
             </form>
         {% elif fragment %}
-            {% if volume %}
-            <form novalidate class='form-inline' action='{% url "fragment:remove_volume_link" fragment.pk volume.pk %}' method='POST'>
+            {% if book %}
+            <form novalidate class='form-inline' action='{% url "fragment:remove_book_link" fragment.pk book.pk %}' method='POST'>
             {% else %}
             <form novalidate class='form-inline' action='{% url "fragment:remove_work_link" fragment.pk work.pk %}' method='POST'>
             {% endif %}
