@@ -1,0 +1,33 @@
+{% extends "research/base.html" %}
+{% load i18n bootstrap4 %}
+
+{% block heading %}
+    {% if object %}
+        {% trans 'Update Volume' %}
+    {% else %}
+        {% trans 'Create Volume' %}
+
+        {% if work %}
+        <small>
+            {% blocktrans with name=work.name %}
+                For {{ name }}
+            {% endblocktrans %}
+        </small>
+        {% endif %}
+        
+    {% endif %}
+{% endblock %}
+
+{% block inner %}
+    <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        <button type="submit" class="btn btn-primary">
+            {% if object %}
+                {% trans 'Save' %}
+            {% else %}
+                {% trans 'Create' %}
+            {% endif %}
+        </button>
+    </form>
+{% endblock %}

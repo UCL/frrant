@@ -104,49 +104,60 @@
 
     {% endfor %}
 
+    <hr>
+
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Definite Works and Volumes' %}</h5>
+            </div>
+            <div>
+                {% if perms.research.change_fragment %}
+                <a href='{% url "fragment:add_work_link" object.pk %}'>{% trans 'Add Link' %}</a>
+                {% endif %}
+            </div>
+        </div>
+
+        {% for item in object.definite_works_and_volumes %}
+
+        {% if item.work %}
+            {# Then it's a volume object #}
+            {% include 'research/partials/work_list_item.html' with work=item.work volume=item %}
+        {% else %}
+            {# it's a work object #}
+            {% include 'research/partials/work_list_item.html' with work=item volume=None %}
+        {% endif %}
+
+        {% endfor %}
+    </section>
 
     <hr>
 
     <section>
         <div class='d-flex justify-content-between mb-3'>
             <div>
-                <h5>{% trans 'Definite Works' %}</h5>
+                <h5>{% trans 'Possible Works and Volumes' %}</h5>
             </div>
             <div>
                 {% if perms.research.change_fragment %}
-                <a href='{% url "fragment:update" object.pk %}'>{% trans 'Edit' %}</a>
+                <a href='{% url "fragment:add_work_link" object.pk %}'>{% trans 'Add Link' %}</a>
                 {% endif %}
             </div>
         </div>
 
-        {% for work in object.definite_works.all %}
+        {% for item in object.possible_works_and_volumes %}
 
-        {% include 'research/partials/work_list_item.html' with work=work %}
-
-        {% endfor %}
-    </section>
-
-
-    <hr>
-
-    <section>
-        <div class='d-flex justify-content-between mb-3'>
-            <div>
-                <h5>{% trans 'Possible Works' %}</h5>
-            </div>
-            <div>
-                {% if perms.research.change_fragment %}
-                <a href='{% url "fragment:update" object.pk %}'>{% trans 'Edit' %}</a>
-                {% endif %}
-            </div>
-        </div>
-
-        {% for work in object.possible_works.all %}
-
-        {% include 'research/partials/work_list_item.html' with work=work %}
+        {% if item.work %}
+            {# Then it's a volume object #}
+            {% include 'research/partials/work_list_item.html' with work=item.work volume=item %}
+        {% else %}
+            {# it's a work object #}
+            {% include 'research/partials/work_list_item.html' with work=item volume=None %}
+        {% endif %}
 
         {% endfor %}
     </section>
+
 
     <hr>
     
@@ -157,7 +168,7 @@
             </div>
             <div>
                 {% if perms.research.change_fragment %}
-                <a href='{% url "fragment:update" object.pk %}'>{% trans 'Edit' %}</a>
+                <a href='{% url "fragment:update_antiquarians" object.pk %}'>{% trans 'Edit' %}</a>
                 {% endif %}
             </div>
         </div>
@@ -180,7 +191,7 @@
             </div>
             <div>
                 {% if perms.research.change_fragment %}
-                <a href='{% url "fragment:update" object.pk %}'>{% trans 'Edit' %}</a>
+                <a href='{% url "fragment:update_antiquarians" object.pk %}'>{% trans 'Edit' %}</a>
                 {% endif %}
             </div>
         </div>
