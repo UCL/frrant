@@ -13,8 +13,7 @@ class Work(BaseModel):
 
     subtitle = models.CharField(max_length=128, blank=True)
 
-    def number_of_books(self):
-        return self.book_set.count()
+    number_of_books = models.CharField(max_length=128, blank=True)
 
     def __str__(self):
         author_str = ', '.join([a.name for a in self.antiquarian_set.all()])

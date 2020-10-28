@@ -39,10 +39,10 @@
             <dt class="col-sm-3">{% trans 'Number of Books' %}</dt>
             <dd class="col-sm-7">{{ object.number_of_books|default:'-' }}</dd>
             {% if perms.research.change_work and perms.research.add_book %}
-            <dd class="col-sm-2"><a style='float:right' href='{% url "work:create_book" object.pk %}'>Add</a></dd>
+            <dd class="col-sm-2"><a style='float:right' href='{% url "work:create_book" object.pk %}'>Add Book</a></dd>
             {% endif %}
 
-            {% if object.number_of_books %}
+            {% if object.book_set.count > 0 %}
 
             <dt class="col-sm-3">{% trans 'Books' %}</dt>
             <dd class="col-sm-9">

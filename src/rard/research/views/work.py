@@ -32,7 +32,7 @@ class WorkCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
 
 class WorkUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     model = Work
-    fields = ('name', 'subtitle',)
+    form_class = WorkForm
     permission_required = ('research.change_work',)
 
     def get_success_url(self, *args, **kwargs):
