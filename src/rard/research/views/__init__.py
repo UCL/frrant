@@ -5,23 +5,29 @@ from .antiquarian import (AntiquarianCreateView, AntiquarianDeleteView,
 from .comments import CommentDeleteView, TextObjectFieldCommentListView
 from .concordance import (ConcordanceCreateView, ConcordanceDeleteView,
                           ConcordanceListView, ConcordanceUpdateView)
-from .fragment import (FragmentCreateView, FragmentDeleteView,
-                       FragmentDetailView, FragmentListView,
-                       FragmentUpdateView)
+from .fragment import (FragmentAddWorkLinkView, FragmentCreateView,
+                       FragmentDeleteView, FragmentDetailView,
+                       FragmentListView, FragmentRemoveVolumeLinkView,
+                       FragmentRemoveWorkLinkView,
+                       FragmentUpdateAntiquariansView, FragmentUpdateView)
 from .home import HomeView
 from .original_text import (FragmentOriginalTextCreateView,
                             OriginalTextDeleteView, OriginalTextUpdateView,
                             TestimoniumOriginalTextCreateView)
 from .search import SearchView
-from .testimonium import (TestimoniumCreateView, TestimoniumDeleteView,
-                          TestimoniumDetailView, TestimoniumListView,
+from .testimonium import (TestimoniumAddWorkLinkView, TestimoniumCreateView,
+                          TestimoniumDeleteView, TestimoniumDetailView,
+                          TestimoniumListView, TestimoniumRemoveVolumeLinkView,
+                          TestimoniumRemoveWorkLinkView,
+                          TestimoniumUpdateAntiquariansView,
                           TestimoniumUpdateView)
 from .topic import (TopicCreateView, TopicDeleteView, TopicDetailView,
                     TopicListView, TopicUpdateView)
 from .translation import (TranslationCreateView, TranslationDeleteView,
                           TranslationUpdateView)
 from .work import (WorkCreateView, WorkDeleteView, WorkDetailView,
-                   WorkListView, WorkUpdateView)
+                   WorkListView, WorkUpdateView, WorkVolumeCreateView,
+                   WorkVolumeDeleteView, WorkVolumeUpdateView)
 
 __all__ = [
     'AntiquarianCreateView',
@@ -36,21 +42,29 @@ __all__ = [
     'ConcordanceDeleteView',
     'ConcordanceListView',
     'ConcordanceUpdateView',
+    'FragmentAddWorkLinkView',
     'FragmentCreateView',
     'FragmentDeleteView',
     'FragmentDetailView',
     'FragmentListView',
     'FragmentOriginalTextCreateView',
+    'FragmentRemoveWorkLinkView',
+    'FragmentRemoveVolumeLinkView',
     'FragmentUpdateView',
+    'FragmentUpdateAntiquariansView',
     'HomeView',
     'OriginalTextDeleteView',
     'OriginalTextUpdateView',
     'SearchView',
+    'TestimoniumAddWorkLinkView',
     'TestimoniumCreateView',
     'TestimoniumDeleteView',
     'TestimoniumDetailView',
     'TestimoniumListView',
+    'TestimoniumRemoveWorkLinkView',
+    'TestimoniumRemoveVolumeLinkView',
     'TestimoniumUpdateView',
+    'TestimoniumUpdateAntiquariansView',
     'TextObjectFieldCommentListView',
     'TestimoniumOriginalTextCreateView',
     'TopicCreateView',
@@ -66,4 +80,7 @@ __all__ = [
     'WorkDetailView',
     'WorkListView',
     'WorkUpdateView',
+    'WorkVolumeCreateView',
+    'WorkVolumeUpdateView',
+    'WorkVolumeDeleteView',
 ]

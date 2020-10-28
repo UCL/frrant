@@ -13,9 +13,8 @@ class Work(BaseModel):
 
     subtitle = models.CharField(max_length=128, blank=True)
 
-    number_of_volumes = models.PositiveSmallIntegerField(
-        default=None, null=True, blank=True
-    )
+    def number_of_volumes(self):
+        return self.workvolume_set.count()
 
     def __str__(self):
         author_str = ', '.join([a.name for a in self.antiquarian_set.all()])
@@ -37,3 +36,29 @@ class Work(BaseModel):
         return Fragment.objects.filter(
             antiquarian_fragment_links__in=links
         ).distinct()
+
+
+class WorkVolume(BaseModel):
+
+    class Meta:
+        ordering = ['number']
+
+    work = models.ForeignKey(
+        'Work',
+        null=False,
+        on_delete=models.CASCADE
+    )
+
+    number = models.PositiveSmallIntegerField(
+        default=None, null=True, blank=True
+    )
+    subtitle = models.CharField(max_length=128, blank=True)
+
+    def __str__(self):
+        if self.subtitle:
+            return 'Volume {}: {}'.format(self.number, self.subtitle)
+        return 'Volume {}'.format(self.number)
+
+    def get_absolute_url(self):
+        # link to its owning work
+        return reverse('work:detail', kwargs={'pk': self.work.pk})

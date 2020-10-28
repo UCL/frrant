@@ -9,7 +9,8 @@ from django.views.generic import ListView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
-from rard.research.forms import AntiquarianForm, WorkForm
+from rard.research.forms import (AntiquarianForm, AntiquarianUpdateWorksForm,
+                                 WorkForm)
 from rard.research.models import Antiquarian, Work
 
 
@@ -93,8 +94,9 @@ class AntiquarianDeleteView(
 class AntiquarianWorksUpdateView(
         LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
     model = Antiquarian
-    fields = ['works']
+    form_class = AntiquarianUpdateWorksForm
     permission_required = ('research.change_antiquarian',)
+    template_name = 'research/antiquarian_works_form.html'
 
     def get_success_url(self, *args, **kwargs):
         return reverse('antiquarian:detail', kwargs={'pk': self.object.pk})

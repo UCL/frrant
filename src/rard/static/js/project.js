@@ -21,6 +21,12 @@ $('.submit-on-change').change(function(e){
     $(this).closest('form').submit();
 });
 
+$('.work-form').submit(function(e){
+    // disable any volume controls on the page
+    $('select[name="volume"]').prop('disabled', true);
+});
+
+
 $('#id_year_type').change(function(e) {
     $('#id_year2').closest('.form-group').toggle($(this).val() === 'range')
 });

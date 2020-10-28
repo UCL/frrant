@@ -31,7 +31,7 @@ class Antiquarian(TextObjectFieldMixin, BaseModel):
     )
 
     re_code = models.CharField(
-        max_length=64, blank=False, unique=True
+        max_length=64, blank=False, unique=True, verbose_name='RE Number'
     )
 
     # negative means BC, positive is AD

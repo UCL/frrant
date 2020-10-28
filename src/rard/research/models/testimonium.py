@@ -10,23 +10,26 @@ class Testimonium(HistoricalBaseModel):
         'OriginalText', related_query_name='original_texts'
     )
 
-    def definite_works(self):
-        from rard.research.models import Work
-        all_links = self.antiquarian_testimonium_links.all()
-        return Work.objects.filter(
-            antiquarian_work_testimonium_links__in=all_links,
-            antiquarian_work_testimonium_links__definite=True,
-            antiquarian_work_testimonium_links__work__isnull=False,
-        ).distinct()
+    def _get_linked_works_and_volumes(self, definite):
+        # a list of definite linked works and volumes
+        all_links = self.antiquarian_testimonium_links.filter(
+            definite=definite,
+            work__isnull=False,
+        ).order_by('work', '-volume').distinct()
 
-    def possible_works(self):
-        from rard.research.models import Work
-        all_links = self.antiquarian_testimonium_links.all()
-        return Work.objects.filter(
-            antiquarian_work_testimonium_links__in=all_links,
-            antiquarian_work_testimonium_links__definite=False,
-            antiquarian_work_testimonium_links__work__isnull=False,
-        ).distinct()
+        rtn = set()
+        for link in all_links:
+            if link.volume:
+                rtn.add(link.volume)
+            else:
+                rtn.add(link.work)
+        return rtn
+
+    def possible_works_and_volumes(self):
+        return self._get_linked_works_and_volumes(definite=False)
+
+    def definite_works_and_volumes(self):
+        return self._get_linked_works_and_volumes(definite=True)
 
     def definite_antiquarians(self):
         from rard.research.models import Antiquarian

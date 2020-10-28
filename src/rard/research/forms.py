@@ -3,7 +3,7 @@ from django.core.exceptions import FieldDoesNotExist
 from django.utils.translation import gettext_lazy as _
 
 from rard.research.models import (Antiquarian, CitingWork, Comment, Fragment,
-                                  OriginalText, Testimonium, Work)
+                                  OriginalText, Testimonium, Work, WorkVolume)
 from rard.research.models.base import FragmentLink, TestimoniumLink
 
 
@@ -13,7 +13,6 @@ class AntiquarianForm(forms.ModelForm):
         model = Antiquarian
         fields = ('name', 're_code', 'circa', 'year_type', 'year1', 'year2')
         labels = {
-            're_code': _('RE Code'),
             'year1': '',
             'year2': '',
             'year_type': 'Dates',
@@ -58,9 +57,10 @@ class AntiquarianForm(forms.ModelForm):
         elif year_type == Antiquarian.YEAR_RANGE:
             if year1 and year2:
                 if int(year1) >= int(year2):
-                    ERR = _('The first date must be earlier.')
-                    self.add_error('year1', ERR)
-                    self.add_error('year2', ERR)
+                    self.add_error(
+                        'year1', _('The start year must be earlier.'))
+                    self.add_error(
+                        'year2', _('The end year must be later.'))
         else:
             # force year2 off unless we are a range
             cleaned_data['year2'] = None
@@ -74,6 +74,16 @@ class AntiquarianForm(forms.ModelForm):
             instance.biography.content = self.cleaned_data['biography_text']
             instance.biography.save()
         return instance
+
+
+class AntiquarianUpdateWorksForm(forms.ModelForm):
+
+    class Meta:
+        model = Antiquarian
+        fields = ('works',)
+        widgets = {
+          'works': forms.CheckboxSelectMultiple,
+        }
 
 
 class WorkForm(forms.ModelForm):
@@ -158,17 +168,6 @@ class HistoricalFormBase(forms.ModelForm):
         label='Commentary',
     )
 
-    definite_works = forms.ModelMultipleChoiceField(
-        widget=forms.CheckboxSelectMultiple,
-        queryset=Work.objects.all(),
-        required=False,
-    )
-    possible_works = forms.ModelMultipleChoiceField(
-        widget=forms.CheckboxSelectMultiple,
-        queryset=Work.objects.all(),
-        required=False,
-    )
-
     definite_antiquarians = forms.ModelMultipleChoiceField(
         widget=forms.CheckboxSelectMultiple,
         queryset=Antiquarian.objects.all(),
@@ -186,12 +185,12 @@ class HistoricalFormBase(forms.ModelForm):
         if self.instance.commentary:
             self.fields['commentary_text'].initial = \
                 self.instance.commentary.content
+
         self.fields['definite_antiquarians'].initial = \
             self.instance.definite_antiquarians()
-        self.fields['definite_works'].initial = self.instance.definite_works()
+
         self.fields['possible_antiquarians'].initial = \
             self.instance.possible_antiquarians()
-        self.fields['possible_works'].initial = self.instance.possible_works()
 
     def save(self, commit=True):
         instance = super().save(commit=False)
@@ -250,54 +249,6 @@ class HistoricalFormBase(forms.ModelForm):
                 antiquarian__in=possible_antiquarians
             ).delete()
 
-            definite_works = self.cleaned_data['definite_works']
-            for work in definite_works.all():
-                link_to_antiquarians = work.antiquarian_set.all() or [None]
-                for a in link_to_antiquarians:
-
-                    data = {
-                        'antiquarian': a,
-                        link_class.linked_field: instance,
-                        'work': work,
-                        'definite': True
-                    }
-                    link_class.objects.get_or_create(**data)
-
-            # clear all work links
-            data = {
-                link_class.linked_field: instance,
-                'work__isnull': False,
-                'definite': True
-            }
-            stale = link_class.objects.filter(**data).exclude(
-                work__in=definite_works
-            )
-            stale.delete()
-
-            possible_works = self.cleaned_data['possible_works']
-            for work in possible_works.all():
-                link_to_antiquarians = work.antiquarian_set.all() or [None]
-
-                for a in link_to_antiquarians:
-                    data = {
-                        'antiquarian': a,
-                        link_class.linked_field: instance,
-                        'work': work,
-                        'definite': False
-                    }
-                    link_class.objects.get_or_create(**data)
-
-            # clear all stale work links
-            data = {
-                link_class.linked_field: instance,
-                'work__isnull': False,
-                'definite': False
-            }
-            stale = link_class.objects.filter(**data).exclude(
-                work__in=possible_works
-            )
-            stale.delete()
-
         return instance
 
 
@@ -316,3 +267,31 @@ class TestimoniumForm(HistoricalFormBase):
         model = Testimonium
         fields = ()
         labels = {'name': _('Testimonium Name')}
+
+
+class BaseLinkWorkForm(forms.ModelForm):
+    class Meta:
+        fields = ('work', 'volume', 'definite',)
+        labels = {'definite': _('Definite Link')}
+
+    def __init__(self, *args, **kwargs):
+        work = kwargs.pop('work')
+
+        super().__init__(*args, **kwargs)
+        self.fields['volume'].required = False
+        if work:
+            self.fields['work'].initial = work
+            self.fields['volume'].queryset = work.workvolume_set.all()
+        else:
+            self.fields['volume'].queryset = WorkVolume.objects.none()
+            self.fields['volume'].disabled = True
+
+
+class FragmentLinkWorkForm(BaseLinkWorkForm):
+    class Meta(BaseLinkWorkForm.Meta):
+        model = FragmentLink
+
+
+class TestimoniumLinkWorkForm(BaseLinkWorkForm):
+    class Meta(BaseLinkWorkForm.Meta):
+        model = TestimoniumLink

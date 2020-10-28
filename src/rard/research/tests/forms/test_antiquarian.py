@@ -19,7 +19,7 @@ class TestAntiquarianForm(TestCase):
 
     def test_re_code_label(self):
         form = AntiquarianForm()
-        self.assertEqual(form.fields['re_code'].label, 'RE Code')
+        self.assertEqual(form.fields['re_code'].label, 'RE Number')
 
     def test_biography_initial_value_update(self):
         data = {
