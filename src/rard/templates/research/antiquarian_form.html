@@ -16,23 +16,29 @@
         {% bootstrap_field form.re_code %}
         <div class="form-group">
             <div>
-                <label for="id_re_code">Dates Active</label>
+                <label for="id_re_code">Relevant Dates</label>
             </div>
-            <div class="row align-items-top">
-                <div class="col-md-1 pt-1">
-                    {% bootstrap_field form.circa layout='horizontal' show_label=False %}
-                </div>
+            <div class="row align-items-center">
                 <div class="col-md-3">
-                    {% bootstrap_field form.year_type show_label=False field_class='ml-3' %}
+                    {% bootstrap_field form.dates_type show_label=False  field_class='w-100'  %}
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
+                    {% bootstrap_field form.year_type show_label=False  field_class='w-100' %}
+                </div>
+                <div class="col-md-1">
+                    {% bootstrap_field form.circa1 layout='horizontal' show_label=False %}
+                </div>
+                <div class="col-md-2">
                     {% bootstrap_field form.year1 layout='horizontal' show_label=False field_class='ml-3' %}
                 </div>
-                <div class="col-md-3">
-                    {% bootstrap_field form.year2 layout='horizontal' show_label=False field_class='ml-3' %}
+                <div class="col-md-1">
+                    {% bootstrap_field form.circa2 layout='horizontal' show_label=False form_group_class='form-group range-only' %}
+                </div>
+                <div class="col-md-2">
+                    {% bootstrap_field form.year2 layout='horizontal' show_label=False field_class='ml-3' form_group_class='form-group range-only' %}
                 </div>
             </div>
-            <small class="form-text text-muted">Enter a negative value for BC, positive for AD. Select "Circa" if dates are approximate.</small>
+            <small class="form-text text-muted">Enter a negative value for BC, positive for AD. Select "Circa" where dates are approximate.</small>
         </div>
 
         {% bootstrap_field form.biography_text %}

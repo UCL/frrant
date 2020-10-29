@@ -28,7 +28,7 @@ $('.work-form').submit(function(e){
 
 
 $('#id_year_type').change(function(e) {
-    $('#id_year2').closest('.form-group').toggle($(this).val() === 'range')
+    $('.range-only').toggle($(this).val() === 'range')
 });
 
 $('#id_year_type').trigger('change', true);

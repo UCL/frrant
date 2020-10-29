@@ -11,11 +11,14 @@ class AntiquarianForm(forms.ModelForm):
 
     class Meta:
         model = Antiquarian
-        fields = ('name', 're_code', 'circa', 'year_type', 'year1', 'year2')
+        fields = ('name', 're_code', 'circa1', 'circa2', 'year_type',
+                  'year1', 'year2', 'dates_type')
         labels = {
             'year1': '',
             'year2': '',
             'year_type': 'Dates',
+            'circa1': 'Circa',
+            'circa2': 'Circa',
         }
 
     biography_text = forms.CharField(

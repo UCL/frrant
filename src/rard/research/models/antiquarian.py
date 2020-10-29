@@ -20,6 +20,14 @@ class Antiquarian(TextObjectFieldMixin, BaseModel):
         (YEAR_SINGLE, 'Single Year'),
     ]
 
+    DATES_ALIVE = 'alive'
+    DATES_ACTIVE = 'active'
+
+    DATES_INFO_CHOICES = [
+        (DATES_ALIVE, 'Alive'),
+        (DATES_ACTIVE, 'Active'),
+    ]
+
     class Meta:
         ordering = ['name']
 
@@ -38,12 +46,19 @@ class Antiquarian(TextObjectFieldMixin, BaseModel):
     # the meaning of year1 and year depends on type of date info we have
     year1 = models.IntegerField(default=None, null=True, blank=True)
     year2 = models.IntegerField(default=None, null=True, blank=True)
-    circa = models.BooleanField(default=False)
+    circa1 = models.BooleanField(default=False)
+    circa2 = models.BooleanField(default=False)
 
     # the type of year info we have
     year_type = models.CharField(
         max_length=16,
         choices=YEAR_INFO_CHOICES,
+        blank=True
+    )
+    # what the year info means
+    dates_type = models.CharField(
+        max_length=16,
+        choices=DATES_INFO_CHOICES,
         blank=True
     )
 
@@ -90,21 +105,26 @@ class Antiquarian(TextObjectFieldMixin, BaseModel):
             else:
                 display_year1 = str(abs(self.year1))
 
+            if self.circa1:
+                display_year1 = 'c. ' + display_year1
+
             display_year2 = self._bcad(self.year2)
 
+            if self.circa2:
+                display_year2 = 'c. ' + display_year2
+
             info = ' to '.join([display_year1, display_year2])
-            stub = 'c. ' if self.circa else 'From '
-            return stub + info
+            return '{} from {}'.format(self.get_dates_type_display(), info)
 
         else:
             if self.year_type == self.YEAR_SINGLE:
                 stub = ''
             else:
-                stub = self.get_year_type_display()
+                stub = self.get_year_type_display().lower()
 
-            circa = 'c. ' if self.circa else ''
-            return '{} {}{}'.format(
-                stub, circa, self._bcad(self.year1)
+            circa1 = 'c. ' if self.circa1 else ''
+            return '{} {} {}{}'.format(
+                self.get_dates_type_display(), stub, circa1, self._bcad(self.year1)
             ).strip()
 
 
