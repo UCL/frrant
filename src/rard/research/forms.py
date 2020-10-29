@@ -179,13 +179,41 @@ class OriginalTextForm(forms.ModelForm):
         self.fields['citing_work'].required = required
 
 
-class HistoricalFormBase(forms.ModelForm):
-
+class CommentaryFormBase(forms.ModelForm):
     commentary_text = forms.CharField(
         widget=forms.Textarea,
         required=False,
         label='Commentary',
     )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.commentary:
+            self.fields['commentary_text'].initial = \
+                self.instance.commentary.content
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if commit:
+            # commentary will have been created at this point via post_save
+            instance.commentary.content = self.cleaned_data['commentary_text']
+            instance.commentary.save()
+        return instance
+
+
+class FragmentCommentaryForm(CommentaryFormBase):
+    class Meta:
+        model = Fragment
+        fields = ()
+
+
+class TestimoniumCommentaryForm(CommentaryFormBase):
+    class Meta:
+        model = Testimonium
+        fields = ()
+
+
+class HistoricalFormBase(forms.ModelForm):
 
     definite_antiquarians = forms.ModelMultipleChoiceField(
         widget=forms.CheckboxSelectMultiple,
@@ -201,9 +229,6 @@ class HistoricalFormBase(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.instance.commentary:
-            self.fields['commentary_text'].initial = \
-                self.instance.commentary.content
 
         self.fields['definite_antiquarians'].initial = \
             self.instance.definite_antiquarians()
@@ -221,10 +246,6 @@ class HistoricalFormBase(forms.ModelForm):
             }
             link_class = link_classes[self._meta.model]
             instance.save()
-
-            # commentary will have been created at this point via post_save
-            instance.commentary.content = self.cleaned_data['commentary_text']
-            instance.commentary.save()
             self.save_m2m()
 
             # create links for the antiquarians and works mentioned
@@ -271,12 +292,24 @@ class HistoricalFormBase(forms.ModelForm):
         return instance
 
 
+class FragmentAntiquariansForm(HistoricalFormBase):
+    class Meta:
+        model = Fragment
+        fields = ()
+
+
+class TestimoniumAntiquariansForm(HistoricalFormBase):
+
+    class Meta:
+        model = Testimonium
+        fields = ()
+
+
 class FragmentForm(HistoricalFormBase):
 
     class Meta:
         model = Fragment
         fields = ('topics',)
-        labels = {'name': _('Fragment Name')}
         widgets = {'topics': forms.CheckboxSelectMultiple}
 
 
@@ -285,7 +318,6 @@ class TestimoniumForm(HistoricalFormBase):
     class Meta:
         model = Testimonium
         fields = ()
-        labels = {'name': _('Testimonium Name')}
 
 
 class BaseLinkWorkForm(forms.ModelForm):

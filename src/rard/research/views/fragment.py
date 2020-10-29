@@ -9,7 +9,8 @@ from django.views.generic.base import RedirectView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import DeleteView, UpdateView
 
-from rard.research.forms import (CitingWorkForm, FragmentForm,
+from rard.research.forms import (CitingWorkForm, FragmentAntiquariansForm,
+                                 FragmentCommentaryForm, FragmentForm,
                                  FragmentLinkWorkForm, OriginalTextForm)
 from rard.research.models import Book, Fragment, Work
 from rard.research.models.base import FragmentLink
@@ -113,8 +114,19 @@ class FragmentUpdateView(
 
 
 class FragmentUpdateAntiquariansView(FragmentUpdateView):
+    model = Fragment
+    form_class = FragmentAntiquariansForm
+    permission_required = ('research.change_fragment',)
     # use a different template showing fewer fields
     template_name = 'research/fragment_antiquarians_form.html'
+
+
+class FragmentUpdateCommentaryView(
+        LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+    model = Fragment
+    form_class = FragmentCommentaryForm
+    permission_required = ('research.change_fragment',)
+    template_name = 'research/fragment_commentary_form.html'
 
 
 class FragmentAddWorkLinkView(

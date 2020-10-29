@@ -124,4 +124,41 @@
         {% endfor %}
     </section>
 
+
+    <hr>
+
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Definite Testimonia' %}</h5>
+            </div>
+            <div>
+            </div>
+        </div>
+
+        {% for testimonium in object.definite_testimonia.all %}
+
+        {% include 'research/partials/testimonium_list_item.html' with testimonium=testimonium %}
+
+        {% endfor %}
+    </section>
+
+    <hr>
+
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Possible Testimonia' %}</h5>
+            </div>
+            <div>
+            </div>
+        </div>
+
+        {% for testimonium in object.possible_testimonia.all %}
+
+        {% include 'research/partials/testimonium_list_item.html' with testimonium=testimonium %}
+
+        {% endfor %}
+    </section>
+
 {% endblock %}

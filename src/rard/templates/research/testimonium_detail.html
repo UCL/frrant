@@ -219,7 +219,7 @@
             </div>
             <div>
                 {% if perms.research.change_testimonium %}
-                <a href='{% url "testimonium:update" object.pk %}'>{% trans 'Edit' %}</a>
+                <a href='{% url "testimonium:update_commentary" object.pk %}'>{% trans 'Edit' %}</a>
                 {% endif %}
             </div>
         </div>
@@ -229,13 +229,14 @@
                 <p>
                     {{ object.commentary.content|linebreaks|default:'Not specified' }}
                 </p>
+                {% comment %}
                 <p>
                     {% if perms.research.view_comment %}                   
                     {{ object.commentary.comments.count }} comments
                     <a href='{% url "list_comments_on_text" object.commentary.pk %}'>view</a>
                     {% endif %}
                 </p>
-
+                {% endcomment %}
             </div>
         </div>
     </section>

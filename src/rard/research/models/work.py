@@ -36,6 +36,20 @@ class Work(BaseModel):
             antiquarian_fragment_links__in=links
         ).distinct()
 
+    def definite_testimonia(self):
+        from rard.research.models import Testimonium
+        links = self.antiquarian_work_testimonium_links.filter(definite=True)
+        return Testimonium.objects.filter(
+            antiquarian_testimonium_links__in=links
+        ).distinct()
+
+    def possible_testimonia(self):
+        from rard.research.models import Testimonium
+        links = self.antiquarian_work_testimonium_links.filter(definite=False)
+        return Testimonium.objects.filter(
+            antiquarian_testimonium_links__in=links
+        ).distinct()
+
 
 class Book(BaseModel):
 

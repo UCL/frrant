@@ -9,7 +9,9 @@ from django.views.generic.base import RedirectView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import DeleteView, UpdateView
 
-from rard.research.forms import TestimoniumForm, TestimoniumLinkWorkForm
+from rard.research.forms import (TestimoniumAntiquariansForm,
+                                 TestimoniumCommentaryForm, TestimoniumForm,
+                                 TestimoniumLinkWorkForm)
 from rard.research.models import Book, Testimonium, Work
 from rard.research.models.base import TestimoniumLink
 from rard.research.views.fragment import HistoricalBaseCreateView
@@ -54,8 +56,20 @@ class TestimoniumUpdateView(
 
 
 class TestimoniumUpdateAntiquariansView(TestimoniumUpdateView):
-    # use a different template showing fewer fields
+
+    model = Testimonium
+    form_class = TestimoniumAntiquariansForm
+    permission_required = ('research.change_testimonium',)
     template_name = 'research/testimonium_antiquarians_form.html'
+
+
+class TestimoniumUpdateCommentaryView(TestimoniumUpdateView):
+
+    model = Testimonium
+    form_class = TestimoniumCommentaryForm
+    permission_required = ('research.change_testimonium',)
+    # use a different template showing commentary field
+    template_name = 'research/testimonium_commentary_form.html'
 
 
 class TestimoniumAddWorkLinkView(

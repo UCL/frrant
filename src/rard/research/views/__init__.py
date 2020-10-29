@@ -9,7 +9,8 @@ from .fragment import (FragmentAddWorkLinkView, FragmentCreateView,
                        FragmentDeleteView, FragmentDetailView,
                        FragmentListView, FragmentRemoveBookLinkView,
                        FragmentRemoveWorkLinkView,
-                       FragmentUpdateAntiquariansView, FragmentUpdateView)
+                       FragmentUpdateAntiquariansView,
+                       FragmentUpdateCommentaryView, FragmentUpdateView)
 from .home import HomeView
 from .original_text import (FragmentOriginalTextCreateView,
                             OriginalTextDeleteView, OriginalTextUpdateView,
@@ -20,6 +21,7 @@ from .testimonium import (TestimoniumAddWorkLinkView, TestimoniumCreateView,
                           TestimoniumListView, TestimoniumRemoveBookLinkView,
                           TestimoniumRemoveWorkLinkView,
                           TestimoniumUpdateAntiquariansView,
+                          TestimoniumUpdateCommentaryView,
                           TestimoniumUpdateView)
 from .topic import (TopicCreateView, TopicDeleteView, TopicDetailView,
                     TopicListView, TopicUpdateView)
@@ -46,6 +48,7 @@ __all__ = [
     'ConcordanceListView',
     'ConcordanceUpdateView',
     'FragmentAddWorkLinkView',
+    'FragmentUpdateCommentaryView',
     'FragmentCreateView',
     'FragmentDeleteView',
     'FragmentDetailView',
@@ -68,6 +71,7 @@ __all__ = [
     'TestimoniumRemoveBookLinkView',
     'TestimoniumUpdateView',
     'TestimoniumUpdateAntiquariansView',
+    'TestimoniumUpdateCommentaryView',
     'TextObjectFieldCommentListView',
     'TestimoniumOriginalTextCreateView',
     'TopicCreateView',

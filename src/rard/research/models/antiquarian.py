@@ -20,11 +20,11 @@ class Antiquarian(TextObjectFieldMixin, BaseModel):
         (YEAR_SINGLE, 'Single Year'),
     ]
 
-    DATES_ALIVE = 'alive'
+    DATES_LIVED = 'lived'
     DATES_ACTIVE = 'active'
 
     DATES_INFO_CHOICES = [
-        (DATES_ALIVE, 'Alive'),
+        (DATES_LIVED, 'Lived'),
         (DATES_ACTIVE, 'Active'),
     ]
 
@@ -124,7 +124,10 @@ class Antiquarian(TextObjectFieldMixin, BaseModel):
 
             circa1 = 'c. ' if self.circa1 else ''
             return '{} {} {}{}'.format(
-                self.get_dates_type_display(), stub, circa1, self._bcad(self.year1)
+                self.get_dates_type_display(),
+                stub,
+                circa1,
+                self._bcad(self.year1)
             ).strip()
 
 
