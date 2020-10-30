@@ -20,7 +20,11 @@
 {% block inner %}
     <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
         {% csrf_token %}
-        {% bootstrap_form form %}
+        {% bootstrap_field form.number %}
+        {% bootstrap_field form.subtitle %}
+        
+        {% include 'research/partials/render_date_form_fields.html' %}
+
         <button type="submit" class="btn btn-primary">
             {% if object %}
                 {% trans 'Save' %}
