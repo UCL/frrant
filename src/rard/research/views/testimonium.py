@@ -1,5 +1,6 @@
 from django.contrib.auth.mixins import (LoginRequiredMixin,
                                         PermissionRequiredMixin)
+from django.http.response import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
@@ -121,7 +122,7 @@ class TestimoniumAddWorkLinkView(
             try:
                 self.work = Work.objects.get(pk=work_pk)
             except Work.DoesNotExist:
-                pass
+                raise Http404
         return self.work
 
     def get_context_data(self, *args, **kwargs):

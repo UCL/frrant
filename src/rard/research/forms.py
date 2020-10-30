@@ -7,31 +7,15 @@ from rard.research.models import (Antiquarian, Book, CitingWork, Comment,
 from rard.research.models.base import FragmentLink, TestimoniumLink
 
 
-class AntiquarianForm(forms.ModelForm):
-
+class DatedModelFormBase(forms.ModelForm):
     class Meta:
-        model = Antiquarian
-        fields = ('name', 're_code', 'circa1', 'circa2', 'year_type',
-                  'year1', 'year2', 'dates_type')
         labels = {
-            'year1': '',
-            'year2': '',
-            'year_type': 'Dates',
             'circa1': 'Circa',
             'circa2': 'Circa',
         }
 
-    biography_text = forms.CharField(
-        widget=forms.Textarea,
-        required=False,
-        label='Biography',
-    )
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.instance.biography:
-            self.fields['biography_text'].initial = \
-                self.instance.biography.content
         self.fields['year1'].widget.attrs['placeholder'] = 'Enter Year'
         self.fields['year2'].widget.attrs['placeholder'] = 'Enter Year'
 
@@ -69,6 +53,26 @@ class AntiquarianForm(forms.ModelForm):
             cleaned_data['year2'] = None
         return cleaned_data
 
+
+class AntiquarianForm(DatedModelFormBase):
+
+    class Meta(DatedModelFormBase.Meta):
+        model = Antiquarian
+        fields = ('name', 're_code', 'circa1', 'circa2', 'year_type',
+                  'year1', 'year2', 'dates_type')
+
+    biography_text = forms.CharField(
+        widget=forms.Textarea,
+        required=False,
+        label='Biography',
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.biography:
+            self.fields['biography_text'].initial = \
+                self.instance.biography.content
+
     def save(self, commit=True):
         instance = super().save(commit=False)
         if commit:
@@ -89,16 +93,16 @@ class AntiquarianUpdateWorksForm(forms.ModelForm):
         }
 
 
-class WorkForm(forms.ModelForm):
-    class Meta:
+class WorkForm(DatedModelFormBase):
+    class Meta(DatedModelFormBase.Meta):
         model = Work
         exclude = ('fragments',)
 
 
-class BookForm(forms.ModelForm):
-    class Meta:
+class BookForm(DatedModelFormBase):
+    class Meta(DatedModelFormBase.Meta):
         model = Book
-        fields = ('number', 'subtitle',)
+        exclude = ('work',)
 
     def clean(self):
         cleaned_data = super().clean()
@@ -299,7 +303,6 @@ class FragmentAntiquariansForm(HistoricalFormBase):
 
 
 class TestimoniumAntiquariansForm(HistoricalFormBase):
-
     class Meta:
         model = Testimonium
         fields = ()

@@ -1,10 +1,10 @@
 from django.db import models
 from django.urls import reverse
 
-from rard.utils.basemodel import BaseModel
+from rard.utils.basemodel import DatedBaseModel
 
 
-class Work(BaseModel):
+class Work(DatedBaseModel):
 
     class Meta:
         ordering = ['name']
@@ -51,7 +51,7 @@ class Work(BaseModel):
         ).distinct()
 
 
-class Book(BaseModel):
+class Book(DatedBaseModel):
 
     class Meta:
         ordering = ['number']
