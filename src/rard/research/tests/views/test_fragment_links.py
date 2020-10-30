@@ -3,7 +3,7 @@ from django.http.response import Http404
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
-from rard.research.models import CitingWork, Fragment, Work
+from rard.research.models import Fragment, Work
 from rard.research.models.base import FragmentLink
 from rard.research.views import (FragmentAddWorkLinkView,
                                  FragmentRemoveWorkLinkView)
@@ -42,14 +42,13 @@ class TestFragmentAddWorkLinkView(TestCase):
         request.user = UserFactory.create()
 
         self.assertEqual(FragmentLink.objects.count(), 0)
-        response = FragmentAddWorkLinkView.as_view()(
+        FragmentAddWorkLinkView.as_view()(
             request, pk=fragment.pk
         )
         self.assertEqual(FragmentLink.objects.count(), 1)
         link = FragmentLink.objects.first()
         self.assertEqual(link.fragment, fragment)
         self.assertEqual(link.work, work)
-
 
     def test_context_data(self):
         fragment = Fragment.objects.create(name='name')
@@ -87,7 +86,7 @@ class TestFragmentAddWorkLinkView(TestCase):
         request = RequestFactory().get(url, data=data)
         request.user = UserFactory.create()
         with self.assertRaises(Http404):
-            response = FragmentAddWorkLinkView.as_view()(
+            FragmentAddWorkLinkView.as_view()(
                 request, pk=fragment.pk
             )
 
@@ -97,7 +96,7 @@ class TestFragmentRemoveWorkLinkView(TestCase):
     def test_success_url(self):
         fragment = Fragment.objects.create(name='name')
         work = Work.objects.create(name='name')
-        link = FragmentLink.objects.create(work=work, fragment=fragment)
+        FragmentLink.objects.create(work=work, fragment=fragment)
 
         view = FragmentRemoveWorkLinkView()
         request = RequestFactory().get("/")
@@ -115,13 +114,13 @@ class TestFragmentRemoveWorkLinkView(TestCase):
 
         fragment = Fragment.objects.create(name='name')
         work = Work.objects.create(name='name')
-        link = FragmentLink.objects.create(work=work, fragment=fragment)
-        
+        FragmentLink.objects.create(work=work, fragment=fragment)
+
         request = RequestFactory().post('/')
         request.user = UserFactory.create()
 
         self.assertEqual(FragmentLink.objects.count(), 1)
-        response = FragmentRemoveWorkLinkView.as_view()(
+        FragmentRemoveWorkLinkView.as_view()(
             request, pk=fragment.pk, linked_pk=work.pk
         )
         self.assertEqual(FragmentLink.objects.count(), 0)

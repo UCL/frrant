@@ -3,7 +3,7 @@ from django.http.response import Http404
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
-from rard.research.models import CitingWork, Testimonium, Work
+from rard.research.models import Testimonium, Work
 from rard.research.models.base import TestimoniumLink
 from rard.research.views import (TestimoniumAddWorkLinkView,
                                  TestimoniumRemoveWorkLinkView)
@@ -42,14 +42,13 @@ class TestTestimoniumAddWorkLinkView(TestCase):
         request.user = UserFactory.create()
 
         self.assertEqual(TestimoniumLink.objects.count(), 0)
-        response = TestimoniumAddWorkLinkView.as_view()(
+        TestimoniumAddWorkLinkView.as_view()(
             request, pk=testimonium.pk
         )
         self.assertEqual(TestimoniumLink.objects.count(), 1)
         link = TestimoniumLink.objects.first()
         self.assertEqual(link.testimonium, testimonium)
         self.assertEqual(link.work, work)
-
 
     def test_context_data(self):
         testimonium = Testimonium.objects.create(name='name')
@@ -87,7 +86,7 @@ class TestTestimoniumAddWorkLinkView(TestCase):
         request = RequestFactory().get(url, data=data)
         request.user = UserFactory.create()
         with self.assertRaises(Http404):
-            response = TestimoniumAddWorkLinkView.as_view()(
+            TestimoniumAddWorkLinkView.as_view()(
                 request, pk=testimonium.pk
             )
 
@@ -97,7 +96,7 @@ class TestTestimoniumRemoveWorkLinkView(TestCase):
     def test_success_url(self):
         testimonium = Testimonium.objects.create(name='name')
         work = Work.objects.create(name='name')
-        link = TestimoniumLink.objects.create(work=work, testimonium=testimonium)
+        TestimoniumLink.objects.create(work=work, testimonium=testimonium)
 
         view = TestimoniumRemoveWorkLinkView()
         request = RequestFactory().get("/")
@@ -115,13 +114,13 @@ class TestTestimoniumRemoveWorkLinkView(TestCase):
 
         testimonium = Testimonium.objects.create(name='name')
         work = Work.objects.create(name='name')
-        link = TestimoniumLink.objects.create(work=work, testimonium=testimonium)
-        
+        TestimoniumLink.objects.create(work=work, testimonium=testimonium)
+
         request = RequestFactory().post('/')
         request.user = UserFactory.create()
 
         self.assertEqual(TestimoniumLink.objects.count(), 1)
-        response = TestimoniumRemoveWorkLinkView.as_view()(
+        TestimoniumRemoveWorkLinkView.as_view()(
             request, pk=testimonium.pk, linked_pk=work.pk
         )
         self.assertEqual(TestimoniumLink.objects.count(), 0)
