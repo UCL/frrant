@@ -1,24 +1,14 @@
 import pytest
 from django.test import TestCase
 
-from rard.research.forms import FragmentForm, FragmentLinkWorkForm
+from rard.research.forms import (FragmentCommentaryForm, FragmentForm,
+                                 FragmentLinkWorkForm)
 from rard.research.models import Antiquarian, Book, Fragment, Work
 
 pytestmark = pytest.mark.django_db
 
 
 class TestFragmentForm(TestCase):
-    def test_commentary_initial_value_update(self):
-        data = {
-            'name': 'name',
-        }
-        # create an antiquarian with a bio and check it is on the form
-        fragment = Fragment.objects.create(**data)
-        commentary = 'Something interesting'
-        fragment.commentary.content = commentary
-
-        form = FragmentForm(instance=fragment)
-        self.assertEqual(form.fields['commentary_text'].initial, commentary)
 
     def test_links_save(self):
 
@@ -42,6 +32,33 @@ class TestFragmentForm(TestCase):
         self.assertEqual(
             [x.pk for x in fragment.possible_antiquarians()],
             [x.pk for x in Antiquarian.objects.filter(pk=b.pk)]
+        )
+
+
+class TestFragmentCommentaryForm(TestCase):
+
+    def test_commentary_initial_value_update(self):
+        fragment = Fragment.objects.create(name='name')
+        commentary = 'Something interesting'
+        fragment.commentary.content = commentary
+
+        form = FragmentCommentaryForm(instance=fragment)
+        self.assertEqual(form.fields['commentary_text'].initial, commentary)
+
+    def test_commentary_save(self):
+        fragment = Fragment.objects.create(name='fragment')
+
+        data = {
+            'commentary_text': 'Something interesting',
+        }
+        form = FragmentCommentaryForm(instance=fragment, data=data)
+
+        self.assertTrue(form.is_valid())
+        form.save()
+        refetch = Fragment.objects.get(pk=fragment.pk)
+        self.assertEqual(
+            refetch.commentary.content,
+            data['commentary_text']
         )
 
 
