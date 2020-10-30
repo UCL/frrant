@@ -6,9 +6,17 @@
 {% endblock %}
 
 {% block action %}
+<div class='d-flex justify-content-between align-items-center'>
+    <div>
+        {% include 'research/partials/render_date_order_form.html' %}
+    </div>
     {% if perms.research.add_work %}
-    <a href='{% url "work:create_anonymous" %}'>{% trans 'Create New' %}</a>
+    <div>
+        <a class='ml-3' href='{% url "work:create_anonymous" %}'>{% trans 'Create New' %}</a>
+    </div>
     {% endif %}
+</div>
+
 {% endblock %}
 
 {% block inner %}

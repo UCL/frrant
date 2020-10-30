@@ -10,9 +10,11 @@ from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from rard.research.forms import BookForm, WorkForm
 from rard.research.models import Book, Work
+from rard.research.views.mixins import DateOrderMixin
 
 
-class WorkListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class WorkListView(
+        DateOrderMixin, LoginRequiredMixin, PermissionRequiredMixin, ListView):
     paginate_by = 10
     model = Work
     permission_required = ('research.view_work',)

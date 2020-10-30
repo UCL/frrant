@@ -12,28 +12,14 @@ from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from rard.research.forms import (AntiquarianForm, AntiquarianUpdateWorksForm,
                                  WorkForm)
 from rard.research.models import Antiquarian, Work
+from rard.research.views.mixins import DateOrderMixin
 
 
 class AntiquarianListView(
-        LoginRequiredMixin, PermissionRequiredMixin, ListView):
+        DateOrderMixin, LoginRequiredMixin, PermissionRequiredMixin, ListView):
     paginate_by = 10
     model = Antiquarian
     permission_required = ('research.view_antiquarian',)
-
-    def get_queryset(self):
-        qs = super().get_queryset()
-        if self.request.GET.get('order') == 'earliest':
-            qs = qs.order_by('year1', 'year2')
-        if self.request.GET.get('order') == 'latest':
-            qs = qs.order_by('-year1', '-year2')
-        return qs
-
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
-        context.update({
-            'order': self.request.GET.get('order'),
-        })
-        return context
 
 
 class AntiquarianDetailView(

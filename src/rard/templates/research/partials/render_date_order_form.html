@@ -1,0 +1,13 @@
+{# for sorting lists of model objects derived from DatedBaseModel #}
+
+    <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='GET'>
+        <div class="form-row align-items-center">
+            <div>
+                <select class="submit-on-change form-control form-control-sm" name='order'>
+                    <option value='' {% if not order %}selected{% endif %}>Default ordering</option>
+                    <option value='earliest' {% if order == 'earliest' %}selected{% endif %}>Earliest first</option>
+                    <option value='latest' {% if order == 'latest' %}selected{% endif %}>Latest first</option>
+                </select>
+            </div>
+        </div>
+    </form>

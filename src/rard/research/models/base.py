@@ -2,8 +2,8 @@ from django.db import models
 from django.db.models.signals import m2m_changed, post_delete
 from django.db.utils import IntegrityError
 
-from rard.research.mixins import TextObjectFieldMixin
 from rard.research.models import Antiquarian
+from rard.research.models.mixins import TextObjectFieldMixin
 from rard.utils.basemodel import BaseModel
 
 

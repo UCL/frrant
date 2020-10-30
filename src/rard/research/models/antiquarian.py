@@ -2,7 +2,7 @@ from django.db import models
 from django.db.models.signals import pre_delete
 from django.urls import reverse
 
-from rard.research.mixins import TextObjectFieldMixin
+from rard.research.models.mixins import TextObjectFieldMixin
 from rard.utils.basemodel import DatedBaseModel
 
 
@@ -12,7 +12,8 @@ class Antiquarian(TextObjectFieldMixin, DatedBaseModel):
         ordering = ['name']
 
     # extend the dates functionality with more detail
-    # on what the dates means
+    # on what the dates means
+
     DATES_LIVED = 'lived'
     DATES_ACTIVE = 'active'
 

@@ -1,5 +1,7 @@
 {% extends 'research/base.html' %}
 
+{% load get_full_path_with_page %}
+
 {% block inner %}
 
 {% if page_obj.paginator.count == 0 %}
@@ -17,16 +19,17 @@
           {% if page_obj.number == page %}
             {{ page }}
           {% else %}
-            <a href="?page={{ page }}">{{ page }}</a>{% endif %}{% endfor %})
+            <a href="{{ request|get_full_path_with_page:page }}">{{ page }}</a>{% endif %}{% endfor %})
       
-      ({% if page_obj.has_previous %}<a href='?page={{ page_obj.previous_page_number }}'>prev</a>{% else %}prev{% endif %}
+      ({% if page_obj.has_previous %}<a href='{{ request|get_full_path_with_page:page_obj.previous_page_number }}'>prev</a>{% else %}prev{% endif %}
       |
-      {% if page_obj.has_next %}<a href='?page={{ page_obj.next_page_number }}'>next</a>{% else %}next{% endif %})
+      {% if page_obj.has_next %}<a href='{{ request|get_full_path_with_page:page_obj.next_page_number }}'>next</a>{% else %}next{% endif %})
       {% endif %}
 
   </div>
   <div class='ml-auto'>
     {% block displaying %}
+    
       {% if page_obj.has_other_pages %}
         Displaying {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} item{{ page_obj.paginator.count|pluralize }}
       {% else %}

@@ -9,7 +9,17 @@
                 {{ work }} 
             </a> 
             {% if book %}
-            book {{ book }}
+                book {{ book }}
+                
+                {% if book.display_date_range %}
+                    <span class='text-muted'><small>[{{ book.display_date_range }}]</small></span>
+                {% endif %}
+
+            {% else %}
+                {% if work.display_date_range %}
+                    <span class='text-muted'><small>[{{ work.display_date_range }}]</small></span>
+                {% endif %}
+
             {% endif %}
         </li>
     </div>
