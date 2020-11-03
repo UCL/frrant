@@ -2,10 +2,10 @@ from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
 
-from rard.utils.basemodel import BaseModel
+from rard.utils.basemodel import BaseModel, LockableModel
 
 
-class Topic(BaseModel):
+class Topic(LockableModel, BaseModel):
 
     class Meta:
         ordering = ['name']

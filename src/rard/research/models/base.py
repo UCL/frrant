@@ -4,7 +4,7 @@ from django.db.utils import IntegrityError
 
 from rard.research.models import Antiquarian
 from rard.research.models.mixins import TextObjectFieldMixin
-from rard.utils.basemodel import BaseModel
+from rard.utils.basemodel import BaseModel, LockableModel
 
 
 class LinkBaseModel(BaseModel):
@@ -281,7 +281,7 @@ def works_changed(sender, instance, action, model, pk_set, **kwargs):
 m2m_changed.connect(works_changed, sender=Antiquarian.works.through)
 
 
-class HistoricalBaseModel(TextObjectFieldMixin, BaseModel):
+class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
 
     # abstract base class for shared properties of fragments and testimonia
     class Meta:
@@ -301,7 +301,7 @@ class HistoricalBaseModel(TextObjectFieldMixin, BaseModel):
     images = models.ManyToManyField('Image', blank=True)
 
     def __str__(self):
-        return '{} {}'.format(self.__class__.__name__, self.pk)
+        return self.get_display_name()
 
     def get_absolute_url(self):  # pragma: no cover
         class_name = self.__class__.__name__
@@ -312,10 +312,10 @@ class HistoricalBaseModel(TextObjectFieldMixin, BaseModel):
     def get_display_name(self):
         # for displaying this fragment we use the name of the citing work(s)
         try:
-            name = self.original_texts.first().citing_work
+            name = str(self.original_texts.first().citing_work)
             count = self.original_texts.count()
             if count > 1:
                 name = '{} +{} more'.format(name, count-1)
             return name
         except AttributeError:
-            return str(self)
+            return '{} {}'.format(self.__class__.__name__, self.pk)

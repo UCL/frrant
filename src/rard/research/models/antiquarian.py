@@ -3,10 +3,10 @@ from django.db.models.signals import pre_delete
 from django.urls import reverse
 
 from rard.research.models.mixins import TextObjectFieldMixin
-from rard.utils.basemodel import DatedBaseModel
+from rard.utils.basemodel import BaseModel, DatedModel, LockableModel
 
 
-class Antiquarian(TextObjectFieldMixin, DatedBaseModel):
+class Antiquarian(TextObjectFieldMixin, LockableModel, DatedModel, BaseModel):
 
     class Meta:
         ordering = ['name']
