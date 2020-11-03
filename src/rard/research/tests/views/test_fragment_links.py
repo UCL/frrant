@@ -40,6 +40,7 @@ class TestFragmentAddWorkLinkView(TestCase):
         }
         request = RequestFactory().post(url, data=data)
         request.user = UserFactory.create()
+        fragment.lock(request.user)
 
         self.assertEqual(FragmentLink.objects.count(), 0)
         FragmentAddWorkLinkView.as_view()(
@@ -62,6 +63,8 @@ class TestFragmentAddWorkLinkView(TestCase):
         }
         request = RequestFactory().get(url, data=data)
         request.user = UserFactory.create()
+        fragment.lock(request.user)
+
         response = FragmentAddWorkLinkView.as_view()(
             request, pk=fragment.pk
         )
@@ -85,6 +88,8 @@ class TestFragmentAddWorkLinkView(TestCase):
         }
         request = RequestFactory().get(url, data=data)
         request.user = UserFactory.create()
+        fragment.lock(request.user)
+
         with self.assertRaises(Http404):
             FragmentAddWorkLinkView.as_view()(
                 request, pk=fragment.pk
@@ -101,6 +106,7 @@ class TestFragmentRemoveWorkLinkView(TestCase):
         view = FragmentRemoveWorkLinkView()
         request = RequestFactory().get("/")
         request.user = UserFactory.create()
+        fragment.lock(request.user)
 
         view.request = request
         view.fragment = fragment
@@ -118,6 +124,7 @@ class TestFragmentRemoveWorkLinkView(TestCase):
 
         request = RequestFactory().post('/')
         request.user = UserFactory.create()
+        fragment.lock(request.user)
 
         self.assertEqual(FragmentLink.objects.count(), 1)
         FragmentRemoveWorkLinkView.as_view()(

@@ -22,6 +22,8 @@ class TestTestimoniumAddWorkLinkView(TestCase):
         view.request = request
         view.testimonium = Testimonium.objects.create(name='name')
 
+        view.testimonium.lock(request.user)
+
         self.assertEqual(
             view.get_success_url(),
             reverse('testimonium:detail', kwargs={'pk': view.testimonium.pk})
@@ -40,6 +42,8 @@ class TestTestimoniumAddWorkLinkView(TestCase):
         }
         request = RequestFactory().post(url, data=data)
         request.user = UserFactory.create()
+
+        testimonium.lock(request.user)
 
         self.assertEqual(TestimoniumLink.objects.count(), 0)
         TestimoniumAddWorkLinkView.as_view()(
@@ -62,6 +66,9 @@ class TestTestimoniumAddWorkLinkView(TestCase):
         }
         request = RequestFactory().get(url, data=data)
         request.user = UserFactory.create()
+
+        testimonium.lock(request.user)
+
         response = TestimoniumAddWorkLinkView.as_view()(
             request, pk=testimonium.pk
         )
@@ -85,6 +92,9 @@ class TestTestimoniumAddWorkLinkView(TestCase):
         }
         request = RequestFactory().get(url, data=data)
         request.user = UserFactory.create()
+
+        testimonium.lock(request.user)
+
         with self.assertRaises(Http404):
             TestimoniumAddWorkLinkView.as_view()(
                 request, pk=testimonium.pk
@@ -118,6 +128,8 @@ class TestTestimoniumRemoveWorkLinkView(TestCase):
 
         request = RequestFactory().post('/')
         request.user = UserFactory.create()
+
+        testimonium.lock(request.user)
 
         self.assertEqual(TestimoniumLink.objects.count(), 1)
         TestimoniumRemoveWorkLinkView.as_view()(

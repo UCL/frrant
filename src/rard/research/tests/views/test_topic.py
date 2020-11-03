@@ -53,6 +53,26 @@ class TestTopicSuccessUrls(TestCase):
         )
 
 
+class TestTopicUpdateView(TestCase):
+
+    def test_update_view(self):
+
+        topic = Topic.objects.create(name='some name')
+        NEW_NAME = 'new name'
+        request = RequestFactory().post('/', data={'name': NEW_NAME})
+        request.user = UserFactory.create()
+
+        topic.lock(request.user)
+
+        TopicUpdateView.as_view()(
+            request, pk=topic.pk
+        )
+
+        # check data was updated
+        refresh = Topic.objects.get(pk=topic.pk)
+        self.assertEqual(refresh.name, NEW_NAME)
+
+
 class TestTopicDeleteView(TestCase):
     def test_post_only(self):
 

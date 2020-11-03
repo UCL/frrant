@@ -20,6 +20,9 @@ class TestBookUpdateView(TestCase):
         )
         request = RequestFactory().get(url)
         request.user = UserFactory.create()
+
+        work.lock(request.user)
+
         response = BookUpdateView.as_view()(
             request, pk=book.pk
         )
@@ -35,6 +38,9 @@ class TestBookUpdateView(TestCase):
 
         view.request = request
         work = Work.objects.create(name='name')
+
+        work.lock(request.user)
+
         view.object = Book.objects.create(number=1, work=work)
 
         self.assertEqual(
@@ -53,6 +59,9 @@ class TestBookCreateView(TestCase):
         )
         request = RequestFactory().get(url)
         request.user = UserFactory.create()
+
+        work.lock(request.user)
+
         response = BookCreateView.as_view()(
             request, pk=work.pk
         )
@@ -68,6 +77,8 @@ class TestBookCreateView(TestCase):
 
         view.request = request
         view.work = Work.objects.create()
+
+        view.work.lock(request.user)
 
         self.assertEqual(
             view.get_success_url(),
@@ -85,6 +96,8 @@ class TestBookCreateView(TestCase):
         data = {'number': 1, 'subtitle': 'subtitle'}
         request = RequestFactory().post(url, data=data)
         request.user = UserFactory.create()
+
+        work.lock(request.user)
 
         BookCreateView.as_view()(
             request, pk=work.pk

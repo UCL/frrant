@@ -80,7 +80,7 @@ class TestFragment(TestCase):
         OriginalText.objects.create(**data, owner=fragment)
         self.assertEqual(
             fragment.get_display_name(),
-            citing_work
+            str(citing_work)
         )
         # add a second citing work and we should indicate it
         citing_work = CitingWork.objects.create(title='title')

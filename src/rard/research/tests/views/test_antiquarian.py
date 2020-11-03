@@ -59,6 +59,7 @@ class TestAntiquarianWorkCreateView(TestCase):
         )
         request = RequestFactory().get(url)
         request.user = UserFactory.create()
+        antiquarian.lock(request.user)
         response = AntiquarianWorkCreateView.as_view()(
             request, pk=antiquarian.pk
         )
@@ -91,6 +92,7 @@ class TestAntiquarianWorkCreateView(TestCase):
 
         request = RequestFactory().post(url, data=data)
         request.user = UserFactory.create()
+        antiquarian.lock(request.user)
 
         AntiquarianWorkCreateView.as_view()(
             request, pk=antiquarian.pk
@@ -111,6 +113,7 @@ class TestAntiquarianWorkCreateView(TestCase):
 
         request = RequestFactory().post(url, data=data)
         request.user = UserFactory.create()
+        antiquarian.lock(request.user)
 
         AntiquarianWorkCreateView.as_view()(
             request, pk=antiquarian.pk

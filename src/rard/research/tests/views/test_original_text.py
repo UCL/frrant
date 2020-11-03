@@ -44,6 +44,8 @@ class TestOriginalTextCreateViews(TestCase):
         view.request = request
         view.kwargs = {'pk': fragment.pk}
 
+        fragment.lock(request.user)
+
         self.assertEqual(
             view.get_parent_object(),
             fragment
@@ -71,6 +73,8 @@ class TestOriginalTextCreateViews(TestCase):
         request = RequestFactory().post(url, data=data)
         request.user = UserFactory.create()
 
+        fragment.lock(request.user)
+
         FragmentOriginalTextCreateView.as_view()(
             request, pk=fragment.pk
         )
@@ -86,6 +90,9 @@ class TestOriginalTextCreateViews(TestCase):
         request.user = UserFactory.create()
 
         fragment = Fragment.objects.create(name='name')
+
+        fragment.lock(request.user)
+
         text = OriginalText.objects.create(
             owner=fragment,
             citing_work=self.citing_work,
@@ -118,10 +125,41 @@ class TestOriginalTextDeleteView(TestCase):
         )
         request = RequestFactory().get(url)
         request.user = UserFactory.create()
+
+        fragment.lock(request.user)
+
         response = OriginalTextDeleteView.as_view()(
             request, pk=text.pk
         )
         self.assertEqual(response.status_code, 405)
+
+
+class TestOriginalTextViewsDispatch(TestCase):
+
+    def setUp(self):
+        self.citing_work = CitingWork.objects.create(title='title')
+        fragment = Fragment.objects.create(name='name')
+        self.user = UserFactory.create()
+        fragment.lock(self.user)
+
+        self.original_text = OriginalText.objects.create(
+            owner=fragment,
+            citing_work=self.citing_work,
+        )
+
+    def test_update_delete_create_top_level_object(self):
+
+        # dispatch method creates an attribute used by the
+        # locking mechanism so here we ensure it is created
+        request = RequestFactory().post('/')
+        request.user = self.user
+
+        for view_class in (OriginalTextUpdateView, OriginalTextDeleteView,):
+            view = view_class()
+            view.request = request
+            view.kwargs = {'pk': self.original_text.pk}
+            view.dispatch(request)
+            self.assertEqual(view.parent_object, self.original_text.owner)
 
 
 class TestOriginalTextViewPermissions(TestCase):
