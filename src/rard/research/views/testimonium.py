@@ -16,6 +16,7 @@ from rard.research.forms import (TestimoniumAntiquariansForm,
 from rard.research.models import Book, Testimonium, Work
 from rard.research.models.base import TestimoniumLink
 from rard.research.views.fragment import HistoricalBaseCreateView
+from rard.research.views.mixins import CanLockMixin, CheckLockMixin
 
 
 class TestimoniumCreateView(PermissionRequiredMixin, HistoricalBaseCreateView):
@@ -33,21 +34,21 @@ class TestimoniumListView(
 
 
 class TestimoniumDetailView(
-        LoginRequiredMixin, PermissionRequiredMixin, DetailView):
+        CanLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DetailView):
     model = Testimonium
     permission_required = ('research.view_testimonium',)
 
 
 @method_decorator(require_POST, name='dispatch')
-class TestimoniumDeleteView(
-        LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+class TestimoniumDeleteView(CheckLockMixin, LoginRequiredMixin,
+                            PermissionRequiredMixin, DeleteView):
     model = Testimonium
     success_url = reverse_lazy('testimonium:list')
     permission_required = ('research.delete_testimonium',)
 
 
-class TestimoniumUpdateView(
-        LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class TestimoniumUpdateView(CheckLockMixin, LoginRequiredMixin,
+                            PermissionRequiredMixin, UpdateView):
     model = Testimonium
     form_class = TestimoniumForm
     permission_required = ('research.change_testimonium',)
@@ -73,8 +74,17 @@ class TestimoniumUpdateCommentaryView(TestimoniumUpdateView):
     template_name = 'research/testimonium_commentary_form.html'
 
 
-class TestimoniumAddWorkLinkView(
-        LoginRequiredMixin, PermissionRequiredMixin, FormView):
+class TestimoniumAddWorkLinkView(CheckLockMixin, LoginRequiredMixin,
+                                 PermissionRequiredMixin, FormView):
+
+    check_lock_object = 'testimonium'
+
+    def dispatch(self, request, *args, **kwargs):
+        # need to ensure we have the lock object view attribute
+        # initialised in dispatch
+        self.get_testimonium()
+        return super().dispatch(request, *args, **kwargs)
+
     template_name = 'research/add_work_link.html'
     form_class = TestimoniumLinkWorkForm
     permission_required = (
@@ -139,8 +149,16 @@ class TestimoniumAddWorkLinkView(
         return values
 
 
-class TestimoniumRemoveLinkView(
-        LoginRequiredMixin, PermissionRequiredMixin, RedirectView):
+class TestimoniumRemoveLinkView(CheckLockMixin, LoginRequiredMixin,
+                                PermissionRequiredMixin, RedirectView):
+
+    check_lock_object = 'testimonium'
+
+    def dispatch(self, request, *args, **kwargs):
+        # need to ensure we have the lock object view attribute
+        # initialised in dispatch
+        self.get_testimonium()
+        return super().dispatch(request, *args, **kwargs)
 
     # base class for both remove work and remove book from a testimonium
     permission_required = ('research.edit_testimonium',)

@@ -6,16 +6,26 @@ from django.views.decorators.http import require_POST
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from rard.research.models import OriginalText, Translation
+from rard.research.views.mixins import CheckLockMixin
 
 
-class TranslationCreateView(
-        LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class TranslationCreateView(CheckLockMixin, LoginRequiredMixin,
+                            PermissionRequiredMixin, CreateView):
+
+    check_lock_object = 'top_level_object'
+
     model = Translation
     fields = ['translated_text', 'translator_name', 'approved']
     permission_required = ('research.add_translation',)
 
+    def dispatch(self, request, *args, **kwargs):
+        # need to ensure we have the lock object view attribute
+        # initialised in dispatch
+        self.top_level_object = self.get_original_text().owner
+        return super().dispatch(request, *args, **kwargs)
+
     def get_success_url(self, *args, **kwargs):
-        return self.get_original_text().owner.get_absolute_url()
+        return self.top_level_object.get_absolute_url()
 
     def form_valid(self, form):
         translation = form.save(commit=False)
@@ -39,14 +49,23 @@ class TranslationCreateView(
         return context
 
 
-class TranslationUpdateView(
-        LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class TranslationUpdateView(CheckLockMixin, LoginRequiredMixin,
+                            PermissionRequiredMixin, UpdateView):
+
+    check_lock_object = 'top_level_object'
+
     model = Translation
     fields = ['translated_text', 'translator_name', 'approved']
     permission_required = ('research.change_translation',)
 
+    def dispatch(self, request, *args, **kwargs):
+        # need to ensure we have the lock object view attribute
+        # initialised in dispatch
+        self.top_level_object = self.get_object().original_text.owner
+        return super().dispatch(request, *args, **kwargs)
+
     def get_success_url(self, *args, **kwargs):
-        return self.object.original_text.owner.get_absolute_url()
+        return self.top_level_object.get_absolute_url()
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
@@ -57,10 +76,19 @@ class TranslationUpdateView(
 
 
 @method_decorator(require_POST, name='dispatch')
-class TranslationDeleteView(
-        LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+class TranslationDeleteView(CheckLockMixin, LoginRequiredMixin,
+                            PermissionRequiredMixin, DeleteView):
+
+    check_lock_object = 'top_level_object'
+
     model = Translation
     permission_required = ('research.delete_translation',)
 
+    def dispatch(self, request, *args, **kwargs):
+        # need to ensure we have the lock object view attribute
+        # initialised in dispatch
+        self.top_level_object = self.get_object().original_text.owner
+        return super().dispatch(request, *args, **kwargs)
+
     def get_success_url(self, *args, **kwargs):
-        return self.object.original_text.owner.get_absolute_url()
+        return self.top_level_object.get_absolute_url()

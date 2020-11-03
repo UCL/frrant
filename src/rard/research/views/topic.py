@@ -8,6 +8,7 @@ from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from rard.research.models import Topic
+from rard.research.views.mixins import CanLockMixin, CheckLockMixin
 
 
 class TopicListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
@@ -16,7 +17,8 @@ class TopicListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     permission_required = ('research.view_topic',)
 
 
-class TopicDetailView(LoginRequiredMixin, PermissionRequiredMixin, DetailView):
+class TopicDetailView(CanLockMixin, LoginRequiredMixin,
+                      PermissionRequiredMixin, DetailView):
     model = Topic
     permission_required = ('research.view_topic',)
 
@@ -30,7 +32,8 @@ class TopicCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
         return reverse('topic:list')
 
 
-class TopicUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class TopicUpdateView(CheckLockMixin, LoginRequiredMixin,
+                      PermissionRequiredMixin, UpdateView):
     model = Topic
     fields = ('name',)
     permission_required = ('research.change_topic',)
@@ -40,7 +43,8 @@ class TopicUpdateView(LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
 
 
 @method_decorator(require_POST, name='dispatch')
-class TopicDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+class TopicDeleteView(CheckLockMixin, LoginRequiredMixin,
+                      PermissionRequiredMixin, DeleteView):
     model = Topic
     success_url = reverse_lazy('topic:list')
     permission_required = ('research.delete_topic',)

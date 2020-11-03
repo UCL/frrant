@@ -12,7 +12,8 @@ from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from rard.research.forms import (AntiquarianForm, AntiquarianUpdateWorksForm,
                                  WorkForm)
 from rard.research.models import Antiquarian, Work
-from rard.research.views.mixins import DateOrderMixin
+from rard.research.views.mixins import (CanLockMixin, CheckLockMixin,
+                                        DateOrderMixin)
 
 
 class AntiquarianListView(
@@ -23,12 +24,11 @@ class AntiquarianListView(
 
 
 class AntiquarianDetailView(
-        LoginRequiredMixin, PermissionRequiredMixin, DetailView):
+        CanLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DetailView):
     model = Antiquarian
     permission_required = ('research.view_antiquarian',)
 
     def post(self, *args, **kwargs):
-
         link_pk = self.request.POST.get('link_id', None)
         object_type = self.request.POST.get('object_type', None)
         if link_pk and object_type:
@@ -59,8 +59,8 @@ class AntiquarianCreateView(
         return reverse('antiquarian:detail', kwargs={'pk': self.object.pk})
 
 
-class AntiquarianUpdateView(
-        LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class AntiquarianUpdateView(LoginRequiredMixin, CheckLockMixin,
+                            PermissionRequiredMixin, UpdateView):
     model = Antiquarian
     permission_required = ('research.change_antiquarian',)
     form_class = AntiquarianForm
@@ -70,15 +70,15 @@ class AntiquarianUpdateView(
 
 
 @method_decorator(require_POST, name='dispatch')
-class AntiquarianDeleteView(
-        LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+class AntiquarianDeleteView(CheckLockMixin, LoginRequiredMixin,
+                            PermissionRequiredMixin, DeleteView):
     model = Antiquarian
     permission_required = ('research.delete_antiquarian',)
     success_url = reverse_lazy('antiquarian:list')
 
 
-class AntiquarianWorksUpdateView(
-        LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class AntiquarianWorksUpdateView(CheckLockMixin, LoginRequiredMixin,
+                                 PermissionRequiredMixin, UpdateView):
     model = Antiquarian
     form_class = AntiquarianUpdateWorksForm
     permission_required = ('research.change_antiquarian',)
@@ -88,8 +88,12 @@ class AntiquarianWorksUpdateView(
         return reverse('antiquarian:detail', kwargs={'pk': self.object.pk})
 
 
-class AntiquarianWorkCreateView(
-        LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class AntiquarianWorkCreateView(CheckLockMixin, LoginRequiredMixin,
+                                PermissionRequiredMixin, CreateView):
+
+    # the view attribute that needs to be checked for a lock
+    check_lock_object = 'antiquarian'
+
     model = Work
     form_class = WorkForm
     permission_required = (
@@ -103,7 +107,8 @@ class AntiquarianWorkCreateView(
         )
 
     def dispatch(self, *args, **kwargs):
-        self.antiquarian = self.get_antiquarian()
+        # need to ensure the lock-checked attribute is initialised in dispatch
+        self.get_antiquarian()
         return super().dispatch(*args, **kwargs)
 
     def form_valid(self, form):

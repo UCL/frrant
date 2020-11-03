@@ -15,6 +15,7 @@ from rard.research.forms import (CitingWorkForm, FragmentAntiquariansForm,
                                  FragmentLinkWorkForm, OriginalTextForm)
 from rard.research.models import Book, Fragment, Work
 from rard.research.models.base import FragmentLink
+from rard.research.views.mixins import CanLockMixin, CheckLockMixin
 
 
 class HistoricalBaseCreateView(LoginRequiredMixin, TemplateView):
@@ -91,21 +92,21 @@ class FragmentListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
 
 
 class FragmentDetailView(
-        LoginRequiredMixin, PermissionRequiredMixin, DetailView):
+        CanLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DetailView):
     model = Fragment
     permission_required = ('research.view_fragment',)
 
 
 @method_decorator(require_POST, name='dispatch')
-class FragmentDeleteView(
-        LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+class FragmentDeleteView(CheckLockMixin, LoginRequiredMixin,
+                         PermissionRequiredMixin, DeleteView):
     model = Fragment
     success_url = reverse_lazy('fragment:list')
     permission_required = ('research.delete_fragment',)
 
 
-class FragmentUpdateView(
-        LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class FragmentUpdateView(CheckLockMixin, LoginRequiredMixin,
+                         PermissionRequiredMixin, UpdateView):
     model = Fragment
     form_class = FragmentForm
     permission_required = ('research.change_fragment',)
@@ -122,16 +123,24 @@ class FragmentUpdateAntiquariansView(FragmentUpdateView):
     template_name = 'research/fragment_antiquarians_form.html'
 
 
-class FragmentUpdateCommentaryView(
-        LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class FragmentUpdateCommentaryView(FragmentUpdateView):
     model = Fragment
     form_class = FragmentCommentaryForm
     permission_required = ('research.change_fragment',)
     template_name = 'research/fragment_commentary_form.html'
 
 
-class FragmentAddWorkLinkView(
-        LoginRequiredMixin, PermissionRequiredMixin, FormView):
+class FragmentAddWorkLinkView(CheckLockMixin, LoginRequiredMixin,
+                              PermissionRequiredMixin, FormView):
+
+    check_lock_object = 'fragment'
+
+    def dispatch(self, request, *args, **kwargs):
+        # need to ensure we have the lock object view attribute
+        # initialised in dispatch
+        self.get_fragment()
+        return super().dispatch(request, *args, **kwargs)
+
     template_name = 'research/add_work_link.html'
     form_class = FragmentLinkWorkForm
     permission_required = (
@@ -173,7 +182,6 @@ class FragmentAddWorkLinkView(
             work_pk = self.request.GET.get('work', None)
         elif self.request.method == 'POST':
             work_pk = self.request.POST.get('work', None)
-
         if work_pk:
             try:
                 self.work = Work.objects.get(pk=work_pk)
@@ -195,8 +203,16 @@ class FragmentAddWorkLinkView(
         return values
 
 
-class FragmentRemoveLinkView(
-        LoginRequiredMixin, PermissionRequiredMixin, RedirectView):
+class FragmentRemoveLinkView(CheckLockMixin, LoginRequiredMixin,
+                             PermissionRequiredMixin, RedirectView):
+
+    check_lock_object = 'fragment'
+
+    def dispatch(self, request, *args, **kwargs):
+        # need to ensure we have the lock object view attribute
+        # initialised in dispatch
+        self.get_fragment()
+        return super().dispatch(request, *args, **kwargs)
 
     # base class for both remove work and remove book from a fragment
     permission_required = ('research.edit_fragment',)
