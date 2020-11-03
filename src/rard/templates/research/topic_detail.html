@@ -1,21 +1,31 @@
 {% extends "research/base.html" %}
-{% load i18n %}
+{% load i18n object_lock %}
 
 {% block heading %}{{ object.name }}{% endblock %}
 
 {% block action %}
-    {% if perms.research.delete_topic %}
-    <form novalidate class='form-inline' action='{% url "topic:delete" topic.slug %}' method='POST'>
-        {% csrf_token %}
-        <div class='form-group'>
-            <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
-                data-what='topic'>{% trans 'Delete' %}</button>
+    {% with request.user|has_lock:object as has_object_lock %}
+
+        {% include 'research/partials/render_locked_info.html' %}
+
+        <div class='d-flex justify-content-end'>
+        {% if has_object_lock %}
+            {% if perms.research.delete_topic %}
+            <form novalidate class='form-inline' action='{% url "topic:delete" topic.slug %}' method='POST'>
+                {% csrf_token %}
+                <div class='form-group'>
+                    <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+                        data-what='topic'>{% trans 'Delete' %}</button>
+                </div>
+            </form>
+            {% endif %}
+        {% endif %}
         </div>
-    </form> 
-    {% endif %}   
+    {% endwith %}
 {% endblock %}
 
 {% block inner %}
+    {% with request.user|has_lock:object as has_object_lock %}
 
     <hr>
     <section>
@@ -24,7 +34,7 @@
                 <h5>{% trans 'Details' %}</h5>
             </div>
             <div>
-                {% if perms.research.edit_topic %}
+                {% if perms.research.edit_topic and has_object_lock %}
                 <a href='{% url "topic:update" object.slug %}'>{% trans 'Edit' %}</a>
                 {% endif %}
             </div>
@@ -55,5 +65,5 @@
         {% endfor %}
     </section>
 
-
+    {% endwith %}
 {% endblock %}

@@ -1,4 +1,4 @@
-{# Assumes a context object named 'translation' #}
+{# Assumes context objects named 'translation', 'can_edit' and 'has_object_lock' #}
 
 {% load i18n humanize %}
 
@@ -19,6 +19,7 @@
         <div class='d-flex justify-content-between'>
             <div class='text-muted'><small>{% trans 'Translated by' %} {{ translation.translator_name }}</small></div>
             <div>
+                {% if can_edit and has_object_lock %}
                 <form novalidate class='form-inline' action='{% url "fragment:delete_translation" translation.pk %}' method='POST'>
                     {% csrf_token %}
                     <div class="form-row align-items-center">
@@ -27,6 +28,7 @@
                             data-what='translation'>{% trans 'Delete' %}</button>
                     </div>
                 </form>
+                {% endif %}
             </div>
         </div>
     </div>

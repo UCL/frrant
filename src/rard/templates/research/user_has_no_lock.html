@@ -1,0 +1,29 @@
+{% extends "research/base.html" %}
+{% load i18n get_object_class %}
+
+{% block heading %}
+    {% if object.is_locked %}
+        Locked 
+    {% else %}
+        {# it is not locked but they don't have the lock #}
+        Not allowed 
+    {% endif %}
+    😢
+{% endblock %}
+
+{% block inner %}
+<p>
+    {% if object.is_locked %}
+    Sorry, <b>{{ object }}</b> has been locked by <b>{{ object.locked_by }}</b> on {{ object.locked_at }}
+    {% else %}
+    Sorry, you need to create an editing lock on <b>{{ object }}</b> to do that
+    {% endif %}
+</p>
+
+{% if object.get_absolute_url %}
+<p>
+    You can view this {{ object|get_object_class|lower }} <a href='{{ object.get_absolute_url }}'>here</a>
+</p>
+{% endif %}
+
+{% endblock %}

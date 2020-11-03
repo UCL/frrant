@@ -1,0 +1,6 @@
+
+{# Assumes a context object named 'object' which is a lockable model type #}
+
+{% if object.is_locked %}
+<i class='fa fa-lock fa-xs text-muted' title='Locked by {{ object.locked_by }} on {{ object.locked_at }}'></i>
+{% endif %}

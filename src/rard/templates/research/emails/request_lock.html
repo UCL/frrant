@@ -1,0 +1,33 @@
+{% load i18n get_object_class %}
+
+<p>
+  {% blocktrans %}Dear{% endblocktrans %} {{ user.display_name }},
+</p>
+
+<p>
+{% blocktrans %}
+  You are receiving this email because user <b>{{ from_user }}</b> on the {{ domain }} site has requested access
+  to an item you are currently editing:
+{% endblocktrans %}
+</p>
+
+<p>
+    {{ lock.content_object|get_object_class }}: "{{ lock.content_object }}"
+</p>
+<p>
+{% blocktrans %}
+You have had this item locked for editing since {{ lock.locked_at }}. You can see the items you are currently editing by logging into the site and visiting the following URL:
+{% endblocktrans %}
+</p>
+
+<p>
+  <a rel="noreferrer" href="https://{{ domain }}">
+    https://{{ domain }}
+  </a>
+</p>
+
+<p>
+{% blocktrans %}Best regards{% endblocktrans %},
+<br>
+{{ site_name }} {% blocktrans %}Team{% endblocktrans %}
+</p>

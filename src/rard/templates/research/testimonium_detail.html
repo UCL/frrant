@@ -1,23 +1,33 @@
 {% extends "research/base.html" %}
-{% load i18n humanize %}
+{% load i18n humanize object_lock %}
 
 {% block heading %}
     {{ object.get_display_name }}
 {% endblock %}
 
 {% block action %}
-    {% if perms.research.delete_testimonium %}
-    <form novalidate class='form-inline' action='{% url "testimonium:delete" testimonium.pk %}' method='POST'>
-        {% csrf_token %}
-        <div class='form-group'>
-            <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
-                data-what='testimonium'>{% trans 'Delete' %}</button>
+    {% with request.user|has_lock:object as has_object_lock %}
+
+        {% include 'research/partials/render_locked_info.html' %}
+
+        <div class='d-flex justify-content-end'>
+        {% if has_object_lock %}
+            {% if perms.research.delete_testimonium %}
+            <form novalidate class='form-inline' action='{% url "testimonium:delete" testimonium.pk %}' method='POST'>
+                {% csrf_token %}
+                <div class='form-group'>
+                    <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+                        data-what='testimonium'>{% trans 'Delete' %}</button>
+                </div>
+            </form>
+            {% endif %}
+        {% endif %}
         </div>
-    </form>        
-    {% endif %}
+    {% endwith %}
 {% endblock %}
 
 {% block inner %}
+    {% with request.user|has_lock:object as has_object_lock %}
     <hr>
     <section>
         <div class='d-flex justify-content-between mb-3'>
@@ -25,7 +35,7 @@
                 <h5>{% trans 'Details' %}</h5>
             </div>
             <div>
-                {% if perms.research.change_testimonium %}
+                {% if perms.research.change_testimonium and has_object_lock %}
                 <a href='{% url "testimonium:update" object.pk %}'>{% trans 'Edit' %}</a>
                 {% endif %}
             </div>
@@ -51,7 +61,7 @@
 
             <dt class="col-sm-3">{% trans 'Original Texts' %}</dt>
             <dd class="col-sm-7">{{ object.original_texts.count }}</dd>
-            {% if perms.research.change_testimonium and perms.research.add_originaltext %}
+            {% if perms.research.change_testimonium and perms.research.add_originaltext and has_object_lock %}
             <dd class="col-sm-2">
                 <a style='float:right;' href='{% url "testimonium:create_original_text" object.pk %}'>Add</a></dd>
             </dd>
@@ -72,7 +82,7 @@
                 <h5>{% trans 'Original Text' %} {{ forloop.counter }}</h5>
             </div>
             <div>
-                {% if perms.research.change_testimonium %}
+                {% if perms.research.change_testimonium and has_object_lock %}
                 <form novalidate class='form-inline' action='{% url "testimonium:delete_original_text" original_text.pk %}' method='POST'>
                     {% csrf_token %}
                     <div class="form-row align-items-center">
@@ -94,12 +104,12 @@
         </div>
 
 
-        {% include 'research/partials/section/original_text_details.html' with original_text=original_text can_edit=perms.research.change_testimonium %}
+        {% include 'research/partials/section/original_text_details.html' with original_text=original_text can_edit=perms.research.change_testimonium has_object_lock=has_object_lock %}
 
 
         <div class='mt-3'>
         {% for translation in original_text.translation_set.all %}
-            {% include 'research/partials/translation_preview.html' with translation=translation %}
+            {% include 'research/partials/translation_preview.html' with translation=translation can_edit=perms.research.change_testimonium has_object_lock=has_object_lock %}
         {% endfor %}
         </div>
     
@@ -117,7 +127,7 @@
                 <h5>{% trans 'Definite Works and Books' %}</h5>
             </div>
             <div>
-                {% if perms.research.change_testimonium %}
+                {% if perms.research.change_testimonium and has_object_lock %}
                 <a href='{% url "testimonium:add_work_link" object.pk %}'>{% trans 'Add Link' %}</a>
                 {% endif %}
             </div>
@@ -144,7 +154,7 @@
                 <h5>{% trans 'Possible Works and Books' %}</h5>
             </div>
             <div>
-                {% if perms.research.change_testimonium %}
+                {% if perms.research.change_testimonium and has_object_lock %}
                 <a href='{% url "testimonium:add_work_link" object.pk %}'>{% trans 'Add Link' %}</a>
                 {% endif %}
             </div>
@@ -172,7 +182,7 @@
                 <h5>{% trans 'Definite Antiquarians' %}</h5>
             </div>
             <div>
-                {% if perms.research.change_testimonium %}
+                {% if perms.research.change_testimonium and has_object_lock %}
                 <a href='{% url "testimonium:update_antiquarians" object.pk %}'>{% trans 'Edit' %}</a>
                 {% endif %}
             </div>
@@ -195,7 +205,7 @@
                 <h5>{% trans 'Possible Antiquarians' %}</h5>
             </div>
             <div>
-                {% if perms.research.change_testimonium %}
+                {% if perms.research.change_testimonium and has_object_lock %}
                 <a href='{% url "testimonium:update_antiquarians" object.pk %}'>{% trans 'Edit' %}</a>
                 {% endif %}
             </div>
@@ -218,7 +228,7 @@
                 <h5>{% trans 'Commentary' %}</h5>
             </div>
             <div>
-                {% if perms.research.change_testimonium %}
+                {% if perms.research.change_testimonium and has_object_lock %}
                 <a href='{% url "testimonium:update_commentary" object.pk %}'>{% trans 'Edit' %}</a>
                 {% endif %}
             </div>
@@ -242,5 +252,5 @@
     </section>
 
 
-
+    {% endwith %}
 {% endblock %}

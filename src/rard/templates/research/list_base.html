@@ -27,9 +27,8 @@
       {% endif %}
 
   </div>
-  <div class='ml-auto'>
+  <div class='ml-auto text-muted'>
     {% block displaying %}
-    
       {% if page_obj.has_other_pages %}
         Displaying {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} item{{ page_obj.paginator.count|pluralize }}
       {% else %}
