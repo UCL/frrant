@@ -1,10 +1,9 @@
-version: '3.1'
+version: '3'
 
 volumes:
   production_postgres_data: {}
   production_postgres_data_backups: {}
-  staticfiles:
-  uploads:
+  production_traefik: {}
 
 services:
   django:
@@ -12,22 +11,9 @@ services:
       context: .
       dockerfile: ./compose/production/django/Dockerfile
     image: rard_production_django
-    expose:
-    - 5000
-    container_name: django
     depends_on:
       - postgres
-      - elasticsearch
-    links:
-      - postgres
-      - elasticsearch
-    volumes:
-      - type: volume
-        source: uploads
-        target: /uploads
-      - type: volume
-        source: staticfiles
-        target: /static
+      - redis
     env_file:
       - ./.envs/.production/.django
       - ./.envs/.production/.postgres
@@ -39,54 +25,25 @@ services:
       dockerfile: ./compose/production/postgres/Dockerfile
     image: rard_production_postgres
     volumes:
-      - type: volume
-        source: production_postgres_data
-        target: /var/lib/postgresql/data
-      - type: volume
-        source: production_postgres_data_backups
-        target: /backups
+      - production_postgres_data:/var/lib/postgresql/data:Z
+      - production_postgres_data_backups:/backups:z
     env_file:
       - ./.envs/.production/.postgres
 
-  elasticsearch:
-    container_name: elasticsearch
-    image: elasticsearch:7.4.0
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-    ports:
-      - 9200:9200
-
-  pgadmin:
+  traefik:
     build:
       context: .
-      dockerfile: ./compose/production/pgadmin/Dockerfile
-    image: rard_production_pgadmin
-    expose:
-      - 80
-    env_file:
-      - ./.envs/.production/.pgadmin
+      dockerfile: ./compose/production/traefik/Dockerfile
+    image: rard_production_traefik
     depends_on:
-      - postgres
-
-  nginx:
-    build:
-      context: .
-      dockerfile: ./compose/production/nginx/Dockerfile
-    image: rard_production_nginx
-    container_name: nginx
+      - django
+    volumes:
+      - production_traefik:/etc/traefik/acme:z
     ports:
       - "0.0.0.0:80:80"
       - "0.0.0.0:443:443"
-      - "0.0.0.0:2345:2345"
-    volumes:
-      - ./compose/production/nginx/conf.d:/etc/nginx/conf.d
-      - ./compose/production/nginx/certs:/etc/nginx/certs
-      - ./compose/production/nginx/snippets:/etc/nginx/snippets
-      - type: volume
-        source: staticfiles
-        target: /static
-    depends_on:
-      - django
-      - pgadmin
-      - elasticsearch
+
+  redis:
+    image: redis:5.0
+
+  
