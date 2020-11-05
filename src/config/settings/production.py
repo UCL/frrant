@@ -7,6 +7,7 @@ from .base import env
 SECRET_KEY = env("DJANGO_SECRET_KEY")
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["frra-app01.ad.ucl.ac.uk"])
+ADMINS = [("""UCL""", "p.bispham@ucl.ac.uk"), ("""UCL""", "r.alegre@ucl.ac.uk"), ("""UCL""", "a.georgoulas@ucl.ac.uk")]
 
 # DATABASES
 # ------------------------------------------------------------------------------
@@ -19,13 +20,6 @@ DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=60)  # no
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": env("REDIS_URL"),
-        "OPTIONS": {
-            "CLIENT_CLASS": "django_redis.client.DefaultClient",
-            # Mimicing memcache behavior.
-            # https://github.com/jazzband/django-redis#memcached-exceptions-behavior
-            "IGNORE_EXCEPTIONS": True,
-        },
     }
 }
 
@@ -56,7 +50,10 @@ SECURE_CONTENT_TYPE_NOSNIFF = env.bool(
 
 # STATIC
 # ------------------------
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+COLLECTFAST_STRATEGY = "collectfast.strategies.filesystem.FileSystemStrategy"
+STATICFILES_STORAGE = "django.contrib.staticfiles.storage.StaticFilesStorage"
+STATIC_ROOT = "/static"
+
 # MEDIA
 # ------------------------------------------------------------------------------
 
@@ -101,6 +98,17 @@ INSTALLED_APPS += ["anymail"]  # noqa F405
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 ANYMAIL = {}
 
+EMAIL_HOST = "isd-smtp.ucl.ac.uk"
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
+EMAIL_PORT = 25
+EMAIL_USE_TLS = False
+EMAIL_FROM = DEFAULT_FROM_EMAIL
+
+# Collectfast
+# ------------------------------------------------------------------------------
+# https://github.com/antonagestam/collectfast#installation
+INSTALLED_APPS = ["collectfast"] + INSTALLED_APPS  # noqa F405
 
 # LOGGING
 # ------------------------------------------------------------------------------
