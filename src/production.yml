@@ -38,6 +38,7 @@ services:
       context: .
       dockerfile: ./compose/production/postgres/Dockerfile
     image: rard_production_postgres
+    container_name: postgres
     volumes:
       - type: volume
         source: production_postgres_data
