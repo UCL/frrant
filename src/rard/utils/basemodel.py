@@ -132,7 +132,6 @@ class LockableModel(models.Model):
             fail_silently=False
         )
 
-
     def unlock(self):
 
         object_lock = self.get_object_lock()
@@ -185,11 +184,12 @@ class LockableModel(models.Model):
         if not object_lock:
             return
 
-        if object_lock.locked_until and object_lock.locked_until < timezone.now():
+        if object_lock.locked_until and \
+                object_lock.locked_until < timezone.now():
             # unlock silently
             # self.object_locks.all().delete()
 
-            # unlock noisily
+            # or unlock noisily (sends emails)
             self.unlock()
 
     def is_locked(self):

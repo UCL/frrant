@@ -53,7 +53,7 @@ class CanLockMixin:
                 if 'days' in request.POST:
                     days = int(request.POST.get('days'))
                     lock_until = timezone.now() + timedelta(days=days)
-    
+
                 if viewing.is_locked():
                     from django.shortcuts import render
                     return render(

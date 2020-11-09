@@ -1,4 +1,5 @@
 from datetime import timedelta
+
 import pytest
 from django.core import mail
 from django.test import TestCase
@@ -112,7 +113,6 @@ class TestLocks(TestCase):
         self.assertEqual(mail.outbox[0].subject, 'Request to edit record')
 
     def test_break_lock(self):
-        other_user = UserFactory.create()
         self.antiquarian.lock(self.user)
         admin_user = UserFactory.create()
         admin_user.can_break_locks = True
@@ -121,7 +121,6 @@ class TestLocks(TestCase):
         self.assertFalse(self.antiquarian.is_locked())
 
     def test_check_allowed_to_break_lock(self):
-        other_user = UserFactory.create()
         self.antiquarian.lock(self.user)
         admin_user = UserFactory.create()
         admin_user.can_break_locks = False  # not allowed

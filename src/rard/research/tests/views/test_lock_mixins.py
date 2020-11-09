@@ -1,4 +1,5 @@
 from datetime import timedelta
+
 import pytest
 from django.core import mail
 from django.test import RequestFactory, TestCase
@@ -176,7 +177,7 @@ class TestCanLockMixin(TestCase):
         }
         request = RequestFactory().post(url, data=data)
         request.user = UserFactory.create()  # another user tried to break lock
-        
+
         # test the 'should fail' case first:
         request.user.can_break_locks = False
 
@@ -232,7 +233,7 @@ class TestCanLockMixin(TestCase):
         refetch = Antiquarian.objects.get(pk=antiquarian.pk)
         self.assertTrue(refetch.is_locked())
         self.assertTrue(
-            time_before + timedelta(days=5) < 
-            refetch.locked_until < 
-            time_after + timedelta(days=5)
+            time_before + timedelta(days=DAYS) <
+            refetch.locked_until <
+            time_after + timedelta(days=DAYS)
         )

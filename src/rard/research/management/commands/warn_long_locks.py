@@ -1,7 +1,6 @@
 from datetime import timedelta
 
 from django.core.management.base import BaseCommand, CommandError
-from django.conf import settings
 from django.utils import timezone
 
 from rard.utils.basemodel import ObjectLock
@@ -22,6 +21,6 @@ class Command(BaseCommand):
             for lock in indefinite:
                 # send appropriate email
                 lock.content_object.send_long_lock_email()
-                
+
         except Exception as err:
             raise CommandError(str(err))
