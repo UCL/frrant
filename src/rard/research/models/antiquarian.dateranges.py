@@ -97,7 +97,6 @@ class Antiquarian(TextObjectFieldMixin, BaseModel):
     #     except TypeError:
     #         return ''
 
-
     # @classmethod
     def _as_range(cls, year, upper):
         return '/'.join([str(x) for x in (year, upper) if x])
@@ -111,7 +110,7 @@ class Antiquarian(TextObjectFieldMixin, BaseModel):
     def display_date_range(self):
 
         def bcad(year):
-            return 'BC' if year < 0 else 'AD'   
+            return 'BC' if year < 0 else 'AD'
 
         def as_range(year, upper):
             return '/'.join([str(x) for x in (year, upper) if x])
@@ -123,14 +122,16 @@ class Antiquarian(TextObjectFieldMixin, BaseModel):
             if self.year1 * self.year2 < 0:
                 # they are of different sides of zero AD
                 # so show BC or AD on both
-                display_year1 = '{} {}'.format(self.display_year1_as_range(), bcad(self.year1))
+                display_year1 = '{} {}'.format(self.display_year1_as_range(),
+                                               bcad(self.year1))
             else:
                 display_year1 = self.display_year1_as_range()
 
             if self.circa1:
                 display_year1 = 'c. ' + display_year1
 
-            display_year2 = '{} {}'.format(self.display_year2_as_range(), bcad(self.year2))
+            display_year2 = '{} {}'.format(self.display_year2_as_range(),
+                                           bcad(self.year2))
 
             if self.circa2:
                 display_year2 = 'c. ' + display_year2
@@ -146,7 +147,8 @@ class Antiquarian(TextObjectFieldMixin, BaseModel):
 
             circa1 = 'c. ' if self.circa1 else ''
             return '{} {} {}{} {}'.format(
-                self.get_dates_type_display(), stub, circa1, self.display_year1_as_range(), bcad(self.year1)
+                self.get_dates_type_display(), stub, circa1,
+                self.display_year1_as_range(), bcad(self.year1)
             ).strip()
 
 
