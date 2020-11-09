@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class='row mt-5'>
-  <div class='col-md-2'>
+  <div class='col-md-2 mb-5'>
     <nav class='nav flex-column'>
       {% if perms.research.view_antiquarian %}
       <a class='nav-link {% if "antiquarian" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
@@ -59,24 +59,6 @@
       {% block inner %}{% endblock %}
     </div>
     {% endblock %}
-  </div>
-  <div class='col-md-3' style='display:none'>
-    <h6 class='mb-4'>Editorial Comments</h6>
-    <div class="card mb-3">
-
-      <div class="card-body">
-        <h5 class="card-title">Special title treatment</h5>
-        <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-      </div>
-    </div>
-    <div class="card mb-3">
-
-      <div class="card-body">
-        <h5 class="card-title">Special title treatment</h5>
-        <p class="card-text">With supporting text below as a natural lead-in to additional content.</p>
-      </div>
-    </div>
-
   </div>
 </div>
 {% endblock %}

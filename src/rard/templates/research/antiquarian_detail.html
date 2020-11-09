@@ -1,23 +1,36 @@
 {% extends "research/base.html" %}
-{% load i18n %}
+{% load i18n object_lock %}
 
 {% block heading %}{{ object.name }}{% endblock %}
 
+
 {% block action %}
 
-    {% if perms.research.delete_antiquarian %}
-    <form novalidate class='form-inline' action='{% url "antiquarian:delete" antiquarian.pk %}' method='POST'>
-        {% csrf_token %}
-        <div class='form-group'>
-            <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
-                data-what='work'>{% trans 'Delete' %}</button>
+    {% with request.user|has_lock:object as has_object_lock %}
+
+        {% include 'research/partials/render_locked_info.html' %}
+
+        <div class='d-flex justify-content-end'>
+            {% if has_object_lock %}
+                {% if perms.research.delete_antiquarian %}
+                    <form novalidate class='form-inline' action='{% url "antiquarian:delete" antiquarian.pk %}' method='POST'>
+                        {% csrf_token %}
+                        <div class='form-group'>
+                            <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+                                data-what='work'>{% trans 'Delete' %}</button>
+                        </div>
+                    </form>
+                {% endif %}
+            {% endif %}
         </div>
-    </form>    
-    {% endif %} 
+    {% endwith %}
 
 {% endblock %}
 
 {% block inner %}
+
+    {% with request.user|has_lock:object as has_object_lock %}
+
     <hr>
     <section>
         <div class='d-flex justify-content-between mb-3'>
@@ -25,7 +38,7 @@
                 <h5>{% trans 'Details' %}</h5>
             </div>
             <div>
-                {% if perms.research.change_antiquarian %}
+                {% if perms.research.change_antiquarian and has_object_lock %}
                 <a href='{% url "antiquarian:update" object.pk %}'>{% trans 'Edit' %}</a>
                 {% endif %}
             </div>
@@ -35,17 +48,26 @@
             <dt class="col-sm-3">{% trans 'Name' %}</dt>
             <dd class="col-sm-9">{{ object.name }}</dd>
         
-            <dt class="col-sm-3">{% trans 'RE Code' %}</dt>
+            <dt class="col-sm-3">{% trans 'RE Number' %}</dt>
             <dd class="col-sm-9">{{ object.re_code }}</dd>
             
-        
+            <dt class="col-sm-3">{% trans 'Relevant Dates' %}</dt>
+            <dd class="col-sm-9">
+                {{ object.display_date_range|default:'-' }}
+            </dd>
+
             <dt class="col-sm-3">{% trans 'Biography' %}</dt>
             <dd class="col-sm-9">
                 {{ object.biography.content|linebreaks }}
+
+                {% comment %}
+
                 {% if perms.research.view_comment %}
                 <br>
                 {{ object.biography.comments.count }} comments <a href='{% url "list_comments_on_text" object.biography.pk %}'>view</a>
                 {% endif %}
+
+                {% endcomment %}
             </dd>
             <p>
                 
@@ -63,7 +85,7 @@
                 <h5>{% trans 'Works' %}</h5>
             </div>
             <div>
-                {% if perms.research.change_antiquarian %}
+                {% if perms.research.change_antiquarian and has_object_lock %}
                     {% if perms.research.add_work %}
                     <a href='{% url "antiquarian:create_work" object.pk %}'>{% trans 'Add' %}</a> |
                     {% endif %}
@@ -88,7 +110,7 @@
                 <h5>{% trans 'Ordered Testimonia' %}</h5>
             </div>
             <div>
-                {% if perms.research.change_antiquarian %}
+                {% if perms.research.change_antiquarian and has_object_lock %}
                 <a href='{% url "testimonium:create" %}'>{% trans 'Add' %}</a>
                 {% endif %}
             </div>
@@ -111,7 +133,7 @@
                 <h5>{% trans 'Ordered Fragments' %}</h5>
             </div>
             <div>
-                {% if perms.research.change_antiquarian %}
+                {% if perms.research.change_antiquarian and has_object_lock %}
                 <a href='{% url "fragment:create" %}'>{% trans 'Add' %}</a>
                 {% endif %}
             </div>
@@ -124,5 +146,7 @@
         {% endfor %}
     </section>
 
+    {% endwith %}
 
 {% endblock %}
+

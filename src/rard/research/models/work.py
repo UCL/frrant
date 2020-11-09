@@ -1,10 +1,10 @@
 from django.db import models
 from django.urls import reverse
 
-from rard.utils.basemodel import BaseModel
+from rard.utils.basemodel import BaseModel, DatedModel, LockableModel
 
 
-class Work(BaseModel):
+class Work(DatedModel, LockableModel, BaseModel):
 
     class Meta:
         ordering = ['name']
@@ -13,9 +13,7 @@ class Work(BaseModel):
 
     subtitle = models.CharField(max_length=128, blank=True)
 
-    number_of_volumes = models.PositiveSmallIntegerField(
-        default=None, null=True, blank=True
-    )
+    number_of_books = models.CharField(max_length=128, blank=True)
 
     def __str__(self):
         author_str = ', '.join([a.name for a in self.antiquarian_set.all()])
@@ -37,3 +35,45 @@ class Work(BaseModel):
         return Fragment.objects.filter(
             antiquarian_fragment_links__in=links
         ).distinct()
+
+    def definite_testimonia(self):
+        from rard.research.models import Testimonium
+        links = self.antiquarian_work_testimonium_links.filter(definite=True)
+        return Testimonium.objects.filter(
+            antiquarian_testimonium_links__in=links
+        ).distinct()
+
+    def possible_testimonia(self):
+        from rard.research.models import Testimonium
+        links = self.antiquarian_work_testimonium_links.filter(definite=False)
+        return Testimonium.objects.filter(
+            antiquarian_testimonium_links__in=links
+        ).distinct()
+
+
+class Book(DatedModel, BaseModel):
+
+    class Meta:
+        ordering = ['number']
+
+    work = models.ForeignKey(
+        'Work',
+        null=False,
+        on_delete=models.CASCADE
+    )
+
+    number = models.PositiveSmallIntegerField(
+        default=None, null=True, blank=True
+    )
+    subtitle = models.CharField(max_length=128, blank=True)
+
+    def __str__(self):
+        if self.subtitle and self.number:
+            return 'Book {}: {}'.format(self.number, self.subtitle)
+        elif self.number:
+            return 'Book {}'.format(self.number)
+        return self.subtitle
+
+    def get_absolute_url(self):
+        # link to its owning work
+        return reverse('work:detail', kwargs={'pk': self.work.pk})

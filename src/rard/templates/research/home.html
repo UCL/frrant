@@ -1,5 +1,5 @@
 {% extends "research/base.html" %}
-{% load i18n %}
+{% load i18n get_object_class %}
 
 {% block outer %}
 <div class='row'>
@@ -19,4 +19,25 @@
     </div>
     {% endif %}
 </div>
+<div class='my-5'>
+    <p>
+        You are currently editing {{ request.user.objectlock_set.count }} item{{ request.user.objectlock_set.count|pluralize }}
+    </p>
+
+    <ul class="list-group list-group-flush">
+    {% for lock in request.user.objectlock_set.all %}
+        <li class="rard-list-item border-0  d-flex justify-content-between align-items-center">
+            <div>
+                <a class='mr-2' href='{{ lock.content_object.get_absolute_url }}'>{{ lock.content_object }}</a>
+                {% include 'research/partials/render_lock_request_info.html' %}
+            </div>
+            <div>
+                <span class='badge badge-secondary badge-pill'>{{ lock.content_object|get_object_class }}</span>
+            </div>
+        </li>
+    {% endfor %}
+    </ul>
+
+</div>
+
 {% endblock %}

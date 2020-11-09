@@ -16,6 +16,8 @@ class TestTranslationCreateView(TestCase):
     def setUp(self):
         citing_work = CitingWork.objects.create(title='title')
         fragment = Fragment.objects.create(name='name')
+        self.user = UserFactory.create()
+        fragment.lock(self.user)
         self.original_text = OriginalText.objects.create(
             owner=fragment,
             citing_work=citing_work,
@@ -24,13 +26,16 @@ class TestTranslationCreateView(TestCase):
     def test_success_url(self):
         view = TranslationCreateView()
         request = RequestFactory().get('/')
-        request.user = UserFactory.create()
+        request.user = self.user
 
         translation = Translation.objects.create(
             original_text=self.original_text
         )
         view.request = request
         view.kwargs = {'pk': self.original_text.pk}
+
+        # this is usually done in dispatch
+        view.top_level_object = self.original_text.owner
 
         self.assertEqual(
             view.get_success_url(),
@@ -43,7 +48,7 @@ class TestTranslationCreateView(TestCase):
             kwargs={'pk': self.original_text.pk}
         )
         request = RequestFactory().get(url)
-        request.user = UserFactory.create()
+        request.user = self.user
         response = TranslationCreateView.as_view()(
             request, pk=self.original_text.pk
         )
@@ -68,7 +73,7 @@ class TestTranslationCreateView(TestCase):
         )
 
         request = RequestFactory().post(url, data=data)
-        request.user = UserFactory.create()
+        request.user = self.user
 
         TranslationCreateView.as_view()(
             request, pk=self.original_text.pk
@@ -93,7 +98,7 @@ class TestTranslationCreateView(TestCase):
         )
 
         request = RequestFactory().post(url, data=data)
-        request.user = UserFactory.create()
+        request.user = self.user
 
         TranslationCreateView.as_view()(
             request, pk=self.original_text.pk
@@ -116,7 +121,7 @@ class TestTranslationCreateView(TestCase):
         )
 
         request = RequestFactory().post(url, data=data)
-        request.user = UserFactory.create()
+        request.user = self.user
 
         TranslationCreateView.as_view()(
             request, pk=self.original_text.pk
@@ -125,11 +130,45 @@ class TestTranslationCreateView(TestCase):
         self.assertEqual(0, Translation.objects.count())
 
 
+class TestTranslationViewsDispatch(TestCase):
+
+    def setUp(self):
+        self.citing_work = CitingWork.objects.create(title='title')
+        fragment = Fragment.objects.create(name='name')
+        self.user = UserFactory.create()
+        fragment.lock(self.user)
+
+        self.original_text = OriginalText.objects.create(
+            owner=fragment,
+            citing_work=self.citing_work,
+        )
+
+    def test_update_delete_create_top_level_object(self):
+
+        # dispatch method creates an attribute used by the
+        # locking mechanism so here we ensure it is created
+        request = RequestFactory().post('/')
+        request.user = self.user
+
+        translation = Translation.objects.create(
+            original_text=self.original_text
+        )
+
+        for view_class in (TranslationUpdateView, TranslationDeleteView,):
+            view = view_class()
+            view.request = request
+            view.kwargs = {'pk': translation.pk}
+            view.dispatch(request)
+            self.assertEqual(view.top_level_object, self.original_text.owner)
+
+
 class TestTranslationUpdateView(TestCase):
 
     def setUp(self):
         citing_work = CitingWork.objects.create(title='title')
         fragment = Fragment.objects.create(name='name')
+        self.user = UserFactory.create()
+        fragment.lock(self.user)
         self.original_text = OriginalText.objects.create(
             owner=fragment,
             citing_work=citing_work,
@@ -138,7 +177,7 @@ class TestTranslationUpdateView(TestCase):
     def test_success_url(self):
         view = TranslationUpdateView()
         request = RequestFactory().get("/")
-        request.user = UserFactory.create()
+        request.user = self.user
 
         translation = Translation.objects.create(
             original_text=self.original_text
@@ -146,6 +185,9 @@ class TestTranslationUpdateView(TestCase):
 
         view.request = request
         view.object = translation
+
+        # this is usually done in dispatch
+        view.top_level_object = self.original_text.owner
 
         self.assertEqual(
             view.get_success_url(),
@@ -161,7 +203,7 @@ class TestTranslationUpdateView(TestCase):
             kwargs={'pk': translation.pk}
         )
         request = RequestFactory().get(url)
-        request.user = UserFactory.create()
+        request.user = self.user
         response = TranslationUpdateView.as_view()(
             request, pk=translation.pk
         )
@@ -176,6 +218,8 @@ class TestTranslationDeleteView(TestCase):
     def setUp(self):
         citing_work = CitingWork.objects.create(title='title')
         fragment = Fragment.objects.create(name='name')
+        self.user = UserFactory.create()
+        fragment.lock(self.user)
         self.original_text = OriginalText.objects.create(
             owner=fragment,
             citing_work=citing_work,
@@ -190,7 +234,7 @@ class TestTranslationDeleteView(TestCase):
             kwargs={'pk': translation.pk}
         )
         request = RequestFactory().get(url)
-        request.user = UserFactory.create()
+        request.user = self.user
         response = TranslationDeleteView.as_view()(
             request, pk=translation.pk
         )
@@ -199,7 +243,7 @@ class TestTranslationDeleteView(TestCase):
     def test_success_url(self):
         view = TranslationDeleteView()
         request = RequestFactory().get("/")
-        request.user = UserFactory.create()
+        request.user = self.user
 
         translation = Translation.objects.create(
             original_text=self.original_text
@@ -207,6 +251,9 @@ class TestTranslationDeleteView(TestCase):
 
         view.request = request
         view.object = translation
+
+        # this is usually done in dispatch
+        view.top_level_object = self.original_text.owner
 
         self.assertEqual(
             view.get_success_url(),

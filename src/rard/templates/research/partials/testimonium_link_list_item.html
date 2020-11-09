@@ -18,7 +18,7 @@
             <br>
             <small>
                 <span class='ml-4 text-muted'>
-                    [{{ link.get_display_name }}] - <b>{{ link.definite|yesno:"Definite,Possible"}}</b> link {% if link.work %}via work {{ link.work }}{% endif %}
+                    [{{ link.get_display_name }}] - <b>{{ link.definite|yesno:"Definite,Possible"}}</b> link {% if link.work %}via work {{ link.work }} {% if link.book %} book {{ link.book }}{% endif %}{% endif %}
                 </span>
             </small>
         </li>
@@ -29,10 +29,8 @@
             <div class='form-group'>
                 <input type='hidden' name='link_id' value='{{ link.pk }}'>
                 <input type='hidden' name='object_type' value='testimonium'>
-                <button type='submit' class='btn btn-light'
-                    name='up'>▲</button>
-                <button type='submit' class='btn btn-light'
-                    name='down'>▼</button>
+                <button type='submit' class='btn btn-light' name='up'>▲</button>
+                <button type='submit' class='btn btn-light' name='down'>▼</button>
             </div>
         </form>
     </div>

@@ -16,6 +16,23 @@ $('.rard-toggle-control input').change(function (e, init) {
     }
 })
 
+$('.submit-on-change').change(function(e){
+    // submit the form it belongs to
+    $(this).closest('form').submit();
+});
+
+$('.work-form').submit(function(e){
+    // disable any volume controls on the page
+    $('select[name="volume"]').prop('disabled', true);
+});
+
+
+$('#id_year_type').change(function(e) {
+    $('.range-only').toggle($(this).val() === 'range')
+});
+
+$('#id_year_type').trigger('change', true);
+
 // initialise any checkbox-driven toggle areas on initialising page
 $('.rard-toggle-control input').trigger('change', true);
 

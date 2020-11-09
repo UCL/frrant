@@ -1,0 +1,15 @@
+
+{# Assumes a context object named 'lock' which is an objectlock instance #}
+
+{% with lockrequests=lock.objectlockrequest_set.all %}
+    {% if lockrequests.first %}
+    <span class='text-muted'>
+        <small>
+            <i class='fa fa-info-circle'></i> Lock request from <b>{{ lockrequests.first.from_user }}</b>
+            {% with more=lockrequests|slice:'1:' %}
+            {% if more.count > 0 %}+{{ more.count }} other{% endif %}
+            {% endwith %}
+        </small>
+    </span>
+    {% endif %}
+{% endwith %}

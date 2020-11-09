@@ -1,23 +1,34 @@
 {% load i18n %}
 
-{{ debug }}
-{% blocktrans %}Greetings{% endblocktrans %} {{ user.display_name }},
+<p>
+  {% blocktrans %}Greetings{% endblocktrans %} {{ user.display_name }},
+</p>
 
+<p>
 {% blocktrans %}
-You are receiving this email because you have had an account created on the {{ domain }} site. 
+  You are receiving this email because you have had an account created on the {{ domain }} site. 
 {% endblocktrans %}
+</p>
 
+<p>
 {% blocktrans %}
 To verify your email address and set a password, please click the following link, or copy and paste it
 into your web browser:
 {% endblocktrans %}
+</p>
 
-<a rel="noreferrer" href="{{ protocol }}://{{ domain }}{% url 'password_reset_confirm' uid token %}">
-  {{ protocol }}://{{ domain }}{% url 'password_reset_confirm' uid token %}
-</a>
+<p>
+  <a rel="noreferrer" href="{{ protocol }}://{{ domain }}{% url 'password_reset_confirm' uid token %}">
+    {{ protocol }}://{{ domain }}{% url 'password_reset_confirm' uid token %}
+  </a>
+</p>
 
+<p>
 {% blocktrans %}Your username on the site is: {% endblocktrans %} {{ user.get_username }}
+</p>
 
-
+<p>
 {% blocktrans %}Best regards{% endblocktrans %},
+<br>
 {{ site_name }} {% blocktrans %}Team{% endblocktrans %}
+</p>

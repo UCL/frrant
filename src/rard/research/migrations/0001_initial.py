@@ -5,7 +5,7 @@ from django.db import migrations, models
 import django.db.models.deletion
 import django.utils.timezone
 import model_utils.fields
-import rard.research.mixins
+import rard.research.models.mixins
 import rard.users.models
 
 
@@ -31,7 +31,7 @@ class Migration(migrations.Migration):
             options={
                 'ordering': ['name'],
             },
-            bases=(rard.research.mixins.TextObjectFieldMixin, models.Model),
+            bases=(rard.research.models.mixins.TextObjectFieldMixin, models.Model),
         ),
         migrations.CreateModel(
             name='CitingWork',
@@ -155,7 +155,7 @@ class Migration(migrations.Migration):
                 'ordering': ['name'],
                 'abstract': False,
             },
-            bases=(rard.research.mixins.TextObjectFieldMixin, models.Model),
+            bases=(rard.research.models.mixins.TextObjectFieldMixin, models.Model),
         ),
         migrations.CreateModel(
             name='Fragment',
@@ -177,7 +177,7 @@ class Migration(migrations.Migration):
                 'ordering': ['name'],
                 'abstract': False,
             },
-            bases=(rard.research.mixins.TextObjectFieldMixin, models.Model),
+            bases=(rard.research.models.mixins.TextObjectFieldMixin, models.Model),
         ),
         migrations.CreateModel(
             name='Concordance',

@@ -1,4 +1,4 @@
-{# Assumes a context object named 'work' #}
+{# Assumes context objects named 'work', optional 'book' and testimonium or fragment object named 'testimonium' or 'fragment' #}
 
 {% load i18n %}
 
@@ -8,8 +8,48 @@
             <a href='{% url "work:detail" work.pk %}'>
                 {{ work }} 
             </a> 
+            {% if book %}
+                book {{ book }}
+                
+                {% if book.display_date_range %}
+                    <span class='text-muted'><small>[{{ book.display_date_range }}]</small></span>
+                {% endif %}
+
+            {% else %}
+                {% if work.display_date_range %}
+                    <span class='text-muted'><small>[{{ work.display_date_range }}]</small></span>
+                {% endif %}
+
+            {% endif %}
+
+            {% include 'research/partials/render_inline_lock_icon.html' with object=work %}
         </li>
     </div>
     <div class='rard-list-item-actions'>
+        {% if testimonium %}
+            {% if book %}
+            <form novalidate class='form-inline' action='{% url "testimonium:remove_book_link" testimonium.pk book.pk %}' method='POST'>
+            {% else %}
+            <form novalidate class='form-inline' action='{% url "testimonium:remove_work_link" testimonium.pk work.pk %}' method='POST'>
+            {% endif %}
+                {% csrf_token %}
+                <div class='form-group'>
+                    <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+                        data-what='link'>{% trans 'Remove Link' %}</button>
+                </div>
+            </form>
+        {% elif fragment %}
+            {% if book %}
+            <form novalidate class='form-inline' action='{% url "fragment:remove_book_link" fragment.pk book.pk %}' method='POST'>
+            {% else %}
+            <form novalidate class='form-inline' action='{% url "fragment:remove_work_link" fragment.pk work.pk %}' method='POST'>
+            {% endif %}
+                {% csrf_token %}
+                <div class='form-group'>
+                    <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+                        data-what='link'>{% trans 'Remove Link' %}</button>
+                </div>
+            </form>
+        {% endif %}
     </div>
 </div>

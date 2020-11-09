@@ -1,21 +1,33 @@
 {% extends "research/base.html" %}
-{% load i18n %}
+{% load i18n object_lock %}
 
 {% block heading %}{{ object.name }}{% endblock %}
 
+
 {% block action %}
-    {% if perms.research.delete_work %}
-    <form novalidate class='form-inline' action='{% url "work:delete" work.pk %}' method='POST'>
-        {% csrf_token %}
-        <div class='form-group'>
-            <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
-                data-what='work'>{% trans 'Delete' %}</button>
+
+    {% with request.user|has_lock:object as has_object_lock %}
+
+        {% include 'research/partials/render_locked_info.html' %}
+
+        <div class='d-flex justify-content-end'>
+        {% if has_object_lock %}
+            {% if perms.research.delete_work %}
+                <form novalidate class='form-inline' action='{% url "work:delete" work.pk %}' method='POST'>
+                    {% csrf_token %}
+                    <div class='form-group'>
+                        <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+                            data-what='work'>{% trans 'Delete' %}</button>
+                    </div>
+                </form>
+            {% endif %}
+        {% endif %}
         </div>
-    </form>    
-    {% endif %} 
+    {% endwith %}
 {% endblock %}
 
 {% block inner %}
+    {% with request.user|has_lock:object as has_object_lock %}
     <hr>
     <section>
         <div class='d-flex justify-content-between mb-3'>
@@ -23,7 +35,7 @@
                 <h5>{% trans 'Details' %}</h5>
             </div>
             <div>
-                {% if perms.research.change_work %}
+                {% if perms.research.change_work and has_object_lock %}
                 <a href='{% url "work:update" object.pk %}'>{% trans 'Edit' %}</a>
                 {% endif %}
             </div>
@@ -36,8 +48,44 @@
             <dt class="col-sm-3">{% trans 'Subtitle' %}</dt>
             <dd class="col-sm-9">{{ object.subtitle|default:'-' }}</dd>
 
-            <dt class="col-sm-3">{% trans 'Number of Volumes' %}</dt>
-            <dd class="col-sm-9">{{ object.number_of_volumes|default:'-' }}</dd>
+            <dt class="col-sm-3">{% trans 'Relevant Dates' %}</dt>
+            <dd class="col-sm-9">
+                {{ object.display_date_range|default:'-' }}
+            </dd>
+
+            <dt class="col-sm-3">{% trans 'Number of Books' %}</dt>
+            <dd class="col-sm-7">{{ object.number_of_books|default:'-' }}</dd>
+            {% if perms.research.change_work and perms.research.add_book and has_object_lock %}
+            <dd class="col-sm-2"><a style='float:right' href='{% url "work:create_book" object.pk %}'>Add Book</a></dd>
+            {% endif %}
+
+            {% if object.book_set.count > 0 %}
+
+            <dt class="col-sm-3">{% trans 'Books' %}</dt>
+            <dd class="col-sm-9">
+
+            {% for book in object.book_set.all %}
+                <div class='d-flex justify-content-between mb-3'>
+                    <div>{{ book }}<br><small>{{ book.display_date_range }}</small></div>
+                    <div>
+                        <form novalidate class='form-inline' action='{% url "work:delete_book" book.pk %}' method='POST'>
+                            {% csrf_token %}
+                            <div class='form-row align-items-center'>
+                                {% if perms.research.change_work and perms.research.change_book and has_object_lock %}
+                                <a href='{% url "work:update_book" book.pk %}'>Edit</a>
+                                {% endif %}
+                                {% if perms.research.change_work and perms.research.delete_book and has_object_lock %}
+                                <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+                                    data-what='book'>{% trans 'Delete' %}</button>
+                                {% endif %}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            {% endfor %}
+            </dd>
+
+            {% endif %}
         </dl>
     </section>
     
@@ -93,4 +141,42 @@
         {% endfor %}
     </section>
 
+
+    <hr>
+
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Definite Testimonia' %}</h5>
+            </div>
+            <div>
+            </div>
+        </div>
+
+        {% for testimonium in object.definite_testimonia.all %}
+
+        {% include 'research/partials/testimonium_list_item.html' with testimonium=testimonium %}
+
+        {% endfor %}
+    </section>
+
+    <hr>
+
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Possible Testimonia' %}</h5>
+            </div>
+            <div>
+            </div>
+        </div>
+
+        {% for testimonium in object.possible_testimonia.all %}
+
+        {% include 'research/partials/testimonium_list_item.html' with testimonium=testimonium %}
+
+        {% endfor %}
+    </section>
+
+    {% endwith %}
 {% endblock %}

@@ -16,6 +16,8 @@ class TestConcordanceViews(TestCase):
     def setUp(self):
         citing_work = CitingWork.objects.create(title='title')
         fragment = Fragment.objects.create(name='name')
+        self.user = UserFactory.create()
+        fragment.lock(self.user)
         self.original_text = OriginalText.objects.create(
             owner=fragment,
             citing_work=citing_work,
@@ -29,7 +31,7 @@ class TestConcordanceViews(TestCase):
         for view_class in views:
             view = view_class()
             request = RequestFactory().get("/")
-            request.user = UserFactory.create()
+            request.user = self.user
 
             view.request = request
             view.object = Concordance.objects.create(
@@ -46,7 +48,7 @@ class TestConcordanceViews(TestCase):
     def test_delete_success_url(self):
         view = ConcordanceDeleteView()
         request = RequestFactory().get("/")
-        request.user = UserFactory.create()
+        request.user = self.user
 
         view.request = request
         view.object = Concordance.objects.create(
@@ -73,7 +75,7 @@ class TestConcordanceViews(TestCase):
             kwargs={'pk': concordance.pk}
         )
         request = RequestFactory().get(url)
-        request.user = UserFactory.create()
+        request.user = self.user
         response = ConcordanceDeleteView.as_view()(
             request, pk=concordance.pk
         )
@@ -85,7 +87,7 @@ class TestConcordanceViews(TestCase):
             kwargs={'pk': self.original_text.pk}
         )
         request = RequestFactory().get(url)
-        request.user = UserFactory.create()
+        request.user = self.user
         response = ConcordanceCreateView.as_view()(
             request, pk=self.original_text.pk
         )
@@ -105,7 +107,7 @@ class TestConcordanceViews(TestCase):
             kwargs={'pk': concordance.pk}
         )
         request = RequestFactory().get(url)
-        request.user = UserFactory.create()
+        request.user = self.user
         response = ConcordanceUpdateView.as_view()(
             request, pk=concordance.pk
         )
@@ -122,7 +124,7 @@ class TestConcordanceViews(TestCase):
         data = {'source': 'source', 'identifier': 'identifier'}
 
         request = RequestFactory().post(url, data=data)
-        request.user = UserFactory.create()
+        request.user = self.user
 
         # check no concordance previously associated with the original text
         self.assertEqual(
@@ -137,6 +139,39 @@ class TestConcordanceViews(TestCase):
         self.assertEqual(
             self.original_text.concordance_set.count(), 1
         )
+
+    def test_create_view_dispatch_creates_top_level_object(self):
+
+        # dispatch method creates an attribute used by the
+        # locking mechanism so here we ensure it is created
+        request = RequestFactory().get('/')
+        request.user = self.user
+        for view_class in (ConcordanceCreateView,):
+            view = view_class()
+            view.request = request
+            view.kwargs = {'pk': self.original_text.pk}
+            view.dispatch(request)
+            self.assertEqual(view.top_level_object, self.original_text.owner)
+
+    def test_update_delete_create_top_level_object(self):
+
+        # dispatch method creates an attribute used by the
+        # locking mechanism so here we ensure it is created
+
+        concordance = Concordance.objects.create(
+            original_text=self.original_text,
+            source='source',
+            identifier='identifier',
+        )
+        request = RequestFactory().post('/')
+        request.user = self.user
+
+        for view_class in (ConcordanceUpdateView, ConcordanceDeleteView,):
+            view = view_class()
+            view.request = request
+            view.kwargs = {'pk': concordance.pk}
+            view.dispatch(request)
+            self.assertEqual(view.top_level_object, self.original_text.owner)
 
 
 class TestConcordanceViewPermissions(TestCase):

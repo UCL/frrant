@@ -2,14 +2,25 @@ from django.db import models
 from django.db.models.signals import pre_delete
 from django.urls import reverse
 
-from rard.research.mixins import TextObjectFieldMixin
-from rard.utils.basemodel import BaseModel
+from rard.research.models.mixins import TextObjectFieldMixin
+from rard.utils.basemodel import BaseModel, DatedModel, LockableModel
 
 
-class Antiquarian(TextObjectFieldMixin, BaseModel):
+class Antiquarian(TextObjectFieldMixin, LockableModel, DatedModel, BaseModel):
 
     class Meta:
         ordering = ['name']
+
+    # extend the dates functionality with more detail
+    # on what the dates means
+
+    DATES_LIVED = 'lived'
+    DATES_ACTIVE = 'active'
+
+    DATES_INFO_CHOICES = [
+        (DATES_LIVED, 'Lived'),
+        (DATES_ACTIVE, 'Active'),
+    ]
 
     name = models.CharField(max_length=128, blank=False)
 
@@ -19,7 +30,7 @@ class Antiquarian(TextObjectFieldMixin, BaseModel):
     )
 
     re_code = models.CharField(
-        max_length=64, blank=False, unique=True
+        max_length=64, blank=False, unique=True, verbose_name='RE Number'
     )
 
     works = models.ManyToManyField('Work', blank=True)
@@ -34,6 +45,13 @@ class Antiquarian(TextObjectFieldMixin, BaseModel):
         through='TestimoniumLink'
     )
 
+    # what the year info means
+    dates_type = models.CharField(
+        max_length=16,
+        choices=DATES_INFO_CHOICES,
+        blank=True
+    )
+
     def __str__(self):
         return self.name
 
@@ -42,6 +60,11 @@ class Antiquarian(TextObjectFieldMixin, BaseModel):
 
     def ordered_fragments(self):
         return self.fragments.order_by('antiquarian_fragment_links__order')
+
+    def display_date_range(self):
+        return super().display_date_range(
+            prepend=self.get_dates_type_display()
+        )
 
 
 def remove_stale_antiquarian_links(sender, instance, **kwargs):

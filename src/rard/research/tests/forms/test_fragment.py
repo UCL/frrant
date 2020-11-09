@@ -1,24 +1,14 @@
 import pytest
 from django.test import TestCase
 
-from rard.research.forms import FragmentForm
-from rard.research.models import Antiquarian, Fragment, Work
+from rard.research.forms import (FragmentCommentaryForm, FragmentForm,
+                                 FragmentLinkWorkForm)
+from rard.research.models import Antiquarian, Book, Fragment, Work
 
 pytestmark = pytest.mark.django_db
 
 
 class TestFragmentForm(TestCase):
-    def test_commentary_initial_value_update(self):
-        data = {
-            'name': 'name',
-        }
-        # create an antiquarian with a bio and check it is on the form
-        fragment = Fragment.objects.create(**data)
-        commentary = 'Something interesting'
-        fragment.commentary.content = commentary
-
-        form = FragmentForm(instance=fragment)
-        self.assertEqual(form.fields['commentary_text'].initial, commentary)
 
     def test_links_save(self):
 
@@ -26,14 +16,9 @@ class TestFragmentForm(TestCase):
         b = Antiquarian.objects.create(name='nameb', re_code='nameb')
         fragment = Fragment.objects.create(name='name', apparatus_criticus='a')
 
-        w1 = Work.objects.create(name='work1')
-        w2 = Work.objects.create(name='work2')
-
         data = {
             'definite_antiquarians': (a.pk,),
             'possible_antiquarians': (b.pk,),
-            'definite_works': (w1.pk,),
-            'possible_works': (w2.pk,),
         }
 
         form = FragmentForm(instance=fragment, data=data)
@@ -48,11 +33,52 @@ class TestFragmentForm(TestCase):
             [x.pk for x in fragment.possible_antiquarians()],
             [x.pk for x in Antiquarian.objects.filter(pk=b.pk)]
         )
+
+
+class TestFragmentCommentaryForm(TestCase):
+
+    def test_commentary_initial_value_update(self):
+        fragment = Fragment.objects.create(name='name')
+        commentary = 'Something interesting'
+        fragment.commentary.content = commentary
+
+        form = FragmentCommentaryForm(instance=fragment)
+        self.assertEqual(form.fields['commentary_text'].initial, commentary)
+
+    def test_commentary_save(self):
+        fragment = Fragment.objects.create(name='fragment')
+
+        data = {
+            'commentary_text': 'Something interesting',
+        }
+        form = FragmentCommentaryForm(instance=fragment, data=data)
+
+        self.assertTrue(form.is_valid())
+        form.save()
+        refetch = Fragment.objects.get(pk=fragment.pk)
         self.assertEqual(
-            [x.pk for x in fragment.definite_works()],
-            [x.pk for x in Work.objects.filter(pk=w1.pk)]
+            refetch.commentary.content,
+            data['commentary_text']
         )
-        self.assertEqual(
-            [x.pk for x in fragment.possible_works()],
-            [x.pk for x in Work.objects.filter(pk=w2.pk)]
-        )
+
+
+class TestFragmentLinkWorkForm(TestCase):
+
+    def test_required_fields_no_work_selected(self):
+        # if no work specified we have no books to select
+        # and all the works are possible
+        form = FragmentLinkWorkForm(work=None)
+        self.assertIsNone(form.fields['work'].initial)
+        self.assertTrue(form.fields['book'].disabled)
+        self.assertEqual(form.fields['book'].queryset.count(), 0)
+
+    def test_required_fields_with_work_selected(self):
+        work = Work.objects.create(name='foo')
+        NUM_BOOKS = 5
+        for i in range(0, NUM_BOOKS):
+            Book.objects.create(number=i, work=work)
+
+        form = FragmentLinkWorkForm(work=work)
+        self.assertEqual(form.fields['work'].initial, work)
+        self.assertFalse(form.fields['book'].disabled)
+        self.assertEqual(form.fields['book'].queryset.count(), NUM_BOOKS)

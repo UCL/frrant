@@ -7,12 +7,22 @@ from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from rard.research.forms import OriginalTextForm
 from rard.research.models import Fragment, OriginalText, Testimonium
+from rard.research.views.mixins import CheckLockMixin
 
 
-class OriginalTextCreateViewBase(
-        LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class OriginalTextCreateViewBase(CheckLockMixin, LoginRequiredMixin,
+                                 PermissionRequiredMixin, CreateView):
+
+    check_lock_object = 'parent_object'
+
     model = OriginalText
     form_class = OriginalTextForm
+
+    def dispatch(self, request, *args, **kwargs):
+        # need to ensure we have the lock object view attribute
+        # initialised in dispatch
+        self.get_parent_object()
+        return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self, *args, **kwargs):
         return self.get_parent_object().get_absolute_url()
@@ -46,19 +56,36 @@ class TestimoniumOriginalTextCreateView(OriginalTextCreateViewBase):
     )
 
 
-class OriginalTextUpdateView(LoginRequiredMixin, UpdateView):
+class OriginalTextUpdateView(CheckLockMixin, LoginRequiredMixin, UpdateView):
     model = OriginalText
     form_class = OriginalTextForm
     permission_required = ('research.change_originaltext',)
+
+    check_lock_object = 'parent_object'
+
+    def dispatch(self, request, *args, **kwargs):
+        # need to ensure we have the lock object view attribute
+        # initialised in dispatch
+        self.parent_object = self.get_object().owner
+        return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self, *args, **kwargs):
         return self.object.owner.get_absolute_url()
 
 
 @method_decorator(require_POST, name='dispatch')
-class OriginalTextDeleteView(LoginRequiredMixin, DeleteView):
+class OriginalTextDeleteView(CheckLockMixin, LoginRequiredMixin, DeleteView):
+
+    check_lock_object = 'parent_object'
+
     model = OriginalText
     permission_required = ('research.delete_originaltext',)
+
+    def dispatch(self, request, *args, **kwargs):
+        # need to ensure we have the lock object view attribute
+        # initialised in dispatch
+        self.parent_object = self.get_object().owner
+        return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self, *args, **kwargs):
         return self.object.owner.get_absolute_url()

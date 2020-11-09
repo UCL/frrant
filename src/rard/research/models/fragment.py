@@ -14,23 +14,26 @@ class Fragment(HistoricalBaseModel):
         'OriginalText', related_query_name='original_texts'
     )
 
-    def definite_works(self):
-        from rard.research.models import Work
-        all_links = self.antiquarian_fragment_links.all()
-        return Work.objects.filter(
-            antiquarian_work_fragment_links__in=all_links,
-            antiquarian_work_fragment_links__definite=True,
-            antiquarian_work_fragment_links__work__isnull=False,
-        ).distinct()
+    def _get_linked_works_and_books(self, definite):
+        # a list of definite linked works and books
+        all_links = self.antiquarian_fragment_links.filter(
+            definite=definite,
+            work__isnull=False,
+        ).order_by('work', '-book').distinct()
 
-    def possible_works(self):
-        from rard.research.models import Work
-        all_links = self.antiquarian_fragment_links.all()
-        return Work.objects.filter(
-            antiquarian_work_fragment_links__in=all_links,
-            antiquarian_work_fragment_links__definite=False,
-            antiquarian_work_fragment_links__work__isnull=False,
-        ).distinct()
+        rtn = set()
+        for link in all_links:
+            if link.book:
+                rtn.add(link.book)
+            else:
+                rtn.add(link.work)
+        return rtn
+
+    def possible_works_and_books(self):
+        return self._get_linked_works_and_books(definite=False)
+
+    def definite_works_and_books(self):
+        return self._get_linked_works_and_books(definite=True)
 
     def definite_antiquarians(self):
         from rard.research.models import Antiquarian

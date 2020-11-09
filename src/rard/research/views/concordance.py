@@ -7,6 +7,7 @@ from django.views.generic import ListView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from rard.research.models import Concordance, OriginalText
+from rard.research.views.mixins import CheckLockMixin
 
 
 class ConcordanceListView(
@@ -16,14 +17,22 @@ class ConcordanceListView(
     permission_required = ('research.view_concordance',)
 
 
-class ConcordanceCreateView(
-        LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+class ConcordanceCreateView(CheckLockMixin, LoginRequiredMixin,
+                            PermissionRequiredMixin, CreateView):
+
+    check_lock_object = 'top_level_object'
+
     # create a concordance for an original text
     model = Concordance
     permission_required = ('research.add_concordance',)
     fields = ('source', 'identifier')
 
-    # success_url = reverse_lazy('concordance:list')
+    def dispatch(self, request, *args, **kwargs):
+        # need to ensure we have the lock object view attribute
+        # initialised in dispatch
+        self.top_level_object = self.get_original_text().owner
+        return super().dispatch(request, *args, **kwargs)
+
     def get_success_url(self, *args, **kwargs):
         return self.object.original_text.owner.get_absolute_url()
 
@@ -50,12 +59,20 @@ class ConcordanceCreateView(
         return context
 
 
-class ConcordanceUpdateView(
-        LoginRequiredMixin, PermissionRequiredMixin, UpdateView):
+class ConcordanceUpdateView(CheckLockMixin, LoginRequiredMixin,
+                            PermissionRequiredMixin, UpdateView):
+
+    check_lock_object = 'top_level_object'
+
     model = Concordance
     permission_required = ('research.change_concordance',)
     fields = ('source', 'identifier')
-    # success_url = reverse_lazy('concordance:list')
+
+    def dispatch(self, request, *args, **kwargs):
+        # need to ensure we have the lock object view attribute
+        # initialised in dispatch
+        self.top_level_object = self.get_object().original_text.owner
+        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
@@ -71,10 +88,18 @@ class ConcordanceUpdateView(
 
 
 @method_decorator(require_POST, name='dispatch')
-class ConcordanceDeleteView(
-        LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+class ConcordanceDeleteView(CheckLockMixin, LoginRequiredMixin,
+                            PermissionRequiredMixin, DeleteView):
+    check_lock_object = 'top_level_object'
+
     model = Concordance
     permission_required = ('research.delete_concordance',)
+
+    def dispatch(self, request, *args, **kwargs):
+        # need to ensure we have the lock object view attribute
+        # initialised in dispatch
+        self.top_level_object = self.get_object().original_text.owner
+        return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self, *args, **kwargs):
         return self.object.original_text.owner.get_absolute_url()

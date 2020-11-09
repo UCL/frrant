@@ -1,0 +1,32 @@
+{% extends "research/base.html" %}
+{% load i18n bootstrap4 %}
+
+{% block heading %}
+    {% blocktrans with name=form.instance.linked_field %}
+        Add link to work / book to {{ name }}
+    {% endblocktrans %}
+{% endblock %}
+
+{% block inner %}
+
+    {# Use a GET form to select the work #}
+    <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form work-form" method='GET'>
+        {% bootstrap_field form.work field_class='submit-on-change' %}
+    </form>
+
+    {# where a work has been specified add it as a hidden control and show the relevant books (if any) #}
+    <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
+        {% csrf_token %}
+        {% bootstrap_field form.book %}
+        {% bootstrap_field form.definite %}
+
+        <input type='hidden' name='work' value='{{ work.pk }}' />
+        <button type="submit" class="btn btn-primary">
+            {% if object %}
+                {% trans 'Save' %}
+            {% else %}
+                {% trans 'Create' %}
+            {% endif %}
+        </button>
+    </form>
+{% endblock %}

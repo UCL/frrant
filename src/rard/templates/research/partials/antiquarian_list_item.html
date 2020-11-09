@@ -13,6 +13,10 @@
                 {% else %}
                     {{ link_text }}
                 {% endif %}
+                {% if antiquarian.display_date_range %}
+                <span class='text-muted'><small>[{{ antiquarian.display_date_range }}]</small></span>
+                {% endif %}
+                {% include 'research/partials/render_inline_lock_icon.html' with object=antiquarian %}
             {% endwith %}
         </li>
     </div>

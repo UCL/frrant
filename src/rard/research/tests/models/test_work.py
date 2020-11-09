@@ -3,8 +3,8 @@ from django.db.utils import IntegrityError
 from django.test import TestCase
 from django.urls import reverse
 
-from rard.research.models import Antiquarian, Fragment, Work
-from rard.research.models.base import FragmentLink
+from rard.research.models import Antiquarian, Book, Fragment, Testimonium, Work
+from rard.research.models.base import FragmentLink, TestimoniumLink
 
 pytestmark = pytest.mark.django_db
 
@@ -214,3 +214,143 @@ class TestWork(TestCase):
         # and not in work1's
         self.assertEqual(0, len(work1.definite_fragments()))
         self.assertEqual(0, len(work1.possible_fragments()))
+
+    def test_testimonium_methods(self):
+        data = {
+            'name': 'Work Name1',
+            'subtitle': 'Subtitle',
+        }
+        work1 = Work.objects.create(**data)
+        data = {
+            'name': 'Work Name2',
+            'subtitle': 'Subtitle',
+        }
+        work2 = Work.objects.create(**data)
+
+        # create some testimonia
+        for i in range(0, 10):
+            data = {
+                'name': 'name{}'.format(i),
+                'apparatus_criticus': 'app_criticus',
+            }
+            Testimonium.objects.create(**data)
+
+        # link to work1
+        for testimonium in Testimonium.objects.all():
+            TestimoniumLink.objects.create(
+                work=work1,
+                testimonium=testimonium,
+                definite=True,
+            )
+        # shoud appear in work1's definite testimonia only
+        self.assertEqual(
+            [x.pk for x in work1.definite_testimonia()],
+            [x.pk for x in Testimonium.objects.all()]
+        )
+        self.assertEqual(0, len(work1.possible_testimonia()))
+        # and not in work2's
+        self.assertEqual(0, len(work2.definite_testimonia()))
+        self.assertEqual(0, len(work2.possible_testimonia()))
+
+        # make these links possible...
+        TestimoniumLink.objects.update(definite=False)
+        # shoud appear in work1's possible testimonia only
+        self.assertEqual(
+            [x.pk for x in work1.possible_testimonia()],
+            [x.pk for x in Testimonium.objects.all()]
+        )
+        self.assertEqual(0, len(work1.definite_testimonia()))
+        # and not in work2's
+        self.assertEqual(0, len(work2.definite_testimonia()))
+        self.assertEqual(0, len(work2.possible_testimonia()))
+
+        # switch all testimonium links to work2 and make definite...
+        TestimoniumLink.objects.update(work=work2, definite=True)
+
+        # shoud appear in work2's definite testimonia only
+        self.assertEqual(
+            [x.pk for x in work2.definite_testimonia()],
+            [x.pk for x in Testimonium.objects.all()]
+        )
+        self.assertEqual(0, len(work2.possible_testimonia()))
+        # and not in work1's
+        self.assertEqual(0, len(work1.definite_testimonia()))
+        self.assertEqual(0, len(work1.possible_testimonia()))
+
+        # finally make possible and check...
+        TestimoniumLink.objects.update(definite=False)
+        # shoud appear in work2's possible testimonia only
+        self.assertEqual(
+            [x.pk for x in work2.possible_testimonia()],
+            [x.pk for x in Testimonium.objects.all()]
+        )
+        self.assertEqual(0, len(work2.definite_testimonia()))
+        # and not in work1's
+        self.assertEqual(0, len(work1.definite_testimonia()))
+        self.assertEqual(0, len(work1.possible_testimonia()))
+
+
+class TestBook(TestCase):
+
+    def setUp(self):
+        self.work = Work.objects.create(name='book_name')
+
+    def test_creation(self):
+        # test happy path
+        data = {
+            'number': '1',
+            'subtitle': 'Subtitle',
+            'work': self.work
+        }
+        book = Book.objects.create(**data)
+        for key, val in data.items():
+            self.assertEqual(getattr(book, key), val)
+
+    def test_work_required(self):
+        data_no_work = {
+            'number': '1',
+            'subtitle': 'Subtitle',
+        }
+        with self.assertRaises(IntegrityError):
+            Book.objects.create(**data_no_work)
+
+    def test_required_fields(self):
+        self.assertTrue(Book._meta.get_field('number').blank)
+        self.assertTrue(Book._meta.get_field('subtitle').blank)
+
+    def test_get_absolute_url(self):
+        # the work url is the absolute url for its book objects
+        data = {
+            'number': '1',
+            'subtitle': 'Subtitle',
+            'work': self.work,
+        }
+        book = Book.objects.create(**data)
+        self.assertEqual(
+            book.get_absolute_url(),
+            reverse('work:detail', kwargs={'pk': self.work.pk})
+        )
+
+    def test_display(self):
+        # the __str__ function should show the name
+        data = {
+            'number': '1',
+            'subtitle': 'Subtitle',
+            'work': self.work,
+        }
+        book = Book.objects.create(**data)
+        self.assertEqual(
+            str(book),
+            'Book 1: Subtitle'
+        )
+        book.number = ''
+        self.assertEqual(
+            str(book),
+            'Subtitle'
+        )
+        book.number = '1'
+        book.subtitle = ''
+        self.assertEqual(
+            str(book),
+            'Book 1'
+        )

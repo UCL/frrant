@@ -16,6 +16,7 @@
                         {{ link_text }}
                     {% endif %}
                 {% endwith %}
+                {% include 'research/partials/render_inline_lock_icon.html' with object=testimonium %}
             </span>
             <span>
                 <span class="text-muted ml-2 show-detail collapsed" data-toggle="collapse" data-target="#detail_{{ testimonium.pk }}" aria-expanded="false" aria-controls="collapseExample">
