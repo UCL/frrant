@@ -10,6 +10,14 @@ class User(AbstractUser, BaseModel):
 
     email = models.EmailField(_('email address'), unique=True, blank=False)
 
+    can_break_locks = models.BooleanField(
+        default=False,
+        help_text=_(
+            'Designates whether this user can override edit locks '
+            'on records, regardless of whether they own them.'
+        ),
+    )
+
     def display_name(self):
         return self.get_full_name() or self.username
 

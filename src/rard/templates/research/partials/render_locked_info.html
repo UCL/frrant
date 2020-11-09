@@ -22,6 +22,7 @@
                     <b>
                     {% if object.locked_by == request.user %} you {% else %} {{ object.locked_by }} {% endif %}
                     </b>
+                    {% if object.locked_until %} until {{ object.locked_until }}{% endif %}
                 {% else %}
                     Available for editing 
                 {% endif %}
@@ -33,10 +34,29 @@
                 {% csrf_token %}
                 {% if object.locked_by == request.user %}
                     <button type='submit' class='btn btn-primary btn-sm' name='unlock'>Finish&nbsp;Editing</button>
-                {% elif object.is_locked %}
-                    <button type='submit' class='btn btn-warning btn-sm' name='request'>Request Lock</button>
-                {% elif not object.is_locked %}
-                    <button type='submit' class='btn btn-primary btn-sm' name='lock'>Edit</button>
+                {% else %}
+                    {% if object.is_locked %}
+                        <button type='submit' class='btn btn-warning btn-sm' name='request'>Request Lock</button>
+                        {% if request.user.can_break_locks %}
+                            <button title='You can break this lock'  type='submit' class='btn btn-danger btn-sm' name='break'><i class='fa fa-unlock'></i> Unlock</button>
+                        {% endif %}
+                    {% elif not object.is_locked %}
+
+                    <div class="dropdown show">
+                        <a class="btn btn-primary btn-sm dropdown-toggle" name='lock' href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Edit
+                        </a>
+
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                            <button type='submit' name='days' value='1' class='dropdown-item'>for 1 day</button>
+                            <button type='submit' name='days' value='2' class='dropdown-item'>for 2 days</button>
+                            <button type='submit' name='days' value='5' class='dropdown-item'>for 5 days</button>
+                            <button type='submit' name='days' value='7' class='dropdown-item'>for a week</button>
+                            <button type='submit' name='lock' class='dropdown-item'>until I unlock</button>
+                        </div>
+                    </div>
+                    {% endif %}
+
                 {% endif %}
             </form>
         </div>
@@ -44,32 +64,3 @@
     {% with user_lock_request=request.user|lock_request:object %}
     {% if user_lock_request %}<small class='text-muted'>You requested this item on {{ user_lock_request.created }}</small>{% endif %}
     {% endwith %}
-
-
-{% comment %}
-{% if object.is_locked %}
-
-        Locked for editing by
-        {% if object.locked_by == request.user %} you {% else %} {{ object.locked_by }} {% endif %}
-        <small>
-            <br>since {{ object.locked_at }}
-        </small>
-
-        {% if object.locked_by == request.user %}
-        <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form"
-            method='POST'>
-            {% csrf_token %}
-            <button type='submit' class='btn btn-light btn-sm' name='unlock'>Finish Editing</button>
-        </form>
-        {% endif %}
-
-{% elif not object.is_locked %}
-        Unlocked
-        <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form"
-            method='POST'>
-            {% csrf_token %}
-            <button type='submit' class='btn btn-light btn-sm' name='lock'>Edit</button>
-        </form>
-
-{% endif %}
-{% endcomment %}

@@ -1,7 +1,9 @@
+from datetime import timedelta
 import pytest
 from django.core import mail
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
+from django.utils import timezone
 
 from rard.research.models import Antiquarian
 from rard.research.views import (AntiquarianDetailView,
@@ -154,3 +156,83 @@ class TestCanLockMixin(TestCase):
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].to, [another_user.email])
         self.assertEqual(mail.outbox[0].subject, 'Request to edit record')
+
+    def test_post_break_lock(self):
+        # one user has the lock
+        antiquarian = Antiquarian.objects.create()
+        locking_user = UserFactory.create()
+        antiquarian.lock(locking_user)
+        self.assertTrue(antiquarian.is_locked())
+        self.assertEqual(antiquarian.locked_by, locking_user)
+
+        url = reverse(
+            'antiquarian:detail',
+            kwargs={'pk': antiquarian.pk}
+        )
+        data = {
+            'name': 'name',
+            'subtitle': 'subtitle',
+            'break': ''  # NB we clicked the break button
+        }
+        request = RequestFactory().post(url, data=data)
+        request.user = UserFactory.create()  # another user tried to break lock
+        
+        # test the 'should fail' case first:
+        request.user.can_break_locks = False
+
+        # call the view
+        AntiquarianDetailView.as_view()(
+            request, pk=antiquarian.pk
+        )
+
+        # ensure the user still has the lock
+        refetch = Antiquarian.objects.get(pk=antiquarian.pk)
+        self.assertTrue(refetch.is_locked())
+
+        # now grant the user permission to break locks
+        request.user.can_break_locks = True
+
+        # call the view
+        AntiquarianDetailView.as_view()(
+            request, pk=antiquarian.pk
+        )
+
+        # ensure the lock is now broken
+        refetch = Antiquarian.objects.get(pk=antiquarian.pk)
+        self.assertFalse(refetch.is_locked())
+        self.assertIsNone(refetch.locked_by)
+
+    def test_post_lock_until(self):
+        # choose the AntiquarianDetailView for this
+        antiquarian = Antiquarian.objects.create()
+        url = reverse(
+            'antiquarian:detail',
+            kwargs={'pk': antiquarian.pk}
+        )
+        DAYS = 5
+
+        data = {
+            'name': 'name',
+            'subtitle': 'subtitle',
+            'days': 5
+        }
+        request = RequestFactory().post(url, data=data)
+        request.user = UserFactory.create()
+
+        time_before = timezone.now()
+
+        # call the view
+        AntiquarianDetailView.as_view()(
+            request, pk=antiquarian.pk
+        )
+
+        time_after = timezone.now()
+
+        # ensure the user has the lock
+        refetch = Antiquarian.objects.get(pk=antiquarian.pk)
+        self.assertTrue(refetch.is_locked())
+        self.assertTrue(
+            time_before + timedelta(days=5) < 
+            refetch.locked_until < 
+            time_after + timedelta(days=5)
+        )
