@@ -306,6 +306,7 @@ Copy the following files and any intermediate files from your certificate provid
 ```
 www_frrant_hist_ucl_ac_uk.crt
 www_frrant_hist_ucl_ac_uk.key
+RootCertificates/  (if these are sent)
 ```
 
 where the `.key` file is the key you generated along with the certificate request
