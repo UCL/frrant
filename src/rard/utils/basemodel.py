@@ -23,6 +23,9 @@ class ObjectLock(models.Model):
         on_delete=models.SET_NULL
     )
 
+    # optional end datetime for the lock
+    locked_until = models.DateTimeField(null=True, default=None)
+
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
 
     object_id = models.PositiveIntegerField()
@@ -58,21 +61,88 @@ class LockableModel(models.Model):
     def get_object_lock(self):
         return self.object_locks.first()
 
-    def lock(self, user):
+    def lock(self, user, lock_until=None):
         ObjectLock.objects.create(
             locked_at=timezone.now(),
             locked_by=user,
-            content_object=self
+            content_object=self,
+            locked_until=lock_until
+        )
+
+    def break_lock(self, broken_by_user):
+
+        if not broken_by_user.can_break_locks:
+            return
+
+        # someone with permission to do so has broken the lock
+        object_lock = self.get_object_lock()
+
+        # prepare email to lock owner
+        html_email_template = 'research/emails/item_lock_broken.html'
+        current_site = get_current_site(None)
+        context = {
+            'user': object_lock.locked_by,
+            'broken_by_user': broken_by_user,
+            'lock': object_lock,
+            'site_name': current_site.name,
+            'domain': current_site.domain,
+        }
+        content = render_to_string(html_email_template, context)
+        email_data = [
+            (
+                'The item you were editing has been made available',
+                '',
+                settings.DEFAULT_FROM_EMAIL,
+                [object_lock.locked_by.email],
+            ),
+            {
+                'html_message': content,
+                'fail_silently': False
+            }
+        ]
+
+        # break lock
+        self.unlock()
+
+        # send email to lock owner
+        send_mail(*email_data[0], **email_data[1])
+
+    def send_long_lock_email(self):
+        # where a user has had a lock for a long time, we send them
+        # an email to tell them to hurry or ask if they still need it
+        object_lock = self.get_object_lock()
+
+        # prepare email to lock owner
+        html_email_template = 'research/emails/long_lock_warning.html'
+        current_site = get_current_site(None)
+        context = {
+            'user': object_lock.locked_by,
+            'lock': object_lock,
+            'site_name': current_site.name,
+            'domain': current_site.domain,
+        }
+        content = render_to_string(html_email_template, context)
+
+        send_mail(
+            'You have had an item locked for a while',
+            '',
+            settings.DEFAULT_FROM_EMAIL,
+            [object_lock.locked_by.email],
+            html_message=content,
+            fail_silently=False
         )
 
     def unlock(self):
+
+        object_lock = self.get_object_lock()
+
+        if not object_lock:
+            return
 
         # collect data emails using info before we delete it
         # and if deletion works okay then send the mails after
         # (we don't have access to the info once we delete it)
         email_data_list = []
-
-        object_lock = self.get_object_lock()
 
         # notify anyone with a lock request of the event
         for lock_request in object_lock.objectlockrequest_set.all():
@@ -108,20 +178,45 @@ class LockableModel(models.Model):
         for args, kwargs in email_data_list:
             send_mail(*args, **kwargs)
 
+    def check_lock_expired(self):
+
+        object_lock = self.get_object_lock()
+        if not object_lock:
+            return
+
+        if object_lock.locked_until and \
+                object_lock.locked_until < timezone.now():
+            # unlock silently
+            # self.object_locks.all().delete()
+
+            # or unlock noisily (sends emails)
+            self.unlock()
+
     def is_locked(self):
+        # until cron job sorted, inspect expired locks in a lazy manner
+        self.check_lock_expired()
         return self.object_locks.exists()
 
     @property
     def locked_by(self):
-        if self.is_locked():
+        try:
             return self.get_object_lock().locked_by
-        return None
+        except AttributeError:
+            return None
+
+    @property
+    def locked_until(self):
+        try:
+            return self.get_object_lock().locked_until
+        except AttributeError:
+            return None
 
     @property
     def locked_at(self):
-        if self.is_locked():
+        try:
             return self.get_object_lock().locked_at
-        return None
+        except AttributeError:
+            return None
 
     def request_lock(self, from_user):
         self.get_object_lock().objectlockrequest_set.create(

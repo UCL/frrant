@@ -4,6 +4,7 @@ from django.contrib.auth import admin as auth_admin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import PasswordResetForm
 from django.utils.crypto import get_random_string
+from django.utils.translation import gettext_lazy as _
 
 from rard.users.forms import UserChangeForm, UserCreationForm
 
@@ -23,10 +24,20 @@ class UserAdmin(auth_admin.UserAdmin):
         "last_name",
         "email",
         "is_active",
+        "can_break_locks",
         "is_staff",
         "is_superuser"
     ]
     search_fields = ['first_name', 'last_name', 'username', 'email']
+
+    fieldsets = (
+        (None, {'fields': ('username', 'password')}),
+        (_('Personal info'), {'fields': ('first_name', 'last_name', 'email')}),
+        (_('Permissions'), {'fields': ('is_active', 'is_staff', 'is_superuser',
+                                       'can_break_locks',
+                                       'groups', 'user_permissions')}),
+        (_('Important dates'), {'fields': ('last_login', 'date_joined')}),
+    )
 
     add_fieldsets = (
         (None, {
@@ -35,10 +46,13 @@ class UserAdmin(auth_admin.UserAdmin):
                 'last_name',
                 'username',
                 'email',
-                'is_staff',
-                'groups',
             ),
         }),
+        (_('Permissions'), {
+            'fields': ('is_staff',
+                       'can_break_locks',
+                       'groups')
+        })
     )
 
     def save_model(self, request, obj, form, change):
