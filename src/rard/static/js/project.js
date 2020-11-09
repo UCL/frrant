@@ -16,13 +16,15 @@ $('.rard-toggle-control input').change(function (e, init) {
     }
 })
 
+$('[data-toggle="tooltip"]').tooltip()
+
 $('.submit-on-change').change(function(e){
     // submit the form it belongs to
     $(this).closest('form').submit();
 });
 
 $('.work-form').submit(function(e){
-    // disable any volume controls on the page
+    // disable any book/volume controls on the page
     $('select[name="volume"]').prop('disabled', true);
 });
 
@@ -64,9 +66,9 @@ $('body').on("submit", "form", function (e) {
 
 $('.rich-editor').trumbowyg(
     {
-        resetCss: true,
+        // resetCss: true,
         autogrow: true,
-        // removeformatPasted: true,
+        removeformatPasted: true,
         // tagsToRemove: ['script', 'span'],
         tagsToKeep: ['img'],
         btns: [
@@ -75,6 +77,11 @@ $('.rich-editor').trumbowyg(
             ['undo', 'redo'],
             ['superscript', 'subscript', 'removeformat'],
         ],
+       langs: {
+            en: {
+                fontFamily: 'Alphabetum'
+            },
+       }
     }
 ).on('tbwinit', function(e, a)
     {
@@ -109,3 +116,65 @@ document.addEventListener("DOMContentLoaded", function (event) {
 window.addEventListener("beforeunload", function (e) {
     sessionStorage.setItem('scrollpos', window.scrollY);
 });
+
+if (!String.prototype.HTMLDecode) {
+    String.prototype.HTMLDecode = function () {
+        var str = this.toString(),
+            //Create an element for decoding            
+            decoderEl = document.createElement('p');
+
+        //Bail if empty, otherwise IE7 will return undefined when 
+        //OR-ing the 2 empty strings from innerText and textContent
+        if (str.length == 0) {
+            return str;
+        }
+
+        //convert newlines to <br's> to save them
+        str = str.replace(/((\r\n)|(\r)|(\n))/gi, " <br/>");            
+
+        decoderEl.innerHTML = str;
+        /*
+        We use innerText first as IE strips newlines out with textContent.
+        There is said to be a performance hit for this, but sometimes
+        correctness of data (keeping newlines) must take precedence.
+        */
+        str = decoderEl.innerText || decoderEl.textContent;
+
+        //clean up the decoding element
+        decoderEl = null;
+
+        //replace back in the newlines
+        return str.replace(/<br((\/)|( \/))?>/gi, "\r\n");
+    };
+}
+
+$('.alphabetum.insert').click(function(e) {
+    let code = $(this).data('code');
+    let dummyInput = $('#clipboard_input');
+    let str = `\\u${code}`
+    let to_parse = '"'+str+'"';
+    let val = decodeURIComponent(JSON.parse(to_parse));
+    dummyInput.val(dummyInput.val()+val);
+});
+
+$('#copy_to_clipboard').click(function(e) {
+    let dummyInput = $('#clipboard_input');
+    dummyInput.select();
+    document.execCommand('copy');
+    dummyInput.blur();
+
+});
+
+$('#clear_copy_to_clipboard').click(function(e) {
+    let dummyInput = $('#clipboard_input');
+    dummyInput.val('');
+
+});
+
+$('#symbol-palette-select').change(function(e) {
+    let target = $(this).val();
+    $('.symbol-palette').hide();
+    $(`#${target}`).show();
+});
+
+$('#symbol-palette-select').trigger('change', true);

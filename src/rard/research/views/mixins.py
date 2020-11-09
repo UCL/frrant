@@ -1,4 +1,5 @@
-class DateOrderMixin():
+class DateOrderMixin:
+
     # orders a queryset by date information
     def get_queryset(self):
         qs = super().get_queryset()
@@ -63,3 +64,27 @@ class CanLockMixin:
                 return redirect(request.path)
 
         return super().dispatch(request, *args, **kwargs)
+
+
+class SymbolContextMixin:
+
+    # returns context info for the range of symbols available
+    
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        modifiers = [(x, 'Character %s' % x) for x in [
+            'F0C3', 'F0C4', 'F0C5', 'F0C6', 'F0C7', 'F0C8', 'F0C9', 'F0CA',
+            'F0CB', 'F0CC', 'F0CD', 'F0CE', 'F0CF', 
+        ]]
+        chars = [(('%04x' % i).upper(), 'Character %04x' % i) for i in range(60501, 60581)]
+        more_chars = [(('%04x' % i).upper(), 'Character %04x' % i) for i in range(63665, 63743)]
+        # for i in range(60501, 60581):
+        #     chars.append(('%04x' % i).upper())
+        character_sets = {
+            'Character Set 1': chars,
+            'Character Set 2': more_chars,
+            'Modifiers': modifiers,
+        }
+        context['character_sets'] = character_sets
+
+        return context
