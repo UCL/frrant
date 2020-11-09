@@ -11,7 +11,8 @@ from rard.research.views.mixins import CheckLockMixin, SymbolContextMixin
 
 
 class OriginalTextCreateViewBase(CheckLockMixin, LoginRequiredMixin,
-                                 SymbolContextMixin, PermissionRequiredMixin, CreateView):
+                                 SymbolContextMixin, PermissionRequiredMixin,
+                                 CreateView):
 
     check_lock_object = 'parent_object'
 
@@ -56,7 +57,8 @@ class TestimoniumOriginalTextCreateView(OriginalTextCreateViewBase):
     )
 
 
-class OriginalTextUpdateView(CheckLockMixin, LoginRequiredMixin, SymbolContextMixin, UpdateView):
+class OriginalTextUpdateView(CheckLockMixin, LoginRequiredMixin,
+                             SymbolContextMixin, UpdateView):
     model = OriginalText
     form_class = OriginalTextForm
     permission_required = ('research.change_originaltext',)
