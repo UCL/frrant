@@ -290,13 +290,26 @@ for the username/password to use for postgres database.
 
 ## SSL Certificates
 
-Before building the nginx container we need to do the following (example shown for development, replace with production folder on production)
+Before building the nginx container we need to do the following for development
 
 `cd compose/development/nginx/certs`
 
 `sudo openssl req -x509 -nodes -days 365 -config rardselfsigned.cnf -newkey rsa:2048 -keyout rardselfsigned.key -out rardselfsigned.crt`
 
 
+For production we need to install the certificate to the following folder _within_ the project space:
+
+```mkdir .certs```
+
+Copy the following files and any intermediate files from your certificate provider to that folder:
+
+```
+www_frrant_hist_ucl_ac_uk.crt
+www_frrant_hist_ucl_ac_uk.key
+RootCertificates/  (if these are sent)
+```
+
+where the `.key` file is the key you generated along with the certificate request
 
 # Troubleshooting
 

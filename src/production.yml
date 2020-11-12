@@ -82,7 +82,7 @@ services:
       - "0.0.0.0:2345:2345"
     volumes:
       - ./compose/production/nginx/conf.d:/etc/nginx/conf.d
-      - ./compose/production/nginx/certs:/etc/nginx/certs
+      - ./.certs:/etc/nginx/certs
       - ./compose/production/nginx/snippets:/etc/nginx/snippets
       - type: volume
         source: staticfiles
