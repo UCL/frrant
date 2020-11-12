@@ -3,7 +3,7 @@
     "model": "sites.site",
     "pk": 1,
     "fields": {
-        "domain": "frra-app01.ad.ucl.ac.uk",
+        "domain": "www.ucl.ac.uk/history/frrant",
         "name": "Roman Republican Antiquarians Research Database"
     }
 }
