@@ -57,6 +57,7 @@ class TestimoniumOriginalTextCreateView(OriginalTextCreateViewBase):
 
 
 class OriginalTextUpdateView(CheckLockMixin, LoginRequiredMixin, UpdateView):
+
     model = OriginalText
     form_class = OriginalTextForm
     permission_required = ('research.change_originaltext',)
