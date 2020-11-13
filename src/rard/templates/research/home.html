@@ -4,17 +4,17 @@
 {% block outer %}
 <div class='row'>
     {% if perms.research.add_fragment %}
-    <div class='col-md-4'>
+    <div class='col-md-4 mb-3'>
         <a href='{% url "fragment:create" %}' class='btn btn-block btn-outline-secondary'>{% trans 'Create Fragment' %}</a>
     </div>
     {% endif %}
     {% if perms.research.add_antiquarian %}
-    <div class='col-md-4'>
+    <div class='col-md-4 mb-3'>
         <a href='{% url "antiquarian:create" %}' class='btn btn-block btn-outline-secondary'>{% trans 'Create Antiquarian' %}</a>
     </div>
     {% endif %}
     {% if perms.research.add_testimonium %}
-    <div class='col-md-4'>
+    <div class='col-md-4 mb-3'>
         <a href='{% url "testimonium:create" %}' class='btn btn-block btn-outline-secondary'>{% trans 'Create Testimonium' %}</a>
     </div>
     {% endif %}

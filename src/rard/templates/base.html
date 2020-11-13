@@ -29,12 +29,20 @@
     <!-- This file stores project-specific CSS -->
     
     <link href="{% static 'css/project.css' %}" rel="stylesheet">
+    <link href="{% static 'css/alphabetum.css' %}" rel="stylesheet">
     
     <!-- Temporary demo css. Remove when adding official style -->
     <style>
-      .historical {
-        font-family: Georgia, "Times New Roman", Times, serif;
+      body {
+        font-family: 'Alphabetum'!important;
+        font-size: large;
       }
+      .form-control {
+        font-size: 1.1rem;
+      }
+      /* .historical {
+        font-family: Georgia, "Times New Roman", Times, serif;
+      } */
       .rard-list-item-actions {
         visibility: hidden;
       }
@@ -72,14 +80,8 @@
       .show-detail::after {
         content: '-'
       }
-
-      @font-face {
-        font-family: Alphabetum;
-        src: url("/static/fonts/ALPHABETUM_v_12.00.otf") format("opentype");
-      }
-      .rich-editor, .alphabetum {
+      .rich-editor {
         font-family: Alphabetum!important;
-
       }
       .h-fill .trumbowyg-box {
           height: 100%!important;

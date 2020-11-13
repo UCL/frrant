@@ -178,3 +178,15 @@ $('#symbol-palette-select').change(function(e) {
 });
 
 $('#symbol-palette-select').trigger('change', true);
+
+function togglePicker() {
+    $('.picker').toggleClass('open');
+}
+
+function openForm() {
+  document.getElementById("myForm").style.display = "block";
+}
+
+function closeForm() {
+  document.getElementById("myForm").style.display = "none";
+}

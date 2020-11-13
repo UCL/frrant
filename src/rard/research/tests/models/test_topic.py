@@ -41,6 +41,14 @@ class TestTopic(TestCase):
         topic.save()
         self.assertEqual(topic.slug, slugify(new_name))
 
+    def test_slug_field_handles_unicode(self):
+        name = '\u1234'
+        topic = Topic.objects.create(name=name)
+        # as we can't make a slug from unicode
+        # we set the slug to be the pk value
+        self.assertEqual(topic.name, name)
+        self.assertEqual(topic.slug, str(topic.pk))
+
     def test_fragment_can_have_multiple_topics(self):
         fragment = Fragment.objects.create(name='name')
         length = 10

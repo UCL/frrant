@@ -15,12 +15,11 @@ from rard.research.forms import (CitingWorkForm, FragmentAntiquariansForm,
                                  FragmentLinkWorkForm, OriginalTextForm)
 from rard.research.models import Book, Fragment, Work
 from rard.research.models.base import FragmentLink
-from rard.research.views.mixins import (CanLockMixin, CheckLockMixin,
-                                        SymbolContextMixin)
+from rard.research.views.mixins import CanLockMixin, CheckLockMixin
 
 
-class HistoricalBaseCreateView(LoginRequiredMixin, SymbolContextMixin,
-                               TemplateView):
+class HistoricalBaseCreateView(LoginRequiredMixin, TemplateView):
+
     template_name = 'research/base_create_form.html'
 
     def get_forms(self):

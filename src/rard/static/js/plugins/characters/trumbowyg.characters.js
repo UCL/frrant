@@ -33,7 +33,12 @@ Provides an interface to select special characters for Antiquarian project
                         fn: function() {
                             trumbowyg.saveRange();
                             var text = trumbowyg.getRangeText();
-                            var html = '<span class="vinculum">'+text+'</span>'
+                            console.log('range text is '+text);
+                            let html = '';
+                            for (let i = 0; i < text.length; i++) {
+                                console.log('character '+text[i]);
+                                html += text[i] + '\u0305'
+                            }
                             trumbowyg.execCmd('insertHTML', html);
                         },
                         title: 'Add Vinculum',
@@ -43,8 +48,14 @@ Provides an interface to select special characters for Antiquarian project
                     var vinculumOffBtnDef = {
                         fn: function() {
                             trumbowyg.saveRange();
+                            let html = ''
                             var text = trumbowyg.getRangeText();
-                            var html = '<span>'+text+'</span>'
+                            for (let i=0; i < text.length; i++) {
+                                console.log('text is '+text[i]);
+                                if (text[i] != '\u0305') {
+                                    html += text[i];
+                                }
+                            }
                             trumbowyg.execCmd('insertHTML', html);
                         },
                         title: 'Remove Vinculum',
@@ -67,16 +78,11 @@ Provides an interface to select special characters for Antiquarian project
             var btn = symbol.replace(/:/g, ''),
                 defaultSymbolBtnName = 'symbol-' + btn,
                 defaultSymbolBtnDef = {
-                    // text: '&nbsp;',
                     text: symbol_name,
                     hasIcon: false,
                     title: symbol_name,
                     fn: function () {
                         trumbowyg.execCmd('insertHTML', '<img class="character '+symbol+'"></img>');
-                        // if we need to strip auto-generated styles from the editor
-                        // we can do that here
-                        // $('img.character').removeAttr('style');
-                        // $('span').removeAttr('style');
                         return true;
                     }
                 };

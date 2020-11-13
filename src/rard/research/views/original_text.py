@@ -7,12 +7,11 @@ from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from rard.research.forms import OriginalTextForm
 from rard.research.models import Fragment, OriginalText, Testimonium
-from rard.research.views.mixins import CheckLockMixin, SymbolContextMixin
+from rard.research.views.mixins import CheckLockMixin
 
 
 class OriginalTextCreateViewBase(CheckLockMixin, LoginRequiredMixin,
-                                 SymbolContextMixin, PermissionRequiredMixin,
-                                 CreateView):
+                                 PermissionRequiredMixin, CreateView):
 
     check_lock_object = 'parent_object'
 
@@ -57,8 +56,7 @@ class TestimoniumOriginalTextCreateView(OriginalTextCreateViewBase):
     )
 
 
-class OriginalTextUpdateView(CheckLockMixin, LoginRequiredMixin,
-                             SymbolContextMixin, UpdateView):
+class OriginalTextUpdateView(CheckLockMixin, LoginRequiredMixin, UpdateView):
     model = OriginalText
     form_class = OriginalTextForm
     permission_required = ('research.change_originaltext',)
