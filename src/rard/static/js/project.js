@@ -72,10 +72,15 @@ $('.rich-editor').trumbowyg(
         // tagsToRemove: ['script', 'span'],
         tagsToKeep: ['img'],
         btns: [
-            ['characters'],
-            ['vinculum_on', 'vinculum_off'], 
+            // ['characters'],
             ['undo', 'redo'],
-            ['superscript', 'subscript', 'removeformat'],
+            ['vinculum_on', 'vinculum_off'], 
+            ['strong', 'em'],
+            ['superscript', 'subscript'],
+            ['justifyLeft', 'justifyCenter', 'justifyRight', 'justifyFull'],
+            ['unorderedList', 'orderedList'],
+            // ['horizontalRule'],
+            ['removeformat'],
         ],
        langs: {
             en: {
