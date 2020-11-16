@@ -148,13 +148,26 @@ if (!String.prototype.HTMLDecode) {
     };
 }
 
+function insertAtCaret(input, text) {
+    var caretPos = input.selectionStart;
+
+    var front = (input.value).substring(0, caretPos);
+    var back = (input.value).substring(input.selectionEnd, input.value.length);
+    input.value = front + text + back;
+    caretPos = caretPos + text.length;
+    input.selectionStart = caretPos;
+    input.selectionEnd = caretPos;
+    input.focus();
+}
+
 $('.alphabetum.insert').click(function(e) {
     let code = $(this).data('code');
     let dummyInput = $('#clipboard_input');
     let str = `\\u${code}`
     let to_parse = '"'+str+'"';
     let val = decodeURIComponent(JSON.parse(to_parse));
-    dummyInput.val(dummyInput.val()+val);
+
+    insertAtCaret(dummyInput.get(0), val)
 });
 
 $('#copy_to_clipboard').click(function(e) {
