@@ -6,7 +6,7 @@
 
 @font-face {
     font-family: Alphabetum;
-    src: url("/static/fonts/ExtraSymbols.otf") format("truetype");
+    src: url("/static/fonts/ExtraSymbols.otf") format("opentype");
     unicode-range: U+2C41;
 }
 

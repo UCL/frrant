@@ -95,6 +95,12 @@ class TestFragmentAddWorkLinkView(TestCase):
                 request, pk=fragment.pk
             )
 
+    def test_permission_required(self):
+        self.assertIn(
+            'research.change_fragment',
+            FragmentAddWorkLinkView.permission_required
+        )
+
 
 class TestFragmentRemoveWorkLinkView(TestCase):
 
@@ -131,3 +137,9 @@ class TestFragmentRemoveWorkLinkView(TestCase):
             request, pk=fragment.pk, linked_pk=work.pk
         )
         self.assertEqual(FragmentLink.objects.count(), 0)
+
+    def test_permission_required(self):
+        self.assertIn(
+            'research.change_fragment',
+            FragmentRemoveWorkLinkView.permission_required
+        )

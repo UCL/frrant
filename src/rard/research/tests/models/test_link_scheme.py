@@ -19,7 +19,6 @@ class TestAntiquarianLinkScheme(TestCase):
             for i in range(0, NUM):
                 data = {
                     'name': stub.format(i),
-                    'apparatus_criticus': 'app_criticus',
                 }
                 model_class.objects.create(**data)
 
@@ -31,7 +30,6 @@ class TestAntiquarianLinkScheme(TestCase):
         a = Antiquarian.objects.create(name='name', re_code='name')
         data = {
             'name': 'name',
-            'apparatus_criticus': 'app_criticus',
         }
         fragment = Fragment.objects.create(**data)
         link = FragmentLink.objects.create(fragment=fragment, antiquarian=a)
@@ -49,7 +47,6 @@ class TestAntiquarianLinkScheme(TestCase):
 
         data = {
             'name': 'name',
-            'apparatus_criticus': 'app_criticus',
         }
         fragment = Fragment.objects.create(**data)
         link = FragmentLink.objects.create(fragment=fragment, antiquarian=a)
@@ -65,7 +62,6 @@ class TestAntiquarianLinkScheme(TestCase):
         for i in range(0, 10):
             data = {
                 'name': 'name{}'.format(i),
-                'apparatus_criticus': 'app_criticus',
             }
             fragment = Fragment.objects.create(**data)
 
@@ -91,7 +87,6 @@ class TestAntiquarianLinkScheme(TestCase):
         for i in range(0, 10):
             data = {
                 'name': 'name{}'.format(i),
-                'apparatus_criticus': 'app_criticus',
             }
             fragment = Fragment.objects.create(**data)
 
@@ -152,7 +147,6 @@ class TestAntiquarianLinkScheme(TestCase):
         for i in range(0, 10):
             data = {
                 'name': 'name{}'.format(i),
-                'apparatus_criticus': 'app_criticus',
             }
             fragment = Fragment.objects.create(**data)
             a0.fragments.add(fragment)
@@ -185,7 +179,6 @@ class TestAntiquarianLinkScheme(TestCase):
         for i in range(0, 10):
             data = {
                 'name': 'name{}'.format(i),
-                'apparatus_criticus': 'app_criticus',
             }
             fragment = Fragment.objects.create(**data)
             a0.fragments.add(fragment)
@@ -214,7 +207,6 @@ class TestAntiquarianLinkScheme(TestCase):
         for i in range(0, COUNT):
             data = {
                 'name': 'name{}'.format(i),
-                'apparatus_criticus': 'app_criticus',
             }
             fragment = Fragment.objects.create(**data)
             FragmentLink.objects.create(fragment=fragment)
@@ -254,7 +246,6 @@ class TestAntiquarianLinkScheme(TestCase):
         for i in range(0, 10):
             data = {
                 'name': 'name{}'.format(i),
-                'apparatus_criticus': 'app_criticus',
             }
             fragment = Fragment.objects.create(**data)
             a0.fragments.add(fragment)
@@ -301,7 +292,6 @@ class TestWorkLinkScheme(TestCase):
         for i in range(0, self.NUM):
             data = {
                 'name': 'name{}'.format(i),
-                'apparatus_criticus': 'app_criticus',
             }
             fragment = Fragment.objects.create(**data)
 
@@ -532,7 +522,6 @@ class TestFragmentOrderingScheme(TestCase):
         for i in range(0, self.NUM):
             data = {
                 'name': 'name{}'.format(i),
-                'apparatus_criticus': 'app_criticus',
             }
             fragment = Fragment.objects.create(**data)
 
@@ -634,7 +623,6 @@ class TestLinkScheme(TestCase):
 
         data = {
             'name': 'name',
-            'apparatus_criticus': 'app_criticus',
         }
         self.fragment = Fragment.objects.create(**data)
         self.testimonium = Testimonium.objects.create(**data)
@@ -779,7 +767,6 @@ class TestLinkScheme(TestCase):
         a = Antiquarian.objects.create(name='name1', re_code='name1')
         data = {
             'name': 'name1',
-            'apparatus_criticus': 'app_criticus1',
         }
         fragment = Fragment.objects.create(**data)
         linkfa1 = FragmentLink.objects.create(

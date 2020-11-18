@@ -13,7 +13,6 @@ class TestTestimonium(TestCase):
         # can create with a name only
         data = {
             'name': 'name',
-            'apparatus_criticus': 'app_criticus',
         }
         testimonium = Testimonium.objects.create(**data)
         self.assertEqual(testimonium.name, data['name'])
@@ -23,16 +22,12 @@ class TestTestimonium(TestCase):
         self.assertFalse(Testimonium._meta.get_field('name').blank)
 
         # not required on forms
-        self.assertTrue(
-            Testimonium._meta.get_field('apparatus_criticus').blank
-        )
         self.assertTrue(Testimonium._meta.get_field('images').blank)
 
     def test_display(self):
         # the __str__ function should show the name
         data = {
             'name': 'name',
-            'apparatus_criticus': 'app_criticus',
         }
         testimonium = Testimonium.objects.create(**data)
         self.assertEqual(

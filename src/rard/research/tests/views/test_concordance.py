@@ -1,9 +1,10 @@
 import pytest
+from django.http.response import Http404
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
 from rard.research.models import (CitingWork, Concordance, Fragment,
-                                  OriginalText)
+                                  OriginalText, Testimonium)
 from rard.research.views import (ConcordanceCreateView, ConcordanceDeleteView,
                                  ConcordanceListView, ConcordanceUpdateView)
 from rard.users.tests.factories import UserFactory
@@ -95,6 +96,30 @@ class TestConcordanceViews(TestCase):
         self.assertEqual(
             response.context_data['original_text'], self.original_text
         )
+
+    def test_create_fails_for_testimonium(self):
+        # create an original text for a testimonium
+        citing_work = CitingWork.objects.create(title='test')
+        testimonium = Testimonium.objects.create(name='name')
+        self.user = UserFactory.create()
+        testimonium.lock(self.user)
+        testimonium_original_text = OriginalText.objects.create(
+            owner=testimonium,
+            citing_work=citing_work,
+        )
+
+        url = reverse(
+            'concordance:create',
+            kwargs={'pk': testimonium_original_text.pk}
+        )
+        request = RequestFactory().get(url)
+        request.user = self.user
+
+        # this should be verboten
+        with self.assertRaises(Http404):
+            ConcordanceCreateView.as_view()(
+                request, pk=testimonium_original_text.pk
+            )
 
     def test_update_context_data(self):
         concordance = Concordance.objects.create(

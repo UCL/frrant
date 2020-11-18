@@ -20,7 +20,7 @@
         <th scope="col">Author Two</th>
       </tr>
     </thead>
-    <tbody>
+    <tbody class='alphabetum'>
       {% for object in page_obj %}
         {% for identifier in object.original_text.concordance_identifiers %}
           <tr>
