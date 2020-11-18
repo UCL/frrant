@@ -17,14 +17,16 @@
                         {% endwith %}                                
                     {% endif %}
 
-                    <i class='fa fa-lock'></i>
-                    Locked for editing by
-                    <b>
-                    {% if object.locked_by == request.user %} you {% else %} {{ object.locked_by }} {% endif %}
-                    </b>
-                    {% if object.locked_until %} until {{ object.locked_until }}{% endif %}
+                    <i class='fa fa-lock'
+                     title="Locked for editing by <b>{% if object.locked_by == request.user %} you {% else %} {{ object.locked_by }}{% endif %}</b> on {{ object.locked_at }}" data-placement="top" data-html='true' data-toggle='tooltip'
+                    ></i>
+
+                    {% if object.locked_until %}
+                     <i class='far fa-clock' title='Locked until {{ object.locked_until }}' data-placement="top" data-html='true' data-toggle='tooltip'></i>
+                   {% endif %}
+
                 {% else %}
-                    Available for editing 
+                    Available
                 {% endif %}
                 </small>
         </div>
@@ -36,7 +38,7 @@
                     <button type='submit' class='btn btn-primary btn-sm' name='unlock'>Finish&nbsp;Editing</button>
                 {% else %}
                     {% if object.is_locked %}
-                        <button type='submit' class='btn btn-warning btn-sm' name='request'>Request Item</button>
+                        <button type='submit' class='btn btn-warning btn-sm' name='request'>Request Lock</button>
                         {% if request.user.can_break_locks %}
                             <button title='You can break this lock'  type='submit' class='btn btn-danger btn-sm' name='break'><i class='fa fa-unlock'></i> Unlock</button>
                         {% endif %}
