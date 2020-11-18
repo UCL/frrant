@@ -38,10 +38,15 @@ $('#id_year_type').trigger('change', true);
 // initialise any checkbox-driven toggle areas on initialising page
 $('.rard-toggle-control input').trigger('change', true);
 
+$('form').click(function(event) {
+    // store the clicked button when submitting forms
+    // for cross-browser determination of the clicked button
+  $(this).data('clicked',$(event.target))
+});
+
 // confirm delete of objects when forms submitted
 $('body').on("submit", "form", function (e) {
-    // get clicked button
-    var $clicked = $(document.activeElement);
+    var $clicked= $(this).data('clicked');
     if ($clicked.hasClass('confirm-delete')) {
         let what = $clicked.data('what') || 'object';
         return confirm("Are you sure you want to delete this " + what + '? This cannot be undone.');
