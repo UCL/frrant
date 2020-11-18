@@ -19,6 +19,7 @@ from rard.research.views.mixins import CanLockMixin, CheckLockMixin
 
 
 class HistoricalBaseCreateView(LoginRequiredMixin, TemplateView):
+
     template_name = 'research/base_create_form.html'
 
     def get_forms(self):

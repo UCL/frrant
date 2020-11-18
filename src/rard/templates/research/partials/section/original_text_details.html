@@ -6,6 +6,9 @@
     <dt class="col-sm-3">{% trans 'Citing Work' %}</dt>
     <dd class="col-sm-9">{{ original_text.citing_work }}</dd>
 
+    <dt class="col-sm-3">{% trans 'Reference' %}</dt>
+    <dd class="col-sm-9">{{ original_text.reference }}</dd>
+
 
     <dt class="col-sm-3">{% trans 'Apparatus Criticus' %}</dt>
     <dd class="col-sm-9">{{ original_text.apparatus_criticus|default:'-'|linebreaks }}</dd>

@@ -119,6 +119,37 @@
     <section>
         <div class='d-flex justify-content-between mb-3'>
             <div>
+                <h5>{% trans 'Commentary' %}</h5>
+            </div>
+            <div>
+                {% if perms.research.change_fragment and has_object_lock %}
+                <a href='{% url "fragment:update_commentary" object.pk %}'>{% trans 'Edit' %}</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class='row'>
+            <div class="col">
+                <p>
+                    {{ object.commentary.content|linebreaks|default:'Not specified' }}
+                </p>
+                {% comment %}
+                <p>
+                    {% if perms.research.view_comment %}
+                    {{ object.commentary.comments.count }} comments
+                    <a href='{% url "list_comments_on_text" object.commentary.pk %}'>view</a>
+                    {% endif %}
+                </p>
+                {% endcomment %}
+            </div>
+        </div>
+    </section>
+
+    <hr>
+
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
                 <h5>{% trans 'Definite Works and Books' %}</h5>
             </div>
             <div>
@@ -214,37 +245,6 @@
     
     </section>
 
-
-    <hr>
-
-    <section>
-        <div class='d-flex justify-content-between mb-3'>
-            <div>
-                <h5>{% trans 'Commentary' %}</h5>
-            </div>
-            <div>
-                {% if perms.research.change_fragment and has_object_lock %}
-                <a href='{% url "fragment:update_commentary" object.pk %}'>{% trans 'Edit' %}</a>
-                {% endif %}
-            </div>
-        </div>
-
-        <div class='row'>
-            <div class="col">
-                <p>
-                    {{ object.commentary.content|linebreaks|default:'Not specified' }}
-                </p>
-                {% comment %}
-                <p>
-                    {% if perms.research.view_comment %}                   
-                    {{ object.commentary.comments.count }} comments
-                    <a href='{% url "list_comments_on_text" object.commentary.pk %}'>view</a>
-                    {% endif %}
-                </p>
-                {% endcomment %}
-            </div>
-        </div>
-    </section>
 
     {% endwith %}
 {% endblock %}

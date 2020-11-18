@@ -1,0 +1,50 @@
+<div>
+    <span class="modal-title">Symbol Picker</span>
+    <button type="button" class="close mb-3" onclick="togglePicker()">
+        <span>&times;</span>
+    </button>
+    
+    <input type="text" id="clipboard_input" class="form-control alphabetum mb-1"
+        placeholder="Your selection will appear here">
+    <button type='button' class='btn btn-sm btn-light' id='copy_to_clipboard'>Copy</button>
+    <button type='button' class='btn btn-sm btn-light' id='clear_copy_to_clipboard'>Clear</button>
+
+    <select class="custom-select dropdown mt-3" id="symbol-palette-select">
+        <option selected value="palette-0">All Symbols</option>
+        {% for group in symbol_groups.all %}
+        <option value="palette-{{ forloop.counter }}">{{ group.name }}</option>
+        {% endfor %}
+    </select>
+
+    <div class='mt-3'>
+
+        {# Create the 'All symbols' group first #}
+
+
+        {# Then the groups #}
+        {% with symbols=all_symbols %}
+        <div class="symbol-palette" id="palette-0">
+            {% for symbol in symbols %}
+            {% with sym=symbol.code sym_name=symbol.get_display_name %}
+            <button data-placement="top" title="{{ sym_name }}" data-html='true' data-toggle='tooltip' type='button'
+                class='btn btn-light btn-sm alphabetum insert' data-code='{{ sym }}'>&#x{{ sym }};</button>
+            {% endwith %}
+            {% endfor %}
+        </div>
+        {% endwith %}
+
+        {% for group in symbol_groups %}
+            {% with symbols=group.symbol_set.all %}
+            <div class="symbol-palette" id="palette-{{ forloop.counter }}">
+                {% for symbol in symbols %}
+                {% with sym=symbol.code sym_name=symbol.get_display_name %}
+                <button data-placement="top" title="{{ sym_name }}" data-html='true' data-toggle='tooltip' type='button'
+                    class='btn btn-light btn-sm alphabetum insert' data-code='{{ sym }}'>&#x{{ sym }};</button>
+                {% endwith %}
+                {% endfor %}
+            </div>
+            {% endwith %}
+        {% endfor %}
+    </div>
+
+</div>

@@ -10,14 +10,15 @@
 {% endblock %}
 
 {% block inner %}
+
     <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
         {% csrf_token %}
         {% for field in form %}
                 {% bootstrap_field field %}
             {% if field.name == 'content' %}
-        <div class='rich-editor' spellcheck="false"  id='id_rich_editor_content' data-for='id_content'>
-        </div>
-            {% else %}
+
+            {% include 'research/partials/rich_text_editor.html' %}
+
             {% endif %}
         {% endfor %}
 
