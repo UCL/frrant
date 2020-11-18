@@ -7,9 +7,7 @@
         <li>
             {% with antiquarian.name as link_text %}
                 {% if perms.research.view_antiquarian %}
-                <a href='{% url "antiquarian:detail" antiquarian.pk %}'>
-                    {{ link_text }} 
-                </a> 
+                <a href='{% url "antiquarian:detail" antiquarian.pk %}'>{{ link_text }}</a> 
                 {% else %}
                     {{ link_text }}
                 {% endif %}
