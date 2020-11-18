@@ -1,9 +1,6 @@
 from django.contrib import admin
-from django.utils.safestring import mark_safe
-
-from .models import Symbol, SymbolGroup
-
 from django.urls import reverse_lazy
+from django.utils.safestring import mark_safe
 
 from .models import Symbol, SymbolGroup
 

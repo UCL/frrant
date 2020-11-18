@@ -101,6 +101,7 @@ class TestFragmentAddWorkLinkView(TestCase):
             FragmentAddWorkLinkView.permission_required
         )
 
+
 class TestFragmentRemoveWorkLinkView(TestCase):
 
     def test_success_url(self):
