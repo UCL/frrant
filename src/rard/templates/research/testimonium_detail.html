@@ -35,9 +35,11 @@
                 <h5>{% trans 'Details' %}</h5>
             </div>
             <div>
+                {% comment %}
                 {% if perms.research.change_testimonium and has_object_lock %}
                 <a href='{% url "testimonium:update" object.pk %}'>{% trans 'Edit' %}</a>
                 {% endif %}
+                {% endcomment %}
             </div>
         </div>
 
@@ -62,12 +64,10 @@
             <dt class="col-sm-3">{% trans 'Original Texts' %}</dt>
             <dd class="col-sm-7">{{ object.original_texts.count }}</dd>
             {% if perms.research.change_testimonium and perms.research.add_originaltext and has_object_lock %}
-            <dd class="col-sm-2">
+            <dd class="col-sm-2 actions">
                 <a style='float:right;' href='{% url "testimonium:create_original_text" object.pk %}'>Add</a></dd>
             </dd>
             {% endif %}
-            <dt class="col-sm-3">{% trans 'Apparatus Criticus' %}</dt>
-            <dd class="col-sm-9">{{ object.apparatus_criticus|default:'-'|linebreaks }}</dd>
         </dl>
 
     </section>
@@ -134,9 +134,11 @@
 
         <div class='row'>
             <div class="col">
-                <p>
+                <div class='alphabetum'>
                     {{ object.commentary.content|linebreaks|default:'Not specified' }}
-                </p>
+
+                </div>
+
                 {% comment %}
                 <p>
                     {% if perms.research.view_comment %}

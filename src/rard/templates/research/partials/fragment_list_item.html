@@ -4,7 +4,7 @@
 
 <div class='rard-list-item d-flex justify-content-between'>
     <div>
-        <li class='d-flex align-items-center'>
+        <li>
             <span>
                 {% with fragment.get_display_name as link_text %}
                     {% if perms.research.view_fragment %}
@@ -13,6 +13,7 @@
                         {{ link_text }}
                     {% endif %}
                 {% endwith %}
+                {% include 'research/partials/render_inline_lock_icon.html' with object=fragment %}
             </span>
             <span>
                 <span class="text-muted ml-2 show-detail collapsed" data-toggle="collapse" data-target="#detail_{{ fragment.pk }}" aria-expanded="false" aria-controls="collapseExample">
