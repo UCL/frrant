@@ -1,0 +1,15 @@
+
+@font-face {
+    font-family: Alphabetum;
+    src: url("/static/fonts/ALPHABETUM_v_12.00.otf") format("opentype");
+}
+
+@font-face {
+    font-family: Alphabetum;
+    src: url("/static/fonts/ExtraSymbols.otf") format("opentype");
+    unicode-range: U+2C41;
+}
+
+.alphabetum {
+    font-family: Alphabetum!important;
+}

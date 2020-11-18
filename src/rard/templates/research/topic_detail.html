@@ -1,4 +1,4 @@
-{% extends "research/base.html" %}
+{% extends "research/detail_base.html" %}
 {% load i18n object_lock %}
 
 {% block heading %}{{ object.name }}{% endblock %}
@@ -34,7 +34,7 @@
                 <h5>{% trans 'Details' %}</h5>
             </div>
             <div>
-                {% if perms.research.edit_topic and has_object_lock %}
+                {% if perms.research.change_topic and has_object_lock %}
                 <a href='{% url "topic:update" object.slug %}'>{% trans 'Edit' %}</a>
                 {% endif %}
             </div>

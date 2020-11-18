@@ -19,6 +19,7 @@ from rard.research.views.mixins import CanLockMixin, CheckLockMixin
 
 
 class HistoricalBaseCreateView(LoginRequiredMixin, TemplateView):
+
     template_name = 'research/base_create_form.html'
 
     def get_forms(self):
@@ -215,7 +216,7 @@ class FragmentRemoveLinkView(CheckLockMixin, LoginRequiredMixin,
         return super().dispatch(request, *args, **kwargs)
 
     # base class for both remove work and remove book from a fragment
-    permission_required = ('research.edit_fragment',)
+    permission_required = ('research.change_fragment',)
 
     def get_success_url(self, *args, **kwargs):
         return reverse(

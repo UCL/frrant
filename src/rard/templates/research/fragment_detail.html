@@ -1,4 +1,4 @@
-{% extends "research/base.html" %}
+{% extends "research/detail_base.html" %}
 {% load i18n humanize object_lock %}
 
 {% block heading %}
@@ -35,9 +35,11 @@
                 <h5>{% trans 'Details' %}</h5>
             </div>
             <div>
+                {% comment %}
                 {% if perms.research.change_fragment and has_object_lock %}
                 <a href='{% url "fragment:update" object.pk %}'>{% trans 'Edit' %}</a>
                 {% endif %}
+                {% endcomment %}
             </div>
         </div>
 
@@ -47,7 +49,7 @@
                 
             {% if object.topics is not None %}
             <dt class="col-sm-3">{% trans 'Topics' %}</dt>
-            <dd class="col-sm-9">
+            <dd class="col-sm-7">
                 {% if object.topics.count == 0%}-{% endif %}
                 {% for topic in object.topics.all %}{% if forloop.counter0 > 0 %}, {% endif %}
                     {% if perms.research.view_topic %}
@@ -57,17 +59,20 @@
                     {% endif %}
                 {% endfor %}
             </dd>
+            <dd class='col-sm-2 actions'>
+                {% if perms.research.change_fragment and has_object_lock %}
+                <a style='float:right;' href='{% url "fragment:update" object.pk %}'>{% trans 'Edit' %}</a>
+                {% endif %}
+            </dd>
             {% endif %}
 
             <dt class="col-sm-3">{% trans 'Original Texts' %}</dt>
             <dd class="col-sm-7">{{ object.original_texts.count }} </dd>
             {% if perms.research.change_fragment and perms.research.add_originaltext and has_object_lock %}
-            <dd class="col-sm-2">
+            <dd class="col-sm-2 actions">
                 <a style='float:right;' href='{% url "fragment:create_original_text" object.pk %}'>Add</a></dd>
             </dd>
             {% endif %}
-            <dt class="col-sm-3">{% trans 'Apparatus Criticus' %}</dt>
-            <dd class="col-sm-9">{{ object.apparatus_criticus|default:'-'|linebreaks }}</dd>
         </dl>
 
     </section>
@@ -102,7 +107,7 @@
             {% include 'research/partials/original_text_preview.html' with original_text=original_text %}
         </div>
 
-        {% include 'research/partials/section/original_text_details.html' with original_text=original_text can_edit=perms.research.change_fragment has_object_lock=has_object_lock %}
+        {% include 'research/partials/section/original_text_details.html' with show_concordances=True original_text=original_text can_edit=perms.research.change_fragment has_object_lock=has_object_lock %}
 
         <div class='mt-3'>
         {% for translation in original_text.translation_set.all %}
@@ -113,6 +118,37 @@
     </section>
 
     {% endfor %}
+
+    <hr>
+
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Commentary' %}</h5>
+            </div>
+            <div>
+                {% if perms.research.change_fragment and has_object_lock %}
+                <a href='{% url "fragment:update_commentary" object.pk %}'>{% trans 'Edit' %}</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class='row'>
+            <div class="col">
+                <div class='alphabetum'>
+                    {{ object.commentary.content|linebreaks|default:'Not specified' }}
+                </div>
+                {% comment %}
+                <p>
+                    {% if perms.research.view_comment %}
+                    {{ object.commentary.comments.count }} comments
+                    <a href='{% url "list_comments_on_text" object.commentary.pk %}'>view</a>
+                    {% endif %}
+                </p>
+                {% endcomment %}
+            </div>
+        </div>
+    </section>
 
     <hr>
 
@@ -214,37 +250,6 @@
     
     </section>
 
-
-    <hr>
-
-    <section>
-        <div class='d-flex justify-content-between mb-3'>
-            <div>
-                <h5>{% trans 'Commentary' %}</h5>
-            </div>
-            <div>
-                {% if perms.research.change_fragment and has_object_lock %}
-                <a href='{% url "fragment:update_commentary" object.pk %}'>{% trans 'Edit' %}</a>
-                {% endif %}
-            </div>
-        </div>
-
-        <div class='row'>
-            <div class="col">
-                <p>
-                    {{ object.commentary.content|linebreaks|default:'Not specified' }}
-                </p>
-                {% comment %}
-                <p>
-                    {% if perms.research.view_comment %}                   
-                    {{ object.commentary.comments.count }} comments
-                    <a href='{% url "list_comments_on_text" object.commentary.pk %}'>view</a>
-                    {% endif %}
-                </p>
-                {% endcomment %}
-            </div>
-        </div>
-    </section>
 
     {% endwith %}
 {% endblock %}

@@ -8,9 +8,7 @@
         <li>
             {% with testimonium.get_display_name as link_text %}
                 {% if perms.research.view_testimonium %}
-                <a href='{% url "testimonium:detail" testimonium.pk %}'>
-                    {{ link_text }}
-                </a> 
+                <a href='{% url "testimonium:detail" testimonium.pk %}'>{{ link_text }}</a> 
                 {% else %}
                     {{ link_text }}
                 {% endif %}

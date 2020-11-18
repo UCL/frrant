@@ -2,5 +2,5 @@
 {# Assumes a context object named 'object' which is a lockable model type #}
 
 {% if object.is_locked %}
-<i class='fa fa-lock fa-xs text-muted' title='Locked by {% if object.locked_by == request.user %}you{% else %}{{ object.locked_by }}{% endif %} on {{ object.locked_at }}{% if object.locked_until %} until {{ object.locked_until }}{% endif %}'></i>
+<i class='fa fa-lock fa-xs text-muted' data-placement="top" data-toggle='tooltip' title='Locked by {% if object.locked_by == request.user %}you{% else %}{{ object.locked_by }}{% endif %} on {{ object.locked_at }}{% if object.locked_until %} until {{ object.locked_until }}{% endif %}'></i>
 {% endif %}

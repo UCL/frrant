@@ -15,7 +15,7 @@ class TestLinkSchemeViews(TestCase):
     def test_post_up_down(self):
 
         a = Antiquarian.objects.create(name='name', re_code='name')
-        fragment = Fragment.objects.create(name='name', apparatus_criticus='a')
+        fragment = Fragment.objects.create(name='name')
         link1 = FragmentLink.objects.create(fragment=fragment, antiquarian=a)
         link2 = FragmentLink.objects.create(fragment=fragment, antiquarian=a)
 

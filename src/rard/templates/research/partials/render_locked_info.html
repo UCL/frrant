@@ -17,14 +17,16 @@
                         {% endwith %}                                
                     {% endif %}
 
-                    <i class='fa fa-lock'></i>
-                    Locked for editing by
-                    <b>
-                    {% if object.locked_by == request.user %} you {% else %} {{ object.locked_by }} {% endif %}
-                    </b>
-                    {% if object.locked_until %} until {{ object.locked_until }}{% endif %}
+                    <i class='fa fa-lock'
+                     title="Locked for editing by <b>{% if object.locked_by == request.user %} you {% else %} {{ object.locked_by }}{% endif %}</b> on {{ object.locked_at }}" data-placement="top" data-html='true' data-toggle='tooltip'
+                    ></i>
+
+                    {% if object.locked_until %}
+                     <i class='far fa-clock' title='Locked until {{ object.locked_until }}' data-placement="top" data-html='true' data-toggle='tooltip'></i>
+                   {% endif %}
+
                 {% else %}
-                    Available for editing 
+                    Available
                 {% endif %}
                 </small>
         </div>

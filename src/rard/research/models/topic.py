@@ -21,5 +21,8 @@ class Topic(LockableModel, BaseModel):
         return reverse('topic:detail', kwargs={'slug': self.slug})
 
     def save(self, *args, **kwargs):
-        self.slug = slugify(self.name)
+        self.slug = slugify(self.name) or self.slug
         super().save(*args, **kwargs)
+        if not self.slug:
+            self.slug = str(self.pk)
+            self.save()

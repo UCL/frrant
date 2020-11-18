@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
 from django.urls import include, path
 from django.views import defaults as default_views
@@ -8,11 +9,14 @@ from django.views import defaults as default_views
 admin.autodiscover()
 admin.site.login = login_required(admin.site.login)
 
-urlpatterns = [
+base_urlpatterns = [
     path("users/", include("rard.users.urls", namespace="users")),
     # Django Admin, use {% url 'admin:index' %}
     path(settings.ADMIN_URL, admin.site.urls),
     # User management
+    path('accounts/password_reset/', auth_views.PasswordResetView.as_view(
+        html_email_template_name='registration/password_reset_email.html'
+    )),
     path("accounts/", include("django.contrib.auth.urls")),
     # research urls
     path("", include("rard.research.urls")),
@@ -22,7 +26,7 @@ urlpatterns = [
 if settings.DEBUG:
     # This allows the error pages to be debugged during development, just visit
     # these url in browser to see how these error pages look like.
-    urlpatterns += [
+    base_urlpatterns += [
         path(
             "400/",
             default_views.bad_request,
@@ -43,6 +47,13 @@ if settings.DEBUG:
     if "debug_toolbar" in settings.INSTALLED_APPS:
         import debug_toolbar
 
-        urlpatterns = [
+        base_urlpatterns = [
             path("__debug__/", include(debug_toolbar.urls))
-        ] + urlpatterns
+        ] + base_urlpatterns
+
+prefix = getattr(settings, 'URL_PREFIX', None)
+
+
+urlpatterns = [
+    path('{}'.format(prefix), include((base_urlpatterns)))
+]

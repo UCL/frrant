@@ -15,7 +15,7 @@
 {% block inner %}
 
     <p>
-        {% if search_term %}Results for '{{ search_term }}'{% endif %}
+        {% if search_term %}Results for '<span class='alphabetum'>{{ search_term }}</span>'{% endif %}
         {% if to_search %}
           in {{ to_search|join:', ' }}
         {% endif %}
@@ -24,7 +24,7 @@
     <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form mb-5" method='GET'>
         <div class="form-row align-items-center">
             <div class="col-sm-7 my-1">
-                <input type="text" class="form-control" name='q' placeholder="Enter search terms">
+                <input type="text" class="form-control alphabetum" name='q' placeholder="Enter search terms">
             </div>
             <div class="col-sm-3 my-1">
                 <select class="form-control" name='what'>

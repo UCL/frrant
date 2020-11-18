@@ -1,4 +1,4 @@
-{# Assumes context objects named 'original_text', 'can_edit' and 'has_object_lock' #}
+{# Assumes context objects named 'original_text', 'can_edit' and 'has_object_lock' and 'show_concordances' #}
 
 {% load i18n %}
 
@@ -6,45 +6,52 @@
     <dt class="col-sm-3">{% trans 'Citing Work' %}</dt>
     <dd class="col-sm-9">{{ original_text.citing_work }}</dd>
 
+    <dt class="col-sm-3">{% trans 'Reference' %}</dt>
+    <dd class="col-sm-9">{{ original_text.reference }}</dd>
+
 
     <dt class="col-sm-3">{% trans 'Apparatus Criticus' %}</dt>
     <dd class="col-sm-9">{{ original_text.apparatus_criticus|default:'-'|linebreaks }}</dd>
 
-    <dt class="col-sm-3">{% trans 'Concordances' %}</dt>
-    <dd class="col-sm-7">
-        {% if original_text.concordance_set.count == 0 %}
-            None
-        {% endif %}
-        {% for concordance in original_text.concordance_set.all %}
-            <div class='d-flex justify-content-between mb-3'>
-            <div>{{ concordance.source }}:{{ concordance.identifier }}</div>
-            <div>
-                {% if can_edit and has_object_lock %}
-                <form novalidate class='form-inline' action='{% url "concordance:delete" concordance.pk %}' method='POST'>
-                    {% csrf_token %}
-                    <div class='form-row align-items-center'>
-                        {% if perms.research.change_concordance %}
-                        <a href='{% url "concordance:update" concordance.pk %}'>Edit</a>
-                        {% endif %}
-                        {% if perms.research.delete_concordance %}
-                        <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
-                            data-what='concordance'>{% trans 'Delete' %}</button>
-                        {% endif %}
-                    </div>
-                </form>
-                {% endif %}
+    {% if show_concordances %}
+
+        <dt class="col-sm-3">{% trans 'Concordances' %}</dt>
+        <dd class="col-sm-7">
+            {% if original_text.concordance_set.count == 0 %}
+                None
+            {% endif %}
+            {% for concordance in original_text.concordance_set.all %}
+                <div class='d-flex justify-content-between mb-3'>
+                <div>{{ concordance.source }}:{{ concordance.identifier }}</div>
+                <div>
+                    {% if can_edit and has_object_lock %}
+                    <form novalidate class='form-inline' action='{% url "concordance:delete" concordance.pk %}' method='POST'>
+                        {% csrf_token %}
+                        <div class='form-row align-items-center'>
+                            {% if perms.research.change_concordance %}
+                            <a href='{% url "concordance:update" concordance.pk %}'>Edit</a>
+                            {% endif %}
+                            {% if perms.research.delete_concordance %}
+                            <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+                                data-what='concordance'>{% trans 'Delete' %}</button>
+                            {% endif %}
+                        </div>
+                    </form>
+                    {% endif %}
+                </div>
             </div>
-        </div>
-        {% endfor %}
-    </dd>
-    {% if can_edit and has_object_lock and perms.research.add_concordance %}
-    <dd class="col-sm-2"><a style='float:right' href='{% url "concordance:create" original_text.pk %}'>Add</a></dd>
+            {% endfor %}
+        </dd>
+        {% if can_edit and has_object_lock and perms.research.add_concordance %}
+        <dd class="col-sm-2 actions"><a style='float:right' href='{% url "concordance:create" original_text.pk %}'>Add</a></dd>
+        {% endif %}
+
     {% endif %}
 
     <dt class="col-sm-3">{% trans 'Translations' %}</dt>
     <dd class="col-sm-7">{{ original_text.translation_set.count|default:'None' }}</dd>
     {% if can_edit and has_object_lock and perms.research.add_translation %}
-    <dd class="col-sm-2">
+    <dd class="col-sm-2 actions">
     <a style='float:right' href='{% url "fragment:create_translation" original_text.pk %}'>{% trans 'Add' %}</a>
     </dd>
     {% endif %}

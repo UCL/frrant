@@ -157,7 +157,6 @@ class TestWork(TestCase):
         for i in range(0, 10):
             data = {
                 'name': 'name{}'.format(i),
-                'apparatus_criticus': 'app_criticus',
             }
             Fragment.objects.create(**data)
 
@@ -231,7 +230,6 @@ class TestWork(TestCase):
         for i in range(0, 10):
             data = {
                 'name': 'name{}'.format(i),
-                'apparatus_criticus': 'app_criticus',
             }
             Testimonium.objects.create(**data)
 
