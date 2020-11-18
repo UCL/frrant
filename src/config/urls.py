@@ -9,7 +9,7 @@ from django.views import defaults as default_views
 admin.autodiscover()
 admin.site.login = login_required(admin.site.login)
 
-urlpatterns = [
+base_urlpatterns = [
     path("users/", include("rard.users.urls", namespace="users")),
     # Django Admin, use {% url 'admin:index' %}
     path(settings.ADMIN_URL, admin.site.urls),
@@ -26,7 +26,7 @@ urlpatterns = [
 if settings.DEBUG:
     # This allows the error pages to be debugged during development, just visit
     # these url in browser to see how these error pages look like.
-    urlpatterns += [
+    base_urlpatterns += [
         path(
             "400/",
             default_views.bad_request,
@@ -47,6 +47,13 @@ if settings.DEBUG:
     if "debug_toolbar" in settings.INSTALLED_APPS:
         import debug_toolbar
 
-        urlpatterns = [
+        base_urlpatterns = [
             path("__debug__/", include(debug_toolbar.urls))
-        ] + urlpatterns
+        ] + base_urlpatterns
+
+prefix = getattr(settings, 'URL_PREFIX', None)
+
+
+urlpatterns = [
+    path('{}'.format(prefix), include((base_urlpatterns)))
+]
