@@ -3,6 +3,13 @@ from django.utils.safestring import mark_safe
 
 from .models import Symbol, SymbolGroup
 
+from django.urls import reverse_lazy
+
+from .models import Symbol, SymbolGroup
+
+# set the 'view site' linl in the admin
+admin.site.site_url = reverse_lazy('home')
+
 
 @admin.register(Symbol)
 class SymbolAdmin(admin.ModelAdmin):

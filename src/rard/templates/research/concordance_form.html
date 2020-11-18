@@ -10,7 +10,12 @@
 {% endblock %}
 
 {% block inner %}
-    <p>For original text {{ original_text.pk }}</p>
+    <label>For original text:</label>
+
+        <div>
+            {% include 'research/partials/original_text_preview.html' with original_text=original_text %}
+        </div>
+
     <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
         {% csrf_token %}
         {% bootstrap_form form %}

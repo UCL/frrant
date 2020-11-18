@@ -1,4 +1,4 @@
-{% extends "research/base.html" %}
+{% extends "research/detail_base.html" %}
 {% load i18n humanize object_lock %}
 
 {% block heading %}
@@ -102,7 +102,7 @@
             {% include 'research/partials/original_text_preview.html' with original_text=original_text %}
         </div>
 
-        {% include 'research/partials/section/original_text_details.html' with original_text=original_text can_edit=perms.research.change_fragment has_object_lock=has_object_lock %}
+        {% include 'research/partials/section/original_text_details.html' with show_concordances=True original_text=original_text can_edit=perms.research.change_fragment has_object_lock=has_object_lock %}
 
         <div class='mt-3'>
         {% for translation in original_text.translation_set.all %}

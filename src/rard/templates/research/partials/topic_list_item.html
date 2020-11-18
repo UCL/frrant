@@ -7,9 +7,7 @@
         <li>
             {% with topic.name as link_text %}
                 {% if perms.research.view_topic %}
-                <a href='{% url "topic:detail" topic.slug %}'>
-                    {{ link_text }} 
-                </a> 
+                <a href='{% url "topic:detail" topic.slug %}'>{{ link_text }}</a> 
                 {% else %}
                     {{ link_text }} 
                 {% endif %}

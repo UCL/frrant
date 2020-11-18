@@ -1,12 +1,13 @@
 from django.contrib.auth.mixins import (LoginRequiredMixin,
                                         PermissionRequiredMixin)
+from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
 from django.views.generic import ListView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
-from rard.research.models import Concordance, OriginalText
+from rard.research.models import Concordance, Fragment, OriginalText
 from rard.research.views.mixins import CheckLockMixin
 
 
@@ -31,6 +32,9 @@ class ConcordanceCreateView(CheckLockMixin, LoginRequiredMixin,
         # need to ensure we have the lock object view attribute
         # initialised in dispatch
         self.top_level_object = self.get_original_text().owner
+        if not isinstance(self.get_original_text().owner, Fragment):
+            raise Http404
+
         return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self, *args, **kwargs):

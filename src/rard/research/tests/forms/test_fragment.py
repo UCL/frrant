@@ -14,7 +14,7 @@ class TestFragmentForm(TestCase):
 
         a = Antiquarian.objects.create(name='namea', re_code='namea')
         b = Antiquarian.objects.create(name='nameb', re_code='nameb')
-        fragment = Fragment.objects.create(name='name', apparatus_criticus='a')
+        fragment = Fragment.objects.create(name='name')
 
         data = {
             'definite_antiquarians': (a.pk,),

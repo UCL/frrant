@@ -161,7 +161,7 @@ class TestimoniumRemoveLinkView(CheckLockMixin, LoginRequiredMixin,
         return super().dispatch(request, *args, **kwargs)
 
     # base class for both remove work and remove book from a testimonium
-    permission_required = ('research.edit_testimonium',)
+    permission_required = ('research.change_testimonium',)
 
     def get_success_url(self, *args, **kwargs):
         return reverse(

@@ -15,7 +15,6 @@ class TestFragment(TestCase):
         # can create with a name only
         data = {
             'name': 'name',
-            'apparatus_criticus': 'app_criticus',
         }
         fragment = Fragment.objects.create(**data)
         self.assertEqual(fragment.name, data['name'])
@@ -25,7 +24,6 @@ class TestFragment(TestCase):
         self.assertFalse(Fragment._meta.get_field('name').blank)
 
         # not required on forms
-        self.assertTrue(Fragment._meta.get_field('apparatus_criticus').blank)
         self.assertTrue(Fragment._meta.get_field('images').blank)
         self.assertTrue(Fragment._meta.get_field('topics').blank)
 
@@ -33,7 +31,6 @@ class TestFragment(TestCase):
         # the __str__ function should show the name
         data = {
             'name': 'name',
-            'apparatus_criticus': 'app_criticus',
         }
         fragment = Fragment.objects.create(**data)
         self.assertEqual(str(fragment), 'Fragment {}'.format(fragment.pk))
@@ -74,7 +71,6 @@ class TestFragment(TestCase):
         citing_work = CitingWork.objects.create(title='title')
         data = {
             'content': 'content',
-            'apparatus_criticus': 'apparatus_criticus',
             'citing_work': citing_work,
         }
         OriginalText.objects.create(**data, owner=fragment)
@@ -86,7 +82,6 @@ class TestFragment(TestCase):
         citing_work = CitingWork.objects.create(title='title')
         data = {
             'content': 'content',
-            'apparatus_criticus': 'apparatus_criticus',
             'citing_work': citing_work,
         }
         OriginalText.objects.create(**data, owner=fragment)

@@ -290,8 +290,6 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
 
     name = models.CharField(max_length=128, blank=False)
 
-    apparatus_criticus = models.TextField(default='', blank=True)
-
     commentary = models.OneToOneField(
         'TextObjectField', on_delete=models.SET_NULL, null=True,
         related_name="commentary_for_%(class)s",

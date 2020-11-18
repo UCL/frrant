@@ -100,6 +100,12 @@ class TestTestimoniumAddWorkLinkView(TestCase):
                 request, pk=testimonium.pk
             )
 
+    def test_permission_required(self):
+        self.assertIn(
+            'research.change_testimonium',
+            TestimoniumAddWorkLinkView.permission_required
+        )
+
 
 class TestTestimoniumRemoveWorkLinkView(TestCase):
 
@@ -136,3 +142,9 @@ class TestTestimoniumRemoveWorkLinkView(TestCase):
             request, pk=testimonium.pk, linked_pk=work.pk
         )
         self.assertEqual(TestimoniumLink.objects.count(), 0)
+
+    def test_permission_required(self):
+        self.assertIn(
+            'research.change_testimonium',
+            TestimoniumRemoveWorkLinkView.permission_required
+        )
