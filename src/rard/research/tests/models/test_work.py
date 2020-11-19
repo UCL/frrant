@@ -21,6 +21,61 @@ class TestWork(TestCase):
         for key, val in data.items():
             self.assertEqual(getattr(work, key), val)
 
+    def test_ordering(self):
+        # ordering should be wrt to the authors of the work
+        anta = Antiquarian.objects.create(name='AAA', re_code='aaa')
+        antb = Antiquarian.objects.create(name='BBB', re_code='bbb')
+        antc = Antiquarian.objects.create(name='CCC', re_code='ccc')
+
+        worka = Work.objects.create(name='aaa')
+        workb = Work.objects.create(name='bbb')
+        workc = Work.objects.create(name='ccc')
+
+        # 1. check anonymous ordering
+        self.assertEqual(
+            [w for w in Work.objects.all()],
+            [worka, workb, workc]
+        )
+
+        antc.works.add(workc)
+        # this should now be first with anon works to the end
+        self.assertEqual(
+            [w for w in Work.objects.all()],
+            [workc, worka, workb]
+        )
+
+        # the name of the antiquarian should push the work up the order
+        anta.works.add(workb)
+        self.assertEqual(
+            [w for w in Work.objects.all()],
+            [workb, workc, worka]
+        )
+        # even if we also add antc as an author of that work, as the name of
+        # antiquarian anta should govern the order
+        antc.works.add(workb)
+        self.assertEqual(
+            [w for w in Work.objects.all()],
+            [workb, workc, worka]
+        )
+
+        # now, put worka as a work of anta and this should be first in the
+        # list as the name of the antiquarian and then the work should be
+        # ahead of the others
+        anta.works.add(worka)
+        self.assertEqual(
+            [w for w in Work.objects.all()],
+            [worka, workb, workc]
+        )
+
+        # final test - antiquarian name takes precedence
+        anta.works.set([workc])
+        antb.works.set([workb])
+        antc.works.set([worka])
+        self.assertEqual(
+            [w for w in Work.objects.all()],
+            [workc, workb, worka]
+        )
+
     def test_required_fields(self):
         self.assertFalse(Work._meta.get_field('name').blank)
         self.assertTrue(Work._meta.get_field('subtitle').blank)
