@@ -32,7 +32,7 @@ class TestWork(TestCase):
             'subtitle': 'Subtitle',
         }
         work = Work.objects.create(**data)
-        self.assertEqual(str(work), '%s: Anonymous' % data['name'])
+        self.assertEqual(str(work), 'Anonymous: %s' % data['name'])
 
     def test_display(self):
         # the __str__ function should show the name
@@ -46,16 +46,17 @@ class TestWork(TestCase):
         )
         antiquarian1.works.add(work)
         self.assertEqual(
-            str(work), '%s: %s' % (data['name'], antiquarian1.name)
+            str(work), '%s: %s' % (antiquarian1.name, data['name'])
         )
+        # now test mutiple antiquarians
         antiquarian2 = Antiquarian.objects.create(
             name='Joe Bloggs', re_code='blogre002'
         )
         antiquarian2.works.add(work)
         self.assertEqual(
-            str(work), '%s: %s, %s' % (
-                data['name'],
+            str(work), '%s, %s: %s' % (
                 antiquarian2.name, antiquarian1.name,
+                data['name'],
             )
         )
 
