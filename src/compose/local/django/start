@@ -6,6 +6,8 @@ set -o nounset
 
 
 python manage.py migrate
+python manage.py loaddata /app/compose/local/django/site.json
+
 python manage.py loaddata compose/local/django/superuser.json
 python manage.py loaddata compose/local/django/symbols.json
 
