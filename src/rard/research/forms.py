@@ -78,7 +78,8 @@ class AntiquarianForm(DatedModelFormBase):
         if commit:
             instance.save()
             # introduction will have been created at this point
-            instance.introduction.content = self.cleaned_data['introduction_text']
+            instance.introduction.content = \
+                self.cleaned_data['introduction_text']
             instance.introduction.save()
         return instance
 

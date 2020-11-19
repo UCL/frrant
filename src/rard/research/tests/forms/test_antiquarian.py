@@ -15,7 +15,10 @@ class TestAntiquarianForm(TestCase):
 
     def test_introduction_form_label(self):
         form = AntiquarianForm()
-        self.assertEqual(form.fields['introduction_text'].label, 'Introduction')
+        self.assertEqual(
+            form.fields['introduction_text'].label,
+            'Introduction'
+        )
 
     def test_re_code_label(self):
         form = AntiquarianForm()
@@ -46,7 +49,10 @@ class TestAntiquarianForm(TestCase):
 
         self.assertEqual(antiquarian.name, data['name'])
         self.assertEqual(antiquarian.re_code, data['re_code'])
-        self.assertEqual(antiquarian.introduction.content, data['introduction_text'])
+        self.assertEqual(
+            antiquarian.introduction.content,
+            data['introduction_text']
+        )
 
     def test_date_range_saves(self):
         data = {
