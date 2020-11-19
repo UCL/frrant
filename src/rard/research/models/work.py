@@ -4,10 +4,23 @@ from django.urls import reverse
 from rard.utils.basemodel import BaseModel, DatedModel, LockableModel
 
 
+class WorkManager(models.Manager):
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        # mark up the queryset with the lowest author name and then
+        # order by that
+        return qs.annotate(
+            authors=models.Min('antiquarian__name')
+        ).order_by('authors')
+
+
 class Work(DatedModel, LockableModel, BaseModel):
 
     class Meta:
-        ordering = ['antiquarian__name', 'name']
+        ordering = ['name']
+
+    objects = WorkManager()
 
     name = models.CharField(max_length=128, blank=False)
 
@@ -17,7 +30,7 @@ class Work(DatedModel, LockableModel, BaseModel):
 
     def __str__(self):
         author_str = ', '.join([a.name for a in self.antiquarian_set.all()])
-        return '{}: {}'.format(self.name, author_str or 'Anonymous')
+        return '{}: {}'.format(author_str or 'Anonymous', self.name)
 
     def get_absolute_url(self):
         return reverse('work:detail', kwargs={'pk': self.pk})
