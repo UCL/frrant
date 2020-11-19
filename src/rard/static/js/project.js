@@ -66,6 +66,8 @@ $('body').on("submit", "form", function (e) {
         var for_id = $(this).data('for');
         var html = $(this).trumbowyg('html');
         $(`#${for_id}`).html(html);
+        console.log('set the content of '+for_id+' to:');
+        console.log(html)
     })
 });
 
