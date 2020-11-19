@@ -5,7 +5,7 @@ from django.urls import reverse
 from rard.research.models import CitingWork, Fragment
 from rard.research.views import (FragmentCreateView, FragmentDeleteView,
                                  FragmentDetailView, FragmentListView,
-                                 FragmentUpdateView)
+                                 FragmentUpdateTopicsView)
 from rard.users.tests.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
@@ -116,7 +116,7 @@ class TestFragmentSuccessUrls(TestCase):
         )
 
     def test_update_success_url(self):
-        view = FragmentUpdateView()
+        view = FragmentUpdateTopicsView()
         request = RequestFactory().get("/")
         request.user = UserFactory.create()
 
@@ -155,7 +155,7 @@ class TestFragmentViewPermissions(TestCase):
         )
         self.assertIn(
             'research.change_fragment',
-            FragmentUpdateView.permission_required
+            FragmentUpdateTopicsView.permission_required
         )
         self.assertIn(
             'research.delete_fragment',
