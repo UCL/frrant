@@ -7,7 +7,7 @@ from rard.utils.basemodel import BaseModel, DatedModel, LockableModel
 class Work(DatedModel, LockableModel, BaseModel):
 
     class Meta:
-        ordering = ['name']
+        ordering = ['antiquarian__name', 'name']
 
     name = models.CharField(max_length=128, blank=False)
 
