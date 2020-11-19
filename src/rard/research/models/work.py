@@ -9,10 +9,10 @@ class WorkManager(models.Manager):
     def get_queryset(self):
         qs = super().get_queryset()
         # mark up the queryset with the lowest author name and then
-        # order by that
+        # order by that followed by name
         return qs.annotate(
             authors=models.Min('antiquarian__name')
-        ).order_by('authors')
+        ).order_by('authors', 'name')
 
 
 class Work(DatedModel, LockableModel, BaseModel):
