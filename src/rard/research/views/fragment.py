@@ -12,7 +12,8 @@ from django.views.generic.edit import DeleteView, UpdateView
 
 from rard.research.forms import (CitingWorkForm, FragmentAntiquariansForm,
                                  FragmentCommentaryForm, FragmentForm,
-                                 FragmentLinkWorkForm, OriginalTextForm)
+                                 FragmentLinkWorkForm, FragmentTopicsForm,
+                                 OriginalTextForm)
 from rard.research.models import Book, Fragment, Work
 from rard.research.models.base import FragmentLink
 from rard.research.views.mixins import CanLockMixin, CheckLockMixin
@@ -106,17 +107,18 @@ class FragmentDeleteView(CheckLockMixin, LoginRequiredMixin,
     permission_required = ('research.delete_fragment',)
 
 
-class FragmentUpdateView(CheckLockMixin, LoginRequiredMixin,
-                         PermissionRequiredMixin, UpdateView):
+class FragmentUpdateTopicsView(CheckLockMixin, LoginRequiredMixin,
+                               PermissionRequiredMixin, UpdateView):
     model = Fragment
-    form_class = FragmentForm
+    form_class = FragmentTopicsForm
     permission_required = ('research.change_fragment',)
 
     def get_success_url(self, *args, **kwargs):
         return reverse('fragment:detail', kwargs={'pk': self.object.pk})
 
 
-class FragmentUpdateAntiquariansView(FragmentUpdateView):
+class FragmentUpdateAntiquariansView(CheckLockMixin, LoginRequiredMixin,
+                                     PermissionRequiredMixin, UpdateView):
     model = Fragment
     form_class = FragmentAntiquariansForm
     permission_required = ('research.change_fragment',)
@@ -124,7 +126,8 @@ class FragmentUpdateAntiquariansView(FragmentUpdateView):
     template_name = 'research/fragment_antiquarians_form.html'
 
 
-class FragmentUpdateCommentaryView(FragmentUpdateView):
+class FragmentUpdateCommentaryView(CheckLockMixin, LoginRequiredMixin,
+                                   PermissionRequiredMixin, UpdateView):
     model = Fragment
     form_class = FragmentCommentaryForm
     permission_required = ('research.change_fragment',)

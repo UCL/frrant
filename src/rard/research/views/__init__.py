@@ -10,7 +10,7 @@ from .fragment import (FragmentAddWorkLinkView, FragmentCreateView,
                        FragmentListView, FragmentRemoveBookLinkView,
                        FragmentRemoveWorkLinkView,
                        FragmentUpdateAntiquariansView,
-                       FragmentUpdateCommentaryView, FragmentUpdateView)
+                       FragmentUpdateCommentaryView, FragmentUpdateTopicsView)
 from .home import HomeView
 from .original_text import (FragmentOriginalTextCreateView,
                             OriginalTextDeleteView, OriginalTextUpdateView,
@@ -56,7 +56,7 @@ __all__ = [
     'FragmentOriginalTextCreateView',
     'FragmentRemoveWorkLinkView',
     'FragmentRemoveBookLinkView',
-    'FragmentUpdateView',
+    'FragmentUpdateTopicsView',
     'FragmentUpdateAntiquariansView',
     'HomeView',
     'OriginalTextDeleteView',

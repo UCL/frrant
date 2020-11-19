@@ -316,6 +316,14 @@ class FragmentForm(HistoricalFormBase):
         widgets = {'topics': forms.CheckboxSelectMultiple}
 
 
+class FragmentTopicsForm(forms.ModelForm):
+
+    class Meta:
+        model = Fragment
+        fields = ('topics',)
+        widgets = {'topics': forms.CheckboxSelectMultiple}
+
+
 class TestimoniumForm(HistoricalFormBase):
 
     class Meta:

@@ -40,7 +40,7 @@ urlpatterns = [
     path('fragment/', include(([
         path('list/', views.FragmentListView.as_view(), name='list'),
         path("create/", views.FragmentCreateView.as_view(), name="create"),
-        path("<pk>/update/", views.FragmentUpdateView.as_view(), name="update"),
+        path("<pk>/update/topics/", views.FragmentUpdateTopicsView.as_view(), name="update"),
         path("<pk>/update/commentary/", views.FragmentUpdateCommentaryView.as_view(), name="update_commentary"),
         path("<pk>/update/antiquarians/", views.FragmentUpdateAntiquariansView.as_view(), name="update_antiquarians"),
         path("<pk>/link-work/", views.FragmentAddWorkLinkView.as_view(), name="add_work_link"),
