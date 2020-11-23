@@ -1,0 +1,32 @@
+{% extends "research/list_base.html" %}
+{% load i18n %}
+
+{% block heading %}
+    {% trans 'Bibliography' %}
+{% endblock %}
+
+{% block action %}
+
+{% endblock %}
+
+{% block inner %}
+    {% for item in page_obj %}
+
+
+    <div class='rard-list-item d-flex justify-content-between'>
+        <div>
+            <li>
+                {{ item.author_name }}: {{ item.content }}
+            </li>
+        </div>
+        <div class='rard-list-item-actions actions'>
+            
+            <a href='{{ item.parent.get_absolute_url }}'>View Related Item</a>
+        </div>
+    </div>
+
+    {% endfor %}
+
+    {{ block.super }}
+
+{% endblock %}

@@ -7,6 +7,9 @@ from rard.utils.basemodel import BaseModel
 
 class BibliographyItem(BaseModel):
 
+    class Meta:
+        ordering = ['author_name']
+
     # allow these to point at different object types
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
 
@@ -14,9 +17,6 @@ class BibliographyItem(BaseModel):
 
     parent = GenericForeignKey()
 
-    # the author, name and page of the named book or resource
-    author = models.CharField(max_length=128, blank=False)
+    author_name = models.CharField(max_length=128, blank=False)
 
-    title = models.CharField(max_length=128, blank=False)
-
-    page = models.CharField(max_length=128, blank=False)
+    content = models.TextField(default='', blank=False)
