@@ -63,21 +63,3 @@ class Translation(BaseModel):
                 pk=self.pk
             ).update(approved=False)
         super().save(*args, **kwargs)
-
-
-class CitingWork(BaseModel):
-
-    # allow blank name as may be anonymous
-    author = models.CharField(max_length=256, blank=True)
-
-    title = models.CharField(max_length=256, blank=False)
-
-    edition = models.CharField(max_length=128, blank=True)
-
-    def __str__(self):
-        tokens = [
-            self.author if self.author else _('Anonymous'),
-            self.title,
-            self.edition
-        ]
-        return ', '.join([t for t in tokens if t])
