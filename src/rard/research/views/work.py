@@ -21,8 +21,8 @@ class WorkListView(DateOrderMixin, LoginRequiredMixin, PermissionRequiredMixin,
     permission_required = ('research.view_work',)
 
 
-class WorkDetailView(
-        CanLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DetailView):
+class WorkDetailView(CanLockMixin, LoginRequiredMixin,
+                     PermissionRequiredMixin, DetailView):
     model = Work
     permission_required = ('research.view_work',)
 
@@ -129,8 +129,7 @@ class BookUpdateView(CheckLockMixin, LoginRequiredMixin,
 
 
 @method_decorator(require_POST, name='dispatch')
-class BookDeleteView(
-        LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+class BookDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     model = Book
     permission_required = (
         'research.change_work', 'research.delete_book',
