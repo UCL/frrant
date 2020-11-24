@@ -18,7 +18,7 @@ class BibliographyItem(BaseModel):
     parent = GenericForeignKey()
 
     # string containing names of authors
-    # e.g. Smith P, Jones M 
+    # e.g. Smith P, Jones M
     # ordering will be done on this field
     authors = models.CharField(max_length=512, blank=True)
 
