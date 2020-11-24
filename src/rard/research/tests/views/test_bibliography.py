@@ -205,3 +205,71 @@ class TestAntiquarianBibliographyCreateView(TestCase):
         self.assertEqual(
             antiquarian.bibliography_items.count(), 0
         )
+
+    def test_surname_ordering(self):
+        antiquarian = Antiquarian.objects.create()
+        data = [
+            {
+                'pk': 1,
+                'content': 'foo',
+                'authors': 'aaa This should be Last',
+                'author_surnames': 'zzz'
+            },
+            {
+                'pk': 2,
+                'content': 'bar',
+                'authors': 'zzz This should be First',
+                'author_surnames': 'aaa'
+            },
+            {
+                'pk': 3,
+                'content': 'bar',
+                'authors': 'zzz This should be in the middle',
+                'author_surnames': 'ggg'
+            }
+        ]
+        for d in data:
+            BibliographyItem.objects.create(**d, parent=antiquarian)
+
+        self.assertEqual(
+            [2, 3, 1],
+            [x.pk for x in BibliographyItem.objects.all()]
+        )
+
+    def test_year_ordering(self):
+        antiquarian = Antiquarian.objects.create()
+        year_data = [
+            {
+                'pk': 1,
+                'year': '-10',
+            },
+            {
+                'pk': 2,
+                'year': '-40',
+            },
+            {
+                'pk': 3,
+                'year': '20',
+            },
+            {
+                'pk': 4,
+                'year': '-111',
+
+            }
+        ]
+        # keep other fields the same so we can be sure we order by year
+        # if everything else the same
+        common_data = {
+            'content': 'hello',
+            'authors': 'author name',
+            'author_surnames': 'author'
+        }
+        for d in year_data:
+            BibliographyItem.objects.create(
+                **d, **common_data, parent=antiquarian
+            )
+
+        self.assertEqual(
+            [4, 2, 1, 3],
+            [x.pk for x in BibliographyItem.objects.all()]
+        )

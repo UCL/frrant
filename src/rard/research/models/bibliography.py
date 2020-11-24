@@ -8,7 +8,7 @@ from rard.utils.basemodel import BaseModel
 class BibliographyItem(BaseModel):
 
     class Meta:
-        ordering = ['author_surnames']
+        ordering = ['author_surnames', 'year']
 
     # allow these to point at different object types
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
