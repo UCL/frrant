@@ -161,13 +161,11 @@
                 {% endif %}
             </div>
         </div>
-        <ul class='pl-3'>
         {% for item in object.bibliography_items.all %}
 
         {% include 'research/partials/bibliography_list_item.html' with can_edit=perms.research.change_antiquarian has_object_lock=has_object_lock %}
 
         {% endfor %}
-        </ul>
     </section>
 
     {% endwith %}

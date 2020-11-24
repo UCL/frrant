@@ -13,11 +13,14 @@
     <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
         {% csrf_token %}
 
-            {% bootstrap_field form.authors %}
-            {% bootstrap_field form.content %}
-            {% with field=form.content %}
+            {% for field in form %}
+            {% bootstrap_field field %}
+
+            {% if field.name == 'content' %}
             {% include 'research/partials/rich_text_editor.html' %}
-            {% endwith %}
+            {% endif %}
+                        
+            {% endfor %}
 
         <button type="submit" class="btn btn-primary">
             {% if object %}

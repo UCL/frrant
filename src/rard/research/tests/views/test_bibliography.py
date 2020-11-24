@@ -20,6 +20,7 @@ class TestBibliographyViews(TestCase):
         antiquarian = Antiquarian.objects.create(name='bob')
         bibitem = BibliographyItem.objects.create(
             authors='author name',
+            author_surnames='author',
             content='foo',
             parent=antiquarian
         )
@@ -41,6 +42,7 @@ class TestBibliographyUpdateView(TestCase):
         antiquarian = Antiquarian.objects.create(name='bob')
         bibitem = BibliographyItem.objects.create(
             authors='author name',
+            author_surnames='author',
             content='foo',
             parent=antiquarian
         )
@@ -65,6 +67,7 @@ class TestBibliographyDeleteView(TestCase):
         antiquarian = Antiquarian.objects.create(name='bob')
         bibitem = BibliographyItem.objects.create(
             authors='author name',
+            author_surnames='author',
             content='foo',
             parent=antiquarian
         )
@@ -84,6 +87,7 @@ class TestBibliographyDeleteView(TestCase):
         antiquarian = Antiquarian.objects.create(name='bob')
         bibitem = BibliographyItem.objects.create(
             authors='author name',
+            author_surnames='author',
             content='foo',
             parent=antiquarian
         )
@@ -152,7 +156,11 @@ class TestAntiquarianBibliographyCreateView(TestCase):
     def test_create(self):
 
         antiquarian = Antiquarian.objects.create()
-        data = {'authors': 'name', 'content': 'bib content'}
+        data = {
+            'authors': 'name',
+            'author_surnames': 'name',
+            'content': 'bib content'
+        }
         url = reverse(
             'antiquarian:create_bibliography',
             kwargs={'pk': antiquarian.pk}
@@ -169,6 +177,7 @@ class TestAntiquarianBibliographyCreateView(TestCase):
         AntiquarianBibliographyCreateView.as_view()(
             request, pk=antiquarian.pk
         )
+
         self.assertEqual(
             antiquarian.bibliography_items.count(), 1
         )

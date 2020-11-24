@@ -12,17 +12,15 @@
 {% block inner %}
     {% for item in page_obj %}
 
+    <div class='rard-list-item'>
+        <div class='row'>
 
-    <div class='rard-list-item py-0 d-flex justify-content-between'>
-        <div>
-            <li class='d-flex justify-content-between'>
-                <div class='mr-2'>{{ item.authors }}:</div>
-                <div>{{ item.content|safe }}</div>
-            </li>
-        </div>
-        <div class='rard-list-item-actions actions'>
-            
-            <a href='{{ item.parent.get_absolute_url }}'>View Related Item</a>
+            <div class="col-sm-3">{{ item.authors }}</div>
+            <div class="col-sm-7">{{ item.content|safe }}</div>
+            <div class="col-sm-2 actions">
+            <a href='{{ item.parent.get_absolute_url }}'>Cited Here</a>
+
+            </div>
         </div>
     </div>
 
