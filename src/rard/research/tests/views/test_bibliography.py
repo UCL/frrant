@@ -19,7 +19,7 @@ class TestBibliographyViews(TestCase):
         # locking mechanism so here we ensure it is created
         antiquarian = Antiquarian.objects.create(name='bob')
         bibitem = BibliographyItem.objects.create(
-            author_name='author name',
+            authors='author name',
             content='foo',
             parent=antiquarian
         )
@@ -40,7 +40,7 @@ class TestBibliographyUpdateView(TestCase):
 
         antiquarian = Antiquarian.objects.create(name='bob')
         bibitem = BibliographyItem.objects.create(
-            author_name='author name',
+            authors='author name',
             content='foo',
             parent=antiquarian
         )
@@ -64,7 +64,7 @@ class TestBibliographyDeleteView(TestCase):
 
         antiquarian = Antiquarian.objects.create(name='bob')
         bibitem = BibliographyItem.objects.create(
-            author_name='author name',
+            authors='author name',
             content='foo',
             parent=antiquarian
         )
@@ -83,7 +83,7 @@ class TestBibliographyDeleteView(TestCase):
 
         antiquarian = Antiquarian.objects.create(name='bob')
         bibitem = BibliographyItem.objects.create(
-            author_name='author name',
+            authors='author name',
             content='foo',
             parent=antiquarian
         )
@@ -152,7 +152,7 @@ class TestAntiquarianBibliographyCreateView(TestCase):
     def test_create(self):
 
         antiquarian = Antiquarian.objects.create()
-        data = {'author_name': 'name', 'content': 'bib content'}
+        data = {'authors': 'name', 'content': 'bib content'}
         url = reverse(
             'antiquarian:create_bibliography',
             kwargs={'pk': antiquarian.pk}

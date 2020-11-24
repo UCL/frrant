@@ -29,7 +29,7 @@ class BibliographyUpdateView(CheckLockMixin, LoginRequiredMixin,
         return super().dispatch(request, *args, **kwargs)
 
     model = BibliographyItem
-    fields = ('author_name', 'content',)
+    fields = ('authors', 'content',)
     permission_required = ('research.change_bibliographyitem',)
 
     def get_success_url(self, *args, **kwargs):

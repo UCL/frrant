@@ -84,7 +84,7 @@ class AntiquarianBibliographyCreateView(CheckLockMixin, LoginRequiredMixin,
     check_lock_object = 'antiquarian'
 
     model = BibliographyItem
-    fields = ('author_name', 'content',)
+    fields = ('authors', 'content',)
     permission_required = (
         'research.change_antiquarian',
         'research.add_bibliographyitem',

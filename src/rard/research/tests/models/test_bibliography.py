@@ -14,7 +14,7 @@ class TestBibliography(TestCase):
 
     def test_creation(self):
         data = {
-            'author_name': 'Hartley, J. R.',
+            'authors': 'Hartley, J. R.',
             'content': 'Fly Fishing',
             'parent': self.parent_object
         }
@@ -23,7 +23,7 @@ class TestBibliography(TestCase):
 
     def test_parent_required(self):
         data = {
-            'author_name': 'Hartley, J. R.',
+            'authors': 'Hartley, J. R.',
             'content': 'Fly Fishing',
         }
         # cannot create a comment with no parent
@@ -32,7 +32,7 @@ class TestBibliography(TestCase):
 
     def test_delete_parent_deletes_item(self):
         data = {
-            'author_name': 'Hartley, J. R.',
+            'authors': 'Hartley, J. R.',
             'content': 'Fly Fishing',
             'parent': self.parent_object
         }
@@ -45,7 +45,7 @@ class TestBibliography(TestCase):
 
     def test_related_query_name_for_bib_item_fields(self):
         data = {
-            'author_name': 'Hartley, J. R.',
+            'authors': 'Hartley, J. R.',
             'content': 'Fly Fishing',
             'parent': self.parent_object
         }
