@@ -62,28 +62,28 @@ class TestAntiquarian(TestCase):
             a.works.create(name='name')
         self.assertEqual(a.works.count(), length)
 
-    def test_biography_created_with_antiquarian(self):
+    def test_introduction_created_with_antiquarian(self):
         data = {
             'name': 'John Smith',
             're_code': 'smitre001'
         }
         a = Antiquarian.objects.create(**data)
-        self.assertIsNotNone(a.biography.pk)
+        self.assertIsNotNone(a.introduction.pk)
         self.assertEqual(
-            TextObjectField.objects.get(pk=a.biography.pk),
-            a.biography
+            TextObjectField.objects.get(pk=a.introduction.pk),
+            a.introduction
         )
 
-    def test_biography_deleted_with_antiquarian(self):
+    def test_introduction_deleted_with_antiquarian(self):
         data = {
             'name': 'John Smith',
             're_code': 'smitre001'
         }
         a = Antiquarian.objects.create(**data)
-        biography_pk = a.biography.pk
+        introduction_pk = a.introduction.pk
         a.delete()
         with self.assertRaises(TextObjectField.DoesNotExist):
-            TextObjectField.objects.get(pk=biography_pk)
+            TextObjectField.objects.get(pk=introduction_pk)
 
     def test_order_by_name(self):
         names = [
