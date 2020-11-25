@@ -10,9 +10,10 @@ class WorkManager(models.Manager):
         qs = super().get_queryset()
         # mark up the queryset with the lowest author name and then
         # order by that followed by name
+        # Make sure anonymous works are at the top with nulls_first parameter
         return qs.annotate(
             authors=models.Min('antiquarian__name')
-        ).order_by('authors', 'name')
+        ).order_by(models.F(('authors')).asc(nulls_first=True), 'name')
 
 
 class Work(DatedModel, LockableModel, BaseModel):

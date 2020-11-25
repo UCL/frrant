@@ -37,25 +37,25 @@ class TestWork(TestCase):
             [worka, workb, workc]
         )
 
-        antc.works.add(workc)
-        # this should now be first with anon works to the end
+        antc.works.add(workb)
+        # this should now be last with anon works at the start
         self.assertEqual(
             [w for w in Work.objects.all()],
-            [workc, worka, workb]
+            [worka, workc, workb]
         )
 
-        # the name of the antiquarian should push the work up the order
-        anta.works.add(workb)
+        # the name of the antiquarian should put work c second
+        antb.works.add(workc)
         self.assertEqual(
             [w for w in Work.objects.all()],
-            [workb, workc, worka]
+            [worka, workc, workb]
         )
-        # even if we also add antc as an author of that work, as the name of
-        # antiquarian anta should govern the order
+        # even if we also add antc as an author of workc, as the name of
+        # antiquarian antb should govern the order
         antc.works.add(workb)
         self.assertEqual(
             [w for w in Work.objects.all()],
-            [workb, workc, worka]
+            [worka, workc, workb]
         )
 
         # now, put worka as a work of anta and this should be first in the
@@ -64,7 +64,7 @@ class TestWork(TestCase):
         anta.works.add(worka)
         self.assertEqual(
             [w for w in Work.objects.all()],
-            [worka, workb, workc]
+            [worka, workc, workb]
         )
 
         # final test - antiquarian name takes precedence
