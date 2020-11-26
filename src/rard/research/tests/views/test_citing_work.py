@@ -3,7 +3,8 @@ from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
 from rard.research.models import CitingWork
-from rard.research.views import CitingWorkUpdateView, CitingWorkDetailView, CitingWorkDeleteView, CitingAuthorListView
+from rard.research.views import (CitingAuthorListView, CitingWorkDeleteView,
+                                 CitingWorkDetailView, CitingWorkUpdateView)
 from rard.users.tests.factories import UserFactory
 
 pytestmark = pytest.mark.django_db

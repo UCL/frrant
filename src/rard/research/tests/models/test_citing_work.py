@@ -1,11 +1,9 @@
 
 import pytest
-from django.db.utils import IntegrityError
 from django.test import TestCase
-from django.urls import reverse
-from django.utils.text import slugify
 
-from rard.research.models import Fragment, Testimonium, CitingWork, CitingAuthor
+from rard.research.models import (CitingAuthor, CitingWork, Fragment,
+                                  Testimonium)
 
 pytestmark = pytest.mark.django_db
 

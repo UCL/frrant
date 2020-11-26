@@ -121,7 +121,6 @@ class TestOriginalTextCreateViews(TestCase):
         self.assertEqual(created.citing_work.author.name, AUTHOR_NAME)
         self.assertEqual(created.citing_work.title, CITING_WORK_TITLE)
 
-
     def test_delete_success_url(self):
         view = OriginalTextDeleteView()
         request = RequestFactory().get("/")
@@ -235,7 +234,7 @@ class TestOriginalTextUpdateView(TestCase):
         request.user = self.user
         request.object = self.original_text
 
-        ret = OriginalTextUpdateView.as_view()(
+        OriginalTextUpdateView.as_view()(
             request, pk=self.original_text.pk
         )
 
