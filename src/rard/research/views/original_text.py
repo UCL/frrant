@@ -96,7 +96,6 @@ class OriginalTextUpdateView(CheckLockMixin, SingleObjectMixin,
         return self.object.owner.get_absolute_url()
 
     def forms_valid(self, forms):
-
         # save the objects here
         original_text = forms['original_text'].save(commit=False)
         original_text.owner = self.object.owner

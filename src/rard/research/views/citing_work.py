@@ -7,16 +7,18 @@ from django.views.generic import ListView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import DeleteView, UpdateView
 
-from rard.research.models import CitingWork
+from rard.research.models import CitingAuthor, CitingWork
 from rard.research.views.mixins import (CanLockMixin, CheckLockMixin,
                                         DateOrderMixin)
 
 
-class CitingWorkListView(DateOrderMixin, LoginRequiredMixin,
-                         PermissionRequiredMixin, ListView):
+class CitingAuthorListView(DateOrderMixin, LoginRequiredMixin,
+                           PermissionRequiredMixin, ListView):
     paginate_by = 10
-    model = CitingWork
-    permission_required = ('research.view_citingwork',)
+    model = CitingAuthor
+    permission_required = (
+        'research.view_citingauthor', 'research.view_citingwork',
+    )
 
 
 class CitingWorkDetailView(CanLockMixin, LoginRequiredMixin,
@@ -32,12 +34,14 @@ class CitingWorkUpdateView(CheckLockMixin, LoginRequiredMixin,
     permission_required = ('research.change_citingwork',)
 
     def get_success_url(self, *args, **kwargs):
-        return reverse('citingwork:detail', kwargs={'pk': self.object.pk})
+        return reverse(
+            'citingauthor:work_detail', kwargs={'pk': self.object.pk}
+        )
 
 
 @method_decorator(require_POST, name='dispatch')
 class CitingWorkDeleteView(CheckLockMixin, LoginRequiredMixin,
                            PermissionRequiredMixin, DeleteView):
     model = CitingWork
-    success_url = reverse_lazy('citingwork:list')
+    success_url = reverse_lazy('citingauthor:list')
     permission_required = ('research.delete_citingwork',)

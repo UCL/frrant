@@ -134,10 +134,10 @@
         {% trans 'Fragments' %}
       </a>
       {% endif %}
-      {% if perms.research.view_citingwork %}
-      <a class='nav-link {% if "citingwork" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
-        href='{% url "citingwork:list" %}'>
-        {% trans 'Citing Works' %}
+      {% if perms.research.view_citingauthor %}
+      <a class='nav-link {% if "citingauthor" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
+        href='{% url "citingauthor:list" %}'>
+        {% trans 'Citing Authors' %}
       </a>
       {% endif %}
       {% if perms.research.view_topic %}

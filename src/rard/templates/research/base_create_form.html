@@ -12,26 +12,8 @@
     <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
         {% csrf_token %}
 
-        <div class='required'>
-            <label for="id_content">{% trans 'Citing Work' %}</label>
-        </div>
-        <div class='card mb-3'>
-            <div class='card-body'>
-                {% bootstrap_field forms.original_text.citing_work %}
-
-                <div class='rard-toggle-control' data-on-show='#newCitingWorkArea' data-on-disable='#id_citing_work'>
-                    {% bootstrap_field forms.new_citing_work.new_citing_work %}
-                </div>
-                <div class="collapse" id="newCitingWorkArea">
-                    <div class="card card-body">
-                        {% bootstrap_field forms.new_citing_work.author %}
-                        {% bootstrap_field forms.new_citing_work.title %}
-                        {% bootstrap_field forms.new_citing_work.edition %}
-                    </div>
-                </div>
-            </div>
-        </div>
-
+        {% include 'research/partials/citing_work_form_area.html' %}
+        
         {% bootstrap_field forms.original_text.reference %}
         {% bootstrap_field forms.original_text.content %}
 

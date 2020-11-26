@@ -1,6 +1,6 @@
 from .antiquarian import Antiquarian
 from .bibliography import BibliographyItem
-from .citing_work import CitingWork
+from .citing_work import CitingAuthor, CitingWork
 from .comment import Comment
 from .fragment import Fragment
 from .image import Image
@@ -14,6 +14,7 @@ from .work import Book, Work
 __all__ = [
     'Antiquarian',
     'BibliographyItem',
+    'CitingAuthor',
     'CitingWork',
     'Comment',
     'Concordance',

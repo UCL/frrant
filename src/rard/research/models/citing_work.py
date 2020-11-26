@@ -7,7 +7,10 @@ from rard.utils.basemodel import BaseModel
 class CitingWork(BaseModel):
 
     # allow blank name as may be anonymous
-    author = models.CharField(max_length=256, blank=True)
+    author = models.ForeignKey(
+        'CitingAuthor', on_delete=models.SET_NULL,
+        default=None, null=True, blank=True
+    )
 
     title = models.CharField(max_length=256, blank=False)
 
@@ -15,7 +18,7 @@ class CitingWork(BaseModel):
 
     def __str__(self):
         tokens = [
-            self.author if self.author else _('Anonymous'),
+            str(self.author) if self.author else _('Anonymous'),
             self.title,
             self.edition
         ]
@@ -32,3 +35,11 @@ class CitingWork(BaseModel):
         return Testimonium.objects.filter(
             original_texts__citing_work=self
         ).distinct()
+
+
+class CitingAuthor(BaseModel):
+
+    name = models.CharField(max_length=256, blank=False)
+
+    def __str__(self):
+        return self.name
