@@ -1,0 +1,25 @@
+{# Assumes context objects named 'item', 'has_object_lock' and 'can_edit' #}
+
+{% load i18n humanize %}
+
+
+<div class='rard-list-item'>
+    <div class='row'>
+
+            <div class="col-sm-3">{{ item.authors }}</div>
+            <div class="col-sm-7">{{ item.content|safe }}</div>
+            <div class="col-sm-2">
+                {% if can_edit and has_object_lock %}
+                <form novalidate style='float:right' class='form-inline' action='{% url "bibliography:delete" item.pk %}' method='POST'>
+                    <a href='{% url "bibliography:update" item.pk %}'>Edit</a>
+                    {% csrf_token %}
+                    <div class='form-group ml-2'>
+                        <button type='submit' class='btn btn-item text-danger confirm-delete p-0'
+                            data-what='bibliography item'>{% trans 'Delete' %}</button>
+                    </div>
+                </form>
+                {% endif %}                
+
+            </div>
+    </div>
+</div>
