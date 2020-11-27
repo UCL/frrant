@@ -14,10 +14,10 @@
     <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
         {% csrf_token %}
         {% for field in form %}
-                {% bootstrap_field field %}
-            {% if field.name == 'content' %}
+            {% bootstrap_field field %}
+            {% if field.name == 'content' or field.name == 'apparatus_criticus' %}
 
-            {% include 'research/partials/rich_text_editor.html' %}
+            {% include 'research/partials/rich_text_editor.html' with field=field %}
 
             {% endif %}
         {% endfor %}
