@@ -85,6 +85,18 @@ class TestAntiquarian(TestCase):
         with self.assertRaises(TextObjectField.DoesNotExist):
             TextObjectField.objects.get(pk=introduction_pk)
 
+    def test_order_name_instantiated_on_create(self):
+        # in the absence of anything else, we copy the name into the
+        # order name
+        a = Antiquarian.objects.create(name='Zippy', re_code='001')
+        self.assertEqual(a.order_name, a.name)
+
+        # unless we state it explicitly
+        b = Antiquarian.objects.create(
+            name='Bungle Bear', order_name='Bear', re_code='002'
+        )
+        self.assertEqual(b.order_name, 'Bear')
+
     def test_order_by_name(self):
         names = [
             'Zippy',
@@ -102,6 +114,33 @@ class TestAntiquarian(TestCase):
             db_names.append(a.name)
 
         self.assertEqual(db_names, sorted(names))
+
+    def test_order_by_order_name(self):
+        names = [
+            'Zippy',
+            'George',
+            'Bungle',
+            'Geoffrey',
+        ]
+        # but sort them by these...
+        order_names = [
+            'aaa',
+            'bbb',
+            'ccc',
+            'ddd'
+        ]
+        for counter, name in enumerate(names):
+            Antiquarian.objects.create(
+                name=name,
+                order_name=order_names[counter],
+                re_code='code{}'.format(counter)
+            )
+
+        db_order_names = []
+        for a in Antiquarian.objects.all():
+            db_order_names.append(a.order_name)
+
+        self.assertEqual(db_order_names, sorted(order_names))
 
     def test_get_absolute_url(self):
         data = {

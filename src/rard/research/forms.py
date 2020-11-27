@@ -58,8 +58,8 @@ class AntiquarianForm(DatedModelFormBase):
 
     class Meta(DatedModelFormBase.Meta):
         model = Antiquarian
-        fields = ('name', 're_code', 'circa1', 'circa2', 'year_type',
-                  'year1', 'year2', 'dates_type')
+        fields = ('name', 'order_name', 're_code', 'circa1', 'circa2',
+                  'year_type', 'year1', 'year2', 'dates_type')
 
     introduction_text = forms.CharField(
         widget=forms.Textarea,
