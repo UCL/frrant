@@ -6,7 +6,7 @@
 
 <p>
 {% blocktrans with locked_at=lock.locked_at %}
-  You are receiving this email because you have had the following item locked editing an item on the {{ domain }} site 
+  You are receiving this email because you have had the following item locked editing an item on the {{ site_name }} site 
   since {{ locked_at }}:
 {% endblocktrans %}
 </p>
@@ -30,5 +30,5 @@ If you are no longer editing this item please release this lock at the following
 <p>
 {% blocktrans %}Best regards{% endblocktrans %},
 <br>
-{{ site_name }} {% blocktrans %}Team{% endblocktrans %}
+{{ site_name }} {% blocktrans %}Admin{% endblocktrans %}
 </p>

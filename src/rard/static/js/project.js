@@ -65,9 +65,7 @@ $('body').on("submit", "form", function (e) {
         // copy each rich editor's content to its related control
         var for_id = $(this).data('for');
         var html = $(this).trumbowyg('html');
-        $(`#${for_id}`).html(html);
-        console.log('set the content of '+for_id+' to:');
-        console.log(html)
+        $(`#${for_id}`).text(html);
     })
 });
 
@@ -77,7 +75,7 @@ $('.rich-editor').trumbowyg(
         autogrow: true,
         removeformatPasted: true,
         // tagsToRemove: ['script', 'span'],
-        tagsToKeep: ['img'],
+        // tagsToKeep: ['img'],
         btns: [
             // ['characters'],
             ['undo', 'redo'],

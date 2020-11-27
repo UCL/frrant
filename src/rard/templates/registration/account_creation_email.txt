@@ -4,7 +4,7 @@
 {% blocktrans %}Greetings{% endblocktrans %} {{ user.display_name }},
 
 {% blocktrans %}
-You are receiving this email because you have had an account created on the {{ domain }} site. 
+You are receiving this email because you have had an account created on the {{ site_name }} site. 
 {% endblocktrans %}
 
 {% blocktrans %}
@@ -18,4 +18,4 @@ into your web browser:
 
 
 {% blocktrans %}Best regards{% endblocktrans %},
-{{ site_name }} {% blocktrans %}Team{% endblocktrans %}
+{{ site_name }} {% blocktrans %}Admin{% endblocktrans %}

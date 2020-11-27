@@ -56,7 +56,7 @@
                 {{ object.display_date_range|default:'-' }}
             </dd>
 
-            <dt class="col-sm-3">{% trans 'Biography' %}</dt>
+            <dt class="col-sm-3">{% trans 'Introduction' %}</dt>
             <dd class="col-sm-9">
                 {{ object.introduction.content|safe }}
 
@@ -118,7 +118,7 @@
 
         {% for link in object.testimoniumlinks.all %}
 
-        {% include 'research/partials/testimonium_link_list_item.html' with link=link testimonium=link.linked %}
+        {% include 'research/partials/testimonium_link_list_item.html' with link=link testimonium=link.linked can_edit=perms.research.change_antiquarian has_object_lock=has_object_lock %}
 
         {% endfor %}
 
@@ -141,7 +141,7 @@
 
         {% for link in object.fragmentlinks.all %}
 
-        {% include 'research/partials/fragment_link_list_item.html' with link=link fragment=link.linked %}
+        {% include 'research/partials/fragment_link_list_item.html' with link=link fragment=link.linked can_edit=perms.research.change_antiquarian has_object_lock=has_object_lock %}
 
         {% endfor %}
     </section>
