@@ -36,15 +36,15 @@ class TestTextObjectField(TestCase):
         # no related object
         self.assertIsNone(text.get_related_object())
         # create antiquarian with this text as commentary
-        related = Antiquarian.objects.create(name='name', biography=text)
+        related = Antiquarian.objects.create(name='name', introduction=text)
         # we have this as a commentary now
         self.assertEqual(text.get_related_object(), related)
 
     def test_antiquarian_property(self):
         related = Antiquarian.objects.create(name='name')
-        self.assertEqual(related.biography.antiquarian, related)
-        self.assertIsNone(related.biography.fragment)
-        self.assertIsNone(related.biography.testimonium)
+        self.assertEqual(related.introduction.antiquarian, related)
+        self.assertIsNone(related.introduction.fragment)
+        self.assertIsNone(related.introduction.testimonium)
 
     def test_fragment_property(self):
         related = Fragment.objects.create(name='name')

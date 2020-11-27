@@ -21,6 +21,61 @@ class TestWork(TestCase):
         for key, val in data.items():
             self.assertEqual(getattr(work, key), val)
 
+    def test_ordering(self):
+        # ordering should be wrt to the authors of the work
+        anta = Antiquarian.objects.create(name='AAA', re_code='aaa')
+        antb = Antiquarian.objects.create(name='BBB', re_code='bbb')
+        antc = Antiquarian.objects.create(name='CCC', re_code='ccc')
+
+        worka = Work.objects.create(name='aaa')
+        workb = Work.objects.create(name='bbb')
+        workc = Work.objects.create(name='ccc')
+
+        # 1. check anonymous ordering
+        self.assertEqual(
+            [w for w in Work.objects.all()],
+            [worka, workb, workc]
+        )
+
+        antc.works.add(workb)
+        # this should now be last with anon works at the start
+        self.assertEqual(
+            [w for w in Work.objects.all()],
+            [worka, workc, workb]
+        )
+
+        # the name of the antiquarian should put work c second
+        antb.works.add(workc)
+        self.assertEqual(
+            [w for w in Work.objects.all()],
+            [worka, workc, workb]
+        )
+        # even if we also add antc as an author of workc, as the name of
+        # antiquarian antb should govern the order
+        antc.works.add(workb)
+        self.assertEqual(
+            [w for w in Work.objects.all()],
+            [worka, workc, workb]
+        )
+
+        # now, put worka as a work of anta and this should be first in the
+        # list as the name of the antiquarian and then the work should be
+        # ahead of the others
+        anta.works.add(worka)
+        self.assertEqual(
+            [w for w in Work.objects.all()],
+            [worka, workc, workb]
+        )
+
+        # final test - antiquarian name takes precedence
+        anta.works.set([workc])
+        antb.works.set([workb])
+        antc.works.set([worka])
+        self.assertEqual(
+            [w for w in Work.objects.all()],
+            [workc, workb, worka]
+        )
+
     def test_required_fields(self):
         self.assertFalse(Work._meta.get_field('name').blank)
         self.assertTrue(Work._meta.get_field('subtitle').blank)
@@ -32,7 +87,7 @@ class TestWork(TestCase):
             'subtitle': 'Subtitle',
         }
         work = Work.objects.create(**data)
-        self.assertEqual(str(work), '%s: Anonymous' % data['name'])
+        self.assertEqual(str(work), 'Anonymous: %s' % data['name'])
 
     def test_display(self):
         # the __str__ function should show the name
@@ -46,16 +101,17 @@ class TestWork(TestCase):
         )
         antiquarian1.works.add(work)
         self.assertEqual(
-            str(work), '%s: %s' % (data['name'], antiquarian1.name)
+            str(work), '%s: %s' % (antiquarian1.name, data['name'])
         )
+        # now test mutiple antiquarians
         antiquarian2 = Antiquarian.objects.create(
             name='Joe Bloggs', re_code='blogre002'
         )
         antiquarian2.works.add(work)
         self.assertEqual(
-            str(work), '%s: %s, %s' % (
-                data['name'],
+            str(work), '%s, %s: %s' % (
                 antiquarian2.name, antiquarian1.name,
+                data['name'],
             )
         )
 

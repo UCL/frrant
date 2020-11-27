@@ -6,7 +6,7 @@
 
 <p>
 {% blocktrans %}
-  You are receiving this email because an item you were editing an item on the {{ domain }} site has been unlocked for editing by the user <b>{{ broken_by_user }}</b>:
+  You are receiving this email because an item you were editing an item on the {{ site_name }} site has been unlocked for editing by the user <b>{{ broken_by_user }}</b>:
 {% endblocktrans %}
 </p>
 
@@ -15,8 +15,8 @@
 </p>
 <p>
 {% blocktrans %}
-Any unsaved changes you have made in a browser window will not be saved until you have reacquired the edit lock. 
-Changes that you have saved are safely stored. 
+Any unsaved changes you have made in any browser windows will not be saved until you have reacquired the edit lock. 
+Changes that you have already saved are safely stored. 
 {% endblocktrans %}
 </p>
 
@@ -36,5 +36,5 @@ This item is now available to edit by any user at the following URL:
 <p>
 {% blocktrans %}Best regards{% endblocktrans %},
 <br>
-{{ site_name }} {% blocktrans %}Team{% endblocktrans %}
+{{ site_name }} {% blocktrans %}Admin{% endblocktrans %}
 </p>

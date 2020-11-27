@@ -25,9 +25,9 @@ class Antiquarian(TextObjectFieldMixin, LockableModel, DatedModel, BaseModel):
 
     name = models.CharField(max_length=128, blank=False)
 
-    biography = models.OneToOneField(
+    introduction = models.OneToOneField(
         'TextObjectField', on_delete=models.SET_NULL, null=True,
-        related_name='biography_for'
+        related_name='introduction_for'
     )
 
     re_code = models.CharField(

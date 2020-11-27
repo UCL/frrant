@@ -56,15 +56,15 @@
                 {{ object.display_date_range|default:'-' }}
             </dd>
 
-            <dt class="col-sm-3">{% trans 'Biography' %}</dt>
+            <dt class="col-sm-3">{% trans 'Introduction' %}</dt>
             <dd class="col-sm-9">
-                {{ object.biography.content|linebreaks }}
+                {{ object.introduction.content|safe }}
 
                 {% comment %}
 
                 {% if perms.research.view_comment %}
                 <br>
-                {{ object.biography.comments.count }} comments <a href='{% url "list_comments_on_text" object.biography.pk %}'>view</a>
+                {{ object.introduction.comments.count }} comments <a href='{% url "list_comments_on_text" object.introduction.pk %}'>view</a>
                 {% endif %}
 
                 {% endcomment %}
