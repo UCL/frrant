@@ -134,6 +134,12 @@
         {% trans 'Fragments' %}
       </a>
       {% endif %}
+      {% if perms.research.view_citingauthor %}
+      <a class='nav-link {% if "citingauthor" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
+        href='{% url "citingauthor:list" %}'>
+        {% trans 'Citing Authors' %}
+      </a>
+      {% endif %}
       {% if perms.research.view_topic %}
       <a class='nav-link {% if "topic" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
         href='{% url "topic:list" %}'>
@@ -150,6 +156,12 @@
       <a class='nav-link {% if "concordance" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
         href='{% url "concordance:list" %}'>
         {% trans 'Concordance' %}
+      </a>
+      {% endif %}
+      {% if perms.research.view_bibliographyitem %}
+      <a class='nav-link {% if "bibliography" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
+        href='{% url "bibliography:list" %}'>
+        {% trans 'Bibliography' %}
       </a>
       {% endif %}
       <a class='nav-link {% if "search" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'

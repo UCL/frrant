@@ -26,7 +26,13 @@ urlpatterns = [
         path("<pk>/delete/", views.AntiquarianDeleteView.as_view(), name="delete"),
         path("<pk>/work/create/", views.AntiquarianWorkCreateView.as_view(), name="create_work"),
         path("<pk>/works/", views.AntiquarianWorksUpdateView.as_view(), name="update_works"),
+        path("<pk>/bibliograpny/create/", views.AntiquarianBibliographyCreateView.as_view(), name="create_bibliography"),
     ], 'research'), namespace='antiquarian')),
+    path('bibliography/', include(([
+        path('list/', views.BibliographyListView.as_view(), name='list'),
+        path("<pk>/update/", views.BibliographyUpdateView.as_view(), name="update"),
+        path("<pk>/delete/", views.BibliographyDeleteView.as_view(), name="delete"),
+    ], 'research'), namespace='bibliography')),
     path('work/', include(([
         path('list/', views.WorkListView.as_view(), name='list'),
         path("create/", views.WorkCreateView.as_view(), name="create_anonymous"),
@@ -83,5 +89,11 @@ urlpatterns = [
     path('search/', include(([
         path('', views.SearchView.as_view(), name='home'),
     ], 'research'), namespace='search')),
+    path('citing-author/', include(([
+        path('list/', views.CitingAuthorListView.as_view(), name='list'),
+        path("work/<pk>/", views.CitingWorkDetailView.as_view(), name="work_detail"),
+        path("work/<pk>/update/", views.CitingWorkUpdateView.as_view(), name="update_work"),
+        path("work/<pk>/delete/", views.CitingWorkDeleteView.as_view(), name="delete_work"),
+    ], 'research'), namespace='citingauthor')),
 
 ]

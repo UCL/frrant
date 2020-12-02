@@ -13,14 +13,16 @@
 
     <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
         {% csrf_token %}
-        {% for field in form %}
-                {% bootstrap_field field %}
-            {% if field.name == 'content' %}
 
-            {% include 'research/partials/rich_text_editor.html' %}
+        {% include 'research/partials/citing_work_form_area.html' %}
+        
+        {% bootstrap_field forms.original_text.reference %}
+      
+        {% bootstrap_field forms.original_text.content %}
+        {% include 'research/partials/rich_text_editor.html' with field=forms.original_text.content %}
 
-            {% endif %}
-        {% endfor %}
+        {% bootstrap_field forms.original_text.apparatus_criticus %}
+        {% include 'research/partials/rich_text_editor.html' with field=forms.original_text.apparatus_criticus %}
 
         <button type="submit" class="btn btn-primary">
             {% if object %}
@@ -30,4 +32,5 @@
             {% endif %}
         </button>
     </form>
+
 {% endblock %}

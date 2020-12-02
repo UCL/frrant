@@ -1,0 +1,33 @@
+{% extends "research/base.html" %}
+{% load i18n bootstrap4 %}
+
+{% block heading %}
+    {% if object %}
+        {% trans 'Update Bibliography Item' %}
+    {% else %}
+        {% trans 'Create Bibliography Item' %}
+    {% endif %}
+{% endblock %}
+
+{% block inner %}
+    <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
+        {% csrf_token %}
+
+            {% for field in form %}
+            {% bootstrap_field field %}
+
+            {% if field.name == 'content' %}
+            {% include 'research/partials/rich_text_editor.html' %}
+            {% endif %}
+                        
+            {% endfor %}
+
+        <button type="submit" class="btn btn-primary">
+            {% if object %}
+                {% trans 'Save' %}
+            {% else %}
+                {% trans 'Create' %}
+            {% endif %}
+        </button>
+    </form>
+{% endblock %}

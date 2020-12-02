@@ -2,8 +2,9 @@ from django import forms
 from django.core.exceptions import FieldDoesNotExist
 from django.utils.translation import gettext_lazy as _
 
-from rard.research.models import (Antiquarian, Book, CitingWork, Comment,
-                                  Fragment, OriginalText, Testimonium, Work)
+from rard.research.models import (Antiquarian, Book, CitingAuthor, CitingWork,
+                                  Comment, Fragment, OriginalText, Testimonium,
+                                  Work)
 from rard.research.models.base import FragmentLink, TestimoniumLink
 
 
@@ -58,28 +59,29 @@ class AntiquarianForm(DatedModelFormBase):
 
     class Meta(DatedModelFormBase.Meta):
         model = Antiquarian
-        fields = ('name', 're_code', 'circa1', 'circa2', 'year_type',
-                  'year1', 'year2', 'dates_type')
+        fields = ('name', 'order_name', 're_code', 'circa1', 'circa2',
+                  'year_type', 'year1', 'year2', 'dates_type')
 
-    biography_text = forms.CharField(
+    introduction_text = forms.CharField(
         widget=forms.Textarea,
         required=False,
-        label='Biography',
+        label='Introduction',
     )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.instance.biography:
-            self.fields['biography_text'].initial = \
-                self.instance.biography.content
+        if self.instance.introduction:
+            self.fields['introduction_text'].initial = \
+                self.instance.introduction.content
 
     def save(self, commit=True):
         instance = super().save(commit=False)
         if commit:
             instance.save()
-            # biography will have been created at this point
-            instance.biography.content = self.cleaned_data['biography_text']
-            instance.biography.save()
+            # introduction will have been created at this point
+            instance.introduction.content = \
+                self.cleaned_data['introduction_text']
+            instance.introduction.save()
         return instance
 
 
@@ -128,10 +130,25 @@ class CommentForm(forms.ModelForm):
 class CitingWorkForm(forms.ModelForm):
 
     new_citing_work = forms.BooleanField(required=False)
+    new_author = forms.BooleanField(required=False)
+    new_author_name = forms.CharField(
+        required=False,
+        label='New Author Name',
+    )
 
     class Meta:
         model = CitingWork
-        fields = ('new_citing_work', 'author', 'title', 'edition')
+        fields = (
+            'new_citing_work',
+            'author',
+            'new_author',
+            'new_author_name',
+            'title',
+            'edition'
+        )
+        labels = {
+            'author': _('Choose Existing Author'),
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -154,7 +171,18 @@ class CitingWorkForm(forms.ModelForm):
                     self.fields[field_name].required = not model_field.blank
                 except FieldDoesNotExist:
                     # not a field in the model so set it to required
-                    self.fields[field_name].required = True
+                    if field_name == 'new_citing_work':
+                        self.fields[field_name].required = True
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if commit:
+            if self.cleaned_data['new_author']:
+                new_author_name = self.cleaned_data['new_author_name']
+                author = CitingAuthor.objects.create(name=new_author_name)
+                instance.author = author
+            instance.save()
+        return instance
 
 
 class OriginalTextForm(forms.ModelForm):

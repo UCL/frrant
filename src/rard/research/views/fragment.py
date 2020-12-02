@@ -18,14 +18,11 @@ from rard.research.models.base import FragmentLink
 from rard.research.views.mixins import CanLockMixin, CheckLockMixin
 
 
-class HistoricalBaseCreateView(LoginRequiredMixin, TemplateView):
-
-    template_name = 'research/base_create_form.html'
+class OriginalTextCitingWorkView(LoginRequiredMixin, TemplateView):
 
     def get_forms(self):
         forms = {
             'original_text': OriginalTextForm(data=self.request.POST or None),
-            'object': self.form_class(data=self.request.POST or None),
             'new_citing_work': CitingWorkForm(data=self.request.POST or None)
         }
         return forms
@@ -34,11 +31,15 @@ class HistoricalBaseCreateView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(*args, **kwargs)
         context.update({
             'forms': self.get_forms(),
-            'title': self.title
+            # 'title': self.title
         })
         return context
 
+    def forms_valid(self, form):
+        return redirect(self.get_success_url())
+
     def post(self, request, *args, **kwargs):
+
         context = self.get_context_data()
         forms = context['forms']
         # has the user chosen to create a new citing work?
@@ -55,23 +56,9 @@ class HistoricalBaseCreateView(LoginRequiredMixin, TemplateView):
         )
 
         if forms_valid:
-            # save the objects here
-            object_form = forms['object']
-            saved_object = object_form.save()
+            return self.forms_valid(forms)
 
-            original_text = forms['original_text'].save(commit=False)
-            original_text.owner = saved_object
-
-            if create_citing_work:
-                original_text.citing_work = forms['new_citing_work'].save()
-
-            original_text.save()
-
-            return redirect(
-                reverse(self.success_url_name, kwargs={'pk': saved_object.pk})
-            )
-
-        # reset the changes we made to required fields
+        # else reset the changes we made to required fields
         # and invite the user to try again
         forms['new_citing_work'].set_required(False)
         forms['original_text'].set_citing_work_required(False)
@@ -79,11 +66,48 @@ class HistoricalBaseCreateView(LoginRequiredMixin, TemplateView):
         return self.render_to_response(context)
 
 
+class HistoricalBaseCreateView(OriginalTextCitingWorkView):
+
+    template_name = 'research/base_create_form.html'
+
+    def get_forms(self):
+        forms = super().get_forms()
+        forms['object'] = self.form_class(data=self.request.POST or None)
+        return forms
+
+    def forms_valid(self, forms):
+
+        # save the objects here
+        object_form = forms['object']
+        saved_object = object_form.save()
+
+        original_text = forms['original_text'].save(commit=False)
+        original_text.owner = saved_object
+
+        create_citing_work = 'new_citing_work' in self.request.POST
+
+        if create_citing_work:
+            original_text.citing_work = forms['new_citing_work'].save()
+
+        original_text.save()
+
+        return redirect(
+            reverse(self.success_url_name, kwargs={'pk': saved_object.pk})
+        )
+
+
 class FragmentCreateView(PermissionRequiredMixin, HistoricalBaseCreateView):
     form_class = FragmentForm
     success_url_name = 'fragment:detail'
     title = 'Create Fragment'
     permission_required = ('research.add_fragment',)
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update({
+            'title': self.title
+        })
+        return context
 
 
 class FragmentListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):

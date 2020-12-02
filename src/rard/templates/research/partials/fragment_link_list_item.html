@@ -21,6 +21,7 @@
         </li>
     </div>
     <div class='rard-list-item-actions'>
+        {% if can_edit and has_object_lock %}
         <form novalidate class='form-inline' action='' method='POST'>
             {% csrf_token %}
             <div class='form-group'>
@@ -32,5 +33,6 @@
                     name='down'>▼</button>
             </div>
         </form>
+        {% endif %}
     </div>
 </div>

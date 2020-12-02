@@ -7,6 +7,9 @@ from rard.utils.basemodel import BaseModel
 
 class BibliographyItem(BaseModel):
 
+    class Meta:
+        ordering = ['author_surnames', 'year']
+
     # allow these to point at different object types
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
 
@@ -14,9 +17,21 @@ class BibliographyItem(BaseModel):
 
     parent = GenericForeignKey()
 
-    # the author, name and page of the named book or resource
-    author = models.CharField(max_length=128, blank=False)
+    # string containing names of authors
+    # e.g. Smith P, Jones M
+    # ordering will be done on this field
+    authors = models.CharField(max_length=512, blank=True)
 
-    title = models.CharField(max_length=128, blank=False)
+    # comma-separated list of surnames of the authors, to be used for
+    # ordering the entries in the list
+    author_surnames = models.CharField(
+        max_length=512, default='', blank=False,
+        help_text='Comma-separated list of surnames to be used for ordering'
+    )
 
-    page = models.CharField(max_length=128, blank=False)
+    year = models.IntegerField(
+        default=None, null=True, blank=True,
+        help_text='Optional year to use for second-order sorting of entries'
+    )
+
+    content = models.TextField(default='', blank=False)

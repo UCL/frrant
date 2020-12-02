@@ -84,6 +84,43 @@ class TestOriginalTextCreateViews(TestCase):
         # check its owner
         self.assertEqual(created.owner, fragment)
 
+    def test_creation_new_citing_work_post(self):
+        # data for both original text and fragment
+        AUTHOR_NAME = 'John Smith'
+        CITING_WORK_TITLE = 'My Book'
+
+        data = {
+            'content': 'content',
+            'new_citing_work': True,
+            'new_author': True,
+            'new_author_name': AUTHOR_NAME,
+            'title': CITING_WORK_TITLE
+        }
+        # assert no original texts initially
+        self.assertEqual(0, OriginalText.objects.count())
+
+        fragment = Fragment.objects.create(name='name')
+        url = reverse(
+            'fragment:create_original_text',
+            kwargs={'pk': fragment.pk}
+        )
+
+        request = RequestFactory().post(url, data=data)
+        request.user = UserFactory.create()
+
+        fragment.lock(request.user)
+
+        FragmentOriginalTextCreateView.as_view()(
+            request, pk=fragment.pk
+        )
+        # we created an original text
+        self.assertEqual(1, OriginalText.objects.count())
+        created = OriginalText.objects.first()
+        # check its owner
+        self.assertEqual(created.owner, fragment)
+        self.assertEqual(created.citing_work.author.name, AUTHOR_NAME)
+        self.assertEqual(created.citing_work.title, CITING_WORK_TITLE)
+
     def test_delete_success_url(self):
         view = OriginalTextDeleteView()
         request = RequestFactory().get("/")
@@ -160,6 +197,51 @@ class TestOriginalTextViewsDispatch(TestCase):
             view.kwargs = {'pk': self.original_text.pk}
             view.dispatch(request)
             self.assertEqual(view.parent_object, self.original_text.owner)
+
+
+class TestOriginalTextUpdateView(TestCase):
+
+    def setUp(self):
+        self.citing_work = CitingWork.objects.create(title='title')
+        fragment = Fragment.objects.create(name='name')
+        self.user = UserFactory.create()
+        fragment.lock(self.user)
+
+        self.original_text = OriginalText.objects.create(
+            owner=fragment,
+            citing_work=self.citing_work,
+        )
+
+    def test_update_post(self):
+        # data for both original text and fragment
+        AUTHOR_NAME = 'John Smith'
+        CITING_WORK_TITLE = 'My Book'
+
+        data = {
+            'content': 'content',
+            'new_citing_work': True,
+            'new_author': True,
+            'new_author_name': AUTHOR_NAME,
+            'title': CITING_WORK_TITLE
+        }
+
+        url = reverse(
+            'fragment:update_original_text',
+            kwargs={'pk': self.original_text.pk}
+        )
+
+        request = RequestFactory().post(url, data=data)
+        request.user = self.user
+        request.object = self.original_text
+
+        OriginalTextUpdateView.as_view()(
+            request, pk=self.original_text.pk
+        )
+
+        # refetch object
+        ot = OriginalText.objects.get(pk=self.original_text.pk)
+        self.assertEqual(ot.citing_work.title, CITING_WORK_TITLE)
+        self.assertEqual(ot.citing_work.author.name, AUTHOR_NAME)
 
 
 class TestOriginalTextViewPermissions(TestCase):

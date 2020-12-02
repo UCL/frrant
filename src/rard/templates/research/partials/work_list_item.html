@@ -1,4 +1,4 @@
-{# Assumes context objects named 'work', optional 'book' and testimonium or fragment object named 'testimonium' or 'fragment' #}
+{# Assumes context objects named 'work', optional 'book' and testimonium or fragment object named 'testimonium' or 'fragment' also 'can_edit' and 'has_object_lock' #}
 
 {% load i18n %}
 
@@ -25,6 +25,7 @@
         </li>
     </div>
     <div class='rard-list-item-actions'>
+    {% if can_edit and has_object_lock %}
         {% if testimonium %}
             {% if book %}
             <form novalidate class='form-inline' action='{% url "testimonium:remove_book_link" testimonium.pk book.pk %}' method='POST'>
@@ -50,5 +51,6 @@
                 </div>
             </form>
         {% endif %}
+    {% endif %}
     </div>
 </div>

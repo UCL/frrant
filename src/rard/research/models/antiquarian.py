@@ -1,3 +1,4 @@
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.db.models.signals import pre_delete
 from django.urls import reverse
@@ -9,7 +10,7 @@ from rard.utils.basemodel import BaseModel, DatedModel, LockableModel
 class Antiquarian(TextObjectFieldMixin, LockableModel, DatedModel, BaseModel):
 
     class Meta:
-        ordering = ['name']
+        ordering = ['order_name', 're_code']
 
     # extend the dates functionality with more detail
     # on what the dates means
@@ -24,9 +25,11 @@ class Antiquarian(TextObjectFieldMixin, LockableModel, DatedModel, BaseModel):
 
     name = models.CharField(max_length=128, blank=False)
 
-    biography = models.OneToOneField(
+    order_name = models.CharField(max_length=128, default='', blank=True)
+
+    introduction = models.OneToOneField(
         'TextObjectField', on_delete=models.SET_NULL, null=True,
-        related_name='biography_for'
+        related_name='introduction_for'
     )
 
     re_code = models.CharField(
@@ -52,6 +55,10 @@ class Antiquarian(TextObjectFieldMixin, LockableModel, DatedModel, BaseModel):
         blank=True
     )
 
+    bibliography_items = GenericRelation(
+        'BibliographyItem', related_query_name='bibliography_items'
+    )
+
     def __str__(self):
         return self.name
 
@@ -65,6 +72,11 @@ class Antiquarian(TextObjectFieldMixin, LockableModel, DatedModel, BaseModel):
         return super().display_date_range(
             prepend=self.get_dates_type_display()
         )
+
+    def save(self, *args, **kwargs):
+        if not self.order_name:
+            self.order_name = self.name
+        super().save(*args, **kwargs)
 
 
 def remove_stale_antiquarian_links(sender, instance, **kwargs):

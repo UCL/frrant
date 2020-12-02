@@ -136,7 +136,7 @@
         <div class='row'>
             <div class="col">
                 <div class='alphabetum'>
-                    {{ object.commentary.content|linebreaks|default:'Not specified' }}
+                    {{ object.commentary.content|safe|default:'Not specified' }}
                 </div>
                 {% comment %}
                 <p>
@@ -168,10 +168,10 @@
 
         {% if item.work %}
             {# Then it's a book object #}
-            {% include 'research/partials/work_list_item.html' with work=item.work book=item %}
+            {% include 'research/partials/work_list_item.html' with work=item.work book=item can_edit=perms.research.change_fragment has_object_lock=has_object_lock %}
         {% else %}
             {# it's a work object #}
-            {% include 'research/partials/work_list_item.html' with work=item book=None %}
+            {% include 'research/partials/work_list_item.html' with work=item book=None can_edit=perms.research.change_fragment has_object_lock=has_object_lock %}
         {% endif %}
 
         {% endfor %}
@@ -195,10 +195,10 @@
 
         {% if item.work %}
             {# Then it's a book object #}
-            {% include 'research/partials/work_list_item.html' with work=item.work book=item %}
+            {% include 'research/partials/work_list_item.html' with work=item.work book=item can_edit=perms.research.change_fragment has_object_lock=has_object_lock%}
         {% else %}
             {# it's a work object #}
-            {% include 'research/partials/work_list_item.html' with work=item book=None %}
+            {% include 'research/partials/work_list_item.html' with work=item book=None can_edit=perms.research.change_fragment has_object_lock=has_object_lock %}
         {% endif %}
 
         {% endfor %}

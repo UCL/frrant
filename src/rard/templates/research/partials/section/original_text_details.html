@@ -11,7 +11,7 @@
 
 
     <dt class="col-sm-3">{% trans 'Apparatus Criticus' %}</dt>
-    <dd class="col-sm-9">{{ original_text.apparatus_criticus|default:'-'|linebreaks }}</dd>
+    <dd class="col-sm-9">{{ original_text.apparatus_criticus|safe|default:'-'|linebreaks }}</dd>
 
     {% if show_concordances %}
 
