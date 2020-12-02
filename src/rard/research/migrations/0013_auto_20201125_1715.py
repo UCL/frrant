@@ -25,7 +25,11 @@ class Migration(migrations.Migration):
                 'abstract': False,
             },
         ),
-        migrations.AlterField(
+        migrations.RemoveField(
+            model_name='citingwork',
+            name='author',
+        ),
+        migrations.AddField(
             model_name='citingwork',
             name='author',
             field=models.ForeignKey(blank=True, default=None, null=True, on_delete=django.db.models.deletion.SET_NULL, to='research.citingauthor'),
