@@ -24,4 +24,7 @@ jobs:
       # Run tests
       - uses: actions/checkout@v2
       - name: Docker test
-        run: docker-compose -f ./src/development.yml run --rm django pytest
+        run: |
+            cd src
+            docker-compose -f local.yml run --rm django pytest
+            
