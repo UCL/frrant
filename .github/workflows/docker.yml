@@ -27,11 +27,7 @@ jobs:
         run: |
             cd src
             docker-compose -f local.yml run --rm django pytest
-      - name: Docker development config test
+      - name: runtests.sh
         run: |
             cd src
-            docker-compose -f development.yml run --rm django pytest
-      - name: Docker production config test
-        run: |
-            cd src
-            docker-compose -f production.yml run --rm django pytest
+            ./runtests.sh
