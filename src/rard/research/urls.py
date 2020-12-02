@@ -89,5 +89,11 @@ urlpatterns = [
     path('search/', include(([
         path('', views.SearchView.as_view(), name='home'),
     ], 'research'), namespace='search')),
+    path('citing-author/', include(([
+        path('list/', views.CitingAuthorListView.as_view(), name='list'),
+        path("work/<pk>/", views.CitingWorkDetailView.as_view(), name="work_detail"),
+        path("work/<pk>/update/", views.CitingWorkUpdateView.as_view(), name="update_work"),
+        path("work/<pk>/delete/", views.CitingWorkDeleteView.as_view(), name="delete_work"),
+    ], 'research'), namespace='citingauthor')),
 
 ]

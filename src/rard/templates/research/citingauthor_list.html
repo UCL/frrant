@@ -1,0 +1,22 @@
+{% extends "research/list_base.html" %}
+{% load i18n %}
+
+{% block heading %}
+    {% trans 'Citing Authors' %}
+{% endblock %}
+
+{% block action %}
+{% endblock %}
+
+{% block inner %}
+    {% for object in page_obj %}
+        <h5 class='mt-2'>{{ object }}</h5>
+        {% for citingwork in object.citingwork_set.all %}
+            {% include 'research/partials/citingwork_list_item.html' with citingwork=citingwork %}
+        {% endfor %}
+
+    {% endfor %}
+
+    {{ block.super }}
+
+{% endblock %}

@@ -25,6 +25,13 @@ class TestimoniumCreateView(PermissionRequiredMixin, HistoricalBaseCreateView):
     title = 'Create Testimonium'
     permission_required = ('research.add_testimonium',)
 
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update({
+            'title': self.title
+        })
+        return context
+
 
 class TestimoniumListView(
         LoginRequiredMixin, PermissionRequiredMixin, ListView):

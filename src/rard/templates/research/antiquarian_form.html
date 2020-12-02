@@ -20,8 +20,7 @@
         {% bootstrap_field form.introduction_text %}
         {% include 'research/partials/rich_text_editor.html' with field=form.introduction_text %}
 
-
-        <button type="submit" class="btn btn-primary">
+      <button type="submit" class="btn btn-primary">
             {% if object %}
                 {% trans 'Save' %}
             {% else %}
