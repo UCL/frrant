@@ -3,23 +3,26 @@
 
 {% block heading %}
     {% if object %}
-        {% trans 'Edit Antiquarian Details' %}
+        {% trans 'Update Bibliography Item' %}
     {% else %}
-        {% trans 'Create Antiquarian' %}
+        {% trans 'Create Bibliography Item' %}
     {% endif %}
 {% endblock %}
 
 {% block inner %}
     <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
         {% csrf_token %}
-        {% bootstrap_field form.name %}
-        {% bootstrap_field form.re_code %}
-        {% include 'research/partials/render_date_form_fields.html' %}
 
-        {% bootstrap_field form.introduction_text %}
-        {% include 'research/partials/rich_text_editor.html' with field=form.introduction_text %}
+            {% for field in form %}
+            {% bootstrap_field field %}
 
-      <button type="submit" class="btn btn-primary">
+            {% if field.name == 'content' %}
+            {% include 'research/partials/rich_text_editor.html' %}
+            {% endif %}
+                        
+            {% endfor %}
+
+        <button type="submit" class="btn btn-primary">
             {% if object %}
                 {% trans 'Save' %}
             {% else %}

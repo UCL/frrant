@@ -158,6 +158,12 @@
         {% trans 'Concordance' %}
       </a>
       {% endif %}
+      {% if perms.research.view_bibliographyitem %}
+      <a class='nav-link {% if "bibliography" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
+        href='{% url "bibliography:list" %}'>
+        {% trans 'Bibliography' %}
+      </a>
+      {% endif %}
       <a class='nav-link {% if "search" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
         href='{% url "search:home" %}'>
         {% trans 'Search' %}

@@ -1,7 +1,10 @@
-from .antiquarian import (AntiquarianCreateView, AntiquarianDeleteView,
+from .antiquarian import (AntiquarianBibliographyCreateView,
+                          AntiquarianCreateView, AntiquarianDeleteView,
                           AntiquarianDetailView, AntiquarianListView,
                           AntiquarianUpdateView, AntiquarianWorkCreateView,
                           AntiquarianWorksUpdateView)
+from .bibliography import (BibliographyDeleteView, BibliographyListView,
+                           BibliographyUpdateView)
 from .citing_work import (CitingAuthorListView, CitingWorkDeleteView,
                           CitingWorkDetailView, CitingWorkUpdateView)
 from .comments import CommentDeleteView, TextObjectFieldCommentListView
@@ -34,6 +37,7 @@ from .work import (BookCreateView, BookDeleteView, BookUpdateView,
                    WorkListView, WorkUpdateView)
 
 __all__ = [
+    'AntiquarianBibliographyCreateView',
     'AntiquarianCreateView',
     'AntiquarianWorkCreateView',
     'AntiquarianDeleteView',
@@ -41,6 +45,9 @@ __all__ = [
     'AntiquarianListView',
     'AntiquarianUpdateView',
     'AntiquarianWorksUpdateView',
+    'BibliographyDeleteView',
+    'BibliographyListView',
+    'BibliographyUpdateView',
     'BookCreateView',
     'BookUpdateView',
     'BookDeleteView',

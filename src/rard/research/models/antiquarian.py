@@ -1,3 +1,4 @@
+from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.db.models.signals import pre_delete
 from django.urls import reverse
@@ -24,9 +25,9 @@ class Antiquarian(TextObjectFieldMixin, LockableModel, DatedModel, BaseModel):
 
     name = models.CharField(max_length=128, blank=False)
 
-    biography = models.OneToOneField(
+    introduction = models.OneToOneField(
         'TextObjectField', on_delete=models.SET_NULL, null=True,
-        related_name='biography_for'
+        related_name='introduction_for'
     )
 
     re_code = models.CharField(
@@ -50,6 +51,10 @@ class Antiquarian(TextObjectFieldMixin, LockableModel, DatedModel, BaseModel):
         max_length=16,
         choices=DATES_INFO_CHOICES,
         blank=True
+    )
+
+    bibliography_items = GenericRelation(
+        'BibliographyItem', related_query_name='bibliography_items'
     )
 
     def __str__(self):

@@ -35,7 +35,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         qs = Antiquarian.objects.all()
         results = (
             qs.filter(name__icontains=keywords) |
-            qs.filter(biography__content__icontains=keywords) |
+            qs.filter(introduction__content__icontains=keywords) |
             qs.filter(re_code__icontains=keywords)
         )
         return results

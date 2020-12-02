@@ -62,25 +62,26 @@ class AntiquarianForm(DatedModelFormBase):
         fields = ('name', 're_code', 'circa1', 'circa2', 'year_type',
                   'year1', 'year2', 'dates_type')
 
-    biography_text = forms.CharField(
+    introduction_text = forms.CharField(
         widget=forms.Textarea,
         required=False,
-        label='Biography',
+        label='Introduction',
     )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.instance.biography:
-            self.fields['biography_text'].initial = \
-                self.instance.biography.content
+        if self.instance.introduction:
+            self.fields['introduction_text'].initial = \
+                self.instance.introduction.content
 
     def save(self, commit=True):
         instance = super().save(commit=False)
         if commit:
             instance.save()
-            # biography will have been created at this point
-            instance.biography.content = self.cleaned_data['biography_text']
-            instance.biography.save()
+            # introduction will have been created at this point
+            instance.introduction.content = \
+                self.cleaned_data['introduction_text']
+            instance.introduction.save()
         return instance
 
 
