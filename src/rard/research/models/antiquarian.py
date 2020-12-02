@@ -10,7 +10,7 @@ from rard.utils.basemodel import BaseModel, DatedModel, LockableModel
 class Antiquarian(TextObjectFieldMixin, LockableModel, DatedModel, BaseModel):
 
     class Meta:
-        ordering = ['name']
+        ordering = ['order_name', 're_code']
 
     # extend the dates functionality with more detail
     # on what the dates means
@@ -24,6 +24,8 @@ class Antiquarian(TextObjectFieldMixin, LockableModel, DatedModel, BaseModel):
     ]
 
     name = models.CharField(max_length=128, blank=False)
+
+    order_name = models.CharField(max_length=128, default='', blank=True)
 
     introduction = models.OneToOneField(
         'TextObjectField', on_delete=models.SET_NULL, null=True,
@@ -70,6 +72,11 @@ class Antiquarian(TextObjectFieldMixin, LockableModel, DatedModel, BaseModel):
         return super().display_date_range(
             prepend=self.get_dates_type_display()
         )
+
+    def save(self, *args, **kwargs):
+        if not self.order_name:
+            self.order_name = self.name
+        super().save(*args, **kwargs)
 
 
 def remove_stale_antiquarian_links(sender, instance, **kwargs):
