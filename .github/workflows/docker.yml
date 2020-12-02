@@ -23,8 +23,15 @@ jobs:
     steps:
       # Run tests
       - uses: actions/checkout@v2
-      - name: Docker test
+      - name: Docker local config test
         run: |
             cd src
             docker-compose -f local.yml run --rm django pytest
-            
+      - name: Docker development config test
+        run: |
+            cd src
+            docker-compose -f development.yml run --rm django pytest
+      - name: Docker production config test
+        run: |
+            cd src
+            docker-compose -f production.yml run --rm django pytest
