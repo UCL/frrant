@@ -19,6 +19,25 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
+  build:
+    #  No RHEL available, testing on ubuntu instead
+    runs-on: ubuntu-latest
+    steps:
+      # Run local tests
+      - uses: actions/checkout@v2
+      - name: Docker local tests
+        run: |
+            cd src
+            ./runtests.sh
+      - name: Docker build and deploy
+        # build should implicitely do --no-cache since it's a branch new VM
+        run: |
+            pwd
+            cd src
+            docker-compose -f local.yml build
+            docker-compose -f local.yml up -d
+            docker-compose -f local.yml logs -f 
+
 #   test:
 #     #  No RHEL available, testing on ubuntu instead
 #     runs-on: ubuntu-latest
@@ -30,17 +49,17 @@ jobs:
 #             pwd
 #             cd src
 #             ./runtests.sh
-  build_and_deploy:
-    #  No RHEL available, testing on ubuntu instead
-    runs-on: ubuntu-latest
-    steps:
-      - name: Docker build and deploy
-        # build should implicitely do --no-cache since it's a branch new VM
-        # logs
-        run: |
-            pwd
-            cd src
-            docker-compose -f local.yml build
-            docker-compose -f local.yml up -d
-            docker-compose -f local.yml logs -f          
+#   build_and_deploy:
+#     #  No RHEL available, testing on ubuntu instead
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Docker build and deploy
+#         # build should implicitely do --no-cache since it's a branch new VM
+#         # logs
+#         run: |
+#             pwd
+#             cd src
+#             docker-compose -f local.yml build
+#             docker-compose -f local.yml up -d
+#             docker-compose -f local.yml logs -f          
             
