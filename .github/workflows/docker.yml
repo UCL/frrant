@@ -29,16 +29,6 @@ jobs:
         run: |
             cd src
             ./runtests.sh
-  build:
-    #  No RHEL available, testing on ubuntu instead
-    runs-on: ubuntu-latest
-    steps:
-      - name: Docker build and deploy
-        # build should implicitely do --no-cache since it's a branch new VM
-        run: |
-            cd src
-            docker-compose -f local.yml build
-            docker-compose -f local.yml up
   build_and_deploy:
     #  No RHEL available, testing on ubuntu instead
     runs-on: ubuntu-latest
