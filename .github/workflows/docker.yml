@@ -14,12 +14,11 @@ on:
   schedule:
   - cron: "0 0 * * *"
 
-  # Allows you to run this workflow manually from the Actions tab
+  # Allows running this workflow manually from the Actions tab
   workflow_dispatch:
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+  
 jobs:
-  build:
+  runtests:
     #  No RHEL available, testing on ubuntu instead
     runs-on: ubuntu-latest
     steps:
@@ -29,37 +28,19 @@ jobs:
         run: |
             cd src
             ./runtests.sh
-      - name: Docker build and deploy
-        # build should implicitely do --no-cache since it's a branch new VM
-        run: |
-            pwd
-            cd src
-            docker-compose -f local.yml build
-            docker-compose -f local.yml up -d
-            docker-compose -f local.yml logs --tail="all"  
-            docker-compose -f local.yml down
-#   test:
-#     #  No RHEL available, testing on ubuntu instead
-#     runs-on: ubuntu-latest
-#     steps:
-#       # Run local tests
-#       - uses: actions/checkout@v2
-#       - name: Docker local tests
-#         run: |
-#             pwd
-#             cd src
-#             ./runtests.sh
+
+
 #   build_and_deploy:
 #     #  No RHEL available, testing on ubuntu instead
 #     runs-on: ubuntu-latest
 #     steps:
 #       - name: Docker build and deploy
 #         # build should implicitely do --no-cache since it's a branch new VM
-#         # logs
 #         run: |
 #             pwd
 #             cd src
 #             docker-compose -f local.yml build
 #             docker-compose -f local.yml up -d
-#             docker-compose -f local.yml logs -f          
+#             docker-compose -f local.yml logs --tail="all"  
+#             docker-compose -f local.yml down        
             
