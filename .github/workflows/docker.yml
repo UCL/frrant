@@ -19,17 +19,17 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  test:
-    #  No RHEL available, testing on ubuntu instead
-    runs-on: ubuntu-latest
-    steps:
-      # Run local tests
-      - uses: actions/checkout@v2
-      - name: Docker local tests
-        run: |
-            pwd
-            cd src
-            ./runtests.sh
+#   test:
+#     #  No RHEL available, testing on ubuntu instead
+#     runs-on: ubuntu-latest
+#     steps:
+#       # Run local tests
+#       - uses: actions/checkout@v2
+#       - name: Docker local tests
+#         run: |
+#             pwd
+#             cd src
+#             ./runtests.sh
   build_and_deploy:
     #  No RHEL available, testing on ubuntu instead
     runs-on: ubuntu-latest
