@@ -37,6 +37,7 @@ jobs:
         # build should implicitely do --no-cache since it's a branch new VM
         # logs
         run: |
+            pwd
             cd src
             docker-compose -f local.yml build
             docker-compose -f local.yml up -d
