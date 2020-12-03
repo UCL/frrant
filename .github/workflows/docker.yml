@@ -15,19 +15,21 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
+  # This workflow contains two jobs
   build:
     #  No RHEL available, testing on ubuntu instead
     runs-on: ubuntu-latest
-
     steps:
-      # Run tests
+      # Run local tests
       - uses: actions/checkout@v2
-      - name: Docker local config test
-        run: |
-            cd src
-            docker-compose -f local.yml run --rm django pytest
-      - name: runtests.sh
+      - name: Docker local tests
         run: |
             cd src
             ./runtests.sh
+      - name: Docker build and deploy
+        # build should implicitely do --no-cache since it's a branch new VM
+        run: |
+            cd src
+            docker-compose -f local.yml build
+            docker-compose -f local.yml up
+            
