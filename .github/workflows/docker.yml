@@ -36,8 +36,8 @@ jobs:
             cd src
             docker-compose -f local.yml build
             docker-compose -f local.yml up -d
-            docker-compose -f local.yml logs -f 
-
+            docker-compose -f local.yml logs --tail="all"  
+            docker-compose -f local.yml down
 #   test:
 #     #  No RHEL available, testing on ubuntu instead
 #     runs-on: ubuntu-latest
