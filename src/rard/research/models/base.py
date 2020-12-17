@@ -271,6 +271,64 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
         abstract = True
         ordering = ['pk']
 
+    # a placeholder 'entire collection' ID for this item. Current thinking
+    # is that all fragments and anonymous fragments will be ordered by this
+    # field, and testimonia separately. The rules for setting this ID will
+    # be decided towards the project end and the entire collection will be
+    # scanned and this ID set accordingly and then can be used as a
+    # master index / order for the collection
+    collection_id = models.PositiveIntegerField(
+        default=None, null=True, blank=True
+    )
+
+    # Below is an example of how collection_id might be set by calling this 
+    # method at the end of the project. Beware when using order_by that if you
+    # use a related field e.g. original text name, then you will get duplicate
+    # fragments in your queryset where a fragment has multiple original texts
+    # so you need care. Look at annotating the queryset for that:
+    # 
+    # For example to order fragments by the first name of their original text
+    # authors, we might do this:
+    #
+    # fragments = list(set(AnonymousFragment.objects.annotate(
+    #     author_name=F('original_texts__citing_work__author__name')
+    #     ).order_by('author_name')))
+    #
+    # using list(set(...)) removes duplicates from the collection which
+    # have been ordered so our list is ordered by the name of the
+    # author of the their original texts
+
+    # However, below as an example we are using creation date of the record
+    # which will not result in any duplicates as it is a value of the objects
+    # themselves (rather than value(s) from potentially many related fields)
+
+    @classmethod
+    def reindex_collection(cls):
+        from rard.research.models import (AnonymousFragment, Fragment,
+                                          Testimonium)
+        with transaction.atomic():
+            for count, testimonium in enumerate(
+                    Testimonium.objects.order_by('created')):
+                testimonium.collection_id = count
+                testimonium.save()
+
+            qs1 = AnonymousFragment.objects.all()
+            qs2 = Fragment.objects.all()
+            # we cannot combine querysets directly with different models
+            # but we can form a (large) list
+            import operator
+            from itertools import chain
+
+            # sort them by created date in this example. Change this to
+            # whichever shared key they have. Use annotate on the original
+            # querysets where you need a related field value for both
+            # e.g. original text name
+            items = list(chain(qs1, qs2))
+            items.sort(key=operator.attrgetter('created'))
+            for count, item in enumerate(items):
+                item.collection_id = count
+                item.save()
+
     name = models.CharField(max_length=128, blank=False)
 
     commentary = models.OneToOneField(
