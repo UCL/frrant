@@ -1,38 +1,55 @@
-{# Assumes a context object named 'fragment' #}
+{# Assumes a context object named 'link' and 'link_text' #}
 
 {% load i18n %}
 
+{% with fragment=link.linked %}
 <div class='rard-list-item d-flex justify-content-between'>
     <div>
         <li>
-            {% with fragment.get_display_name as link_text %}
                 {% if perms.research.view_fragment %}
                 <a href='{% url "fragment:detail" fragment.pk %}'>{{ link_text }}</a> 
                 {% else %}
                     {{ link_text }}
                 {% endif %}
-            {% endwith %}
+                {% if link.definite %}
+                <i title='Definite link' data-placement="top" data-toggle='tooltip' class='fa fa-check-circle fa-xs text-muted'></i>
+                {% else %}
+                <i title='Possible link' data-placement="top" data-toggle='tooltip' class='fa fa-question-circle fa-xs text-muted'></i>
+                {% endif %}
+
+                {% comment %}
+                <span class='badge badge-secondary'>{{ link.definite|yesno:"Definite,Possible"}}</span>
+                {% endcomment %}
             <br>
             <small>
                 <span class='ml-4 text-muted'>
-                    [{{ link.get_display_name }}] - <b>{{ link.definite|yesno:"Definite,Possible"}}</b> link {% if link.work %}via work {{ link.work }} {% if link.book %} vol. {{ link.book.number }}{% endif %}{% endif %}
+                    {{ fragment.get_citing_display|safe }}
                 </span>
             </small>
         </li>
     </div>
     <div class='rard-list-item-actions'>
+        
         {% if can_edit and has_object_lock %}
         <form novalidate class='form-inline' action='' method='POST'>
             {% csrf_token %}
             <div class='form-group'>
                 <input type='hidden' name='link_id' value='{{ link.pk }}'>
                 <input type='hidden' name='object_type' value='fragment'>
+                {% if ordered_by_work %}
+                <button type='submit' class='btn btn-light'
+                    name='up_by_work'>▲</button>
+                <button type='submit' class='btn btn-light'
+                    name='down_by_work'>▼</button>
+                {% else %}
                 <button type='submit' class='btn btn-light'
                     name='up'>▲</button>
                 <button type='submit' class='btn btn-light'
                     name='down'>▼</button>
+                {% endif %}
             </div>
         </form>
         {% endif %}
     </div>
 </div>
+{% endwith %}

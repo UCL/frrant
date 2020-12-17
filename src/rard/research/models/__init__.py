@@ -2,7 +2,7 @@ from .antiquarian import Antiquarian
 from .bibliography import BibliographyItem
 from .citing_work import CitingAuthor, CitingWork
 from .comment import Comment
-from .fragment import Fragment
+from .fragment import AnonymousFragment, Fragment
 from .image import Image
 from .original_text import Concordance, OriginalText, Translation
 from .symbols import Symbol, SymbolGroup
@@ -12,6 +12,7 @@ from .topic import Topic
 from .work import Book, Work
 
 __all__ = [
+    'AnonymousFragment',
     'Antiquarian',
     'BibliographyItem',
     'CitingAuthor',

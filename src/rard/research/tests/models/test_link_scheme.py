@@ -318,11 +318,13 @@ class TestWorkLinkScheme(TestCase):
             self.assertEqual(count, link.order)
 
     def test_ordered_fragments_method(self):
-        ordered_fragments = [f for f in self.antiquarian.ordered_fragments()]
-        ground_truth = [
-            link.fragment for link in
-            FragmentLink.objects.filter(antiquarian=self.antiquarian)
+        ordered_fragments = [
+            f.pk for f in self.antiquarian.ordered_fragments()
         ]
+        ground_truth = sorted(list(set([
+            link.fragment.pk for link in
+            FragmentLink.objects.filter(antiquarian=self.antiquarian)
+        ])))
         self.assertEqual(ordered_fragments, ground_truth)
 
     def test_remove_work_removes_links(self):
@@ -331,7 +333,7 @@ class TestWorkLinkScheme(TestCase):
         self.antiquarian.works.remove(self.work)
 
         # we should now have only links directly to the antiquarian
-        self.assertEqual(self.antiquarian.fragments.count(), self.NUM)
+        self.assertEqual(self.antiquarian.fragmentlinks.count(), self.NUM)
         for link in self.antiquarian.fragmentlinks.all():
             self.assertIsNone(link.work)
 
@@ -339,6 +341,7 @@ class TestWorkLinkScheme(TestCase):
         for count, link in enumerate(
                 FragmentLink.objects.filter(antiquarian=self.antiquarian)):
             self.assertEqual(count, link.order)
+
         # there are no links to the antiquarian via the work
         self.assertFalse(
             FragmentLink.objects.filter(
@@ -441,6 +444,7 @@ class TestWorkLinkScheme(TestCase):
         # linked fragments when multiple works removed at once
 
         ADD = 4
+        # with transaction.atomic():
         for i in range(0, ADD):
             # create a work
             work = Work.objects.create(name='another')
@@ -459,11 +463,12 @@ class TestWorkLinkScheme(TestCase):
         # we should at this point have 5 sets
         # linked via the work and one directly = 6
         expected = (Work.objects.count() + 1) * self.NUM
-        self.assertEqual(self.antiquarian.fragments.count(), expected)
+        self.assertEqual(self.antiquarian.fragmentlinks.count(), expected)
 
         # remove all the works at once (doesn't delete them)
         # for work in self.antiquarian.works.all():
         #     self.antiquarian.works.remove(work)
+        # with transaction.atomic():
         if method == self.REMOVE_SINGLE:
             self.antiquarian.works.remove(Work.objects.first())  # one only
         elif method == self.REMOVE_MULTI:
@@ -475,7 +480,7 @@ class TestWorkLinkScheme(TestCase):
 
         # antiquarian should now have fewer links directly to it
         expected = (self.antiquarian.works.count() + 1) * self.NUM
-        self.assertEqual(self.antiquarian.fragments.count(), expected)
+        self.assertEqual(self.antiquarian.fragmentlinks.count(), expected)
         # for link in self.antiquarian.fragmentlinks.all():
         #     self.assertIsNone(link.work)
 
@@ -505,108 +510,6 @@ class TestWorkLinkScheme(TestCase):
         for count, link in enumerate(
                 FragmentLink.objects.filter(antiquarian__isnull=True)):
             self.assertEqual(count, link.order)
-
-
-class TestFragmentOrderingScheme(TestCase):
-    NUM = 5
-
-    def setUp(self):
-        # add an antiquarian with a work
-        self.antiquarian = Antiquarian.objects.create(
-            name='name',
-            re_code='name'
-        )
-        self.work = Work.objects.create(name='work')
-        self.antiquarian.works.add(self.work)
-
-        for i in range(0, self.NUM):
-            data = {
-                'name': 'name{}'.format(i),
-            }
-            fragment = Fragment.objects.create(**data)
-
-            # add links to antiquarian directly
-            FragmentLink.objects.create(
-                antiquarian=self.antiquarian, fragment=fragment,
-                definite=True
-            )
-
-    def _get_fragment_names(self):
-        return [
-            link.fragment.name for link in self.antiquarian.fragmentlinks.all()
-        ]
-
-    def test_up(self):
-        fragment_names = self._get_fragment_names()
-        self.assertEqual(len(fragment_names), 5)
-        test_link = self.antiquarian.fragmentlinks.last()
-
-        test_link.up()
-        self.assertEqual(
-            self._get_fragment_names(),
-            [fragment_names[i] for i in (0, 1, 2, 4, 3)]
-        )
-
-        test_link.up()
-        self.assertEqual(
-            self._get_fragment_names(),
-            [fragment_names[i] for i in (0, 1, 4, 2, 3)]
-        )
-
-        test_link.up()
-        self.assertEqual(
-            self._get_fragment_names(),
-            [fragment_names[i] for i in (0, 4, 1, 2, 3)]
-        )
-
-        test_link.up()
-        self.assertEqual(
-            self._get_fragment_names(),
-            [fragment_names[i] for i in (4, 0, 1, 2, 3)]
-        )
-
-        # attempt to move above pos 0 has no effect and does not barf
-        test_link.up()
-        self.assertEqual(
-            self._get_fragment_names(),
-            [fragment_names[i] for i in (4, 0, 1, 2, 3)]
-        )
-
-    def test_down(self):
-        fragment_names = self._get_fragment_names()
-        self.assertEqual(len(fragment_names), 5)
-        test_link = self.antiquarian.fragmentlinks.first()
-
-        test_link.down()
-        self.assertEqual(
-            self._get_fragment_names(),
-            [fragment_names[i] for i in (1, 0, 2, 3, 4)]
-        )
-
-        test_link.down()
-        self.assertEqual(
-            self._get_fragment_names(),
-            [fragment_names[i] for i in (1, 2, 0, 3, 4)]
-        )
-
-        test_link.down()
-        self.assertEqual(
-            self._get_fragment_names(),
-            [fragment_names[i] for i in (1, 2, 3, 0, 4)]
-        )
-
-        test_link.down()
-        self.assertEqual(
-            self._get_fragment_names(),
-            [fragment_names[i] for i in (1, 2, 3, 4, 0)]
-        )
-
-        # attempt to move off the end has no effect and does not barf
-        test_link.down()
-        self.assertEqual(
-            self._get_fragment_names(),
-            [fragment_names[i] for i in (1, 2, 3, 4, 0)]
-        )
 
 
 class TestLinkScheme(TestCase):
@@ -802,4 +705,242 @@ class TestLinkScheme(TestCase):
                 '{}'.format(linkta1.get_display_name()),
                 '{}'.format(linkta2.get_display_name())
             ]
+        )
+
+
+class TestWorkLinkUpdateScheme(TestCase):
+
+    def setUp(self):
+        # add an antiquarian with a work
+        self.antiquarian = Antiquarian.objects.create(
+            name='name',
+            re_code='name'
+        )
+        self.work = Work.objects.create(name='work')
+        self.antiquarian.works.add(self.work)
+        self.book = Book.objects.create(work=self.work, number=1)
+
+        data = {
+            'name': 'name',
+        }
+        self.fragment = Fragment.objects.create(**data)
+        self.testimonium = Testimonium.objects.create(**data)
+
+    def test_add_work_fragment_queryset(self):
+        FragmentLink.objects.create(
+            antiquarian=self.antiquarian,
+            work=self.work,
+            fragment=self.fragment,
+        )
+        self.assertEqual(self.work.all_fragments().count(), 1)
+
+    def test_add_work_fragment_sets_work_index(self):
+        link_pks = []
+        for _ in range(0, 10):
+            link = FragmentLink.objects.create(
+                antiquarian=self.antiquarian,
+                work=self.work,
+                fragment=self.fragment,
+            )
+            link_pks.append(link.pk)
+
+        for count, pk in enumerate(link_pks):
+            link = FragmentLink.objects.get(pk=pk)
+            self.assertEqual(link.work_order, count)
+            self.assertEqual(link.display_work_order_one_indexed(), count + 1)
+
+    def test_work_order_different_to_order(self):
+        # not the same thing and can vary independently
+        for _ in range(0, 10):
+            FragmentLink.objects.create(
+                antiquarian=self.antiquarian,
+                work=self.work,
+                fragment=self.fragment,
+            )
+            # now independently set for the antiquarian
+            FragmentLink.objects.create(
+                antiquarian=self.antiquarian,
+                fragment=self.fragment,
+            )
+
+        # work_order should be set wrt links with a work link
+        qs = FragmentLink.objects.filter(antiquarian=self.antiquarian)
+        for count, link in enumerate(
+                qs.filter(work__isnull=False).order_by('work_order')):
+            self.assertEqual(link.work_order, count)
+            self.assertEqual(link.display_work_order_one_indexed(), count + 1)
+
+        # the links to antiquarians should be independent as before
+        for count, link in enumerate(qs.order_by('order')):
+            self.assertEqual(link.order, count)
+            self.assertEqual(link.display_order_one_indexed(), count + 1)
+
+    def test_remove_work_fragment_reindexes_work_index(self):
+        link_pks = []
+        for _ in range(0, 10):
+            link = FragmentLink.objects.create(
+                antiquarian=self.antiquarian,
+                work=self.work,
+                fragment=self.fragment,
+            )
+            link_pks.append(link.pk)
+
+        # delete some of them
+        FragmentLink.objects.filter(pk__in=(8, 6, 3)).delete()
+
+        # indexes should have been patched
+        for count, pk in enumerate(link_pks):
+            link = FragmentLink.objects.get(pk=pk)
+            self.assertEqual(link.work_order, count)
+
+    def test_add_work_testimonium_queryset(self):
+        TestimoniumLink.objects.create(
+            antiquarian=self.antiquarian,
+            work=self.work,
+            testimonium=self.testimonium,
+        )
+        self.assertEqual(self.work.all_testimonia().count(), 1)
+
+    def test_add_work_testimonium_sets_work_index(self):
+        link_pks = []
+        # from django.db import transaction
+        for _ in range(0, 10):
+            # with transaction.atomic():
+            link = TestimoniumLink.objects.create(
+                antiquarian=self.antiquarian,
+                work=self.work,
+                testimonium=self.testimonium,
+            )
+            link_pks.append(link.pk)
+
+        for count, pk in enumerate(link_pks):
+            link = TestimoniumLink.objects.get(pk=pk)
+            self.assertEqual(link.work_order, count)
+            self.assertEqual(link.display_work_order_one_indexed(), count + 1)
+
+    def test_remove_work_testimonium_reindexes_work_index(self):
+        link_pks = []
+        for _ in range(0, 10):
+            link = TestimoniumLink.objects.create(
+                antiquarian=self.antiquarian,
+                work=self.work,
+                testimonium=self.testimonium,
+            )
+            link_pks.append(link.pk)
+
+        # delete some of them
+        FragmentLink.objects.filter(pk__in=(8, 6, 3)).delete()
+
+        # indexes should have been patched
+        for count, pk in enumerate(link_pks):
+            link = TestimoniumLink.objects.get(pk=pk)
+            self.assertEqual(link.work_order, count)
+
+
+class TestFragmentWorkOrderingScheme(TestCase):
+    NUM = 5
+
+    def setUp(self):
+        # add an antiquarian with a work
+        self.antiquarian = Antiquarian.objects.create(
+            name='name',
+            re_code='name'
+        )
+        self.work = Work.objects.create(name='work')
+        self.antiquarian.works.add(self.work)
+
+        for i in range(0, self.NUM):
+            data = {
+                'name': 'name{}'.format(i),
+            }
+            fragment = Fragment.objects.create(**data)
+
+            # add links to antiquarian directly
+            FragmentLink.objects.create(
+                antiquarian=self.antiquarian, fragment=fragment,
+                work=self.work,
+                definite=True
+            )
+
+    def _get_fragment_names(self):
+        return [
+            link.fragment.name for link in
+            self.work.antiquarian_work_fragmentlinks.order_by('work_order')
+        ]
+
+    def test_up_by_work(self):
+        fragment_names = self._get_fragment_names()
+        self.assertEqual(len(fragment_names), 5)
+        test_link = self.work.antiquarian_work_fragmentlinks.last()
+
+        self.assertEqual(
+            self._get_fragment_names(),
+            [fragment_names[i] for i in (0, 1, 2, 3, 4)]
+        )
+
+        test_link.up_by_work()
+        self.assertEqual(
+            self._get_fragment_names(),
+            [fragment_names[i] for i in (0, 1, 2, 4, 3)]
+        )
+
+        test_link.up_by_work()
+        self.assertEqual(
+            self._get_fragment_names(),
+            [fragment_names[i] for i in (0, 1, 4, 2, 3)]
+        )
+
+        test_link.up_by_work()
+        self.assertEqual(
+            self._get_fragment_names(),
+            [fragment_names[i] for i in (0, 4, 1, 2, 3)]
+        )
+
+        test_link.up_by_work()
+        self.assertEqual(
+            self._get_fragment_names(),
+            [fragment_names[i] for i in (4, 0, 1, 2, 3)]
+        )
+
+        # attempt to move above pos 0 has no effect and does not barf
+        test_link.up_by_work()
+        self.assertEqual(
+            self._get_fragment_names(),
+            [fragment_names[i] for i in (4, 0, 1, 2, 3)]
+        )
+
+    def test_down_by_work(self):
+        fragment_names = self._get_fragment_names()
+        self.assertEqual(len(fragment_names), 5)
+        test_link = self.work.antiquarian_work_fragmentlinks.first()
+
+        test_link.down_by_work()
+        self.assertEqual(
+            self._get_fragment_names(),
+            [fragment_names[i] for i in (1, 0, 2, 3, 4)]
+        )
+
+        test_link.down_by_work()
+        self.assertEqual(
+            self._get_fragment_names(),
+            [fragment_names[i] for i in (1, 2, 0, 3, 4)]
+        )
+
+        test_link.down_by_work()
+        self.assertEqual(
+            self._get_fragment_names(),
+            [fragment_names[i] for i in (1, 2, 3, 0, 4)]
+        )
+
+        test_link.down_by_work()
+        self.assertEqual(
+            self._get_fragment_names(),
+            [fragment_names[i] for i in (1, 2, 3, 4, 0)]
+        )
+
+        # attempt to move off the end has no effect and does not barf
+        test_link.down_by_work()
+        self.assertEqual(
+            self._get_fragment_names(),
+            [fragment_names[i] for i in (1, 2, 3, 4, 0)]
         )

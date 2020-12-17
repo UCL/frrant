@@ -1,5 +1,5 @@
 {% extends "research/detail_base.html" %}
-{% load i18n object_lock %}
+{% load i18n object_lock links_for_work %}
 
 {% block heading %}{{ object.name }}{% endblock %}
 
@@ -48,8 +48,11 @@
             <dt class="col-sm-3">{% trans 'Name' %}</dt>
             <dd class="col-sm-9">{{ object.name }}</dd>
         
+            <dt class="col-sm-3">{% trans 'Name for Alphabetisation' %}</dt>
+            <dd class="col-sm-9">{{ object.order_name }}</dd>
+
             <dt class="col-sm-3">{% trans 'RE Number' %}</dt>
-            <dd class="col-sm-9">{{ object.re_code }}</dd>
+            <dd class="col-sm-9">{{ object.re_code|default:'-' }}</dd>
             
             <dt class="col-sm-3">{% trans 'Relevant Dates' %}</dt>
             <dd class="col-sm-9">
@@ -58,7 +61,7 @@
 
             <dt class="col-sm-3">{% trans 'Introduction' %}</dt>
             <dd class="col-sm-9">
-                {{ object.introduction.content|safe }}
+                {{ object.introduction.content|safe|default:'-' }}
 
                 {% comment %}
 
@@ -77,7 +80,7 @@
     </section>
 
     <hr>
-
+{% comment %}
     <section>
 
         <div class='d-flex justify-content-between mb-3'>
@@ -94,8 +97,8 @@
             </div>
         </div>
 
-        {% for work in object.works.all %}
-
+        {% for work in object.ordered_works.all %}
+        
         {% include 'research/partials/work_list_item.html' with work=work %}
         
         {% endfor %}
@@ -103,7 +106,95 @@
 
 
     <hr>
+{% endcomment %}
 
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Ordered Material' %}</h5>
+            </div>
+            <div>
+                {% if perms.research.change_antiquarian and has_object_lock %}
+                <a href='{% url "testimonium:create" %}'>{% trans 'Add' %}</a>
+                {% endif %}
+            </div>
+        </div>
+
+        {% for work in object.ordered_works.all %}
+        
+        <form novalidate class='form-inline' action='' method='POST'>
+            <b class='my-3 mr-3'><a href='{% url "work:detail" work.pk %}'>{{ work.name }}</a></b>
+
+            {% if perms.research.change_antiquarian and has_object_lock %}
+
+            {% csrf_token %}
+            <div class='form-group'>
+                <input type='hidden' name='work_id' value='{{ work.pk }}'>
+                <input type='hidden' name='antiquarian_id' value='{{ object.pk }}'>
+                <button type='submit' class='btn btn-light btn-sm'
+                    name='work_up'>▲</button>
+                <button type='submit' class='btn btn-light btn-sm'
+                    name='work_down'>▼</button>
+            </div>
+
+            {% endif %}
+        </form>
+
+
+        <ul>
+            {% with tlinks=object|testimonium_links_for_work:work %}
+            {% with flinks=object|fragment_links_for_work:work %}
+
+
+            {% for link in tlinks %}
+                {% include 'research/partials/testimonium_link_list_item.html' with link=link ordered_by_work=True link_text=link.get_work_display_name_full|safe can_edit=perms.research.change_antiquarian has_object_lock=has_object_lock %}
+            {% endfor %}
+
+            {% for link in flinks %}
+                {% include 'research/partials/fragment_link_list_item.html' with link=link ordered_by_work=True link_text=link.get_work_display_name_full|safe can_edit=perms.research.change_antiquarian has_object_lock=has_object_lock %}
+            {% endfor %}
+
+        
+            {% if not flinks and not tlinks %}
+            <div class='text-muted my-3 ml-4'><em>No linked material for this work</em></div>
+            {% endif %}
+        
+            {% endwith %}
+            {% endwith %}
+        </ul>
+        
+        
+        {% endfor %}
+
+        <li>Unknown Work</li>
+        <ul>
+
+        {% with tlinks=object|testimonium_links_for_work:None %}
+        {% with flinks=object|fragment_links_for_work:None %}
+
+
+            {% if tlinks or flinks %}
+                {% for link in tlinks %}
+                    {% include 'research/partials/testimonium_link_list_item.html' with link=link link_text=link.get_display_name|safe %}
+                {% endfor %}
+                {% for link in flinks %}
+                    {% include 'research/partials/fragment_link_list_item.html' with link=link link_text=link.get_display_name|safe %}
+                {% endfor %}
+
+            {% endif %}
+
+
+        {% endwith %}
+        {% endwith %}
+
+        </ul>
+
+
+    </section>
+
+    <hr>
+
+{% comment %}
     <section>
         <div class='d-flex justify-content-between mb-3'>
             <div>
@@ -150,6 +241,7 @@
 
     <hr>
 
+{% endcomment %}
     <section>
         <div class='d-flex justify-content-between mb-3'>
             <div>

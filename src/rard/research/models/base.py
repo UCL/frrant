@@ -1,6 +1,5 @@
-from django.db import models
-from django.db.models.signals import m2m_changed, post_delete
-from django.db.utils import IntegrityError
+from django.db import models, transaction
+from django.db.models.signals import m2m_changed, post_delete, post_save
 
 from rard.research.models import Antiquarian
 from rard.research.models.mixins import TextObjectFieldMixin
@@ -17,32 +16,33 @@ class LinkBaseModel(BaseModel):
         return getattr(self, self.linked_field)
 
     def related_queryset(self):
-        return self.__class__.objects.filter(antiquarian=self.antiquarian)
+        return self.__class__.objects.filter(
+            antiquarian=self.antiquarian).order_by('work__worklink__order')
 
-    def prev(self):
-        return self.related_queryset().filter(order__lt=self.order).last()
+    # def prev(self):
+    #     return self.related_queryset().filter(order__lt=self.order).last()
 
-    def next(self):
-        return self.related_queryset().filter(order__gt=self.order).first()
+    # def next(self):
+    #     return self.related_queryset().filter(order__gt=self.order).first()
 
-    def swap(self, replacement):
-        self.order, replacement.order = replacement.order, self.order
-        self.save()
-        replacement.save()
+    # def swap(self, replacement):
+    #     self.order, replacement.order = replacement.order, self.order
+    #     self.save()
+    #     replacement.save()
 
-    def up(self):
-        previous = self.prev()
-        if previous:
-            self.swap(previous)
+    # def up(self):
+    #     previous = self.prev()
+    #     if previous:
+    #         self.swap(previous)
 
-    def down(self):
-        next_ = self.next()
-        if next_:
-            self.swap(next_)
+    # def down(self):
+    #     next_ = self.next()
+    #     if next_:
+    #         self.swap(next_)
 
     def save(self, *args, **kwargs):
         if not self.pk:
-            # deduce the order of this fragment with respect to this work
+            # deduce the order of this object with respect to its antiquarian
             self.order = self.related_queryset().count()
 
         super().save(*args, **kwargs)
@@ -50,13 +50,21 @@ class LinkBaseModel(BaseModel):
     def get_display_name(self):
         return '{} {}{}'.format(
             self.antiquarian or 'Anonymous',
-            self.display_stub,
+            self.get_display_stub(),
             self.display_order_one_indexed()
         )
 
-    def display_order_one_indexed(self):
-        return self.order + 1
+    def get_display_stub(self):
+        # offer a chance for subclasses to use logic to deduce this
+        return self.display_stub
 
+    def display_order_one_indexed(self):
+        try:
+            return self.order + 1
+        except TypeError:
+            return 'ERR'
+
+    # the order wrt the antiquarian
     order = models.PositiveIntegerField(
         default=None, null=True, blank=True
     )
@@ -71,7 +79,95 @@ class LinkBaseModel(BaseModel):
     definite = models.BooleanField(default=False)
 
 
-class TestimoniumLink(LinkBaseModel):
+class WorkLinkBaseModel(LinkBaseModel):
+    class Meta(LinkBaseModel.Meta):
+        abstract = True
+
+    # the order wrt the work
+    work_order = models.PositiveIntegerField(
+        default=None, null=True, blank=True
+     )
+
+    def get_work_display_name(self):
+        if not self.work:
+            return ''
+
+        return '{} {}{}'.format(
+            self.work,
+            self.get_display_stub(),
+            self.display_work_order_one_indexed()
+        )
+
+    def get_work_display_name_full(self):
+        # to also show the antiquarian link as well as the work link
+        return '%s [= %s]' % (
+            self.get_work_display_name(), self.get_display_name()
+        )
+
+    def display_work_order_one_indexed(self):
+        try:
+            return self.work_order + 1
+        except TypeError:
+            return 'ERR'
+
+    def related_work_queryset(self):
+        return self.__class__.objects.filter(
+            work=self.work
+        ).order_by('work_order')
+
+    def prev_by_work(self):
+        return self.related_work_queryset().filter(
+            work_order__lt=self.work_order
+        ).last()
+
+    def next_by_work(self):
+        return self.related_work_queryset().filter(
+            work_order__gt=self.work_order
+        ).first()
+
+    def swap_by_work(self, replacement):
+        self.work_order, replacement.work_order = \
+            replacement.work_order, self.work_order
+        self.save()
+        replacement.save()
+        if self.antiquarian:
+            self.antiquarian.reindex_fragment_and_testimonium_links()
+
+    def up_by_work(self):
+        previous = self.prev_by_work()
+        if previous:
+            self.swap_by_work(previous)
+
+    def down_by_work(self):
+        next_ = self.next_by_work()
+        if next_:
+            self.swap_by_work(next_)
+
+    work = models.ForeignKey(
+        'Work',
+        null=True,
+        default=None,
+        related_name='antiquarian_work_%(class)ss',
+        on_delete=models.CASCADE
+    )
+    # optional additional book information
+    book = models.ForeignKey(
+        'Book',
+        null=True,
+        default=None,
+        related_name='antiquarian_book_%(class)ss',
+        on_delete=models.CASCADE,
+        blank=True
+    )
+
+    def save(self, *args, **kwargs):
+        # if not self.pk and self.work:
+        #     # deduce the order of this object with respect to this work
+        #     self.work_order = self.related_work_queryset().count()
+        super().save(*args, **kwargs)
+
+
+class TestimoniumLink(WorkLinkBaseModel):
 
     linked_field = 'testimonium'
     display_stub = 'T'
@@ -80,28 +176,12 @@ class TestimoniumLink(LinkBaseModel):
         'Testimonium',
         null=True,
         default=None,
-        related_name='antiquarian_testimonium_links',
+        related_name='antiquarian_%(class)ss',
         on_delete=models.CASCADE
-    )
-    work = models.ForeignKey(
-        'Work',
-        null=True,
-        default=None,
-        related_name='antiquarian_work_testimonium_links',
-        on_delete=models.CASCADE
-    )
-    # optional additional book information
-    book = models.ForeignKey(
-        'Book',
-        null=True,
-        default=None,
-        related_name='antiquarian_book_testimonium_links',
-        on_delete=models.CASCADE,
-        blank=True
     )
 
 
-class FragmentLink(LinkBaseModel):
+class FragmentLink(WorkLinkBaseModel):
 
     linked_field = 'fragment'
     display_stub = 'F'
@@ -110,175 +190,78 @@ class FragmentLink(LinkBaseModel):
         'Fragment',
         null=True,
         default=None,
-        related_name='antiquarian_fragment_links',
+        related_name='antiquarian_%(class)ss',
         on_delete=models.CASCADE
     )
-    work = models.ForeignKey(
-        'Work',
+
+
+class AnonymousFragmentLink(WorkLinkBaseModel):
+
+    linked_field = 'fragment'
+    display_stub = 'A'
+
+    fragment = models.ForeignKey(
+        'AnonymousFragment',
         null=True,
         default=None,
-        related_name='antiquarian_work_fragment_links',
-        on_delete=models.CASCADE
-    )
-    # optional additional book information
-    book = models.ForeignKey(
-        'Book',
-        null=True,
-        default=None,
-        related_name='antiquarian_book_fragment_links',
+        related_name='antiquarian_%(class)ss',
         on_delete=models.CASCADE
     )
 
 
 def check_order_info(sender, instance, action, model, pk_set, **kwargs):
+
+    from rard.research.models import Antiquarian, Fragment, Testimonium
+
     if action not in ['post_add', 'post_remove']:
         return
+    with transaction.atomic():
+        # we might be handed the antiquarian or the fragment/testimonium
+        # depending on which way round the change was made
+        antiquarians = Antiquarian.objects.none()
+        if isinstance(instance, (Fragment, Testimonium)):
+            antiquarians = instance.linked_antiquarians.all()
+        elif isinstance(instance, Antiquarian):
+            antiquarians = Antiquarian.objects.filter(pk=instance.pk)
 
-    from rard.research.models import Antiquarian, Fragment
+        for antiquarian in antiquarians.all():
+            antiquarian.reindex_fragment_and_testimonium_links()
 
-    # what antiquarians does this event relate to?
-    antiquarians = Antiquarian.objects.none()
-    if isinstance(instance, Fragment):
-        antiquarians = instance.linked_antiquarians.all()
-    elif isinstance(instance, Antiquarian):
-        antiquarians = Antiquarian.objects.filter(pk=instance.pk)
+        Antiquarian.reindex_null_fragment_and_testimonium_links()
 
-    for antiquarian in antiquarians:
-        qs = sender.objects.filter(antiquarian=antiquarian)
-        qs = qs.distinct()
 
-        def check_existing_integrity(qs):
-            # first check existing order is intact
-            for count, link in enumerate(qs.all()):
-                link.order = count
-                link.save()
-
-        if action == 'post_add':
-            # patch any with no order info
-            to_patch = qs.filter(order__isnull=True)
-            okay = qs.filter(order__isnull=False)
-            for count, intermed in enumerate(to_patch.all()):
-                new_order = okay.count() + count
-                # order at the end of the set
-                intermed.order = new_order
-                intermed.save()
-
-        elif action == 'post_remove':
-            check_existing_integrity(qs)
+def handle_new_link(sender, instance, created, **kwargs):
+    if created:
+        reindex_order_info(sender, instance, **kwargs)
 
 
 def reindex_order_info(sender, instance, **kwargs):
-    qs = sender.objects.filter(antiquarian=instance.antiquarian)
-    qs = qs.distinct()
-    # set the order for the links
-    for count, instance in enumerate(qs.all()):
-        instance.order = count
-        instance.save()
 
-    for count, instance in enumerate(
-            sender.objects.filter(antiquarian__isnull=True)):
-        instance.order = count
-        instance.save()
+    # when we delete a fragmentlink we need to:
+    # reindex all work_links for the work it pointed to
+    with transaction.atomic():
+
+        qs = instance.related_work_queryset()
+        for count, item in enumerate(qs.all()):
+            if item.work_order != count:
+                item.work_order = count
+                item.save()
+
+        # request that the antiquarian involved reindex their fragment links
+        if instance.antiquarian:
+            instance.antiquarian.reindex_fragment_and_testimonium_links()
+
+        # also check order of unattached links it
+        # works for null antiquarian also
+        Antiquarian.reindex_null_fragment_and_testimonium_links()
 
 
 m2m_changed.connect(check_order_info, sender=FragmentLink)
+post_save.connect(handle_new_link, sender=FragmentLink)
 post_delete.connect(reindex_order_info, sender=FragmentLink)
 m2m_changed.connect(check_order_info, sender=TestimoniumLink)
+post_save.connect(handle_new_link, sender=TestimoniumLink)
 post_delete.connect(reindex_order_info, sender=TestimoniumLink)
-
-
-def works_changed(sender, instance, action, model, pk_set, **kwargs):
-    if action not in ['post_add', 'post_remove', 'pre_clear', 'post_clear']:
-        return
-
-    if not isinstance(instance, Antiquarian):
-        # we disallow adding antiquarians to works via the reverse accessor
-        # as it is too problematic to unpick afterwards
-        raise IntegrityError(
-            "Link Antiquarian to Work via the works "
-            "field of the Antiquarian model"
-        )
-
-    works = instance.works.all()
-
-    if action == 'pre_clear':
-        # have to love Django sometimes...
-        # we are not passed the pk set of removed ids for the clear() method
-        # unlike for remove, so we need towork it out
-        # the values are only there for the pre_clear method, and only relevant
-        # to the post_clear method. So deduce them in the pre_clear signal
-        # then attach to the instance for the post_clear method to find
-        pk_set = set(works.values_list('pk', flat=True))
-        instance._pk_set = pk_set
-
-    for model_class in [FragmentLink, TestimoniumLink]:
-        # look at all linked works for this antiquarian
-        qs = model_class.objects.filter(
-            antiquarian=instance, work__isnull=False
-        )
-
-        if action in ('post_remove', 'post_clear'):
-            if action == 'post_clear':
-                pk_set = instance._pk_set
-
-            # for all works that have no remaining antiquarians
-            # we need to preserve fragment links to these works
-            # but set the antiquarian to null
-
-            from rard.research.models import Work
-            orphaned_works = Work.objects.filter(
-                pk__in=pk_set, antiquarian__isnull=True
-            )
-
-            preserve = qs.filter(work__in=orphaned_works)
-            to_delete = qs.filter(work__pk__in=pk_set)
-
-            stale = to_delete.exclude(pk__in=preserve)
-            stale.delete()
-            preserve.update(antiquarian=None)
-
-        elif action == 'post_add':
-            # look for fragment links to the added works and replicate them
-            # for this antiquarian
-            existing_links = model_class.objects.filter(
-                work__pk__in=pk_set
-            ).exclude(antiquarian=instance)
-
-            for link in existing_links:
-                # ensure we have one of each type
-                data = {
-                    'order': link.order,
-                    'antiquarian': instance,
-                    'work': link.work,
-                    'definite': link.definite,
-                    link.linked_field: getattr(link, link.linked_field)
-                }
-                model_class.objects.get_or_create(**data)
-
-            # as we have definitely
-            # got an anqiturian for this work, we can remove any stale
-            # links to 'no antiquarian' here
-            model_class.objects.filter(
-                work__pk__in=pk_set, antiquarian__isnull=True
-            ).delete()
-
-        # now look for works that this antiquarian might have been added to,
-        # that have links to fragments. Add link to this antiquarian
-
-        # now re-index the remaining for this antiquarian
-        for count, link in enumerate(
-                model_class.objects.filter(antiquarian=instance)):
-            link.order = count
-            link.save()
-
-        # and anonymous indexes
-        for count, link in enumerate(
-                model_class.objects.filter(antiquarian__isnull=True)):
-            link.order = count
-            link.save()
-
-
-m2m_changed.connect(works_changed, sender=Antiquarian.works.through)
 
 
 class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
@@ -308,12 +291,65 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
         )
 
     def get_display_name(self):
-        # for displaying this fragment we use the name of the citing work(s)
-        try:
-            name = str(self.original_texts.first().citing_work)
-            count = self.original_texts.count()
-            if count > 1:
-                name = '{} +{} more'.format(name, count-1)
-            return name
-        except AttributeError:
-            return '{} {}'.format(self.__class__.__name__, self.pk)
+        return self.get_display_name_option_b()
+
+    def _render_display_name(self, names):
+        # render the output in the format required
+        first_line = None
+        if len(names) == 0:
+            first_line = 'Unlinked {}'.format(self.pk)
+        else:
+            first_line = names[0]
+            if len(names) > 1:
+                also = ', '.join([name for name in names[1:]])
+                if also:
+                    first_line = '%s (also = %s)' % (first_line, also)
+        return first_line
+
+    def get_citing_display(self, for_citing_author=None):
+
+        # if citing author passed as arg we need to put their original texts
+        # first when displaying info
+        if for_citing_author:
+            this_author_texts = self.original_texts.filter(
+                citing_work__author=for_citing_author
+            )
+            other = self.original_texts.exclude(pk__in=this_author_texts)
+            all_texts = [x for x in this_author_texts] + [x for x in other]
+        else:
+            all_texts = [x for x in self.original_texts.all()]
+        if len(all_texts) == 0:
+            return '[]'
+
+        first_text = all_texts[0]
+        citing_work_str = str(first_text.citing_work)
+        if len(all_texts) > 1:
+            also = ', '.join([str(text.citing_work) for text in all_texts[1:]])
+            if also:
+                citing_work_str = '%s (also = %s)' % (citing_work_str, also)
+        return citing_work_str
+
+    def get_display_name_option_a(self):
+        # show list of antiquarian links only
+        links = self.get_all_links().order_by('antiquarian', 'order')
+        names = [link.get_display_name() for link in links]
+        return self._render_display_name(names)
+
+    def get_link_names(self, show_certainty=True):
+        links = self.get_all_links().order_by('work', 'antiquarian', 'order')
+        names = []
+        for link in links:
+            if link.work:
+                name = '%s [= %s]' % (
+                    link.get_work_display_name(), link.get_display_name())
+            else:
+                name = '%s' % link.get_display_name()
+            if show_certainty and not link.definite:
+                name += ' (possible)'
+            names.append(name)
+        return names
+
+    def get_display_name_option_b(self):
+        # option b currently default
+        names = self.get_link_names(show_certainty=False)
+        return self._render_display_name(names)

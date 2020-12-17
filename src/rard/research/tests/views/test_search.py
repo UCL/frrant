@@ -131,6 +131,7 @@ class TestSearchView(TestCase):
             [
                 'antiquarians',
                 'testimonia',
+                'anonymous fragments',
                 'fragments',
                 'topics',
                 'works',

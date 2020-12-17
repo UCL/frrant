@@ -20,7 +20,7 @@ class BibliographyItem(BaseModel):
     # string containing names of authors
     # e.g. Smith P, Jones M
     # ordering will be done on this field
-    authors = models.CharField(max_length=512, blank=True)
+    authors = models.CharField(max_length=512, blank=False)
 
     # comma-separated list of surnames of the authors, to be used for
     # ordering the entries in the list
@@ -29,9 +29,10 @@ class BibliographyItem(BaseModel):
         help_text='Comma-separated list of surnames to be used for ordering'
     )
 
-    year = models.IntegerField(
-        default=None, null=True, blank=True,
-        help_text='Optional year to use for second-order sorting of entries'
+    year = models.CharField(
+        max_length=512, default='', blank=True,
+        help_text='Optional date info to use for second-order '
+        'sorting e.g. 1500a'
     )
 
-    content = models.TextField(default='', blank=False)
+    title = models.TextField(default='', blank=False)

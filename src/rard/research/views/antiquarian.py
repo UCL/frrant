@@ -30,7 +30,23 @@ class AntiquarianDetailView(
 
     def post(self, *args, **kwargs):
         link_pk = self.request.POST.get('link_id', None)
+        work_pk = self.request.POST.get('work_id', None)
+        antiquarian_pk = self.request.POST.get('antiquarian_id', None)
         object_type = self.request.POST.get('object_type', None)
+        if work_pk:
+            # moving a work up in the collection
+            try:
+                work = Work.objects.get(pk=work_pk)
+                antiquarian = Antiquarian.objects.get(pk=antiquarian_pk)
+                link = antiquarian.worklink_set.get(work=work)
+
+                if 'work_up' in self.request.POST:
+                    link.up()
+                elif 'work_down' in self.request.POST:
+                    link.down()
+            except (Work.DoesNotExist, KeyError):
+                pass
+
         if link_pk and object_type:
             from rard.research.models.base import FragmentLink, TestimoniumLink
             model_classes = {
@@ -40,10 +56,11 @@ class AntiquarianDetailView(
             try:
                 model_class = model_classes[object_type]
                 link = model_class.objects.get(pk=link_pk)
-                if 'up' in self.request.POST:
-                    link.up()
-                elif 'down' in self.request.POST:
-                    link.down()
+                if 'up_by_work' in self.request.POST:
+                    link.up_by_work()
+                elif 'down_by_work' in self.request.POST:
+                    link.down_by_work()
+
             except (FragmentLink.DoesNotExist, KeyError):
                 pass
         return HttpResponseRedirect(self.request.path)
@@ -84,7 +101,7 @@ class AntiquarianBibliographyCreateView(CheckLockMixin, LoginRequiredMixin,
     check_lock_object = 'antiquarian'
 
     model = BibliographyItem
-    fields = ('authors', 'author_surnames', 'year', 'content',)
+    fields = ('authors', 'author_surnames', 'year', 'title',)
     permission_required = (
         'research.change_antiquarian',
         'research.add_bibliographyitem',

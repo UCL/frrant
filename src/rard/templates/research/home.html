@@ -4,18 +4,23 @@
 {% block outer %}
 <div class='row'>
     {% if perms.research.add_fragment %}
-    <div class='col-md-4 mb-3'>
+    <div class='col-md-3 mb-3'>
         <a href='{% url "fragment:create" %}' class='btn btn-block btn-outline-secondary'>{% trans 'Create Fragment' %}</a>
     </div>
     {% endif %}
     {% if perms.research.add_antiquarian %}
-    <div class='col-md-4 mb-3'>
+    <div class='col-md-3 mb-3'>
         <a href='{% url "antiquarian:create" %}' class='btn btn-block btn-outline-secondary'>{% trans 'Create Antiquarian' %}</a>
     </div>
     {% endif %}
     {% if perms.research.add_testimonium %}
-    <div class='col-md-4 mb-3'>
+    <div class='col-md-3 mb-3'>
         <a href='{% url "testimonium:create" %}' class='btn btn-block btn-outline-secondary'>{% trans 'Create Testimonium' %}</a>
+    </div>
+    {% endif %}
+    {% if perms.research.add_work %}
+    <div class='col-md-3 mb-3'>
+        <a href='{% url "work:create" %}' class='btn btn-block btn-outline-secondary'>{% trans 'Create Work' %}</a>
     </div>
     {% endif %}
 </div>
@@ -28,7 +33,7 @@
     {% for lock in request.user.objectlock_set.all %}
         <li class="rard-list-item border-0  d-flex justify-content-between align-items-center">
             <div>
-                <a class='mr-2' href='{{ lock.content_object.get_absolute_url }}'>{{ lock.content_object }}</a>
+                <a class='mr-2' href='{{ lock.content_object.get_absolute_url }}'>{{ lock.content_object|safe }}</a>
                 {% include 'research/partials/render_lock_request_info.html' %}
             </div>
             <div>

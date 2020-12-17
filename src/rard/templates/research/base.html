@@ -122,6 +122,8 @@
         {% trans 'Antiquarians' %}
       </a>
       {% endif %}
+
+      {% comment %}
       {% if perms.research.view_testimonium %}
       <a class='nav-link {% if "testimonium" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
         href='{% url "testimonium:list" %}'>
@@ -132,6 +134,14 @@
       <a class='nav-link {% if "fragment" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
         href='{% url "fragment:list" %}'>
         {% trans 'Fragments' %}
+      </a>
+      {% endif %}
+      {% endcomment %}
+
+      {% if perms.research.view_fragment %}
+      <a class='nav-link {% if "anonymous_fragment" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
+        href='{% url "anonymous_fragment:list" %}'>
+        {% trans 'Anonymous Fragments' %}
       </a>
       {% endif %}
       {% if perms.research.view_citingauthor %}
