@@ -256,7 +256,7 @@ class FragmentAddWorkLinkView(CheckLockMixin, LoginRequiredMixin,
             data['fragment'] = self.get_fragment()
             data['antiquarian'] = antiquarian
             data['book'] = book
-            self.form_class.objects.get_or_create(**data)
+            FragmentLink.objects.get_or_create(**data)
 
         return super().form_valid(form)
 
