@@ -30,7 +30,7 @@ class Migration(migrations.Migration):
                 'ordering': ['order'],
                 'abstract': False,
             },
-            bases=(rard.research.models.mixins.OrderableMixin, rard.research.models.mixins.TextObjectFieldMixin, models.Model),
+            bases=(rard.research.models.mixins.TextObjectFieldMixin, models.Model),
         ),
         migrations.CreateModel(
             name='AnonymousFragmentLink',

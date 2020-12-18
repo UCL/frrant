@@ -1,11 +1,12 @@
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models, transaction
-from django.db.models.signals import m2m_changed, post_delete
+from django.db.models.signals import m2m_changed, post_delete, post_save
 from django.urls import reverse
 
 from rard.research.models.base import (AnonymousFragmentLink, FragmentLink,
                                        HistoricalBaseModel)
-from rard.research.models.mixins import OrderableMixin
+from rard.research.models.topic import Topic
+from rard.utils.basemodel import OrderableModel
 
 
 class TopicLink(models.Model):
@@ -123,7 +124,24 @@ class Fragment(HistoricalBaseModel):
 Fragment.init_text_object_fields()
 
 
-class AnonymousFragment(OrderableMixin, HistoricalBaseModel):
+class AnonymousTopicLink(models.Model):
+
+    # need a different class for anonymous topics so they can
+    # vary independently
+
+    class Meta:
+        ordering = ['order']
+
+    topic = models.ForeignKey('Topic', null=False, on_delete=models.CASCADE)
+
+    fragment = models.ForeignKey(
+        'AnonymousFragment', null=False, on_delete=models.CASCADE)
+
+    # with respect to topic
+    order = models.IntegerField(default=None, null=True)
+
+
+class AnonymousFragment(OrderableModel, HistoricalBaseModel):
 
     class Meta(HistoricalBaseModel.Meta):
         ordering = ['order']
@@ -131,13 +149,10 @@ class AnonymousFragment(OrderableMixin, HistoricalBaseModel):
     def related_queryset(self):
         return self.__class__.objects.all()
 
-    # the order wrt the anonymous set
-    order = models.PositiveIntegerField(
-        default=None, null=True, blank=True
-    )
-
     # these can also have topics but ordering not yet clear
-    topics = models.ManyToManyField('Topic', blank=True)
+    topics = models.ManyToManyField(
+        'Topic', blank=True, through='AnonymousTopicLink'
+    )
 
     original_texts = GenericRelation(
         'OriginalText', related_query_name='original_texts'
@@ -221,3 +236,44 @@ class AnonymousFragment(OrderableMixin, HistoricalBaseModel):
 
 
 AnonymousFragment.init_text_object_fields()
+
+
+# handle changes in topic order and re-order anonymous fragments
+
+def reindex_anonymous_fragments():
+    # where there has been a change, ensure the
+    # ordering of fragments is correct (zero-indexed)
+
+    # single db update
+    with transaction.atomic():
+
+        anon_fragments = AnonymousFragment.objects.order_by(
+            'topics__order', 'order'
+        )
+        # because we are ordering on an m2m field value we may have
+        # duplicates in there. We want to remove these dupes but keep
+        # the ordering of the list. Fast way is via a set of dict keys
+        # which preserve ordering
+        # NB list(set(items)) does not preserve ordering
+
+        ordered = list(dict.fromkeys(list(anon_fragments)))
+        for count, anon in enumerate(ordered):
+            anon.order = count
+            anon.save()
+
+
+def handle_changed_anon_topics(sender, instance, **kwargs):
+    reindex_anonymous_fragments()
+
+
+def handle_changed_anon_topic_links(
+        sender, instance, action, model, pk_set, **kwargs):
+    if action not in ('post_add', 'post_remove'):
+        return
+
+    reindex_anonymous_fragments()
+
+
+m2m_changed.connect(handle_changed_anon_topic_links, sender=AnonymousTopicLink)
+post_delete.connect(handle_changed_anon_topics, sender=AnonymousTopicLink)
+post_save.connect(handle_changed_anon_topics, sender=Topic)

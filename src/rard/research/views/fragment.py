@@ -141,7 +141,9 @@ class AnonymousFragmentListView(FragmentListView):
         qs = super().get_queryset()
         from django.db.models import F
         filtered = qs.annotate(
-            topic=F('topics__name')).order_by('topic', 'order')
+            topic=F('topics__name'),
+            topic_order=F('topics__order')
+        ).order_by('topic_order', 'order')
         return filtered
 
 

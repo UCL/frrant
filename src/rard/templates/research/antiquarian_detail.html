@@ -120,9 +120,9 @@
             </div>
         </div>
 
+        <div class='ordered-list'>
         {% for work in object.ordered_works.all %}
-        
-        <form novalidate class='form-inline' action='' method='POST'>
+        <form novalidate class='ordered-list-item form-inline' action='' method='POST'>
             <b class='my-3 mr-3'><a href='{% url "work:detail" work.pk %}'>{{ work.name }}</a></b>
 
             {% if perms.research.change_antiquarian and has_object_lock %}
@@ -140,8 +140,8 @@
             {% endif %}
         </form>
 
-
         <ul>
+            <div class='ordered-list'>
             {% with tlinks=object|testimonium_links_for_work:work %}
             {% with flinks=object|fragment_links_for_work:work %}
 
@@ -161,6 +161,7 @@
         
             {% endwith %}
             {% endwith %}
+            </div>
         </ul>
         
         
@@ -188,6 +189,7 @@
         {% endwith %}
 
         </ul>
+        </div>
 
 
     </section>

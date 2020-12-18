@@ -4,7 +4,7 @@
 
 {% with testimonium=link.linked %}
 
-<div class='rard-list-item d-flex justify-content-between'>
+<div class='ordered-list-item rard-list-item d-flex justify-content-between'>
     <div>
         <li>
                 {% if perms.research.view_testimonium %}
@@ -29,7 +29,7 @@
     <div class='rard-list-item-actions'>
         {% if can_edit and has_object_lock %}
 
-        <form novalidate class='form-inline' action='' method='POST'>
+        <form novalidate class=' form-inline' action='' method='POST'>
             {% csrf_token %}
             <div class='form-group'>
                 <input type='hidden' name='link_id' value='{{ link.pk }}'>

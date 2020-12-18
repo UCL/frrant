@@ -4,11 +4,12 @@ from django.db.models.signals import (m2m_changed, post_delete, post_save,
                                       pre_delete)
 from django.urls import reverse
 
-from rard.research.models.mixins import OrderableMixin, TextObjectFieldMixin
-from rard.utils.basemodel import BaseModel, DatedModel, LockableModel
+from rard.research.models.mixins import TextObjectFieldMixin
+from rard.utils.basemodel import (BaseModel, DatedModel, LockableModel,
+                                  OrderableModel)
 
 
-class WorkLink(OrderableMixin, models.Model):
+class WorkLink(OrderableModel, models.Model):
 
     class Meta:
         ordering = ['order']
@@ -22,8 +23,8 @@ class WorkLink(OrderableMixin, models.Model):
 
     work = models.ForeignKey('Work', null=False, on_delete=models.CASCADE)
 
-    # with respect to antiquarian
-    order = models.IntegerField(default=None, null=True)
+    # # with respect to antiquarian
+    # order = models.IntegerField(default=None, null=True)
 
 
 def handle_deleted_work_link(sender, instance, **kwargs):

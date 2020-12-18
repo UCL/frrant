@@ -281,12 +281,12 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
         default=None, null=True, blank=True
     )
 
-    # Below is an example of how collection_id might be set by calling this 
+    # Below is an example of how collection_id might be set by calling this
     # method at the end of the project. Beware when using order_by that if you
     # use a related field e.g. original text name, then you will get duplicate
     # fragments in your queryset where a fragment has multiple original texts
     # so you need care. Look at annotating the queryset for that:
-    # 
+    #
     # For example to order fragments by the first name of their original text
     # authors, we might do this:
     #

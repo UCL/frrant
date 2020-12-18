@@ -2,13 +2,13 @@ from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
 
-from rard.utils.basemodel import BaseModel, LockableModel
+from rard.utils.basemodel import BaseModel, LockableModel, OrderableModel
 
 
-class Topic(LockableModel, BaseModel):
+class Topic(OrderableModel, LockableModel, BaseModel):
 
-    class Meta:
-        ordering = ['name']
+    # class Meta:
+    #     ordering = ['order']
 
     name = models.CharField(max_length=128, blank=False, unique=True)
 
