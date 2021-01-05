@@ -268,8 +268,8 @@ class DatedModel(models.Model):
     # the meaning of year1 and year depends on type of date info we have
     year1 = models.IntegerField(default=None, null=True, blank=True)
     year2 = models.IntegerField(default=None, null=True, blank=True)
-    circa1 = models.BooleanField(default=False)
-    circa2 = models.BooleanField(default=False)
+    circa1 = models.BooleanField(default=False, verbose_name='Circa')
+    circa2 = models.BooleanField(default=False, verbose_name='Circa')
 
     # the type of year info we have
     year_type = models.CharField(

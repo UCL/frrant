@@ -10,11 +10,11 @@ from rard.research.models.base import (AnonymousFragmentLink, FragmentLink,
 
 
 class DatedModelFormBase(forms.ModelForm):
-    class Meta:
-        labels = {
-            'circa1': 'Circa',
-            'circa2': 'Circa',
-        }
+    # class Meta:
+    #     labels = {
+    #         'circa1': 'Circa',
+    #         'circa2': 'Circa',
+    #     }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -58,7 +58,7 @@ class DatedModelFormBase(forms.ModelForm):
 
 class AntiquarianForm(DatedModelFormBase):
 
-    class Meta(DatedModelFormBase.Meta):
+    class Meta:
         model = Antiquarian
         fields = ('name', 'order_name', 're_code', 'circa1', 'circa2',
                   'year_type', 'year1', 'year2', 'dates_type')
@@ -105,7 +105,7 @@ class WorkForm(DatedModelFormBase):
         required=False,
     )
 
-    class Meta(DatedModelFormBase.Meta):
+    class Meta:
         model = Work
         exclude = ('fragments',)
         labels = {'name': 'Name of Work'}
@@ -120,7 +120,7 @@ class WorkForm(DatedModelFormBase):
 
 
 class BookForm(DatedModelFormBase):
-    class Meta(DatedModelFormBase.Meta):
+    class Meta:
         model = Book
         exclude = ('work',)
 
