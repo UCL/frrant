@@ -35,7 +35,7 @@ urlpatterns = [
     ], 'research'), namespace='bibliography')),
     path('work/', include(([
         path('list/', views.WorkListView.as_view(), name='list'),
-        path("create/", views.WorkCreateView.as_view(), name="create_anonymous"),
+        path("create/", views.WorkCreateView.as_view(), name="create"),
         path("<pk>/", views.WorkDetailView.as_view(), name="detail"),
         path("<pk>/update/", views.WorkUpdateView.as_view(), name="update"),
         path("<pk>/delete/", views.WorkDeleteView.as_view(), name="delete"),
@@ -58,6 +58,17 @@ urlpatterns = [
         # include common urls here
         path("", include(common_patterns)),
     ], 'research'), namespace='fragment')),
+    path('anonymous/', include(([
+        path('list/', views.AnonymousFragmentListView.as_view(), name='list'),
+        path("create/", views.AnonymousFragmentCreateView.as_view(), name="create"),
+        path("<pk>/update/", views.AnonymousFragmentUpdateView.as_view(), name="update"),
+        path("<pk>/update/commentary/", views.AnonymousFragmentUpdateCommentaryView.as_view(), name="update_commentary"),
+        path("<pk>/delete/", views.AnonymousFragmentDeleteView.as_view(), name="delete"),
+        path("<pk>/", views.AnonymousFragmentDetailView.as_view(), name="detail"),
+        path("<pk>/create-original-text/", views.AnonymousFragmentOriginalTextCreateView.as_view(), name="create_original_text"),
+        # include common urls here
+        path("", include(common_patterns)),
+    ], 'research'), namespace='anonymous_fragment')),
     path('testimonium/', include(([
         path('list/', views.TestimoniumListView.as_view(), name='list'),
         path("create/", views.TestimoniumCreateView.as_view(), name="create"),

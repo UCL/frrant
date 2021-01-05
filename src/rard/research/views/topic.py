@@ -1,5 +1,6 @@
 from django.contrib.auth.mixins import (LoginRequiredMixin,
                                         PermissionRequiredMixin)
+from django.http import HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
@@ -15,6 +16,20 @@ class TopicListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     paginate_by = 10
     model = Topic
     permission_required = ('research.view_topic',)
+
+    def post(self, *args, **kwargs):
+        pk = self.request.POST.get('topic_id', None)
+        if pk is not None:
+            try:
+                topic = Topic.objects.get(pk=pk)
+                if 'up' in self.request.POST:
+                    topic.up()
+                elif 'down' in self.request.POST:
+                    topic.down()
+
+            except (Topic.DoesNotExist):
+                pass
+        return HttpResponseRedirect(self.request.path)
 
 
 class TopicDetailView(CanLockMixin, LoginRequiredMixin,

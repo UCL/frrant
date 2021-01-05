@@ -1,4 +1,4 @@
-{# Assumes a context object named 'testimonium' and an optional 'citing_author' if you want them first in the citing info string #}
+{# Assumes a context object named 'fragment' and an optional 'citing_author' if you want them first in the citing info string #}
 
 {% load i18n show_citing_info %}
 
@@ -6,14 +6,14 @@
     <div>
         <li>
             <span>
-                {% with testimonium.get_display_name as link_text %}
-                    {% if perms.research.view_testimonium %}
-                    <a href='{% url "testimonium:detail" testimonium.pk %}'>{{ link_text }}</a> 
+                {% with fragment.get_display_name as link_text %}
+                    {% if perms.research.view_fragment %}
+                    <a href='{% url "anonymous_fragment:detail" fragment.pk %}'>{{ link_text }}</a> 
                     {% else %}
                         {{ link_text }}
                     {% endif %}
                 {% endwith %}
-                {% include 'research/partials/render_inline_lock_icon.html' with object=testimonium %}
+                {% include 'research/partials/render_inline_lock_icon.html' with object=fragment %}
             </span>
         </li>
         <div>
@@ -22,15 +22,15 @@
                 <span class='text-muted'>
 
                     {% with citing_author=citing_author|default:None %}
-                    {{ testimonium|show_citing_info:citing_author|safe }}
+                    {{ fragment|show_citing_info:citing_author|safe }}
                     {% endwith %}
 
                     {% comment %}
-                    {% if not testimonium.get_all_names %}
+                    {% if not fragment.get_all_names %}
                         No links
                     {% else %}
                     <ul class='pl-3'>
-                        {% for name in testimonium.get_all_names %}
+                        {% for name in fragment.get_all_names %}
                         <li>
                             {{ name }}
                         </li>
@@ -41,7 +41,7 @@
                 </span>
             </small>
             </div>
-        </div>  
+        </div>     
     </div>
     <div class='rard-list-item-actions'>
     </div>

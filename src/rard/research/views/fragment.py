@@ -10,10 +10,12 @@ from django.views.generic.base import RedirectView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import DeleteView, UpdateView
 
-from rard.research.forms import (CitingWorkForm, FragmentAntiquariansForm,
+from rard.research.forms import (AnonymousFragmentCommentaryForm,
+                                 AnonymousFragmentForm, CitingWorkForm,
+                                 FragmentAntiquariansForm,
                                  FragmentCommentaryForm, FragmentForm,
                                  FragmentLinkWorkForm, OriginalTextForm)
-from rard.research.models import Book, Fragment, Work
+from rard.research.models import AnonymousFragment, Book, Fragment, Work
 from rard.research.models.base import FragmentLink
 from rard.research.views.mixins import CanLockMixin, CheckLockMixin
 
@@ -110,10 +112,39 @@ class FragmentCreateView(PermissionRequiredMixin, HistoricalBaseCreateView):
         return context
 
 
+class AnonymousFragmentCreateView(FragmentCreateView):
+    form_class = AnonymousFragmentForm
+    success_url_name = 'anonymous_fragment:detail'
+    title = 'Create Anonymous Fragment'
+    # permission_required = ('research.add_fragment',)
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update({
+            'title': self.title
+        })
+        return context
+
+
 class FragmentListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     paginate_by = 10
     model = Fragment
     permission_required = ('research.view_fragment',)
+
+
+class AnonymousFragmentListView(FragmentListView):
+    paginate_by = 10
+    model = AnonymousFragment
+    permission_required = ('research.view_fragment',)
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        from django.db.models import F
+        filtered = qs.annotate(
+            topic=F('topics__name'),
+            topic_order=F('topics__order')
+        ).order_by('topic_order', 'order')
+        return filtered
 
 
 class FragmentDetailView(
@@ -122,11 +153,24 @@ class FragmentDetailView(
     permission_required = ('research.view_fragment',)
 
 
+class AnonymousFragmentDetailView(
+        FragmentDetailView):
+    model = AnonymousFragment
+    permission_required = ('research.view_fragment',)
+
+
 @method_decorator(require_POST, name='dispatch')
 class FragmentDeleteView(CheckLockMixin, LoginRequiredMixin,
                          PermissionRequiredMixin, DeleteView):
     model = Fragment
     success_url = reverse_lazy('fragment:list')
+    permission_required = ('research.delete_fragment',)
+
+
+@method_decorator(require_POST, name='dispatch')
+class AnonymousFragmentDeleteView(FragmentDeleteView):
+    model = AnonymousFragment
+    success_url = reverse_lazy('anonymous_fragment:list')
     permission_required = ('research.delete_fragment',)
 
 
@@ -140,6 +184,17 @@ class FragmentUpdateView(CheckLockMixin, LoginRequiredMixin,
         return reverse('fragment:detail', kwargs={'pk': self.object.pk})
 
 
+class AnonymousFragmentUpdateView(FragmentUpdateView):
+    model = AnonymousFragment
+    form_class = AnonymousFragmentForm
+    permission_required = ('research.change_fragment',)
+
+    def get_success_url(self, *args, **kwargs):
+        return reverse(
+            'anonymous_fragment:detail', kwargs={'pk': self.object.pk}
+        )
+
+
 class FragmentUpdateAntiquariansView(FragmentUpdateView):
     model = Fragment
     form_class = FragmentAntiquariansForm
@@ -151,6 +206,13 @@ class FragmentUpdateAntiquariansView(FragmentUpdateView):
 class FragmentUpdateCommentaryView(FragmentUpdateView):
     model = Fragment
     form_class = FragmentCommentaryForm
+    permission_required = ('research.change_fragment',)
+    template_name = 'research/fragment_commentary_form.html'
+
+
+class AnonymousFragmentUpdateCommentaryView(FragmentUpdateView):
+    model = AnonymousFragment
+    form_class = AnonymousFragmentCommentaryForm
     permission_required = ('research.change_fragment',)
     template_name = 'research/fragment_commentary_form.html'
 

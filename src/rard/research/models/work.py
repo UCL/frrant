@@ -12,7 +12,7 @@ class WorkManager(models.Manager):
         # order by that followed by name
         # Make sure anonymous works are at the top with nulls_first parameter
         return qs.annotate(
-            authors=models.Min('antiquarian__name')
+            authors=models.Min('worklink__antiquarian__order_name')
         ).order_by(models.F(('authors')).asc(nulls_first=True), 'name')
 
 
@@ -29,6 +29,15 @@ class Work(DatedModel, LockableModel, BaseModel):
 
     number_of_books = models.CharField(max_length=128, blank=True)
 
+    # antiquarians = models.ManyToManyField('Antiquarian', blank=True,
+    #     through='WorkLink'
+    # )
+
+    # @property
+    # def antiquarians(self):
+    #     from rard.research.models import Antiquarian
+    #     return Antiquarian.objects.filter(worklink__work=self).distinct()
+
     def __str__(self):
         author_str = ', '.join([a.name for a in self.antiquarian_set.all()])
         return '{}: {}'.format(author_str or 'Anonymous', self.name)
@@ -36,32 +45,46 @@ class Work(DatedModel, LockableModel, BaseModel):
     def get_absolute_url(self):
         return reverse('work:detail', kwargs={'pk': self.pk})
 
+    def all_fragments(self):
+        from rard.research.models import Fragment
+        links = self.antiquarian_work_fragmentlinks.all()
+        return Fragment.objects.filter(
+            antiquarian_fragmentlinks__in=links
+        ).distinct()
+
     def definite_fragments(self):
         from rard.research.models import Fragment
-        links = self.antiquarian_work_fragment_links.filter(definite=True)
+        links = self.antiquarian_work_fragmentlinks.filter(definite=True)
         return Fragment.objects.filter(
-            antiquarian_fragment_links__in=links
+            antiquarian_fragmentlinks__in=links
         ).distinct()
 
     def possible_fragments(self):
         from rard.research.models import Fragment
-        links = self.antiquarian_work_fragment_links.filter(definite=False)
+        links = self.antiquarian_work_fragmentlinks.filter(definite=False)
         return Fragment.objects.filter(
-            antiquarian_fragment_links__in=links
+            antiquarian_fragmentlinks__in=links
+        ).distinct()
+
+    def all_testimonia(self):
+        from rard.research.models import Testimonium
+        links = self.antiquarian_work_testimoniumlinks.all()
+        return Testimonium.objects.filter(
+            antiquarian_testimoniumlinks__in=links
         ).distinct()
 
     def definite_testimonia(self):
         from rard.research.models import Testimonium
-        links = self.antiquarian_work_testimonium_links.filter(definite=True)
+        links = self.antiquarian_work_testimoniumlinks.filter(definite=True)
         return Testimonium.objects.filter(
-            antiquarian_testimonium_links__in=links
+            antiquarian_testimoniumlinks__in=links
         ).distinct()
 
     def possible_testimonia(self):
         from rard.research.models import Testimonium
-        links = self.antiquarian_work_testimonium_links.filter(definite=False)
+        links = self.antiquarian_work_testimoniumlinks.filter(definite=False)
         return Testimonium.objects.filter(
-            antiquarian_testimonium_links__in=links
+            antiquarian_testimoniumlinks__in=links
         ).distinct()
 
 

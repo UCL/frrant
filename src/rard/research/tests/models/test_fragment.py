@@ -33,7 +33,7 @@ class TestFragment(TestCase):
             'name': 'name',
         }
         fragment = Fragment.objects.create(**data)
-        self.assertEqual(str(fragment), 'Fragment {}'.format(fragment.pk))
+        self.assertEqual(str(fragment), 'Unlinked {}'.format(fragment.pk))
 
     def test_initial_images(self):
         fragment = Fragment.objects.create(name='name')
@@ -73,21 +73,11 @@ class TestFragment(TestCase):
             'content': 'content',
             'citing_work': citing_work,
         }
+        # it is unlinked so we show unlinked indicator
         OriginalText.objects.create(**data, owner=fragment)
         self.assertEqual(
             fragment.get_display_name(),
-            str(citing_work)
-        )
-        # add a second citing work and we should indicate it
-        citing_work = CitingWork.objects.create(title='title')
-        data = {
-            'content': 'content',
-            'citing_work': citing_work,
-        }
-        OriginalText.objects.create(**data, owner=fragment)
-        self.assertEqual(
-            fragment.get_display_name(),
-            '{} +1 more'.format(citing_work)
+            'Unlinked %d' % fragment.pk
         )
 
     def test_get_display_name_no_original_text(self):

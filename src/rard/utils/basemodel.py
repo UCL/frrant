@@ -268,8 +268,8 @@ class DatedModel(models.Model):
     # the meaning of year1 and year depends on type of date info we have
     year1 = models.IntegerField(default=None, null=True, blank=True)
     year2 = models.IntegerField(default=None, null=True, blank=True)
-    circa1 = models.BooleanField(default=False)
-    circa2 = models.BooleanField(default=False)
+    circa1 = models.BooleanField(default=False, verbose_name='Circa')
+    circa2 = models.BooleanField(default=False, verbose_name='Circa')
 
     # the type of year info we have
     year_type = models.CharField(
@@ -329,3 +329,46 @@ class DatedModel(models.Model):
             ).strip()
 
             return '{} {}'.format(prepend, info) if prepend else info
+
+
+class OrderableModel(models.Model):
+
+    class Meta:
+        ordering = ['order']
+        abstract = True
+
+    order = models.PositiveIntegerField(
+        default=None, null=True, blank=True
+    )
+
+    def related_queryset(self):
+        # by default sort according to all objects of this class
+        # and this can be overidden in the subclasses in case
+        # you need to order e.g. wrt a particular data member e.g. work
+        return self.__class__.objects.all()
+
+    def prev(self):
+        return self.related_queryset().filter(order__lt=self.order).last()
+
+    def next(self):
+        return self.related_queryset().filter(order__gt=self.order).first()
+
+    def swap(self, replacement):
+        self.order, replacement.order = replacement.order, self.order
+        self.save()
+        replacement.save()
+
+    def up(self):
+        previous = self.prev()
+        if previous:
+            self.swap(previous)
+
+    def down(self):
+        next_ = self.next()
+        if next_:
+            self.swap(next_)
+
+    def save(self, *args, **kwargs):
+        if not self.pk:
+            self.order = self.related_queryset().count()
+        super().save(*args, **kwargs)

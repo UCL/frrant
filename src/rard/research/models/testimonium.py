@@ -6,13 +6,15 @@ from .base import HistoricalBaseModel, TestimoniumLink
 
 class Testimonium(HistoricalBaseModel):
 
+    LINK_TYPE = TestimoniumLink
+
     original_texts = GenericRelation(
         'OriginalText', related_query_name='original_texts'
     )
 
     def _get_linked_works_and_books(self, definite):
         # a list of definite linked works and books
-        all_links = self.antiquarian_testimonium_links.filter(
+        all_links = self.antiquarian_testimoniumlinks.filter(
             definite=definite,
             work__isnull=False,
         ).order_by('work', '-book').distinct()
@@ -34,7 +36,7 @@ class Testimonium(HistoricalBaseModel):
     def definite_antiquarians(self):
         from rard.research.models import Antiquarian
         return Antiquarian.objects.filter(
-            testimoniumlinks__in=self.antiquarian_testimonium_links.all(),
+            testimoniumlinks__in=self.antiquarian_testimoniumlinks.all(),
             testimoniumlinks__definite=True,
             testimoniumlinks__work__isnull=True,
         ).distinct()
@@ -42,7 +44,7 @@ class Testimonium(HistoricalBaseModel):
     def possible_antiquarians(self):
         from rard.research.models import Antiquarian
         return Antiquarian.objects.filter(
-            testimoniumlinks__in=self.antiquarian_testimonium_links.all(),
+            testimoniumlinks__in=self.antiquarian_testimoniumlinks.all(),
             testimoniumlinks__definite=False,
             testimoniumlinks__work__isnull=True,
         ).distinct()
@@ -53,10 +55,26 @@ class Testimonium(HistoricalBaseModel):
     def get_all_names(self):
         return [
             link.get_display_name()
-            for link in TestimoniumLink.objects.filter(
-                testimonium=self
-            ).order_by('antiquarian', 'order').distinct()
+            for link in self.get_all_links()
+            # for link in self.get_all_links().order_by(
+            #     'antiquarian', 'order'
+            # ).distinct()
         ]
+
+    def get_all_work_names(self):
+        # all the names wrt works
+        return [
+            link.get_work_display_name()
+            for link in self.get_all_links()
+            # # for link in self.get_all_links().order_by(
+            # #     'work', 'work_order'
+            # ).distinct()
+        ]
+
+    def get_all_links(self):
+        return TestimoniumLink.objects.filter(
+            testimonium=self
+        ).order_by('antiquarian', 'order').distinct()
 
 
 Testimonium.init_text_object_fields()

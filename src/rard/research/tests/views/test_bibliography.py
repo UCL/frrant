@@ -21,7 +21,7 @@ class TestBibliographyViews(TestCase):
         bibitem = BibliographyItem.objects.create(
             authors='author name',
             author_surnames='author',
-            content='foo',
+            title='foo',
             parent=antiquarian
         )
         request = RequestFactory().post('/')
@@ -43,7 +43,7 @@ class TestBibliographyUpdateView(TestCase):
         bibitem = BibliographyItem.objects.create(
             authors='author name',
             author_surnames='author',
-            content='foo',
+            title='foo',
             parent=antiquarian
         )
 
@@ -68,7 +68,7 @@ class TestBibliographyDeleteView(TestCase):
         bibitem = BibliographyItem.objects.create(
             authors='author name',
             author_surnames='author',
-            content='foo',
+            title='foo',
             parent=antiquarian
         )
         url = reverse(
@@ -88,7 +88,7 @@ class TestBibliographyDeleteView(TestCase):
         bibitem = BibliographyItem.objects.create(
             authors='author name',
             author_surnames='author',
-            content='foo',
+            title='foo',
             parent=antiquarian
         )
 
@@ -159,7 +159,7 @@ class TestAntiquarianBibliographyCreateView(TestCase):
         data = {
             'authors': 'name',
             'author_surnames': 'name',
-            'content': 'bib content'
+            'title': 'bib title'
         }
         url = reverse(
             'antiquarian:create_bibliography',
@@ -211,19 +211,19 @@ class TestAntiquarianBibliographyCreateView(TestCase):
         data = [
             {
                 'pk': 1,
-                'content': 'foo',
+                'title': 'foo',
                 'authors': 'aaa This should be Last',
                 'author_surnames': 'zzz'
             },
             {
                 'pk': 2,
-                'content': 'bar',
+                'title': 'bar',
                 'authors': 'zzz This should be First',
                 'author_surnames': 'aaa'
             },
             {
                 'pk': 3,
-                'content': 'bar',
+                'title': 'bar',
                 'authors': 'zzz This should be in the middle',
                 'author_surnames': 'ggg'
             }
@@ -241,26 +241,38 @@ class TestAntiquarianBibliographyCreateView(TestCase):
         year_data = [
             {
                 'pk': 1,
-                'year': '-10',
+                'year': '1440a',
             },
             {
                 'pk': 2,
-                'year': '-40',
+                'year': '1430',
             },
             {
                 'pk': 3,
-                'year': '20',
+                'year': '1440b',
             },
             {
                 'pk': 4,
-                'year': '-111',
+                'year': '1155',
 
-            }
+            },
+            {
+                'pk': 5,
+                'year': '1440e',
+            },
+            {
+                'pk': 6,
+                'year': '1440c',
+            },
+            {
+                'pk': 7,
+                'year': '1440d',
+            },
         ]
         # keep other fields the same so we can be sure we order by year
         # if everything else the same
         common_data = {
-            'content': 'hello',
+            'title': 'hello',
             'authors': 'author name',
             'author_surnames': 'author'
         }
@@ -270,6 +282,6 @@ class TestAntiquarianBibliographyCreateView(TestCase):
             )
 
         self.assertEqual(
-            [4, 2, 1, 3],
+            [4, 2, 1, 3, 6, 7, 5],
             [x.pk for x in BibliographyItem.objects.all()]
         )
