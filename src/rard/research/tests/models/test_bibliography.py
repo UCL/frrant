@@ -15,7 +15,7 @@ class TestBibliography(TestCase):
     def test_creation(self):
         data = {
             'authors': 'Hartley, J. R.',
-            'content': 'Fly Fishing',
+            'title': 'Fly Fishing',
             'parent': self.parent_object
         }
         item = BibliographyItem.objects.create(**data)
@@ -24,7 +24,7 @@ class TestBibliography(TestCase):
     def test_parent_required(self):
         data = {
             'authors': 'Hartley, J. R.',
-            'content': 'Fly Fishing',
+            'title': 'Fly Fishing',
         }
         # cannot create a comment with no parent
         with self.assertRaises(IntegrityError):
@@ -33,7 +33,7 @@ class TestBibliography(TestCase):
     def test_delete_parent_deletes_item(self):
         data = {
             'authors': 'Hartley, J. R.',
-            'content': 'Fly Fishing',
+            'title': 'Fly Fishing',
             'parent': self.parent_object
         }
         item = BibliographyItem.objects.create(**data)
@@ -46,7 +46,7 @@ class TestBibliography(TestCase):
     def test_related_query_name_for_bib_item_fields(self):
         data = {
             'authors': 'Hartley, J. R.',
-            'content': 'Fly Fishing',
+            'title': 'Fly Fishing',
             'parent': self.parent_object
         }
         item = BibliographyItem.objects.create(**data)

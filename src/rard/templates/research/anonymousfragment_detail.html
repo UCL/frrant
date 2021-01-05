@@ -1,0 +1,168 @@
+{% extends "research/detail_base.html" %}
+{% load i18n humanize object_lock %}
+
+{% block heading %}
+    {{ object.get_display_name }}
+{% endblock %}
+
+{% block action %}
+    {% with request.user|has_lock:object as has_object_lock %}
+
+        {% include 'research/partials/render_locked_info.html' %}
+
+        <div class='d-flex justify-content-end'>
+        {% if has_object_lock %}
+            {% if perms.research.delete_fragment %}
+            <form novalidate class='form-inline' action='{% url "anonymous_fragment:delete" object.pk %}' method='POST'>
+                {% csrf_token %}
+                <div class='form-group'>
+                    <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+                        data-what='fragment'>{% trans 'Delete' %}</button>
+                </div>
+            </form>
+            {% endif %}
+        {% endif %}
+        </div>
+    {% endwith %}
+{% endblock %}
+
+{% block inner %}
+    {% with request.user|has_lock:object as has_object_lock %}
+    <hr>
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Details' %}</h5>
+            </div>
+            <div>
+                {% comment %}
+                {% if perms.research.change_fragment and has_object_lock %}
+                <a href='{% url "anonymous_fragment:update" object.pk %}'>{% trans 'Edit' %}</a>
+                {% endif %}
+                {% endcomment %}
+            </div>
+        </div>
+
+        <dl class="row mb-0">
+            <dt class="col-sm-3">{% trans 'Name' %}</dt>
+            <dd class="col-sm-9">{{ object.get_display_name }}</dd>
+                
+            {% if object.topics is not None %}
+            <dt class="col-sm-3">{% trans 'Topics' %}</dt>
+            <dd class="col-sm-7">
+                {% if object.topics.count == 0%}-{% endif %}
+                {% for topic in object.topics.all %}{% if forloop.counter0 > 0 %}, {% endif %}
+                    {% if perms.research.view_topic %}
+                    <a href='{% url "topic:detail" topic.slug %}'>{{ topic.name }}</a>
+                    {% else %}
+                    {{ topic.name }}
+                    {% endif %}
+                {% endfor %}
+            </dd>
+            <dd class='col-sm-2 actions'>
+                {% if perms.research.change_fragment and has_object_lock %}
+                <a style='float:right;' href='{% url "anonymous_fragment:update" object.pk %}'>{% trans 'Edit' %}</a>
+                {% endif %}
+            </dd>
+            {% endif %}
+
+            <dt class="col-sm-3">{% trans 'Original Texts' %}</dt>
+            <dd class="col-sm-7">{{ object.original_texts.count }} </dd>
+            {% if perms.research.change_fragment and perms.research.add_originaltext and has_object_lock %}
+            <dd class="col-sm-2 actions">
+                <a style='float:right;' href='{% url "anonymous_fragment:create_original_text" object.pk %}'>Add</a></dd>
+            </dd>
+            {% endif %}
+        </dl>
+
+    </section>
+
+    {% for original_text in object.original_texts.all %}
+    <hr>
+
+    <section>
+
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Original Text' %} {{ forloop.counter }}</h5>
+            </div>
+            <div>
+                {% if perms.research.change_fragment and has_object_lock %}
+                <form novalidate class='form-inline' action='{% url "anonymous_fragment:delete_original_text" original_text.pk %}' method='POST'>
+                    {% csrf_token %}
+                    <div class="form-row align-items-center">
+                        {% if perms.research.change_originaltext %}
+                        <a href='{% url "anonymous_fragment:update_original_text" original_text.pk %}'>Edit</a>      
+                        {% endif %}  
+                        {% if perms.research.delete_originaltext %}
+                        <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2' data-what='original text'>{% trans 'Delete' %}</button>
+                        {% endif %}  
+                    </div>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+
+        <div>
+            {% include 'research/partials/original_text_preview.html' with original_text=original_text %}
+        </div>
+
+        {% include 'research/partials/section/original_text_details.html' with show_concordances=True original_text=original_text can_edit=perms.research.change_fragment has_object_lock=has_object_lock %}
+
+        <div class='mt-3'>
+        {% for translation in original_text.translation_set.all %}
+            {% include 'research/partials/translation_preview.html' with translation=translation can_edit=perms.research.change_fragment has_object_lock=has_object_lock %}
+        {% endfor %}
+        </div>
+
+    </section>
+
+    {% endfor %}
+
+    <hr>
+
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Commentary' %}</h5>
+            </div>
+            <div>
+                {% if perms.research.change_fragment and has_object_lock %}
+                <a href='{% url "anonymous_fragment:update_commentary" object.pk %}'>{% trans 'Edit' %}</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class='row'>
+            <div class="col">
+                <div class='alphabetum'>
+                    {{ object.commentary.content|safe|default:'Not specified' }}
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    <hr>
+
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Fragments Apposita' %}</h5>
+            </div>
+            <div>
+                {% if perms.research.change_fragment and has_object_lock %}
+                <a href='#'>{% trans 'Add Link' %}</a>
+                {% endif %}
+            </div>
+        </div>
+
+    <div class='m-5 text-center'>
+        <em>Show apposita links to fragments here. Create links by browsing fragments by antiquarian / work </em>
+    </div>  
+
+    </section>
+
+
+    {% endwith %}
+{% endblock %}

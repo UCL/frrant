@@ -33,6 +33,12 @@ class WorkCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     success_url = reverse_lazy('work:list')
     permission_required = ('research.add_work',)
 
+    def form_valid(self, form):
+        work = form.save()
+        for a in form.cleaned_data['antiquarians']:
+            a.works.add(work)
+        return super().form_valid(form)
+
 
 class WorkUpdateView(CheckLockMixin, LoginRequiredMixin,
                      PermissionRequiredMixin, UpdateView):
@@ -42,6 +48,18 @@ class WorkUpdateView(CheckLockMixin, LoginRequiredMixin,
 
     def get_success_url(self, *args, **kwargs):
         return reverse('work:detail', kwargs={'pk': self.object.pk})
+
+    def form_valid(self, form):
+        work = form.save()
+        updated = form.cleaned_data['antiquarians']
+        existing = work.antiquarian_set.all()
+        to_remove = [a for a in existing if a not in updated]
+        to_add = [a for a in updated if a not in existing]
+        for a in to_remove:
+            a.works.remove(work)
+        for a in to_add:
+            a.works.add(work)
+        return super().form_valid(form)
 
 
 @method_decorator(require_POST, name='dispatch')

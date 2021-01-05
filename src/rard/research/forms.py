@@ -2,18 +2,19 @@ from django import forms
 from django.core.exceptions import FieldDoesNotExist
 from django.utils.translation import gettext_lazy as _
 
-from rard.research.models import (Antiquarian, Book, CitingAuthor, CitingWork,
-                                  Comment, Fragment, OriginalText, Testimonium,
-                                  Work)
-from rard.research.models.base import FragmentLink, TestimoniumLink
+from rard.research.models import (AnonymousFragment, Antiquarian, Book,
+                                  CitingAuthor, CitingWork, Comment, Fragment,
+                                  OriginalText, Testimonium, Work)
+from rard.research.models.base import (AnonymousFragmentLink, FragmentLink,
+                                       TestimoniumLink)
 
 
 class DatedModelFormBase(forms.ModelForm):
-    class Meta:
-        labels = {
-            'circa1': 'Circa',
-            'circa2': 'Circa',
-        }
+    # class Meta:
+    #     labels = {
+    #         'circa1': 'Circa',
+    #         'circa2': 'Circa',
+    #     }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -57,10 +58,11 @@ class DatedModelFormBase(forms.ModelForm):
 
 class AntiquarianForm(DatedModelFormBase):
 
-    class Meta(DatedModelFormBase.Meta):
+    class Meta:
         model = Antiquarian
         fields = ('name', 'order_name', 're_code', 'circa1', 'circa2',
                   'year_type', 'year1', 'year2', 'dates_type')
+        labels = {'order_name': 'Name for alphabetisation'}
 
     introduction_text = forms.CharField(
         widget=forms.Textarea,
@@ -96,13 +98,29 @@ class AntiquarianUpdateWorksForm(forms.ModelForm):
 
 
 class WorkForm(DatedModelFormBase):
-    class Meta(DatedModelFormBase.Meta):
+
+    antiquarians = forms.ModelMultipleChoiceField(
+        widget=forms.CheckboxSelectMultiple,
+        queryset=Antiquarian.objects.all(),
+        required=False,
+    )
+
+    class Meta:
         model = Work
         exclude = ('fragments',)
+        labels = {'name': 'Name of Work'}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # if we are editing an existing work then init the antiquarian set
+        # on the form
+        if self.instance and self.instance.pk:
+            self.fields['antiquarians'].initial = \
+                self.instance.antiquarian_set.all()
 
 
 class BookForm(DatedModelFormBase):
-    class Meta(DatedModelFormBase.Meta):
+    class Meta:
         model = Book
         exclude = ('work',)
 
@@ -245,6 +263,12 @@ class TestimoniumCommentaryForm(CommentaryFormBase):
         fields = ()
 
 
+class AnonymousFragmentCommentaryForm(CommentaryFormBase):
+    class Meta:
+        model = AnonymousFragment
+        fields = ()
+
+
 class HistoricalFormBase(forms.ModelForm):
 
     definite_antiquarians = forms.ModelMultipleChoiceField(
@@ -274,6 +298,7 @@ class HistoricalFormBase(forms.ModelForm):
 
             link_classes = {
                 Testimonium: TestimoniumLink,
+                AnonymousFragment: AnonymousFragmentLink,
                 Fragment: FragmentLink
             }
             link_class = link_classes[self._meta.model]
@@ -340,6 +365,14 @@ class FragmentForm(HistoricalFormBase):
 
     class Meta:
         model = Fragment
+        fields = ('topics',)
+        widgets = {'topics': forms.CheckboxSelectMultiple}
+
+
+class AnonymousFragmentForm(forms.ModelForm):
+
+    class Meta:
+        model = AnonymousFragment
         fields = ('topics',)
         widgets = {'topics': forms.CheckboxSelectMultiple}
 

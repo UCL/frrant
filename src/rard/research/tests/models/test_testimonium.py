@@ -31,7 +31,7 @@ class TestTestimonium(TestCase):
         }
         testimonium = Testimonium.objects.create(**data)
         self.assertEqual(
-            str(testimonium), 'Testimonium {}'.format(testimonium.pk)
+            str(testimonium), 'Unlinked {}'.format(testimonium.pk)
         )
 
     def test_initial_images(self):

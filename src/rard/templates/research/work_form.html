@@ -23,6 +23,8 @@
         {% csrf_token %}
         {% bootstrap_field form.name %}
         {% bootstrap_field form.subtitle %}
+        {% bootstrap_field form.antiquarians %}
+
         {% bootstrap_field form.number_of_books %}
 
         {% include 'research/partials/render_date_form_fields.html' %}

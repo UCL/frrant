@@ -131,27 +131,27 @@ class TestWork(TestCase):
 
         self.assertEqual(work.antiquarian_set.count(), length)
 
-    def test_disallow_reverse_relator_addition(self):
-        # to maintain links between antiquarians and fragments when
-        # works are added and removed, we only support addition of
-        # works to antiquarians in one direction
-        antiquarian = Antiquarian.objects.create(
-            name='John Smith', re_code='smitre001'
-        )
-        data = {
-            'name': 'Work Name',
-            'subtitle': 'Subtitle',
-        }
-        work = Work.objects.create(**data)
+    # def test_disallow_reverse_relator_addition(self):
+    #     # to maintain links between antiquarians and fragments when
+    #     # works are added and removed, we only support addition of
+    #     # works to antiquarians in one direction
+    #     antiquarian = Antiquarian.objects.create(
+    #         name='John Smith', re_code='smitre001'
+    #     )
+    #     data = {
+    #         'name': 'Work Name',
+    #         'subtitle': 'Subtitle',
+    #     }
+    #     work = Work.objects.create(**data)
 
-        # allowed
-        antiquarian.works.add(work)
+    #     # allowed
+    #     antiquarian.works.add(work)
 
-        antiquarian.works.clear()
+    #     antiquarian.works.clear()
 
-        # not allowed
-        with self.assertRaises(IntegrityError):
-            work.antiquarian_set.add(antiquarian)
+    #     # not allowed
+    #     with self.assertRaises(IntegrityError):
+    #         work.antiquarian_set.add(antiquarian)
 
     def test_deleting_work_leaves_antiquarian(self):
         # check we are using uuids as primary keys

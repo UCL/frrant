@@ -10,14 +10,19 @@ from .citing_work import (CitingAuthorListView, CitingWorkDeleteView,
 from .comments import CommentDeleteView, TextObjectFieldCommentListView
 from .concordance import (ConcordanceCreateView, ConcordanceDeleteView,
                           ConcordanceListView, ConcordanceUpdateView)
-from .fragment import (FragmentAddWorkLinkView, FragmentCreateView,
-                       FragmentDeleteView, FragmentDetailView,
-                       FragmentListView, FragmentRemoveBookLinkView,
-                       FragmentRemoveWorkLinkView,
+from .fragment import (AnonymousFragmentCreateView,
+                       AnonymousFragmentDeleteView,
+                       AnonymousFragmentDetailView, AnonymousFragmentListView,
+                       AnonymousFragmentUpdateCommentaryView,
+                       AnonymousFragmentUpdateView, FragmentAddWorkLinkView,
+                       FragmentCreateView, FragmentDeleteView,
+                       FragmentDetailView, FragmentListView,
+                       FragmentRemoveBookLinkView, FragmentRemoveWorkLinkView,
                        FragmentUpdateAntiquariansView,
                        FragmentUpdateCommentaryView, FragmentUpdateView)
 from .home import HomeView
-from .original_text import (FragmentOriginalTextCreateView,
+from .original_text import (AnonymousFragmentOriginalTextCreateView,
+                            FragmentOriginalTextCreateView,
                             OriginalTextDeleteView, OriginalTextUpdateView,
                             TestimoniumOriginalTextCreateView)
 from .search import SearchView
@@ -60,6 +65,13 @@ __all__ = [
     'ConcordanceDeleteView',
     'ConcordanceListView',
     'ConcordanceUpdateView',
+    'AnonymousFragmentCreateView',
+    'AnonymousFragmentDeleteView',
+    'AnonymousFragmentDetailView',
+    'AnonymousFragmentListView',
+    'AnonymousFragmentOriginalTextCreateView',
+    'AnonymousFragmentUpdateCommentaryView',
+    'AnonymousFragmentUpdateView',
     'FragmentAddWorkLinkView',
     'FragmentUpdateCommentaryView',
     'FragmentCreateView',

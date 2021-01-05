@@ -7,6 +7,9 @@ from rard.utils.basemodel import BaseModel
 
 class OriginalText(BaseModel):
 
+    class Meta:
+        ordering = ('citing_work', 'reference')
+
     # original text can belong to either a fragment or a testimonium
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()

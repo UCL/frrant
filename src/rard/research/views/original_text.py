@@ -7,7 +7,8 @@ from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.edit import DeleteView
 
 from rard.research.forms import OriginalTextForm
-from rard.research.models import Fragment, OriginalText, Testimonium
+from rard.research.models import (AnonymousFragment, Fragment, OriginalText,
+                                  Testimonium)
 from rard.research.views.fragment import OriginalTextCitingWorkView
 from rard.research.views.mixins import CheckLockMixin
 
@@ -55,6 +56,13 @@ class OriginalTextCreateViewBase(PermissionRequiredMixin,
 
 class FragmentOriginalTextCreateView(OriginalTextCreateViewBase):
     parent_object_class = Fragment
+    permission_required = (
+        'research.add_originaltext', 'research.change_fragment',
+    )
+
+
+class AnonymousFragmentOriginalTextCreateView(OriginalTextCreateViewBase):
+    parent_object_class = AnonymousFragment
     permission_required = (
         'research.add_originaltext', 'research.change_fragment',
     )

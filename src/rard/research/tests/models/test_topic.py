@@ -85,7 +85,7 @@ class TestTopic(TestCase):
         # we should still have the topic
         Topic.objects.get(pk=topic_pk)
 
-    def test_order_by_name(self):
+    def test_ordering(self):
         names = [
             'Science',
             'Art',
@@ -94,14 +94,16 @@ class TestTopic(TestCase):
         ]
         for counter, name in enumerate(names):
             Topic.objects.create(
-                name=name
+                name=name,
+                order=counter
             )
 
         db_names = []
         for a in Topic.objects.all():
             db_names.append(a.name)
 
-        self.assertEqual(db_names, sorted(names))
+        # regardless of the name, the ordering should be used
+        self.assertEqual(db_names, names)
 
     def test_get_absolute_url(self):
         name = 'the_name'

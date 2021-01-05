@@ -12,11 +12,29 @@
 {% endblock %}
 
 {% block inner %}
+<div class='ordered-list'>
+
     {% for object in page_obj %}
 
+        <form novalidate class='ordered-list-item form-inline' action='' method='POST'>
         {% include 'research/partials/topic_list_item.html' with topic=object %}
 
+            {% if perms.research.change_topic %}
+
+            {% csrf_token %}
+            <div class='form-group ml-auto'>
+                <input type='hidden' name='topic_id' value='{{ object.pk }}'>
+                <button type='submit' class='btn btn-light btn-sm'
+                    name='up'>▲</button>
+                <button type='submit' class='btn btn-light btn-sm'
+                    name='down'>▼</button>
+            </div>
+
+            {% endif %}
+        </form>
+
     {% endfor %}
+</div>
 
     {{ block.super }}
 

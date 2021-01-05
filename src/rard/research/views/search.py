@@ -8,8 +8,8 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_GET
 from django.views.generic import ListView, TemplateView
 
-from rard.research.models import (Antiquarian, Fragment, Testimonium, Topic,
-                                  Work)
+from rard.research.models import (AnonymousFragment, Antiquarian, Fragment,
+                                  Testimonium, Topic, Work)
 
 
 @method_decorator(require_GET, name='dispatch')
@@ -24,6 +24,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         return {
             'antiquarians': self.antiquarian_search,
             'testimonia': self.testimonium_search,
+            'anonymous fragments': self.anonymous_fragment_search,
             'fragments': self.fragment_search,
             'topics': self.topic_search,
             'works': self.work_search,
@@ -38,7 +39,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             qs.filter(introduction__content__icontains=keywords) |
             qs.filter(re_code__icontains=keywords)
         )
-        return results
+        return results.distinct()
 
     @classmethod
     def topic_search(cls, keywords):
@@ -46,7 +47,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         results = (
             qs.filter(name__icontains=keywords)
         )
-        return results
+        return results.distinct()
 
     @classmethod
     def work_search(cls, keywords):
@@ -56,7 +57,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             qs.filter(subtitle__icontains=keywords) |
             qs.filter(antiquarian__name__icontains=keywords)
         )
-        return results
+        return results.distinct()
 
     @classmethod
     def fragment_search(cls, keywords):
@@ -68,7 +69,19 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             qs.filter(original_texts__translation__translator_name__icontains=keywords) |  # noqa
             qs.filter(commentary__content__icontains=keywords)
         )
-        return results
+        return results.distinct()
+
+    @classmethod
+    def anonymous_fragment_search(cls, keywords):
+        qs = AnonymousFragment.objects.all()
+        results = (
+            qs.filter(original_texts__content__icontains=keywords) |
+            qs.filter(original_texts__reference__icontains=keywords) |
+            qs.filter(original_texts__translation__translated_text__icontains=keywords) |  # noqa
+            qs.filter(original_texts__translation__translator_name__icontains=keywords) |  # noqa
+            qs.filter(commentary__content__icontains=keywords)
+        )
+        return results.distinct()
 
     @classmethod
     def testimonium_search(cls, keywords):
@@ -80,7 +93,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             qs.filter(original_texts__translation__translator_name__icontains=keywords) |  # noqa
             qs.filter(commentary__content__icontains=keywords)
         )
-        return results
+        return results.distinct()
 
     def get(self, request, *args, **kwargs):
         keywords = self.request.GET.get('q', None)
@@ -104,7 +117,6 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         return context
 
     def get_queryset(self):
-
         keywords = self.request.GET.get('q')
         if not keywords:
             return []

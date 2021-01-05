@@ -131,6 +131,7 @@ class TestSearchView(TestCase):
             [
                 'antiquarians',
                 'testimonia',
+                'anonymous fragments',
                 'fragments',
                 'topics',
                 'works',
@@ -151,13 +152,13 @@ class TestSearchView(TestCase):
         self.assertEqual(list(view.antiquarian_search('F')), [a1, a2])
 
         # topics
-        t1 = Topic.objects.create(name='topic')
-        t2 = Topic.objects.create(name='pictures')
+        t1 = Topic.objects.create(name='topic', order=1)
+        t2 = Topic.objects.create(name='pictures', order=2)
         self.assertEqual(list(view.topic_search('topic')), [t1])
         self.assertEqual(list(view.topic_search('TOPIc')), [t1])
         self.assertEqual(list(view.topic_search('picture')), [t2])
         self.assertEqual(list(view.topic_search('PiCTureS')), [t2])
-        self.assertEqual(list(view.topic_search('PIC')), [t2, t1])
+        self.assertEqual(list(view.topic_search('PIC')), [t1, t2])
 
         # works
         w1 = Work.objects.create(name='work')

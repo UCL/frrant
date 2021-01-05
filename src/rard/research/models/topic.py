@@ -2,13 +2,13 @@ from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
 
-from rard.utils.basemodel import BaseModel, LockableModel
+from rard.utils.basemodel import BaseModel, LockableModel, OrderableModel
 
 
-class Topic(LockableModel, BaseModel):
+class Topic(OrderableModel, LockableModel, BaseModel):
 
-    class Meta:
-        ordering = ['name']
+    # class Meta:
+    #     ordering = ['order']
 
     name = models.CharField(max_length=128, blank=False, unique=True)
 
@@ -26,3 +26,24 @@ class Topic(LockableModel, BaseModel):
         if not self.slug:
             self.slug = str(self.pk)
             self.save()
+
+    @property
+    def fragments(self):
+        # ordered
+        return self.fragment_set.all().order_by('topiclink__order')
+
+    def reindex_fragment_links(self):
+        # where there has been a change, ensure the
+        # ordering of fragments is correct (zero-indexed)
+        from django.db import transaction
+
+        from rard.research.models.fragment import TopicLink
+
+        # single db update
+        with transaction.atomic():
+            links = TopicLink.objects.filter(
+                topic=self).order_by(
+                    models.F(('order')).asc(nulls_first=False))
+            for count, link in enumerate(links):
+                link.order = count
+                link.save()

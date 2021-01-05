@@ -43,3 +43,17 @@ class CitingAuthor(BaseModel):
 
     def __str__(self):
         return self.name
+
+    def ordered_materials(self):
+        # for all (or a page of) links to materials we need to create a
+        # dict for display on the page. Fetch all and order in a dict
+        # is probably faster than a set of individual db queries
+        from rard.research.models import (AnonymousFragment, Fragment,
+                                          Testimonium)
+        return {
+            'testimonia': Testimonium.objects.filter(
+                original_texts__citing_work__author=self).distinct(),
+            'fragments': Fragment.objects.filter(
+                original_texts__citing_work__author=self).distinct(),
+            'apposita': AnonymousFragment.objects.none()  # TODO
+        }
