@@ -369,7 +369,7 @@ class FragmentForm(HistoricalFormBase):
         widgets = {'topics': forms.CheckboxSelectMultiple}
 
 
-class AnonymousFragmentForm(HistoricalFormBase):
+class AnonymousFragmentForm(forms.ModelForm):
 
     class Meta:
         model = AnonymousFragment
