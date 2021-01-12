@@ -40,6 +40,11 @@ def handle_deleted_work_link(sender, instance, **kwargs):
             work=work).filter(antiquarian=None).delete()
         instance.antiquarian.testimoniumlinks.filter(
             work=work).update(antiquarian=None)
+        # same for appositum
+        instance.antiquarian.appositumfragmentlinks.filter(
+            work=work).filter(antiquarian=None).delete()
+        instance.antiquarian.appositumfragmentlinks.filter(
+            work=work).update(antiquarian=None)
 
     instance.antiquarian.reindex_work_links()
     instance.antiquarian.reindex_fragment_and_testimonium_links()
@@ -186,12 +191,16 @@ class Antiquarian(TextObjectFieldMixin, LockableModel, DatedModel, BaseModel):
     @classmethod
     def reindex_null_fragment_and_testimonium_links(cls):
         # any links that have no antiquarian attached, reorder them
-        from rard.research.models.base import FragmentLink, TestimoniumLink
+        from rard.research.models.base import (AppositumFragmentLink,
+                                               FragmentLink, TestimoniumLink)
         to_reorder = [
             FragmentLink.objects.filter(
                 antiquarian=None).order_by(
                     'work__worklink__order', 'work_order').distinct(),
             TestimoniumLink.objects.filter(
+                antiquarian=None).order_by(
+                    'work__worklink__order', 'work_order').distinct(),
+            AppositumFragmentLink.objects.filter(
                 antiquarian=None).order_by(
                     'work__worklink__order', 'work_order').distinct(),
         ]
@@ -207,13 +216,17 @@ class Antiquarian(TextObjectFieldMixin, LockableModel, DatedModel, BaseModel):
 
         from django.db import transaction
 
-        from rard.research.models.base import FragmentLink, TestimoniumLink
+        from rard.research.models.base import (AppositumFragmentLink,
+                                               FragmentLink, TestimoniumLink)
+
         with transaction.atomic():
 
             to_ensure = [
                 FragmentLink.objects.filter(
                     work=work).exclude(antiquarian=self),
                 TestimoniumLink.objects.filter(
+                    work=work).exclude(antiquarian=self),
+                AppositumFragmentLink.objects.filter(
                     work=work).exclude(antiquarian=self),
             ]
             for qs in to_ensure:
@@ -230,8 +243,12 @@ class Antiquarian(TextObjectFieldMixin, LockableModel, DatedModel, BaseModel):
 
             # remove unlinked
             stale = [
-                FragmentLink.objects.filter(work=work, antiquarian=None),
-                TestimoniumLink.objects.filter(work=work, antiquarian=None),
+                FragmentLink.objects.filter(
+                    work=work, antiquarian=None),
+                TestimoniumLink.objects.filter(
+                    work=work, antiquarian=None),
+                AppositumFragmentLink.objects.filter(
+                    work=work, antiquarian=None),
             ]
 
             for qs in stale:
@@ -251,6 +268,8 @@ class Antiquarian(TextObjectFieldMixin, LockableModel, DatedModel, BaseModel):
                     work__isnull=False).exclude(work__in=self.works.all()),
                 self.testimoniumlinks.filter(
                     work__isnull=False).exclude(work__in=self.works.all()),
+                self.appositumfragmentlinks.filter(
+                    work__isnull=False).exclude(work__in=self.works.all()),
             ]
             for qs in stale:
                 # set the antiquarian to None for these links
@@ -262,6 +281,8 @@ class Antiquarian(TextObjectFieldMixin, LockableModel, DatedModel, BaseModel):
                 self.fragmentlinks.all().order_by(
                     'work__worklink__order', 'work_order').distinct(),
                 self.testimoniumlinks.all().order_by(
+                    'work__worklink__order', 'work_order').distinct(),
+                self.appositumfragmentlinks.all().order_by(
                     'work__worklink__order', 'work_order').distinct(),
             ]
 
@@ -278,7 +299,8 @@ def remove_stale_antiquarian_links(sender, instance, **kwargs):
     # when deleting an antiquarian,
     # any fragment or testimonium links to the antiquarian
     # (and not via a work) should be deleted here
-    from rard.research.models.base import FragmentLink, TestimoniumLink
+    from rard.research.models.base import (AppositumFragmentLink, FragmentLink,
+                                           TestimoniumLink)
 
     qs = FragmentLink.objects.filter(
         antiquarian=instance, work__isnull=True
@@ -286,6 +308,11 @@ def remove_stale_antiquarian_links(sender, instance, **kwargs):
     qs.delete()
 
     qs = TestimoniumLink.objects.filter(
+        antiquarian=instance, work__isnull=True
+    )
+    qs.delete()
+
+    qs = AppositumFragmentLink.objects.filter(
         antiquarian=instance, work__isnull=True
     )
     qs.delete()

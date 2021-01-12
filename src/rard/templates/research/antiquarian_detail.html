@@ -144,6 +144,7 @@
             <div class='ordered-list'>
             {% with tlinks=object|testimonium_links_for_work:work %}
             {% with flinks=object|fragment_links_for_work:work %}
+            {% with alinks=object|appositum_links_for_work:work %}
 
                 {% for link in tlinks %}
                     {% include 'research/partials/testimonium_link_list_item.html' with link=link link_text=link.get_work_display_name_full|safe can_edit=perms.research.change_antiquarian has_object_lock=has_object_lock %}
@@ -153,11 +154,15 @@
                     {% include 'research/partials/fragment_link_list_item.html' with link=link  link_text=link.get_work_display_name_full|safe can_edit=perms.research.change_antiquarian has_object_lock=has_object_lock %}
                 {% endfor %}
 
+                {% for link in alinks %}
+                    {% include 'research/partials/appositum_fragment_link_list_item.html' with link=link link_text=link.get_work_display_name_full|safe can_edit=perms.research.change_antiquarian has_object_lock=has_object_lock %}
+                {% endfor %}
             
-                {% if not flinks and not tlinks  %}
+                {% if not flinks and not tlinks and not alinks %}
                 <div class='text-muted my-3 ml-4'><em>No linked material for this work</em></div>
                 {% endif %}
         
+            {% endwith %}
             {% endwith %}
             {% endwith %}
             </div>
@@ -172,6 +177,7 @@
 
         {% with tlinks=object|testimonium_links_for_work:None %}
         {% with flinks=object|fragment_links_for_work:None %}
+        {% with alinks=object|appositum_links_for_work:None %}
 
 
             {% for link in tlinks %}
@@ -180,12 +186,16 @@
             {% for link in flinks %}
                 {% include 'research/partials/fragment_link_list_item.html' with link=link link_text=link.get_display_name|safe can_edit=perms.research.change_antiquarian has_object_lock=has_object_lock %}
             {% endfor %}
+            {% for link in alinks %}
+                {% include 'research/partials/appositum_fragment_link_list_item.html' with link=link link_text=link.get_display_name|safe can_edit=perms.research.change_antiquarian has_object_lock=has_object_lock %}
+            {% endfor %}
 
-            {% if not flinks and not tlinks  %}
+            {% if not flinks and not tlinks and not alinks %}
             <div class='text-muted my-3 ml-4'><em>No linked material</em></div>
             {% endif %}
 
 
+        {% endwith %}
         {% endwith %}
         {% endwith %}
 

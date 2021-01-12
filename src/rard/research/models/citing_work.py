@@ -50,10 +50,14 @@ class CitingAuthor(BaseModel):
         # is probably faster than a set of individual db queries
         from rard.research.models import (AnonymousFragment, Fragment,
                                           Testimonium)
+        fragments = Fragment.objects.filter(
+            original_texts__citing_work__author=self
+        ).distinct()
         return {
             'testimonia': Testimonium.objects.filter(
                 original_texts__citing_work__author=self).distinct(),
-            'fragments': Fragment.objects.filter(
-                original_texts__citing_work__author=self).distinct(),
-            'apposita': AnonymousFragment.objects.none()  # TODO
+            'fragments': fragments,
+            'apposita': AnonymousFragment.objects.filter(
+                fragments__in=fragments
+            ).distinct()
         }

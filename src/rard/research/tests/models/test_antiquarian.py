@@ -3,7 +3,8 @@ from django.db.utils import IntegrityError
 from django.test import TestCase
 from django.urls import reverse
 
-from rard.research.models import Antiquarian, TextObjectField
+from rard.research.models import Antiquarian, TextObjectField, Work
+from rard.research.models.antiquarian import WorkLink
 
 pytestmark = pytest.mark.django_db
 
@@ -236,3 +237,23 @@ class TestAntiquarian(TestCase):
         # handle null values gracefully
         self.assertEqual(Antiquarian._bcad(None), '')
         self.assertEqual(Antiquarian._bcad('bad value'), '')
+
+
+class TestWorkLink(TestCase):
+    def test_related_queryset(self):
+
+        a1 = Antiquarian.objects.create(name='John', re_code='001')
+        a2 = Antiquarian.objects.create(name='John', re_code='002')
+
+        w = Work.objects.create(name='work name')
+        # create worklinks for both antiquarians
+        for i in range(0, 10):
+            WorkLink.objects.create(antiquarian=a1, work=w)
+            WorkLink.objects.create(antiquarian=a2, work=w)
+
+        # now for each worklink, check its related queryset contains
+        # only links for its own antiquarian
+        for link in WorkLink.objects.all():
+            for rel in link.related_queryset():
+                self.assertEqual(rel.antiquarian, link.antiquarian)
+

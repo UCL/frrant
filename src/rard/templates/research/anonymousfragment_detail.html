@@ -148,18 +148,39 @@
     <section>
         <div class='d-flex justify-content-between mb-3'>
             <div>
-                <h5>{% trans 'Fragments Apposita' %}</h5>
+                <h5>{% trans 'Appositum Links' %}</h5>
             </div>
             <div>
-                {% if perms.research.change_fragment and has_object_lock %}
-                <a href='#'>{% trans 'Add Link' %}</a>
+                {% if perms.research.change_anonymous_fragment and has_object_lock %}
+                Link <a href='{% url "anonymous_fragment:link" object.pk %}'>{% trans 'Antiquarian/Work' %}</a> or
+                <a href='{% url "anonymous_fragment:link_fragment" object.pk %}'>{% trans 'Fragment' %}</a>
+
                 {% endif %}
             </div>
         </div>
 
-    <div class='m-5 text-center'>
-        <em>Show apposita links to fragments here. Create links by browsing fragments by antiquarian / work </em>
-    </div>  
+        <div class='row'>
+            <div class="col">
+                {% if object.fragments %}
+
+                    {% for link in object.appositumfragmentlinks_from.all %}
+
+                    {% if link.linked_to %}
+                    {% include 'research/partials/fragment_list_item.html' with fragment=link.linked_to %}
+                    {% else %}
+
+                        {% if link.work %}
+                            {% include 'research/partials/work_list_item.html' with work=link.work book=link.book %}
+                        {% elif link.antiquarian %}
+                            {% include 'research/partials/antiquarian_list_item.html' with antiquarian=link.antiquarian %}
+                        {% endif %}
+                    {% endif %}
+
+                    {% endfor %}
+
+                {% endif %}
+            </div>
+        </div>
 
     </section>
 

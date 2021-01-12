@@ -1,5 +1,6 @@
 from django.db import models, transaction
 from django.db.models.signals import m2m_changed, post_delete, post_save
+from django.utils.safestring import mark_safe
 
 from rard.research.models import Antiquarian
 from rard.research.models.mixins import TextObjectFieldMixin
@@ -19,6 +20,7 @@ class LinkBaseModel(BaseModel):
         return self.__class__.objects.filter(
             antiquarian=self.antiquarian).order_by('work__worklink__order')
 
+    # keep these in case ever required again
     # def prev(self):
     #     return self.related_queryset().filter(order__lt=self.order).last()
 
@@ -195,18 +197,74 @@ class FragmentLink(WorkLinkBaseModel):
     )
 
 
-class AnonymousFragmentLink(WorkLinkBaseModel):
+class AppositumFragmentLink(WorkLinkBaseModel):
 
-    linked_field = 'fragment'
+    linked_field = 'anonymous_fragment'
     display_stub = 'A'
 
-    fragment = models.ForeignKey(
+    # the anonymous fragment that is being linked:
+    anonymous_fragment = models.ForeignKey(
         'AnonymousFragment',
         null=True,
         default=None,
-        related_name='antiquarian_%(class)ss',
+        related_name='%(class)ss_from',
         on_delete=models.CASCADE
     )
+
+    # the optional fragment that the above anon fragment is being linked TO:
+    linked_to = models.ForeignKey(
+        'Fragment',
+        null=True,
+        default=None,
+        related_name='%(class)ss_to',
+        on_delete=models.CASCADE
+    )
+
+    # the association between apposita and fragments is done using another
+    # relation as we might need those to be ordered wrt to the fragment
+
+    # store the optional fragment link that generated this apposita link
+    # and cascade on its deletion so we are auto-deleted
+    link_object = models.ForeignKey(
+        'FragmentLink',
+        null=True,
+        default=None,
+        on_delete=models.CASCADE
+    )
+
+    def get_display_name(self):
+        val = super().get_display_name()
+        if self.link_object:
+            # if self.work is not None:
+            #     sup = self.link_object.display_work_order_one_indexed()
+            # else:
+            sup = self.link_object.display_order_one_indexed()
+            val = mark_safe('%s<sup>%s</sup>' % (val, sup))
+        return val
+
+    def get_work_display_name(self):
+        val = super().get_work_display_name()
+        if self.link_object:
+            # if self.work is not None:
+            sup = self.link_object.display_work_order_one_indexed()
+            # else:
+            # sup = self.link_object.display_order_one_indexed()
+            val = mark_safe('%s<sup>%s</sup>' % (val, sup))
+        return val
+
+    @classmethod
+    def ensure_apposita_links(cls, instance):
+        # instance is FragmentLink
+        with transaction.atomic():
+            for apposita in instance.fragment.apposita.all():
+                AppositumFragmentLink.objects.get_or_create(
+                    antiquarian=instance.antiquarian,
+                    work=instance.work,
+                    book=instance.book,
+                    linked_to=instance.fragment,
+                    anonymous_fragment=apposita,
+                    link_object=instance
+                )
 
 
 def check_order_info(sender, instance, action, model, pk_set, **kwargs):
@@ -215,28 +273,33 @@ def check_order_info(sender, instance, action, model, pk_set, **kwargs):
 
     if action not in ['post_add', 'post_remove']:
         return
+
     with transaction.atomic():
         # we might be handed the antiquarian or the fragment/testimonium
         # depending on which way round the change was made
         antiquarians = Antiquarian.objects.none()
         if isinstance(instance, (Fragment, Testimonium)):
-            antiquarians = instance.linked_antiquarians.all()
+            antiquarians = instance.linked_antiquarians.all().distinct()
         elif isinstance(instance, Antiquarian):
             antiquarians = Antiquarian.objects.filter(pk=instance.pk)
 
         for antiquarian in antiquarians.all():
+            print('reindexing for ')
             antiquarian.reindex_fragment_and_testimonium_links()
 
         Antiquarian.reindex_null_fragment_and_testimonium_links()
 
 
 def handle_new_link(sender, instance, created, **kwargs):
+    print('saved a %s' % instance)
     if created:
+        if isinstance(instance, FragmentLink):
+            AppositumFragmentLink.ensure_apposita_links(instance)
         reindex_order_info(sender, instance, **kwargs)
 
 
 def reindex_order_info(sender, instance, **kwargs):
-
+    print('Reindex order info for %s' % sender)
     # when we delete a fragmentlink we need to:
     # reindex all work_links for the work it pointed to
     with transaction.atomic():
@@ -259,6 +322,9 @@ def reindex_order_info(sender, instance, **kwargs):
 m2m_changed.connect(check_order_info, sender=FragmentLink)
 post_save.connect(handle_new_link, sender=FragmentLink)
 post_delete.connect(reindex_order_info, sender=FragmentLink)
+m2m_changed.connect(check_order_info, sender=AppositumFragmentLink)
+post_save.connect(handle_new_link, sender=AppositumFragmentLink)
+post_delete.connect(reindex_order_info, sender=AppositumFragmentLink)
 m2m_changed.connect(check_order_info, sender=TestimoniumLink)
 post_save.connect(handle_new_link, sender=TestimoniumLink)
 post_delete.connect(reindex_order_info, sender=TestimoniumLink)

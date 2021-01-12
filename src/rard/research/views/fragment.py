@@ -11,12 +11,15 @@ from django.views.generic.detail import DetailView
 from django.views.generic.edit import DeleteView, UpdateView
 
 from rard.research.forms import (AnonymousFragmentCommentaryForm,
-                                 AnonymousFragmentForm, CitingWorkForm,
+                                 AnonymousFragmentForm,
+                                 AppositumFragmentLinkForm,
+                                 AppositumGeneralLinkForm, CitingWorkForm,
                                  FragmentAntiquariansForm,
                                  FragmentCommentaryForm, FragmentForm,
                                  FragmentLinkWorkForm, OriginalTextForm)
-from rard.research.models import AnonymousFragment, Book, Fragment, Work
-from rard.research.models.base import FragmentLink
+from rard.research.models import (AnonymousFragment, Antiquarian, Book,
+                                  Fragment, Work)
+from rard.research.models.base import AppositumFragmentLink, FragmentLink
 from rard.research.views.mixins import CanLockMixin, CheckLockMixin
 
 
@@ -138,13 +141,163 @@ class AnonymousFragmentListView(FragmentListView):
     permission_required = ('research.view_fragment',)
 
     def get_queryset(self):
-        qs = super().get_queryset()
+        # do not show anon fragment that are appositum to other things
+        qs = super().get_queryset().filter(
+            appositumfragmentlinks_from__isnull=True
+        )
         from django.db.models import F
         filtered = qs.annotate(
             topic=F('topics__name'),
             topic_order=F('topics__order')
         ).order_by('topic_order', 'order')
         return filtered
+
+
+class AddAppositumGeneralLinkView(CheckLockMixin, LoginRequiredMixin,
+                                  PermissionRequiredMixin, FormView):
+
+    check_lock_object = 'anonymous_fragment'
+
+    def dispatch(self, request, *args, **kwargs):
+        # need to ensure we have the lock object view attribute
+        # initialised in dispatch
+        self.get_anonymous_fragment()
+        return super().dispatch(request, *args, **kwargs)
+
+    template_name = 'research/add_appositum_link.html'
+    form_class = AppositumGeneralLinkForm
+    permission_required = (
+        'research.change_anonymousfragment',
+        'research.add_appositumfragmentlink',
+    )
+
+    def get_success_url(self, *args, **kwargs):
+        return reverse(
+            'anonymous_fragment:detail',
+            kwargs={'pk': self.get_anonymous_fragment().pk}
+        )
+
+    def get_anonymous_fragment(self, *args, **kwargs):
+        if not getattr(self, 'anonymous_fragment', False):
+            self.anonymous_fragment = get_object_or_404(
+                AnonymousFragment,
+                pk=self.kwargs.get('pk')
+            )
+        return self.anonymous_fragment
+
+    def form_valid(self, form):
+        data = form.cleaned_data
+        work = data['work']
+        book = data['book']
+        antiquarian = data['antiquarian']
+        # though they browsed to the work via the antiquarian,
+        # if there are multiple authors of that work we need to
+        # link them all
+        link_to_antiquarians = \
+            work.antiquarian_set.all() if work else [antiquarian]
+
+        for antiquarian in link_to_antiquarians:
+            data['anonymous_fragment'] = self.get_anonymous_fragment()
+            data['antiquarian'] = antiquarian
+            data['work'] = work
+            data['book'] = book
+            AppositumFragmentLink.objects.get_or_create(**data)
+
+        return super().form_valid(form)
+
+    def get_work(self, *args, **kwargs):
+        # look for work in the GET or POST parameters
+        self.work = None
+        if self.request.method == 'GET':
+            work_pk = self.request.GET.get('work', None)
+        elif self.request.method == 'POST':
+            work_pk = self.request.POST.get('work', None)
+        if work_pk:
+            try:
+                self.work = Work.objects.get(pk=work_pk)
+            except Work.DoesNotExist:
+                raise Http404
+        return self.work
+
+    def get_antiquarian(self, *args, **kwargs):
+        # look for work in the GET or POST parameters
+        self.antiquarian = None
+        if self.request.method == 'GET':
+            antiquarian_pk = self.request.GET.get('antiquarian', None)
+        elif self.request.method == 'POST':
+            antiquarian_pk = self.request.POST.get('antiquarian', None)
+        if antiquarian_pk:
+            try:
+                self.antiquarian = Antiquarian.objects.get(pk=antiquarian_pk)
+            except Antiquarian.DoesNotExist:
+                raise Http404
+        return self.antiquarian
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update({
+            'anonymous_fragment': self.get_anonymous_fragment(),
+            'antiquarian': self.get_antiquarian(),
+            'work': self.get_work(),
+        })
+        return context
+
+    def get_form_kwargs(self):
+        print('get_form_kwargs')
+        values = super().get_form_kwargs()
+        values['antiquarian'] = self.get_antiquarian()
+        values['work'] = self.get_work()
+        print('set work to %s' % values['work'])
+        return values
+
+
+class AddAppositumFragmentLinkView(CheckLockMixin, LoginRequiredMixin,
+                                   PermissionRequiredMixin, FormView):
+
+    check_lock_object = 'anonymous_fragment'
+
+    def dispatch(self, request, *args, **kwargs):
+        # need to ensure we have the lock object view attribute
+        # initialised in dispatch
+        self.get_anonymous_fragment()
+        return super().dispatch(request, *args, **kwargs)
+
+    template_name = 'research/add_appositum_fragment_link.html'
+
+    form_class = AppositumFragmentLinkForm
+    permission_required = (
+        'research.change_anonymousfragment',
+        'research.add_appositumfragmentlink',
+    )
+
+    def get_success_url(self, *args, **kwargs):
+        return reverse(
+            'anonymous_fragment:detail',
+            kwargs={'pk': self.get_anonymous_fragment().pk}
+        )
+
+    def get_anonymous_fragment(self, *args, **kwargs):
+        if not getattr(self, 'anonymous_fragment', False):
+            self.anonymous_fragment = get_object_or_404(
+                AnonymousFragment,
+                pk=self.kwargs.get('pk')
+            )
+        return self.anonymous_fragment
+
+    def form_valid(self, form):
+        data = form.cleaned_data
+        fragment = data['linked_to']
+        if fragment:
+            fragment.apposita.add(self.anonymous_fragment)
+
+        return super().form_valid(form)
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update({
+            'anonymous_fragment': self.get_anonymous_fragment(),
+        })
+        return context
 
 
 class FragmentDetailView(

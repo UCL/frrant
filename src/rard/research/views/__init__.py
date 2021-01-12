@@ -10,7 +10,9 @@ from .citing_work import (CitingAuthorListView, CitingWorkDeleteView,
 from .comments import CommentDeleteView, TextObjectFieldCommentListView
 from .concordance import (ConcordanceCreateView, ConcordanceDeleteView,
                           ConcordanceListView, ConcordanceUpdateView)
-from .fragment import (AnonymousFragmentCreateView,
+from .fragment import (AddAppositumFragmentLinkView,
+                       AddAppositumGeneralLinkView,
+                       AnonymousFragmentCreateView,
                        AnonymousFragmentDeleteView,
                        AnonymousFragmentDetailView, AnonymousFragmentListView,
                        AnonymousFragmentUpdateCommentaryView,
@@ -42,6 +44,8 @@ from .work import (BookCreateView, BookDeleteView, BookUpdateView,
                    WorkListView, WorkUpdateView)
 
 __all__ = [
+    'AddAppositumFragmentLinkView',
+    'AddAppositumGeneralLinkView',
     'AntiquarianBibliographyCreateView',
     'AntiquarianCreateView',
     'AntiquarianWorkCreateView',

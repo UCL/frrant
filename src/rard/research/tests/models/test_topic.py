@@ -112,3 +112,67 @@ class TestTopic(TestCase):
             topic.get_absolute_url(),
             reverse('topic:detail', kwargs={'slug': topic.slug})
         )
+
+    def test_move_up(self):
+
+        names = [
+            'Science',
+            'Art',
+            'Politics',
+            'Carpentry',
+        ]
+        for counter, name in enumerate(names):
+            Topic.objects.create(
+                name=name,
+                order=counter
+            )
+
+        self.assertEqual(
+            [x.name for x in Topic.objects.all()],
+            names
+        )
+
+        t = Topic.objects.last()
+        t.up()
+
+        self.assertEqual(
+            [x.name for x in Topic.objects.all()],
+            [
+                'Science',
+                'Art',
+                'Carpentry',
+                'Politics',
+            ]
+        )
+
+    def test_move_down(self):
+
+        names = [
+            'Science',
+            'Art',
+            'Politics',
+            'Carpentry',
+        ]
+        for counter, name in enumerate(names):
+            Topic.objects.create(
+                name=name,
+                order=counter
+            )
+
+        self.assertEqual(
+            [x.name for x in Topic.objects.all()],
+            names
+        )
+
+        t = Topic.objects.first()
+        t.down()
+
+        self.assertEqual(
+            [x.name for x in Topic.objects.all()],
+            [
+                'Art',
+                'Science',
+                'Politics',
+                'Carpentry',
+            ]
+        )
