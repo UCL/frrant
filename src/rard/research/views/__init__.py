@@ -21,7 +21,8 @@ from .fragment import (AddAppositumFragmentLinkView,
                        FragmentDetailView, FragmentListView,
                        FragmentRemoveBookLinkView, FragmentRemoveWorkLinkView,
                        FragmentUpdateAntiquariansView,
-                       FragmentUpdateCommentaryView, FragmentUpdateView)
+                       FragmentUpdateCommentaryView, FragmentUpdateView,
+                       RemoveAppositumLinkView)
 from .home import HomeView
 from .original_text import (AnonymousFragmentOriginalTextCreateView,
                             FragmentOriginalTextCreateView,
@@ -90,6 +91,7 @@ __all__ = [
     'HomeView',
     'OriginalTextDeleteView',
     'OriginalTextUpdateView',
+    'RemoveAppositumLinkView',
     'SearchView',
     'TestimoniumAddWorkLinkView',
     'TestimoniumCreateView',

@@ -63,6 +63,7 @@ urlpatterns = [
         path("create/", views.AnonymousFragmentCreateView.as_view(), name="create"),
         path("<pk>/appositum-link/", views.AddAppositumGeneralLinkView.as_view(), name="link"),
         path("<pk>/appositum-fragment-link/", views.AddAppositumFragmentLinkView.as_view(), name="link_fragment"),
+        path("<pk>/unlink-apposita/<link_pk>", views.RemoveAppositumLinkView.as_view(), name="unlink_apposita"),
         path("<pk>/update/", views.AnonymousFragmentUpdateView.as_view(), name="update"),
         path("<pk>/update/commentary/", views.AnonymousFragmentUpdateCommentaryView.as_view(), name="update_commentary"),
         path("<pk>/delete/", views.AnonymousFragmentDeleteView.as_view(), name="delete"),

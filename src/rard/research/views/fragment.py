@@ -300,6 +300,52 @@ class AddAppositumFragmentLinkView(CheckLockMixin, LoginRequiredMixin,
         return context
 
 
+@method_decorator(require_POST, name='dispatch')
+class RemoveAppositumLinkView(CheckLockMixin, LoginRequiredMixin,
+                              PermissionRequiredMixin, RedirectView):
+
+    check_lock_object = 'anonymous_fragment'
+    permission_required = ('research.change_anonymousfragment',)
+
+    def dispatch(self, request, *args, **kwargs):
+        # need to ensure we have the lock object view attribute
+        # initialised in dispatch
+        self.get_anonymous_fragment()
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_anonymous_fragment(self, *args, **kwargs):
+        if not getattr(self, 'anonymous_fragment', False):
+            self.anonymous_fragment = get_object_or_404(
+                AnonymousFragment,
+                pk=self.kwargs.get('pk')
+            )
+        return self.anonymous_fragment
+
+    def get_success_url(self, *args, **kwargs):
+        return reverse(
+            'anonymous_fragment:detail',
+            kwargs={'pk': self.anonymous_fragment.pk}
+        )
+
+    def get_appositum_link(self, *args, **kwargs):
+        if not getattr(self, 'link', False):
+            self.link = get_object_or_404(
+                AppositumFragmentLink,
+                pk=self.kwargs.get('link_pk')
+            )
+        return self.link
+
+    def post(self, request, *args, **kwargs):
+        anonymous_fragment = self.get_anonymous_fragment()
+        link = self.get_appositum_link()
+        if not link.linked_to:
+            link.delete()
+        else:
+            # if linked to a fragment remove it this way
+            link.linked_to.apposita.remove(anonymous_fragment)
+        return redirect(self.get_success_url())
+
+
 class FragmentDetailView(
         CanLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DetailView):
     model = Fragment

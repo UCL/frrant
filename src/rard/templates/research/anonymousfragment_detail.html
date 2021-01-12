@@ -1,5 +1,5 @@
 {% extends "research/detail_base.html" %}
-{% load i18n humanize object_lock %}
+{% load i18n humanize object_lock show_citing_info %}
 
 {% block heading %}
     {{ object.get_display_name }}
@@ -165,16 +165,111 @@
 
                     {% for link in object.appositumfragmentlinks_from.all %}
 
-                    {% if link.linked_to %}
-                    {% include 'research/partials/fragment_list_item.html' with fragment=link.linked_to %}
-                    {% else %}
 
-                        {% if link.work %}
-                            {% include 'research/partials/work_list_item.html' with work=link.work book=link.book %}
-                        {% elif link.antiquarian %}
-                            {% include 'research/partials/antiquarian_list_item.html' with antiquarian=link.antiquarian %}
-                        {% endif %}
-                    {% endif %}
+                    <div class='rard-list-item d-flex justify-content-between'>
+                        <div>
+                            <li>
+                                {% if link.linked_to %}
+                                    {% with fragment=link.linked_to %}
+
+                                    <span>
+                                        {% with fragment.get_display_name as link_text %}
+                                            {% if perms.research.view_fragment %}
+                                            <a href='{% url "fragment:detail" fragment.pk %}'>{{ link_text }}</a> 
+                                            {% else %}
+                                                {{ link_text }}
+                                            {% endif %}
+                                        {% endwith %}
+                                        {% include 'research/partials/render_inline_lock_icon.html' with object=fragment %}
+                                    </span>
+
+                                    {% endwith %}
+                                {% elif link.work %}
+                                    {% with work=link.work %}
+                                    <a href='{% url "work:detail" work.pk %}'>{{ work }}</a> 
+
+                                    {% if book %}
+                                        book {{ book }}
+                                        
+                                        {% if book.display_date_range %}
+                                            <span class='text-muted'><small>[{{ book.display_date_range }}]</small></span>
+                                        {% endif %}
+
+                                    {% else %}
+                                        {% if work.display_date_range %}
+                                            <span class='text-muted'><small>[{{ work.display_date_range }}]</small></span>
+                                        {% endif %}
+
+                                    {% endif %}
+
+                                    {% include 'research/partials/render_inline_lock_icon.html' with object=work %}
+
+                                    {% endwith %}
+
+                                {% elif link.antiquarian %}
+
+                                    {% with antiquarian=link.antiquarian %}
+                                        {% with antiquarian.name as link_text %}
+                                            {% if perms.research.view_antiquarian %}
+                                            <a href='{% url "antiquarian:detail" antiquarian.pk %}'>{{ link_text }}</a> 
+                                            {% else %}
+                                                {{ link_text }}
+                                            {% endif %}
+                                            {% if antiquarian.display_date_range %}
+                                            <span class='text-muted'><small>[{{ antiquarian.display_date_range }}]</small></span>
+                                            {% endif %}
+                                            {% include 'research/partials/render_inline_lock_icon.html' with object=antiquarian %}
+                                        {% endwith %}
+                                    {% endwith %}
+
+
+                                {% endif %}
+
+                            </li>
+                            {% if link.linked_to %}
+                                {% with fragment=link.linked_to %}
+                                    
+                                <div>
+                                    <div class="card border-0 pt-1 pb-0 bg-transparent card-body">
+                                    <small>
+                                        <span class='text-muted'>
+
+                                            {% with citing_author=citing_author|default:None %}
+                                            {{ fragment|show_citing_info:citing_author|safe }}
+                                            {% endwith %}
+
+                                            {% comment %}
+                                            {% if not fragment.get_all_names %}
+                                                No links
+                                            {% else %}
+                                            <ul class='pl-3'>
+                                                {% for name in fragment.get_all_names %}
+                                                <li>
+                                                    {{ name }}
+                                                </li>
+                                                {% endfor %}
+                                            </ul>
+                                            {% endif %}
+                                            {% endcomment %}
+                                        </span>
+                                    </small>
+                                    </div>
+                                </div>     
+                                {% endwith %}
+                            {% endif %}
+                        </div>
+                        <div class='rard-list-item-actions'>
+
+                            <form novalidate class='form-inline' action='{% url "anonymous_fragment:unlink_apposita" object.pk link.pk %}' method='POST'>
+                                {% csrf_token %}
+                                <div class='form-group'>
+                                    <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+                                        data-what='appositum link'>{% trans 'Unlink' %}</button>
+                                </div>
+                            </form>
+
+                        </div>
+                    </div>
 
                     {% endfor %}
 

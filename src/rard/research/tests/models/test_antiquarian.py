@@ -256,4 +256,3 @@ class TestWorkLink(TestCase):
         for link in WorkLink.objects.all():
             for rel in link.related_queryset():
                 self.assertEqual(rel.antiquarian, link.antiquarian)
-
