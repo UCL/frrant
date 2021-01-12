@@ -53,6 +53,112 @@ class TestTopicSuccessUrls(TestCase):
         )
 
 
+class TestTopicListView(TestCase):
+
+    def setUp(self):
+        self.names = [
+            'art',
+            'science',
+            'politics'
+        ]
+        for name in self.names:
+            Topic.objects.create(name=name)
+
+    def test_order(self):
+        self.assertEqual(
+            [x.name for x in Topic.objects.all()],
+            self.names
+        )
+
+    def test_post_up(self):
+
+        # move the last topic up
+
+        data = {
+            'topic_id': Topic.objects.get(name='politics').pk,
+            'up': '',
+        }
+
+        url = reverse(
+            'topic:list'
+        )
+
+        request = RequestFactory().post(url, data=data)
+        request.user = UserFactory.create()
+
+        TopicListView.as_view()(
+            request,
+        )
+
+        self.assertEqual(
+            [x.name for x in Topic.objects.all()],
+            [
+                'art',
+                'politics',
+                'science',
+            ]
+        )
+
+    def test_post_down(self):
+
+        # move the first one down
+
+        data = {
+            'topic_id': Topic.objects.get(name='art').pk,
+            'down': '',
+        }
+
+        url = reverse(
+            'topic:list'
+        )
+
+        request = RequestFactory().post(url, data=data)
+        request.user = UserFactory.create()
+
+        TopicListView.as_view()(
+            request,
+        )
+
+        self.assertEqual(
+            [x.name for x in Topic.objects.all()],
+            [
+                'science',
+                'art',
+                'politics',
+            ]
+        )
+
+    def test_redirect_on_bad_data(self):
+
+        data = {
+            'topic_id': 999,
+            'down': '',
+        }
+
+        url = reverse(
+            'topic:list'
+        )
+
+        request = RequestFactory().post(url, data=data)
+        request.user = UserFactory.create()
+
+        response = TopicListView.as_view()(
+            request,
+        )
+
+        # check the data is unchanged
+        self.assertEqual(
+            [x.name for x in Topic.objects.all()],
+            self.names
+        )
+
+        # and that we were redirected to the same url
+        self.assertEqual(
+            response.url,
+            url
+        )
+
+
 class TestTopicUpdateView(TestCase):
 
     def test_update_view(self):

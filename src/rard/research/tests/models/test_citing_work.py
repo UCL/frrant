@@ -2,8 +2,8 @@
 import pytest
 from django.test import TestCase
 
-from rard.research.models import (CitingAuthor, CitingWork, Fragment,
-                                  Testimonium)
+from rard.research.models import (AnonymousFragment, CitingAuthor, CitingWork,
+                                  Fragment, Testimonium)
 
 pytestmark = pytest.mark.django_db
 
@@ -90,3 +90,35 @@ class TestCitingAuthor(TestCase):
         name = 'Bob'
         author = CitingAuthor(name=name)
         self.assertEqual(name, str(author))
+
+    def test_ordered_materials(self):
+        author = CitingAuthor.objects.create(name='name')
+        citing_work1 = CitingWork.objects.create(
+            author=author, title='citing_work'
+        )
+        citing_work2 = CitingWork.objects.create(
+            author=author, title='citing_work'
+        )
+        fragment = Fragment.objects.create()
+        fragment.original_texts.create(citing_work=citing_work1)
+
+        testimonium = Testimonium.objects.create()
+        testimonium.original_texts.create(citing_work=citing_work2)
+
+        anon = AnonymousFragment.objects.create()
+        fragment.apposita.add(anon)
+
+        materials = author.ordered_materials()
+
+        self.assertEqual(
+            [x.pk for x in materials['testimonia']],
+            [testimonium.pk]
+        )
+        self.assertEqual(
+            [x.pk for x in materials['fragments']],
+            [fragment.pk]
+        )
+        self.assertEqual(
+            [x.pk for x in materials['apposita']],
+            [anon.pk]
+        )

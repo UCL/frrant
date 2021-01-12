@@ -250,6 +250,23 @@
     
     </section>
 
+    <hr>
+
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Apposita' %}</h5>
+            </div>
+        </div>
+
+        {% for anon in object.apposita.all %}
+
+            {% include 'research/partials/anonymousfragment_list_item.html' with fragment=anon %}
+        
+        {% endfor %}
+    
+    </section>
+
 
     {% endwith %}
 {% endblock %}
