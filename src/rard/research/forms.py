@@ -5,16 +5,11 @@ from django.utils.translation import gettext_lazy as _
 from rard.research.models import (AnonymousFragment, Antiquarian, Book,
                                   CitingAuthor, CitingWork, Comment, Fragment,
                                   OriginalText, Testimonium, Work)
-from rard.research.models.base import (AnonymousFragmentLink, FragmentLink,
+from rard.research.models.base import (AppositumFragmentLink, FragmentLink,
                                        TestimoniumLink)
 
 
 class DatedModelFormBase(forms.ModelForm):
-    # class Meta:
-    #     labels = {
-    #         'circa1': 'Circa',
-    #         'circa2': 'Circa',
-    #     }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -298,7 +293,6 @@ class HistoricalFormBase(forms.ModelForm):
 
             link_classes = {
                 Testimonium: TestimoniumLink,
-                AnonymousFragment: AnonymousFragmentLink,
                 Fragment: FragmentLink
             }
             link_class = link_classes[self._meta.model]
@@ -410,3 +404,56 @@ class FragmentLinkWorkForm(BaseLinkWorkForm):
 class TestimoniumLinkWorkForm(BaseLinkWorkForm):
     class Meta(BaseLinkWorkForm.Meta):
         model = TestimoniumLink
+
+
+class AppositumGeneralLinkForm(forms.ModelForm):
+
+    # for linking to antiquarian, work or book
+    # mechanism is different for fragment
+
+    class Meta:
+        model = AppositumFragmentLink
+        fields = ('antiquarian', 'work', 'book',)
+
+    def __init__(self, *args, **kwargs):
+        print('args %s' % str(args))
+        print('kwargs %s' % str(kwargs))
+
+        antiquarian = kwargs.pop('antiquarian')
+        work = kwargs.pop('work')
+
+        super().__init__(*args, **kwargs)
+
+        self.fields['work'].required = False
+        self.fields['book'].required = False
+
+        if antiquarian:
+            self.fields['antiquarian'].initial = antiquarian
+            self.fields['work'].queryset = antiquarian.works.all()
+            self.fields['work'].disabled = False
+        else:
+            self.fields['work'].queryset = Work.objects.none()
+            self.fields['work'].disabled = True
+
+        if work:
+            self.fields['work'].initial = work
+            self.fields['book'].queryset = work.book_set.all()
+        else:
+            self.fields['book'].queryset = Book.objects.none()
+            self.fields['book'].disabled = True
+
+
+class AppositumFragmentLinkForm(forms.ModelForm):
+
+    # for linking to antiquarian, work or book
+    # mechanism is different for fragment
+
+    class Meta:
+        model = AppositumFragmentLink
+        fields = ('linked_to',)
+
+    def __init__(self, *args, **kwargs):
+
+        super().__init__(*args, **kwargs)
+
+        self.fields['linked_to'].initial = Fragment.objects.all()

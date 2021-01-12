@@ -3,7 +3,7 @@ from django.db import models, transaction
 from django.db.models.signals import m2m_changed, post_delete, post_save
 from django.urls import reverse
 
-from rard.research.models.base import (AnonymousFragmentLink, FragmentLink,
+from rard.research.models.base import (AppositumFragmentLink, FragmentLink,
                                        HistoricalBaseModel)
 from rard.research.models.topic import Topic
 from rard.utils.basemodel import OrderableModel
@@ -105,16 +105,6 @@ class Fragment(HistoricalBaseModel):
             for link in self.get_all_links()
         ]
 
-    def get_all_work_names(self):
-        # all the names wrt works
-        return [
-            link.get_work_display_name()
-            for link in self.get_all_links()
-            # for link in self.get_all_links().order_by(
-            #     'work', 'work_order'
-            # ).distinct()
-        ]
-
     def get_all_links(self):
         return FragmentLink.objects.filter(
             fragment=self
@@ -158,44 +148,10 @@ class AnonymousFragment(OrderableModel, HistoricalBaseModel):
         'OriginalText', related_query_name='original_texts'
     )
 
-    def _get_linked_works_and_books(self, definite):
-        # a list of definite linked works and books
-        all_links = self.antiquarian_anonymousfragmentlinks.filter(
-            definite=definite,
-            work__isnull=False,
-        ).order_by('work', '-book').distinct()
-
-        rtn = set()
-        for link in all_links:
-            if link.book:
-                rtn.add(link.book)
-            else:
-                rtn.add(link.work)
-        return rtn
-
-    def possible_works_and_books(self):
-        return self._get_linked_works_and_books(definite=False)
-
-    def definite_works_and_books(self):
-        return self._get_linked_works_and_books(definite=True)
-
-    def definite_antiquarians(self):
-        from rard.research.models import Antiquarian
-        all_links = self.antiquarian_anonymousfragmentlinks.all()
-        return Antiquarian.objects.filter(
-            anonymousfragmentlinks__in=all_links,
-            anonymousfragmentlinks__definite=True,
-            anonymousfragmentlinks__work__isnull=True,
-        ).distinct()
-
-    def possible_antiquarians(self):
-        from rard.research.models import Antiquarian
-        all_links = self.antiquarian_anonymousfragmentlinks.all()
-        return Antiquarian.objects.filter(
-            anonymousfragmentlinks__in=all_links,
-            anonymousfragmentlinks__definite=False,
-            anonymousfragmentlinks__work__isnull=True,
-        ).distinct()
+    # the fragments that we are apposita for...
+    fragments = models.ManyToManyField(
+        'Fragment', blank=True, related_name='apposita'
+    )
 
     def get_absolute_url(self):
         return reverse('anonymous_fragment:detail', kwargs={'pk': self.pk})
@@ -214,8 +170,8 @@ class AnonymousFragment(OrderableModel, HistoricalBaseModel):
         ]
 
     def get_all_links(self):
-        return AnonymousFragmentLink.objects.filter(
-            fragment=self
+        return AppositumFragmentLink.objects.filter(
+            anonymous_fragment=self
         ).order_by('antiquarian', 'order').distinct()
 
     def get_display_name(self):
@@ -262,6 +218,34 @@ def reindex_anonymous_fragments():
             anon.save()
 
 
+def handle_apposita_change(sender, instance, action, model, pk_set, **kwargs):
+    print('action %s' % action)
+    if action not in ('post_add', 'post_remove', 'post_clear'):
+        return
+    if action in ('post_remove', 'post_clear'):
+        prune_apposita_links(instance)
+    elif action in ('post_add'):
+        # need to add apposita links
+        if isinstance(instance, AnonymousFragment):
+            raise Exception(
+                'Add apposita to fragments via fragment.apposita '
+                'not the reverse accessor'
+            )
+        with transaction.atomic():
+            for link in instance.antiquarian_fragmentlinks.all():
+                AppositumFragmentLink.ensure_apposita_links(link)
+
+
+def prune_apposita_links(fragment):
+    # any apposita links for anon fragments NOT in the fragment
+    # set, we need to delete them
+    with transaction.atomic():
+        stale = AppositumFragmentLink.objects.filter(
+            linked_to=fragment
+        ).exclude(anonymous_fragment__in=fragment.apposita.all())
+        stale.delete()
+
+
 def handle_changed_anon_topics(sender, instance, **kwargs):
     reindex_anonymous_fragments()
 
@@ -277,3 +261,5 @@ def handle_changed_anon_topic_links(
 m2m_changed.connect(handle_changed_anon_topic_links, sender=AnonymousTopicLink)
 post_delete.connect(handle_changed_anon_topics, sender=AnonymousTopicLink)
 post_save.connect(handle_changed_anon_topics, sender=Topic)
+
+m2m_changed.connect(handle_apposita_change, sender=Fragment.apposita.through)

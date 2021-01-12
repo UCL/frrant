@@ -178,5 +178,32 @@
         {% endfor %}
     </section>
 
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Apposita' %}</h5>
+            </div>
+            <div>
+            </div>
+        </div>
+
+
+            {% with alinks=object.antiquarian_work_appositumfragmentlinks.all %}
+
+
+                {% for link in alinks %}
+                    {% include 'research/partials/appositum_fragment_link_list_item.html' with link=link link_text=link.get_work_display_name_full|safe can_edit=False %}
+                {% endfor %}
+            
+                {% if not alinks %}
+                <div class='text-muted my-3 ml-4'><em>No linked material for this work</em></div>
+                {% endif %}
+        
+            {% endwith %}
+
+    </section>
+
+
+
     {% endwith %}
 {% endblock %}

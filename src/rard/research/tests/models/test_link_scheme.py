@@ -1,8 +1,10 @@
 import pytest
 from django.test import TestCase
 
-from rard.research.models import Antiquarian, Book, Fragment, Testimonium, Work
-from rard.research.models.base import FragmentLink, TestimoniumLink
+from rard.research.models import (AnonymousFragment, Antiquarian, Book,
+                                  Fragment, Testimonium, Work)
+from rard.research.models.base import (AppositumFragmentLink, FragmentLink,
+                                       TestimoniumLink)
 
 pytestmark = pytest.mark.django_db
 
@@ -54,6 +56,16 @@ class TestAntiquarianLinkScheme(TestCase):
         self.assertEqual(link.get_display_name(), 'name F1')
         link.antiquarian = None
         self.assertEqual(link.get_display_name(), 'Anonymous F1')
+
+    def test_display_names_in_error(self):
+        link = FragmentLink()
+        self.assertIsNone(link.order)
+        self.assertIsNone(link.work_order)
+        self.assertEqual(link.display_order_one_indexed(), 'ERR')
+        self.assertEqual(link.display_work_order_one_indexed(), 'ERR')
+
+        self.assertIsNone(link.work)
+        self.assertEqual(link.get_work_display_name(), '')
 
     def test_link_antiquarian_reverse_accessor(self):
         # check that the reverse method of making associations doesn't fail
@@ -386,6 +398,47 @@ class TestWorkLinkScheme(TestCase):
                 FragmentLink.objects.filter(antiquarian=self.antiquarian)):
             self.assertEqual(count, link.order)
 
+    def test_ordered_works(self):
+        a = Antiquarian.objects.create(name='new')
+        names = [
+            'work one',
+            'work two',
+            'work three',
+        ]
+        for name in names:
+            a.works.add(Work.objects.create(name=name))
+
+        self.assertEqual(
+            [w.name for w in a.ordered_works.all()],
+            names
+        )
+        # try moving a work down in the order
+        link = a.worklink_set.first()
+        link.down()
+
+        # should have reordered
+        self.assertEqual(
+            [w.name for w in a.ordered_works.all()],
+            [
+                'work two',
+                'work one',
+                'work three',
+            ]
+        )
+
+        link = a.worklink_set.last()
+        link.up()
+
+        # should have reordered
+        self.assertEqual(
+            [w.name for w in a.ordered_works.all()],
+            [
+                'work two',
+                'work three',
+                'work one',
+            ]
+        )
+
     def test_delete_work_removes_links(self):
         # removing the antiquarian as work author should deassociated all
         # linked fragments
@@ -424,6 +477,25 @@ class TestWorkLinkScheme(TestCase):
 
         # there should be no stray links lying around
         self.assertEqual(FragmentLink.objects.all().count(), self.NUM)
+
+    def test_add_work_via_reverse_accessor_generates_links(self):
+        # can connect works to antiquarians using
+        # antiquarian.works.add(work)
+        # and also
+        # work.antiquarian_set.add(antiquarian)
+        # and both of these methods should create
+        # any relevant fragment links
+        work = Work.objects.create(name='another')
+        for fragment in Fragment.objects.all():
+            FragmentLink.objects.create(
+                fragment=fragment, work=work,
+                definite=True
+            )
+        antiquarian = Antiquarian.objects.create(name='hi', re_code=12345)
+        self.assertEqual(antiquarian.fragmentlinks.count(), 0)
+        work.antiquarian_set.add(antiquarian)
+        self.assertEqual(
+            antiquarian.fragmentlinks.count(), Fragment.objects.count())
 
     def test_add_delete_single_work_updates_links(self):
         self._run_test_add_del_multi_works_updates_links(
@@ -465,10 +537,6 @@ class TestWorkLinkScheme(TestCase):
         expected = (Work.objects.count() + 1) * self.NUM
         self.assertEqual(self.antiquarian.fragmentlinks.count(), expected)
 
-        # remove all the works at once (doesn't delete them)
-        # for work in self.antiquarian.works.all():
-        #     self.antiquarian.works.remove(work)
-        # with transaction.atomic():
         if method == self.REMOVE_SINGLE:
             self.antiquarian.works.remove(Work.objects.first())  # one only
         elif method == self.REMOVE_MULTI:
@@ -481,8 +549,6 @@ class TestWorkLinkScheme(TestCase):
         # antiquarian should now have fewer links directly to it
         expected = (self.antiquarian.works.count() + 1) * self.NUM
         self.assertEqual(self.antiquarian.fragmentlinks.count(), expected)
-        # for link in self.antiquarian.fragmentlinks.all():
-        #     self.assertIsNone(link.work)
 
         # the antiquarian links have been reordered
         for count, link in enumerate(
@@ -529,6 +595,7 @@ class TestLinkScheme(TestCase):
         }
         self.fragment = Fragment.objects.create(**data)
         self.testimonium = Testimonium.objects.create(**data)
+        self.anonymous_fragment = AnonymousFragment.objects.create(**data)
 
     def test_add_work_fragment_updates_antiquarian(self):
         FragmentLink.objects.create(
@@ -944,3 +1011,147 @@ class TestFragmentWorkOrderingScheme(TestCase):
             self._get_fragment_names(),
             [fragment_names[i] for i in (1, 2, 3, 4, 0)]
         )
+
+
+class TestReindexCollection(TestCase):
+
+    # as the nature of the values is tbd, this test will only check
+    # that the collection id is actually set to some non
+    # blank/null value on all fragments etc.
+    def test_reindex_sets_collection_id(self):
+        # create some objects
+        for i in range(0, 10):
+            Fragment.objects.create()
+            Testimonium.objects.create()
+            AnonymousFragment.objects.create()
+
+        for f in Fragment.objects.all():
+            self.assertIsNone(f.collection_id)
+
+        for t in Testimonium.objects.all():
+            self.assertIsNone(t.collection_id)
+
+        for a in AnonymousFragment.objects.all():
+            self.assertIsNone(a.collection_id)
+
+        from rard.research.models.base import HistoricalBaseModel
+        HistoricalBaseModel.reindex_collection()
+
+        for f in Fragment.objects.all():
+            self.assertIsNotNone(f.collection_id)
+
+        for t in Testimonium.objects.all():
+            self.assertIsNotNone(t.collection_id)
+
+        for a in AnonymousFragment.objects.all():
+            self.assertIsNotNone(a.collection_id)
+
+
+class TestAppositaLinkScheme(TestCase):
+
+    def test_add_apposita_creates_apposita_links(self):
+        # given a fragmentlink we need to ensure apposita links
+        # are created when added to the fragment owning the link
+        data = {
+            'name': 'name',
+        }
+        fragment = Fragment.objects.create(**data)
+
+        NLINKS = 5
+        for i in range(0, 5):
+            a = Antiquarian.objects.create(name='name', re_code=i)
+            FragmentLink.objects.create(fragment=fragment, antiquarian=a)
+
+        # add apposita to the fragment
+        NUM = 10
+        for i in range(0, NUM):
+            anon = AnonymousFragment.objects.create()
+            fragment.apposita.add(anon)
+
+        # we should now have a appositum fragment link in each of these
+        # apposita (auto-created)
+        for anon in fragment.apposita.all():
+            self.assertEqual(anon.appositumfragmentlinks_from.count(), NLINKS)
+
+    def test_add_fragment_link_adds_apposita_links(self):
+        # this time we already have apposita linked to the fragment
+        # and we test whether adding a fragmentlink to this
+        # fragment creates apposita links also
+        data = {
+            'name': 'name',
+        }
+        fragment = Fragment.objects.create(**data)
+
+        # add apposita to the fragment
+        NUM = 10
+        for i in range(0, NUM):
+            anon = AnonymousFragment.objects.create()
+            fragment.apposita.add(anon)
+
+        NLINKS = 5
+        for i in range(0, 5):
+            a = Antiquarian.objects.create(name='name', re_code=i)
+            FragmentLink.objects.create(
+                fragment=fragment, antiquarian=a
+            )
+
+        # we should now have a appositum fragment link in each of these
+        # apposita (auto-created)
+        for anon in fragment.apposita.all():
+            self.assertEqual(anon.appositumfragmentlinks_from.count(), NLINKS)
+
+    def test_remove_apposita_removes_apposita_links(self):
+        data = {
+            'name': 'name',
+        }
+        fragment = Fragment.objects.create(**data)
+
+        # add apposita to the fragment
+        NUM = 10
+        for i in range(0, NUM):
+            anon = AnonymousFragment.objects.create()
+            fragment.apposita.add(anon)
+
+        NLINKS = 5
+        for i in range(0, 5):
+            a = Antiquarian.objects.create(name='name', re_code=i)
+            FragmentLink.objects.create(fragment=fragment, antiquarian=a)
+
+        # now we have apposita links for all fragmentlinks. Remove apposita
+        # and check we remove the links
+        for anon in fragment.apposita.all():
+            self.assertEqual(anon.appositumfragmentlinks_from.count(), NLINKS)
+            fragment.apposita.remove(anon)
+            self.assertEqual(anon.appositumfragmentlinks_from.count(), 0)
+
+        self.assertEqual(AppositumFragmentLink.objects.count(), 0)
+
+    def test_remove_fragment_link_removes_apposita_links(self):
+        data = {
+            'name': 'name',
+        }
+        fragment = Fragment.objects.create(**data)
+
+        # add apposita to the fragment
+        NUM = 10
+        for i in range(0, NUM):
+            anon = AnonymousFragment.objects.create()
+            fragment.apposita.add(anon)
+
+        NLINKS = 5
+        for i in range(0, 5):
+            a = Antiquarian.objects.create(name='name', re_code=i)
+            link = FragmentLink.objects.create(
+                fragment=fragment, antiquarian=a
+            )
+
+        # now we have apposita links for all fragmentlinks. Remove fragment
+        # links and check we remove the apposita links
+        for count, link in enumerate(fragment.antiquarian_fragmentlinks.all()):
+            link.delete()
+            for anon in fragment.apposita.all():
+                self.assertEqual(
+                    anon.appositumfragmentlinks_from.count(),
+                    NLINKS - count - 1
+                )
+        self.assertEqual(AppositumFragmentLink.objects.count(), 0)
