@@ -427,8 +427,8 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
             if len(names) > 1:
                 also = ', '.join([name for name in names[1:]])
                 if also:
-                    first_line = '%s (also = %s)' % (first_line, also)
-        return first_line
+                    first_line = '%s <span class="also">(also = %s)</span>' % (first_line, also)
+        return mark_safe(first_line)
 
     def get_citing_display(self, for_citing_author=None):
 
