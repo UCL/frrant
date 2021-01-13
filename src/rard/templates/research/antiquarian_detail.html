@@ -114,9 +114,6 @@
                 <h5>{% trans 'Ordered Material' %}</h5>
             </div>
             <div>
-                {% if perms.research.change_antiquarian and has_object_lock %}
-                <a href='{% url "testimonium:create" %}'>{% trans 'Add' %}</a>
-                {% endif %}
             </div>
         </div>
 
