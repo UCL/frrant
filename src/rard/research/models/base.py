@@ -446,9 +446,11 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
             return '[]'
 
         first_text = all_texts[0]
-        citing_work_str = str(first_text.citing_work)
+        citing_work_str = first_text.citing_work_reference_display()
         if len(all_texts) > 1:
-            also = ', '.join([str(text.citing_work) for text in all_texts[1:]])
+            also = ', '.join(
+                [txt.citing_work_reference_display() for txt in all_texts[1:]]
+            )
             if also:
                 citing_work_str = '%s (also = %s)' % (citing_work_str, also)
         return citing_work_str

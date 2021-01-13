@@ -19,8 +19,7 @@ class CitingWork(BaseModel):
     def __str__(self):
         tokens = [
             str(self.author) if self.author else _('Anonymous'),
-            self.title,
-            self.edition
+            self.title
         ]
         return ', '.join([t for t in tokens if t])
 
