@@ -26,18 +26,11 @@
             {% csrf_token %}
             <div class='form-group'>
                 <input type='hidden' name='link_id' value='{{ link.pk }}'>
-                <input type='hidden' name='object_type' value='fragment'>
-                {% if ordered_by_work %}
+                <input type='hidden' name='object_type' value='anonymous_fragment'>
                 <button type='submit' class='btn btn-light'
                     name='up_by_work'>▲</button>
                 <button type='submit' class='btn btn-light'
                     name='down_by_work'>▼</button>
-                {% else %}
-                <button type='submit' class='btn btn-light'
-                    name='up'>▲</button>
-                <button type='submit' class='btn btn-light'
-                    name='down'>▼</button>
-                {% endif %}
             </div>
         </form>
         {% endif %}

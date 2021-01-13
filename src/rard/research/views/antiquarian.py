@@ -1,5 +1,6 @@
 from django.contrib.auth.mixins import (LoginRequiredMixin,
                                         PermissionRequiredMixin)
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
@@ -48,9 +49,12 @@ class AntiquarianDetailView(
                 pass
 
         if link_pk and object_type:
-            from rard.research.models.base import FragmentLink, TestimoniumLink
+            from rard.research.models.base import (FragmentLink,
+                                                   TestimoniumLink,
+                                                   AppositumFragmentLink)
             model_classes = {
                 'fragment': FragmentLink,
+                'anonymous_fragment': AppositumFragmentLink,
                 'testimonium': TestimoniumLink,
             }
             try:
@@ -61,7 +65,7 @@ class AntiquarianDetailView(
                 elif 'down_by_work' in self.request.POST:
                     link.down_by_work()
 
-            except (FragmentLink.DoesNotExist, KeyError):
+            except (ObjectDoesNotExist, KeyError):
                 pass
         return HttpResponseRedirect(self.request.path)
 
