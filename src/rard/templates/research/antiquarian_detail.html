@@ -114,9 +114,6 @@
                 <h5>{% trans 'Ordered Material' %}</h5>
             </div>
             <div>
-                {% if perms.research.change_antiquarian and has_object_lock %}
-                <a href='{% url "testimonium:create" %}'>{% trans 'Add' %}</a>
-                {% endif %}
             </div>
         </div>
 
@@ -131,9 +128,9 @@
             <div class='form-group'>
                 <input type='hidden' name='work_id' value='{{ work.pk }}'>
                 <input type='hidden' name='antiquarian_id' value='{{ object.pk }}'>
-                <button type='submit' class='btn btn-light btn-sm'
+                <button type='submit' class='btn btn-light btn-sm' {% if forloop.first %}disabled{% endif %}
                     name='work_up'>▲</button>
-                <button type='submit' class='btn btn-light btn-sm'
+                <button type='submit' class='btn btn-light btn-sm' {% if forloop.last %}disabled{% endif %}
                     name='work_down'>▼</button>
             </div>
 

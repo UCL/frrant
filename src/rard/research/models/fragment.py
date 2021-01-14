@@ -110,6 +110,9 @@ class Fragment(HistoricalBaseModel):
             fragment=self
         ).order_by('antiquarian', 'order').distinct()
 
+    def get_all_appositum_links(self):
+        return self.appositumfragmentlinks_to.order_by('work', 'work_order')
+
 
 Fragment.init_text_object_fields()
 

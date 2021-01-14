@@ -427,8 +427,8 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
             if len(names) > 1:
                 also = ', '.join([name for name in names[1:]])
                 if also:
-                    first_line = '%s (also = %s)' % (first_line, also)
-        return first_line
+                    first_line = '%s <span class="also">(also = %s)</span>' % (first_line, also)
+        return mark_safe(first_line)
 
     def get_citing_display(self, for_citing_author=None):
 
@@ -446,9 +446,11 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
             return '[]'
 
         first_text = all_texts[0]
-        citing_work_str = str(first_text.citing_work)
+        citing_work_str = first_text.citing_work_reference_display()
         if len(all_texts) > 1:
-            also = ', '.join([str(text.citing_work) for text in all_texts[1:]])
+            also = ', '.join(
+                [txt.citing_work_reference_display() for txt in all_texts[1:]]
+            )
             if also:
                 citing_work_str = '%s (also = %s)' % (citing_work_str, also)
         return citing_work_str

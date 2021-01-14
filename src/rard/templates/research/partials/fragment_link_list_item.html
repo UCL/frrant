@@ -36,9 +36,9 @@
             <div class='form-group'>
                 <input type='hidden' name='link_id' value='{{ link.pk }}'>
                 <input type='hidden' name='object_type' value='fragment'>
-                <button type='submit' class='btn btn-light'
+                <button type='submit' class='btn btn-light'  {% if forloop.first %}disabled{% endif %}
                     name='up_by_work'>▲</button>
-                <button type='submit' class='btn btn-light'
+                <button type='submit' class='btn btn-light'  {% if forloop.last %}disabled{% endif %}
                     name='down_by_work'>▼</button>
             </div>
         </form>

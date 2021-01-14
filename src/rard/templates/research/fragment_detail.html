@@ -259,10 +259,13 @@
             </div>
         </div>
 
-        {% for anon in object.apposita.all %}
+        {% for link in object.get_all_appositum_links %}
 
-            {% include 'research/partials/anonymousfragment_list_item.html' with fragment=anon %}
-        
+            {% if link.work %}
+                {% include 'research/partials/appositum_fragment_link_list_item.html' with link=link link_text=link.get_work_display_name_full|safe %}
+            {% else %}
+                {% include 'research/partials/appositum_fragment_link_list_item.html' with link=link link_text=link.get_display_name|safe %}
+            {% endif %}
         {% endfor %}
     
     </section>

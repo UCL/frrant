@@ -24,6 +24,12 @@ class OriginalText(BaseModel):
 
     apparatus_criticus = models.TextField(default='', blank=True)
 
+    def citing_work_reference_display(self):
+        citing_work_str = str(self.citing_work)
+        if self.reference:
+            citing_work_str = ' '.join([citing_work_str, self.reference])
+        return citing_work_str
+
     # the ID to use in the concordance table
     @property
     def concordance_identifiers(self):
