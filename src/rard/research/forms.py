@@ -413,11 +413,9 @@ class AppositumGeneralLinkForm(forms.ModelForm):
 
     class Meta:
         model = AppositumFragmentLink
-        fields = ('antiquarian', 'work', 'book',)
+        fields = ('antiquarian', 'work', 'exclusive', 'book',)
 
     def __init__(self, *args, **kwargs):
-        print('args %s' % str(args))
-        print('kwargs %s' % str(kwargs))
 
         antiquarian = kwargs.pop('antiquarian')
         work = kwargs.pop('work')
@@ -426,6 +424,7 @@ class AppositumGeneralLinkForm(forms.ModelForm):
 
         self.fields['work'].required = False
         self.fields['book'].required = False
+        self.fields['exclusive'].disabled = True
 
         if antiquarian:
             self.fields['antiquarian'].initial = antiquarian
@@ -438,6 +437,7 @@ class AppositumGeneralLinkForm(forms.ModelForm):
         if work:
             self.fields['work'].initial = work
             self.fields['book'].queryset = work.book_set.all()
+            self.fields['exclusive'].disabled = False
         else:
             self.fields['book'].queryset = Book.objects.none()
             self.fields['book'].disabled = True

@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models, transaction
 from django.db.models.signals import m2m_changed, post_delete, post_save
 from django.utils.safestring import mark_safe
@@ -113,9 +114,12 @@ class WorkLinkBaseModel(LinkBaseModel):
             return 'ERR'
 
     def related_work_queryset(self):
-        return self.__class__.objects.filter(
-            work=self.work
-        ).order_by('work_order')
+        try:
+            return self.__class__.objects.filter(
+                work=self.work
+            ).order_by('work_order')
+        except ObjectDoesNotExist:
+            return self.__class__.objects.none()
 
     def prev_by_work(self):
         return self.related_work_queryset().filter(
@@ -220,6 +224,11 @@ class AppositumFragmentLink(WorkLinkBaseModel):
         on_delete=models.CASCADE
     )
 
+    # whether links to works are to be stored just for this work/antiquarian
+    # or whether they should be shared among other (and future) authors
+    # of a work. NB not relevant where work is not specified.
+    exclusive = models.BooleanField(default=False)
+
     # the association between apposita and fragments is done using another
     # relation as we might need those to be ordered wrt to the fragment
 
@@ -234,6 +243,8 @@ class AppositumFragmentLink(WorkLinkBaseModel):
 
     def get_display_name(self):
         val = super().get_display_name()
+        if self.exclusive:
+            val = val + '*'
         if self.link_object:
             # if self.work is not None:
             #     sup = self.link_object.display_work_order_one_indexed()
@@ -244,6 +255,8 @@ class AppositumFragmentLink(WorkLinkBaseModel):
 
     def get_work_display_name(self):
         val = super().get_work_display_name()
+        if self.exclusive:
+            val = val + '*'
         if self.link_object:
             # if self.work is not None:
             sup = self.link_object.display_work_order_one_indexed()
@@ -254,7 +267,9 @@ class AppositumFragmentLink(WorkLinkBaseModel):
 
     @classmethod
     def ensure_apposita_links(cls, instance):
-        # instance is FragmentLink
+        # instance is FragmentLink. When a linked fragment is
+        # linked to something else then we need to reflect this
+        # in the appositum links
         with transaction.atomic():
             for apposita in instance.fragment.apposita.all():
                 AppositumFragmentLink.objects.get_or_create(
@@ -284,14 +299,12 @@ def check_order_info(sender, instance, action, model, pk_set, **kwargs):
             antiquarians = Antiquarian.objects.filter(pk=instance.pk)
 
         for antiquarian in antiquarians.all():
-            print('reindexing for ')
             antiquarian.reindex_fragment_and_testimonium_links()
 
         Antiquarian.reindex_null_fragment_and_testimonium_links()
 
 
 def handle_new_link(sender, instance, created, **kwargs):
-    print('saved a %s' % instance)
     if created:
         if isinstance(instance, FragmentLink):
             AppositumFragmentLink.ensure_apposita_links(instance)
@@ -299,7 +312,6 @@ def handle_new_link(sender, instance, created, **kwargs):
 
 
 def reindex_order_info(sender, instance, **kwargs):
-    print('Reindex order info for %s' % sender)
     # when we delete a fragmentlink we need to:
     # reindex all work_links for the work it pointed to
     with transaction.atomic():

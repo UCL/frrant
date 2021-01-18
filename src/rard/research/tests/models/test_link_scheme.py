@@ -439,6 +439,58 @@ class TestWorkLinkScheme(TestCase):
             ]
         )
 
+    def test_remove_author_removes_link(self):
+
+        # remove all existing objects
+        Antiquarian.objects.all().delete()
+        Work.objects.all().delete()
+        FragmentLink.objects.all().delete()
+
+        self.assertEqual(Antiquarian.objects.count(), 0)
+        self.assertEqual(Work.objects.count(), 0)
+        self.assertEqual(FragmentLink.objects.count(), 0)
+
+        w = Work.objects.create(name='work')
+        a0 = Antiquarian.objects.create(name='name0', re_code='name0')
+        a1 = Antiquarian.objects.create(name='name1', re_code='name1')
+
+        # link both the antiquarians to this work
+        a0.works.add(w)
+        a1.works.add(w)
+
+        # create fragment and links to this work (and through the work)
+        # to the antiquarians
+        f = Fragment.objects.create()
+        FragmentLink.objects.create(antiquarian=a0, work=w, fragment=f)
+        FragmentLink.objects.create(antiquarian=a1, work=w, fragment=f)
+
+        self.assertEqual(FragmentLink.objects.count(), 2)
+
+        # now remove one author from the work
+        a0.works.remove(w)
+
+        # this should have removed their fragment link and kept the other
+        self.assertEqual(FragmentLink.objects.count(), 1)
+        self.assertEqual(FragmentLink.objects.first().antiquarian, a1)
+
+        # now remove that author
+        a1.works.remove(w)
+
+        # this should not have removed their fragment link as it is the last
+        # one. We should instead preserve the link to the work and set
+        # the antiquarian to None
+        self.assertEqual(FragmentLink.objects.count(), 1)
+        self.assertIsNone(FragmentLink.objects.first().antiquarian)
+
+        # in case we ever add them back
+        a0.works.add(w)
+
+        # in which case the null fragment link is updated to
+        # reflect this
+
+        self.assertEqual(FragmentLink.objects.count(), 1)
+        self.assertEqual(FragmentLink.objects.first().antiquarian, a0)
+
     def test_delete_work_removes_links(self):
         # removing the antiquarian as work author should deassociated all
         # linked fragments
@@ -1154,4 +1206,220 @@ class TestAppositaLinkScheme(TestCase):
                     anon.appositumfragmentlinks_from.count(),
                     NLINKS - count - 1
                 )
+        self.assertEqual(AppositumFragmentLink.objects.count(), 0)
+
+    def test_remove_author_removes_appositum_links(self):
+
+        # remove all existing objects
+        Antiquarian.objects.all().delete()
+        Work.objects.all().delete()
+        FragmentLink.objects.all().delete()
+
+        self.assertEqual(Antiquarian.objects.count(), 0)
+        self.assertEqual(Work.objects.count(), 0)
+        self.assertEqual(FragmentLink.objects.count(), 0)
+
+        w = Work.objects.create(name='work')
+        a0 = Antiquarian.objects.create(name='name0', re_code='name0')
+        a1 = Antiquarian.objects.create(name='name1', re_code='name1')
+
+        # link both the antiquarians to this work
+        a0.works.add(w)
+        a1.works.add(w)
+
+        # create fragment and links to this work (and through the work)
+        # to the antiquarians
+        f = Fragment.objects.create()
+        anon = AnonymousFragment.objects.create()
+        f.apposita.add(anon)
+
+        FragmentLink.objects.create(antiquarian=a0, work=w, fragment=f)
+        FragmentLink.objects.create(antiquarian=a1, work=w, fragment=f)
+
+        self.assertEqual(FragmentLink.objects.count(), 2)
+        self.assertEqual(AppositumFragmentLink.objects.count(), 2)
+
+        # now remove one author from the work
+        a0.works.remove(w)
+
+        # this should have removed their fragment link and kept the other
+        self.assertEqual(FragmentLink.objects.count(), 1)
+        self.assertEqual(FragmentLink.objects.first().antiquarian, a1)
+        self.assertEqual(AppositumFragmentLink.objects.count(), 1)
+        self.assertEqual(AppositumFragmentLink.objects.first().antiquarian, a1)
+
+        # now remove that author
+        a1.works.remove(w)
+
+        # this should not have removed their fragment link as it is the last
+        # one. We should instead preserve the link to the work and set
+        # the antiquarian to None
+        self.assertEqual(FragmentLink.objects.count(), 1)
+        self.assertIsNone(FragmentLink.objects.first().antiquarian)
+        self.assertEqual(AppositumFragmentLink.objects.count(), 1)
+        self.assertIsNone(AppositumFragmentLink.objects.first().antiquarian)
+
+        # in case we ever add them back
+        a0.works.add(w)
+
+        # in which case the null fragment link is updated to
+        # reflect this
+        self.assertEqual(FragmentLink.objects.count(), 1)
+        self.assertEqual(FragmentLink.objects.first().antiquarian, a0)
+        self.assertEqual(AppositumFragmentLink.objects.count(), 1)
+        self.assertEqual(AppositumFragmentLink.objects.first().antiquarian, a0)
+
+    def test_default_is_non_exclusive(self):
+        Antiquarian.objects.all().delete()
+        Work.objects.all().delete()
+        FragmentLink.objects.all().delete()
+
+        self.assertEqual(Antiquarian.objects.count(), 0)
+        self.assertEqual(Work.objects.count(), 0)
+        self.assertEqual(FragmentLink.objects.count(), 0)
+
+        w = Work.objects.create(name='work')
+        a = Antiquarian.objects.create(name='name0', re_code='name0')
+
+        # link one antiquarian to this work
+        a.works.add(w)
+
+        anon = AnonymousFragment.objects.create()
+        link = AppositumFragmentLink.objects.create(
+            anonymous_fragment=anon,
+            antiquarian=a, work=w
+        )
+
+        # we didn't set exclusivity so it should default to false
+        self.assertFalse(link.exclusive)
+
+    def test_non_exclusive_appositum_link(self):
+
+        Antiquarian.objects.all().delete()
+        Work.objects.all().delete()
+        FragmentLink.objects.all().delete()
+
+        self.assertEqual(Antiquarian.objects.count(), 0)
+        self.assertEqual(Work.objects.count(), 0)
+        self.assertEqual(FragmentLink.objects.count(), 0)
+
+        w = Work.objects.create(name='work')
+        a0 = Antiquarian.objects.create(name='name0', re_code='name0')
+        a1 = Antiquarian.objects.create(name='name1', re_code='name1')
+
+        # link one antiquarian to this work
+        a0.works.add(w)
+
+        anon = AnonymousFragment.objects.create()
+        AppositumFragmentLink.objects.create(
+            anonymous_fragment=anon,
+            antiquarian=a0, work=w, exclusive=False
+        )
+
+        self.assertEqual(AppositumFragmentLink.objects.count(), 1)
+
+        # now add the other antiquarian
+        a1.works.add(w)
+
+        # non-exclusive links should be auto-created
+        self.assertEqual(AppositumFragmentLink.objects.count(), 2)
+
+    def test_exclusive_appositum_link_not_auto_created(self):
+
+        Antiquarian.objects.all().delete()
+        Work.objects.all().delete()
+        FragmentLink.objects.all().delete()
+
+        self.assertEqual(Antiquarian.objects.count(), 0)
+        self.assertEqual(Work.objects.count(), 0)
+        self.assertEqual(FragmentLink.objects.count(), 0)
+
+        w = Work.objects.create(name='work')
+        a0 = Antiquarian.objects.create(name='name0', re_code='name0')
+        a1 = Antiquarian.objects.create(name='name1', re_code='name1')
+
+        # link one antiquarian to this work
+        a0.works.add(w)
+
+        anon = AnonymousFragment.objects.create()
+        AppositumFragmentLink.objects.create(
+            anonymous_fragment=anon,
+            antiquarian=a0, work=w, exclusive=True
+        )
+
+        self.assertEqual(AppositumFragmentLink.objects.count(), 1)
+
+        # now add the other antiquarian
+        a1.works.add(w)
+
+        # exclusive links should not be auto-created for new antiquarians
+        # as they are only
+        self.assertEqual(AppositumFragmentLink.objects.count(), 1)
+        self.assertEqual(AppositumFragmentLink.objects.first().antiquarian, a0)
+
+    def test_non_exclusive_appositum_link_not_deleted(self):
+        # where a link is non-exclusive to a work/antiquarian these
+        # links should be preserved to the work like they are for
+        # general fragment and testimonium links
+        Antiquarian.objects.all().delete()
+        Work.objects.all().delete()
+        FragmentLink.objects.all().delete()
+
+        self.assertEqual(Antiquarian.objects.count(), 0)
+        self.assertEqual(Work.objects.count(), 0)
+        self.assertEqual(FragmentLink.objects.count(), 0)
+
+        w = Work.objects.create(name='work')
+        a = Antiquarian.objects.create(name='name0', re_code='name0')
+
+        # link one antiquarian to this work
+        a.works.add(w)
+
+        anon = AnonymousFragment.objects.create()
+        AppositumFragmentLink.objects.create(
+            anonymous_fragment=anon,
+            antiquarian=a, work=w, exclusive=False
+        )
+
+        self.assertEqual(AppositumFragmentLink.objects.count(), 1)
+
+        # now add the other antiquarian
+        a.works.remove(w)
+
+        # exclusive links should not be auto-created for new antiquarians
+        # as they are only
+        self.assertEqual(AppositumFragmentLink.objects.count(), 1)
+        self.assertIsNone(AppositumFragmentLink.objects.first().antiquarian)
+
+    def test_exclusive_appositum_link_deleted(self):
+        # where a link is exclusive to a work/antiquarian these
+        # should be deleted where an antiquarian has been removed from a work
+        # as apposed to the general case where they are set to null
+        Antiquarian.objects.all().delete()
+        Work.objects.all().delete()
+        FragmentLink.objects.all().delete()
+
+        self.assertEqual(Antiquarian.objects.count(), 0)
+        self.assertEqual(Work.objects.count(), 0)
+        self.assertEqual(FragmentLink.objects.count(), 0)
+        self.assertEqual(AppositumFragmentLink.objects.count(), 0)
+
+        w = Work.objects.create(name='work')
+        a = Antiquarian.objects.create(name='name0', re_code='name0')
+
+        # link one antiquarian to this work
+        a.works.add(w)
+
+        anon = AnonymousFragment.objects.create()
+        AppositumFragmentLink.objects.create(
+            anonymous_fragment=anon,
+            antiquarian=a, work=w, exclusive=True
+        )
+
+        self.assertEqual(AppositumFragmentLink.objects.count(), 1)
+
+        # now add the other antiquarian
+        a.works.remove(w)
+
+        # exclusive links should be deleted when this happens
         self.assertEqual(AppositumFragmentLink.objects.count(), 0)

@@ -186,7 +186,9 @@
                                     {% endwith %}
                                 {% elif link.work %}
                                     {% with work=link.work %}
-                                    <a href='{% url "work:detail" work.pk %}'>{{ work }}</a> 
+                                    <a href='{% url "work:detail" work.pk %}'>{{ work }}
+                                        {% if link.exclusive %}*{% endif %}
+                                    </a>
 
                                     {% if book %}
                                         book {{ book }}
