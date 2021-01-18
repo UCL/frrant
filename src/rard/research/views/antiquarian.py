@@ -49,9 +49,9 @@ class AntiquarianDetailView(
                 pass
 
         if link_pk and object_type:
-            from rard.research.models.base import (FragmentLink,
-                                                   TestimoniumLink,
-                                                   AppositumFragmentLink)
+            from rard.research.models.base import (AppositumFragmentLink,
+                                                   FragmentLink,
+                                                   TestimoniumLink)
             model_classes = {
                 'fragment': FragmentLink,
                 'anonymous_fragment': AppositumFragmentLink,
