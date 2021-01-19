@@ -265,12 +265,16 @@ class AddAppositumGeneralLinkView(CheckLockMixin, LoginRequiredMixin,
         data = form.cleaned_data
         work = data['work']
         book = data['book']
+        exclusive = data['exclusive']
+
         antiquarian = data['antiquarian']
         # though they browsed to the work via the antiquarian,
         # if there are multiple authors of that work we need to
         # link them all
         link_to_antiquarians = \
-            work.antiquarian_set.all() if work else [antiquarian]
+            work.antiquarian_set.all() \
+            if work and not exclusive \
+            else [antiquarian]
 
         for antiquarian in link_to_antiquarians:
             data['anonymous_fragment'] = self.get_anonymous_fragment()
@@ -319,11 +323,9 @@ class AddAppositumGeneralLinkView(CheckLockMixin, LoginRequiredMixin,
         return context
 
     def get_form_kwargs(self):
-        print('get_form_kwargs')
         values = super().get_form_kwargs()
         values['antiquarian'] = self.get_antiquarian()
         values['work'] = self.get_work()
-        print('set work to %s' % values['work'])
         return values
 
 

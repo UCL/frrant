@@ -43,8 +43,12 @@ def handle_deleted_work_link(sender, instance, **kwargs):
         # same for appositum
         instance.antiquarian.appositumfragmentlinks.filter(
             work=work).filter(antiquarian=None).delete()
+        # null non-exclusive links
         instance.antiquarian.appositumfragmentlinks.filter(
-            work=work).update(antiquarian=None)
+            work=work, exclusive=False).update(antiquarian=None)
+        # delete exclusive links
+        instance.antiquarian.appositumfragmentlinks.filter(
+            work=work, exclusive=True).delete()
 
     instance.antiquarian.reindex_work_links()
     instance.antiquarian.reindex_fragment_and_testimonium_links()
@@ -227,7 +231,7 @@ class Antiquarian(TextObjectFieldMixin, LockableModel, DatedModel, BaseModel):
                 TestimoniumLink.objects.filter(
                     work=work).exclude(antiquarian=self),
                 AppositumFragmentLink.objects.filter(
-                    work=work).exclude(antiquarian=self),
+                    work=work, exclusive=False).exclude(antiquarian=self),
             ]
             for qs in to_ensure:
                 for link in qs:
@@ -263,15 +267,51 @@ class Antiquarian(TextObjectFieldMixin, LockableModel, DatedModel, BaseModel):
 
         with transaction.atomic():
 
-            stale = [
+            # for any works that were linked to this antiquarian but still have
+            # other authors, we need to delete our links to those works
+            deleteable = [
                 self.fragmentlinks.filter(
-                    work__isnull=False).exclude(work__in=self.works.all()),
+                    work__isnull=False, work__antiquarian__isnull=False
+                ).exclude(work__in=self.works.all()),
                 self.testimoniumlinks.filter(
-                    work__isnull=False).exclude(work__in=self.works.all()),
+                    work__isnull=False, work__antiquarian__isnull=False
+                ).exclude(work__in=self.works.all()),
                 self.appositumfragmentlinks.filter(
-                    work__isnull=False).exclude(work__in=self.works.all()),
+                    work__isnull=False, exclusive=False,
+                    work__antiquarian__isnull=False
+                ).exclude(work__in=self.works.all()),
             ]
-            for qs in stale:
+
+            # delete any exclusive links here
+            deleteable += [
+                self.appositumfragmentlinks.filter(
+                    work__isnull=False, exclusive=True).exclude(
+                        work__in=self.works.all()
+                    ),
+            ]
+            for qs in deleteable:
+                # these are stale links and should be removed
+                qs.delete()
+
+            # works that have no antiquarians left now that our link
+            # has been removed can have their links' antiquarian set to null
+            # so that the fragment etc remains linked to the antiquarian
+            # However if they still have an author we need to delete
+            # the link in the step after
+
+            nullable = [
+                self.fragmentlinks.filter(
+                    work__isnull=False, work__antiquarian__isnull=True
+                ).exclude(work__in=self.works.all()),
+                self.testimoniumlinks.filter(
+                    work__isnull=False, work__antiquarian__isnull=True
+                ).exclude(work__in=self.works.all()),
+                self.appositumfragmentlinks.filter(
+                    work__isnull=False, exclusive=False,
+                    work__antiquarian__isnull=True
+                ).exclude(work__in=self.works.all()),
+            ]
+            for qs in nullable:
                 # set the antiquarian to None for these links
                 # i.e. we preserve links from objects to the work
                 # even if there is now no antiquarian for that work
@@ -314,6 +354,10 @@ def remove_stale_antiquarian_links(sender, instance, **kwargs):
 
     qs = AppositumFragmentLink.objects.filter(
         antiquarian=instance, work__isnull=True
+    )
+    # delete any exclusive links
+    qs = AppositumFragmentLink.objects.filter(
+        antiquarian=instance, exclusive=True
     )
     qs.delete()
 

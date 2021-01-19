@@ -222,7 +222,6 @@ def reindex_anonymous_fragments():
 
 
 def handle_apposita_change(sender, instance, action, model, pk_set, **kwargs):
-    print('action %s' % action)
     if action not in ('post_add', 'post_remove', 'post_clear'):
         return
     if action in ('post_remove', 'post_clear'):
