@@ -1,5 +1,6 @@
 from django.contrib.auth.mixins import (LoginRequiredMixin,
                                         PermissionRequiredMixin)
+from django.core.exceptions import ObjectDoesNotExist
 from django.http.response import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse, reverse_lazy
@@ -80,14 +81,19 @@ class HistoricalBaseCreateView(OriginalTextCitingWorkView):
         forms['object'] = self.form_class(data=self.request.POST or None)
         return forms
 
+    def post_process_saved_object(self, saved_object):
+        # override this to do extra things to the saved
+        # object before redirect
+        pass
+
     def forms_valid(self, forms):
 
         # save the objects here
         object_form = forms['object']
-        saved_object = object_form.save()
+        self.saved_object = object_form.save()
 
         original_text = forms['original_text'].save(commit=False)
-        original_text.owner = saved_object
+        original_text.owner = self.saved_object
 
         create_citing_work = 'new_citing_work' in self.request.POST
 
@@ -96,8 +102,15 @@ class HistoricalBaseCreateView(OriginalTextCitingWorkView):
 
         original_text.save()
 
+        self.post_process_saved_object(self.saved_object)
+
         return redirect(
-            reverse(self.success_url_name, kwargs={'pk': saved_object.pk})
+            self.get_success_url()
+        )
+
+    def get_success_url(self):
+        return reverse(
+            self.success_url_name, kwargs={'pk': self.saved_object.pk}
         )
 
 
@@ -127,6 +140,69 @@ class AnonymousFragmentCreateView(FragmentCreateView):
             'title': self.title
         })
         return context
+
+
+class AppositumCreateView(AnonymousFragmentCreateView):
+
+    title = 'Create Appositum'
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update({
+            'title': self.title,
+            'owner_for': self.get_owner_for()
+        })
+        return context
+
+    # def get_success_url(self):
+    #     # if you want to redirect to the parent object
+    #     # rather than the new anon fragment (default)
+    #     owner = self.get_owner_for()
+    #     return owner.get_absolute_url()
+
+    def post_process_saved_object(self, saved_object):
+        # we need to link our anon fragment to the
+        # new owner
+        new_owner = self.get_owner_for()
+        if isinstance(new_owner, Fragment):
+            new_owner.apposita.add(saved_object)
+        elif isinstance(new_owner, Antiquarian):
+            AppositumFragmentLink.objects.get_or_create(
+                anonymous_fragment=saved_object,
+                antiquarian=new_owner
+            )
+        elif isinstance(new_owner, Work):
+            # loop through the owners of the work
+            # and create links for each
+            for antiquarian in new_owner.antiquarian_set.all():
+                AppositumFragmentLink.objects.get_or_create(
+                    anonymous_fragment=saved_object,
+                    antiquarian=antiquarian,
+                    work=new_owner
+                )
+
+    def get_owner_for(self):
+        if getattr(self, 'owner_for', False):
+            return self.owner_for
+
+        what = self.kwargs.get('slug')
+        owner_pk = self.kwargs.get('owner_pk')
+
+        lookup = {
+            'antiquarian': Antiquarian,
+            'work': Work,
+            'fragment': Fragment,
+        }
+        obj_class = lookup.get(what, None)
+
+        if not obj_class:
+            raise Http404
+        try:
+            self.owner_for = obj_class.objects.get(pk=owner_pk)
+        except ObjectDoesNotExist:
+            raise Http404
+
+        return self.owner_for
 
 
 class FragmentListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
@@ -189,12 +265,16 @@ class AddAppositumGeneralLinkView(CheckLockMixin, LoginRequiredMixin,
         data = form.cleaned_data
         work = data['work']
         book = data['book']
+        exclusive = data['exclusive']
+
         antiquarian = data['antiquarian']
         # though they browsed to the work via the antiquarian,
         # if there are multiple authors of that work we need to
         # link them all
         link_to_antiquarians = \
-            work.antiquarian_set.all() if work else [antiquarian]
+            work.antiquarian_set.all() \
+            if work and not exclusive \
+            else [antiquarian]
 
         for antiquarian in link_to_antiquarians:
             data['anonymous_fragment'] = self.get_anonymous_fragment()
@@ -243,11 +323,9 @@ class AddAppositumGeneralLinkView(CheckLockMixin, LoginRequiredMixin,
         return context
 
     def get_form_kwargs(self):
-        print('get_form_kwargs')
         values = super().get_form_kwargs()
         values['antiquarian'] = self.get_antiquarian()
         values['work'] = self.get_work()
-        print('set work to %s' % values['work'])
         return values
 
 

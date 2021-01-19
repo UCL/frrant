@@ -29,22 +29,15 @@
     <div class='rard-list-item-actions'>
         {% if can_edit and has_object_lock %}
 
-        <form novalidate class=' form-inline' action='' method='POST'>
+        <form novalidate class='form-inline' action='' method='POST'>
             {% csrf_token %}
             <div class='form-group'>
                 <input type='hidden' name='link_id' value='{{ link.pk }}'>
                 <input type='hidden' name='object_type' value='testimonium'>
-                {% if ordered_by_work %}
-                <button type='submit' class='btn btn-light'
+                <button type='submit' class='btn btn-light'  {% if forloop.first %}disabled{% endif %}
                     name='up_by_work'>▲</button>
-                <button type='submit' class='btn btn-light'
+                <button type='submit' class='btn btn-light' {% if forloop.last %}disabled{% endif %}
                     name='down_by_work'>▼</button>
-                {% else %}
-                <button type='submit' class='btn btn-light'
-                    name='up'>▲</button>
-                <button type='submit' class='btn btn-light'
-                    name='down'>▼</button>
-                {% endif %}
             </div>
         </form>
         {% endif %}

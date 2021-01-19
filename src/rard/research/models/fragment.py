@@ -110,6 +110,9 @@ class Fragment(HistoricalBaseModel):
             fragment=self
         ).order_by('antiquarian', 'order').distinct()
 
+    def get_all_appositum_links(self):
+        return self.appositumfragmentlinks_to.order_by('work', 'work_order')
+
 
 Fragment.init_text_object_fields()
 
@@ -219,7 +222,6 @@ def reindex_anonymous_fragments():
 
 
 def handle_apposita_change(sender, instance, action, model, pk_set, **kwargs):
-    print('action %s' % action)
     if action not in ('post_add', 'post_remove', 'post_clear'):
         return
     if action in ('post_remove', 'post_clear'):

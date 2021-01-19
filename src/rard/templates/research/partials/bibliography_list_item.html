@@ -8,7 +8,7 @@
 
             <div class="col-sm-3">{{ item.authors }}</div>
             <div class="col-sm-2">{% if item.year %}{{ item.year }}{% endif %}</div>
-            <div class="col-sm-5"><em>{{ item.title|safe }}</em></div>
+            <div class="col-sm-5">{{ item.title|safe }}</div>
             <div class="col-sm-2">
                 {% if can_edit and has_object_lock %}
                 <form novalidate style='float:right' class='form-inline' action='{% url "bibliography:delete" item.pk %}' method='POST'>

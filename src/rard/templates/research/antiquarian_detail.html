@@ -114,30 +114,36 @@
                 <h5>{% trans 'Ordered Material' %}</h5>
             </div>
             <div>
-                {% if perms.research.change_antiquarian and has_object_lock %}
-                <a href='{% url "testimonium:create" %}'>{% trans 'Add' %}</a>
-                {% endif %}
             </div>
         </div>
 
         <div class='ordered-list'>
         {% for work in object.ordered_works.all %}
         <form novalidate class='ordered-list-item form-inline' action='' method='POST'>
-            <b class='my-3 mr-3'><a href='{% url "work:detail" work.pk %}'>{{ work.name }}</a></b>
+            <div class='d-flex justify-content-between w-100'>
+                <div>
+                    <b class='my-3 mr-3'><a href='{% url "work:detail" work.pk %}'>{{ work.name }}</a></b>
 
-            {% if perms.research.change_antiquarian and has_object_lock %}
+                    {% if perms.research.change_antiquarian and has_object_lock %}
 
-            {% csrf_token %}
-            <div class='form-group'>
-                <input type='hidden' name='work_id' value='{{ work.pk }}'>
-                <input type='hidden' name='antiquarian_id' value='{{ object.pk }}'>
-                <button type='submit' class='btn btn-light btn-sm'
-                    name='work_up'>▲</button>
-                <button type='submit' class='btn btn-light btn-sm'
-                    name='work_down'>▼</button>
+                    {% csrf_token %}
+                    <div class='form-group'>
+                        <input type='hidden' name='work_id' value='{{ work.pk }}'>
+                        <input type='hidden' name='antiquarian_id' value='{{ object.pk }}'>
+                        <button type='submit' class='btn btn-light btn-sm' {% if forloop.first %}disabled{% endif %}
+                            name='work_up'>▲</button>
+                        <button type='submit' class='btn btn-light btn-sm' {% if forloop.last %}disabled{% endif %}
+                            name='work_down'>▼</button>
+                    </div>
+
+                    {% endif %}
+
+                </div>
+                <div>
+                    <a href='{% url "anonymous_fragment:create_appositum_for" "work" work.pk %}'>{% trans 'Create Appositum' %}</a>
+                </div>
             </div>
 
-            {% endif %}
         </form>
 
         <ul>
@@ -171,7 +177,15 @@
         
         {% endfor %}
 
-        <b class='my-3 mr-3'>Unknown Work</b>
+        <div class='d-flex justify-content-between w-100'>
+            <div>
+                <b class='my-3 mr-3'>Unknown Work</b>
+            </div>
+            <div>
+                <a href='{% url "anonymous_fragment:create_appositum_for" "antiquarian" object.pk %}'>
+                    {% trans 'Create Appositum' %}</a>
+            </div>
+        </div>
 
         <ul>
 

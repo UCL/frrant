@@ -208,5 +208,13 @@ class TestCitingWork(TestCase):
         citing_work = CitingWork.objects.create(**data)
         self.assertEqual(
             str(citing_work),
-            'Anonymous, {}, {}'.format(data['title'], data['edition'])
+            'Anonymous, {}'.format(data['title'])
         )
+
+    def test_no_edition_in_display(self):
+        data = {
+            'title': 'title',
+            'edition': 'edition',
+        }
+        citing_work = CitingWork.objects.create(**data)
+        self.assertFalse(str(citing_work).find(data['edition']) >= 0)
