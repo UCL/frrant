@@ -184,6 +184,9 @@
                 <h5>{% trans 'Apposita' %}</h5>
             </div>
             <div>
+                {% if perms.research.change_work and has_object_lock %}
+                <a href='{% url "anonymous_fragment:create_appositum_for" "work" object.pk %}'>{% trans 'Create Appositum' %}</a>
+                {% endif %}
             </div>
         </div>
 

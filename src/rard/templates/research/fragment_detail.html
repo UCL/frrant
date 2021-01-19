@@ -257,6 +257,9 @@
             <div>
                 <h5>{% trans 'Apposita' %}</h5>
             </div>
+            <div>
+                <a href='{% url "anonymous_fragment:create_appositum_for" "fragment" object.pk %}'>{% trans 'Create Appositum' %}</a>
+            </div>
         </div>
 
         {% for link in object.get_all_appositum_links %}

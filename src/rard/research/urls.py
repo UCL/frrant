@@ -61,6 +61,7 @@ urlpatterns = [
     path('anonymous/', include(([
         path('list/', views.AnonymousFragmentListView.as_view(), name='list'),
         path("create/", views.AnonymousFragmentCreateView.as_view(), name="create"),
+        path("<slug>/<owner_pk>/create-appositum/", views.AppositumCreateView.as_view(), name="create_appositum_for"),
         path("<pk>/appositum-link/", views.AddAppositumGeneralLinkView.as_view(), name="link"),
         path("<pk>/appositum-fragment-link/", views.AddAppositumFragmentLinkView.as_view(), name="link_fragment"),
         path("<pk>/unlink-apposita/<link_pk>", views.RemoveAppositumLinkView.as_view(), name="unlink_apposita"),
