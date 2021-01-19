@@ -7,7 +7,7 @@
         <div class='card-text'>
             <div class='d-flex justify-content-between'>
                 <div class='alphabetum'>
-                    {{ translation.translated_text }}
+                    {{ translation.translated_text|safe }}
                 </div>
                 {% if translation.approved %}
                 <div class='text-success mt-n3'>
