@@ -19,16 +19,11 @@ def copy_text_object_fields(apps, schema_editor):
     }
     
     for class_, field_name in model_fields.items():
-        print('class is %s' % class_)
         for obj in class_.objects.all():
-            print('object %s' % obj)
             content = getattr(obj, field_name).content
-            print('content %s' % content)
             new_field_name = 'new_%s' % field_name
             setattr(obj, new_field_name, content)
-            print('have set %s to %s' % (new_field_name, getattr(obj, new_field_name)))
             obj.save()
-            print('saved')
 
 
 class Migration(migrations.Migration):
