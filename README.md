@@ -301,25 +301,26 @@ where the `.key` file is the key you generated along with the certificate reques
 
 # Troubleshooting
 
-If your deployment machine is light on space on `/var` then it is possible to request that Docker builds containers elsewhere by modifying the following files:
+If your deployment machine is light on space on `/var` then it is possible to request that Docker builds containers elsewhere by modifying the following file:
 
 The file in question is:
 
-```sudo vi /lib/systemd/system/docker.service```
+```sudo vi /etc/docker/daemon.json```
 
-The recommended way to update this file in a way that is robust to system patches (where the file might be overwritten) is via a dropin:
+Set its content to
+
 ```
-sudo mkdir /etc/systemd/system/docker.service.d
-sudo vi /etc/systemd/system/docker.service.d/00-move-library.conf
-# Make the new file have this content (that empty assignment counts!):
-$ cat /etc/systemd/system/docker.service.d/00-move-library.conf
-[Service]
-ExecStart=
-ExecStart=/usr/bin/docker daemon -H fd:// -g /data/docker
-# EOF
-sudo systemctl daemon-reload
-sudo systemctl restart docker
+{
+   "graph": "/data/docker"
+}
 ```
+
+Then run:
+
+
+`sudo systemctl daemon-reload`
+`sudo systemctl restart docker`
+
 
 Then restart your container. This example will build containers on the `/data` directory instead of `/var`
 
