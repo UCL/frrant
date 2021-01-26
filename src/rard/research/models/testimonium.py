@@ -2,8 +2,9 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.urls import reverse
 from simple_history.models import HistoricalRecords
 
-from .base import HistoricalBaseModel, TestimoniumLink
 from rard.research.models.mixins import HistoryViewMixin
+
+from .base import HistoricalBaseModel, TestimoniumLink
 
 
 class Testimonium(HistoryViewMixin, HistoricalBaseModel):

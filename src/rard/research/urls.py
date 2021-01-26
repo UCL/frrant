@@ -108,7 +108,6 @@ urlpatterns = [
     path('search/', include(([
         path('', views.SearchView.as_view(), name='home'),
     ], 'research'), namespace='search')),
-    
     path('', include(([
         path("<model_name>/<pk>/history/", views.HistoryListView.as_view(), name="list"),
     ], 'research'), namespace='history')),

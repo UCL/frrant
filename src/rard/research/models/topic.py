@@ -3,8 +3,8 @@ from django.urls import reverse
 from django.utils.text import slugify
 from simple_history.models import HistoricalRecords
 
-from rard.utils.basemodel import BaseModel, LockableModel, OrderableModel
 from rard.research.models.mixins import HistoryViewMixin
+from rard.utils.basemodel import BaseModel, LockableModel, OrderableModel
 
 
 class Topic(HistoryViewMixin, OrderableModel, LockableModel, BaseModel):

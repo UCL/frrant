@@ -2,8 +2,8 @@ from django.db import models
 from django.urls import reverse
 from simple_history.models import HistoricalRecords
 
-from rard.utils.basemodel import BaseModel, DatedModel, LockableModel
 from rard.research.models.mixins import HistoryViewMixin
+from rard.utils.basemodel import BaseModel, DatedModel, LockableModel
 
 
 class WorkManager(models.Manager):
@@ -93,7 +93,6 @@ class Work(HistoryViewMixin, DatedModel, LockableModel, BaseModel):
         return Testimonium.objects.filter(
             antiquarian_testimoniumlinks__in=links
         ).distinct()
-
 
 
 class Book(HistoryViewMixin, DatedModel, BaseModel):

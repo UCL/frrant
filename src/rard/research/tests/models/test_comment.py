@@ -1,5 +1,6 @@
-import pytest
 from unittest import skip
+
+import pytest
 from django.db.utils import IntegrityError
 from django.test import TestCase
 
@@ -8,6 +9,7 @@ from rard.users.models import User
 from rard.users.tests.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
+
 
 @skip("Functionality to be deleted")
 class TestComments(TestCase):

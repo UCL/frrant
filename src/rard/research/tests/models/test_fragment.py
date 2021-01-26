@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from rard.research.models import (AnonymousFragment, CitingWork, Fragment,
-                                  OriginalText, TextObjectField)
+                                  OriginalText)
 
 pytestmark = pytest.mark.django_db
 

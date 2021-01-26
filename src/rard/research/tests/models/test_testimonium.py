@@ -2,7 +2,7 @@ import pytest
 from django.test import TestCase
 from django.urls import reverse
 
-from rard.research.models import Testimonium, TextObjectField
+from rard.research.models import Testimonium
 
 pytestmark = pytest.mark.django_db
 

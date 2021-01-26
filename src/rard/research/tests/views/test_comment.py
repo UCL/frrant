@@ -1,5 +1,6 @@
-import pytest
 from unittest import skip
+
+import pytest
 from django.db.utils import IntegrityError
 from django.test import RequestFactory, TestCase
 from django.urls import reverse

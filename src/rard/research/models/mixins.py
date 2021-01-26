@@ -37,7 +37,6 @@ class TextObjectFieldMixin(object):
         post_delete.connect(cls.delete_text_object_fields, sender=cls)
 
 
-
 class HistoryViewMixin(object):
 
     def related_lock_object(self):  # pragma: no cover
@@ -53,13 +52,13 @@ class HistoryViewMixin(object):
         # you need to order e.g. wrt a particular data member e.g. work
         from django.apps import apps
         dd = apps.all_models['research']
-        model_name = next(key for key, value in dd.items() if value == self.__class__)
+        model_name = next(
+            key for key, value in dd.items() if value == self.__class__)
 
         try:
             return reverse(
                 'history:list',
                 kwargs={
-                    # 'model_name': self._meta.verbose_name,
                     'model_name': model_name,
                     'pk': self.pk
                 }

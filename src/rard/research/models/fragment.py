@@ -6,8 +6,8 @@ from simple_history.models import HistoricalRecords
 
 from rard.research.models.base import (AppositumFragmentLink, FragmentLink,
                                        HistoricalBaseModel)
-from rard.research.models.topic import Topic
 from rard.research.models.mixins import HistoryViewMixin
+from rard.research.models.topic import Topic
 from rard.utils.basemodel import OrderableModel
 
 

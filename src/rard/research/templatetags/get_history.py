@@ -1,8 +1,9 @@
-from django import template
-from reversion.models import Version
-import bs4
 import difflib
+
+import bs4
+from django import template
 from django.utils.safestring import mark_safe
+from reversion.models import Version
 
 register = template.Library()
 
@@ -34,15 +35,22 @@ def render_diff(history_item):
             for line in difflib.Differ().compare(
                 list(old_.stripped_strings),
                 list(new_.stripped_strings),
-                ):
-            # for line in difflib.Differ().compare(str(change.old).splitlines(), str(change.new).splitlines()):
-            # for line in difflib.unified_diff(str(change.old).splitlines(), str(change.new).splitlines()):
+            ):
+                # for line in difflib.Differ().compare(
+                # str(change.old).splitlines(), str(change.new).splitlines()):
+                # for line in difflib.unified_diff(
+                #   str(change.old).splitlines(),
+                #   str(change.new).splitlines()):
                 lines.append('%s<br>' % line)
-            if i < len(delta.changes) - 1:
-                lines.append('<hr>')
-            # for line in difflib.context_diff(str(change.old).splitlines(), str(change.new).splitlines()):
-            #     lines.append('%s<br>' % line)
-            # lines.extend(difflib.HtmlDiff().make_file(str(change.old).splitlines(), str(change.new).splitlines()).splitlines())
+                if i < len(delta.changes) - 1:
+                    lines.append('<hr>')
+                # for line in difflib.context_diff(
+                #   str(change.old).splitlines(),
+                #   str(change.new).splitlines()):
+                #     lines.append('%s<br>' % line)
+                # lines.extend(
+                #   difflib.HtmlDiff().make_file(
+                #       str(change.old).splitlines(),
+                #       str(change.new).splitlines()).splitlines())
 
     return mark_safe(''.join(lines)) or '<em>No changes to content</em>'
-

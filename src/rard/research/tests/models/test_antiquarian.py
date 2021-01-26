@@ -3,7 +3,7 @@ from django.db.utils import IntegrityError
 from django.test import TestCase
 from django.urls import reverse
 
-from rard.research.models import Antiquarian, TextObjectField, Work
+from rard.research.models import Antiquarian, Work
 from rard.research.models.antiquarian import WorkLink
 
 pytestmark = pytest.mark.django_db

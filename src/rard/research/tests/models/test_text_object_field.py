@@ -1,5 +1,6 @@
-import pytest
 from unittest import skip
+
+import pytest
 from django.test import TestCase
 
 from rard.research.models import (Antiquarian, Fragment, Testimonium,

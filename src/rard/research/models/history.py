@@ -1,27 +1,10 @@
-from django.contrib.contenttypes.fields import GenericRelation
-from django.db import models
-from django.db.models.signals import (m2m_changed, post_delete, post_save,
-                                      pre_delete)
-from django.urls import reverse
-from simple_history.models import HistoricalRecords
-# import reversion
-
-from rard.research.models.mixins import HistoryViewMixin
-from rard.utils.basemodel import (BaseModel, DatedModel, LockableModel,
-                                  OrderableModel)
-
-
-
-
-from django.dispatch import receiver
-from simple_history.signals import (
-    pre_create_historical_record,
-    post_create_historical_record
-)
-
-from rard.users.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.db import models
+from django.dispatch import receiver
+from simple_history.signals import post_create_historical_record
+
+from rard.users.models import User
 
 
 class HistoricalRecordLog(models.Model):
@@ -53,19 +36,6 @@ class HistoricalRecordLog(models.Model):
 
 @receiver(post_create_historical_record)
 def post_create_historical_record_callback(sender, **kwargs):
-    print("Sent after saving historical record sender %s" % sender)
-    print("kwargs %s" % str(kwargs))
-    '''
-    kwargs {
-        'signal': <django.dispatch.dispatcher.Signal object at 0x7f41cfb12a60>, 
-        'instance': <AnonymousFragment: Anonymous F2>, 
-        'history_instance': <HistoricalAnonymousFragment: Anonymous F2 as of 2021-01-20 16:49:19.585515+00:00>, 
-        'history_date': datetime.datetime(2021, 1, 20, 16, 49, 19, 585515, tzinfo=<UTC>), 
-        'history_user': <SimpleLazyObject: <User: developer>>, 
-        'history_change_reason': None, 
-        'using': None
-    }
-    '''
 
     HistoricalRecordLog.objects.create(
         history_record=kwargs.get('history_instance'),

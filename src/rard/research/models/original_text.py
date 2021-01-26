@@ -3,8 +3,8 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from simple_history.models import HistoricalRecords
 
-from rard.utils.basemodel import BaseModel
 from rard.research.models.mixins import HistoryViewMixin
+from rard.utils.basemodel import BaseModel
 
 
 class OriginalText(HistoryViewMixin, BaseModel):
@@ -49,7 +49,7 @@ class OriginalText(HistoryViewMixin, BaseModel):
         ]
 
     def __str__(self):
-        # one-indexed position of this 
+        # one-indexed position of this wrt all the others (or pk as fallback)
         try:
             display_value = 1 + list(
                 self.owner.original_texts.values_list('pk', flat=True)

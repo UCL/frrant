@@ -12,6 +12,7 @@ def has_lock(user, obj):
         # but who can be edited if a related object is locked e.g. fragment
         return has_lock(user, obj.related_lock_object())
 
+
 @register.filter
 def lock_request(from_user, obj):
     try:
