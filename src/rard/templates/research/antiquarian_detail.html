@@ -61,7 +61,7 @@
 
             <dt class="col-sm-3">{% trans 'Introduction' %}</dt>
             <dd class="col-sm-9">
-                {{ object.introduction.content|safe|default:'-' }}
+                {{ object.introduction|safe|default:'-' }}
 
                 {% comment %}
 
@@ -140,7 +140,9 @@
 
                 </div>
                 <div>
+                    {% if perms.research.change_antiquarian and has_object_lock %}
                     <a href='{% url "anonymous_fragment:create_appositum_for" "work" work.pk %}'>{% trans 'Create Appositum' %}</a>
+                    {% endif %}
                 </div>
             </div>
 
@@ -182,8 +184,10 @@
                 <b class='my-3 mr-3'>Unknown Work</b>
             </div>
             <div>
+                {% if perms.research.change_antiquarian and has_object_lock %}
                 <a href='{% url "anonymous_fragment:create_appositum_for" "antiquarian" object.pk %}'>
                     {% trans 'Create Appositum' %}</a>
+                {% endif %}
             </div>
         </div>
 

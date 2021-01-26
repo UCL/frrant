@@ -13,8 +13,11 @@
     <dt class="col-sm-3">{% trans 'Apparatus Criticus' %}</dt>
     <dd class="col-sm-9">{{ original_text.apparatus_criticus|safe|default:'-'|linebreaks }}</dd>
 
-    {% if show_concordances %}
+</dl>
 
+
+    {% if show_concordances %}
+    <dl class="row mb-0">
         <dt class="col-sm-3">{% trans 'Concordances' %}</dt>
         <dd class="col-sm-7">
             {% if original_text.concordance_set.count == 0 %}
@@ -22,7 +25,12 @@
             {% endif %}
             {% for concordance in original_text.concordance_set.all %}
                 <div class='d-flex justify-content-between mb-3'>
-                <div>{{ concordance.source }}:{{ concordance.identifier }}</div>
+                <div>{{ concordance.source }}:{{ concordance.identifier }}
+                    {% comment %}
+                    <br>
+                    <small class='text-muted'>{% include 'research/partials/render_last_modified_info.html' with object=concordance %}</small>
+                    {% endcomment %}
+                </div>
                 <div>
                     {% if can_edit and has_object_lock %}
                     <form novalidate class='form-inline' action='{% url "concordance:delete" concordance.pk %}' method='POST'>
@@ -45,14 +53,18 @@
         {% if can_edit and has_object_lock and perms.research.add_concordance %}
         <dd class="col-sm-2 actions"><a style='float:right' href='{% url "concordance:create" original_text.pk %}'>Add</a></dd>
         {% endif %}
+    </dl>
+    {% endif %}
+    <dl class="row mb-0">
+
+        <dt class="col-sm-3">{% trans 'Translations' %}</dt>
+        <dd class="col-sm-7">{{ original_text.translation_set.count|default:'None' }}</dd>
+        {% if can_edit and has_object_lock and perms.research.add_translation %}
+        <dd class="col-sm-2 actions">
+        <a style='float:right' href='{% url "fragment:create_translation" original_text.pk %}'>{% trans 'Add' %}</a>
+        </dd>
+
+    </dl>
 
     {% endif %}
 
-    <dt class="col-sm-3">{% trans 'Translations' %}</dt>
-    <dd class="col-sm-7">{{ original_text.translation_set.count|default:'None' }}</dd>
-    {% if can_edit and has_object_lock and perms.research.add_translation %}
-    <dd class="col-sm-2 actions">
-    <a style='float:right' href='{% url "fragment:create_translation" original_text.pk %}'>{% trans 'Add' %}</a>
-    </dd>
-    {% endif %}
-</dl>

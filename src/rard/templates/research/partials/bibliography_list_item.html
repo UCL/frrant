@@ -8,11 +8,15 @@
 
             <div class="col-sm-3">{{ item.authors }}</div>
             <div class="col-sm-2">{% if item.year %}{{ item.year }}{% endif %}</div>
-            <div class="col-sm-5">{{ item.title|safe }}</div>
-            <div class="col-sm-2">
+            <div class="col-sm-4">{{ item.title|safe }}</div>
+            <div class="col-sm-3">
                 {% if can_edit and has_object_lock %}
                 <form novalidate style='float:right' class='form-inline' action='{% url "bibliography:delete" item.pk %}' method='POST'>
-                    <a href='{% url "bibliography:update" item.pk %}'>Edit</a>
+                    {% comment %}
+                    <a class='text-muted' href='{{ item.history_url }}'><small>Changelog</small></a>
+                    {% endcomment %}
+                    
+                    <a class='ml-2' href='{% url "bibliography:update" item.pk %}'>Edit</a>
                     {% csrf_token %}
                     <div class='form-group ml-2'>
                         <button type='submit' class='btn btn-item text-danger confirm-delete p-0'
@@ -21,6 +25,9 @@
                 </form>
                 {% endif %}                
 
+            </div>
+            <div class='col'>
+           
             </div>
     </div>
 </div>

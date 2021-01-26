@@ -135,18 +135,9 @@
         <div class='row'>
             <div class="col">
                 <div class='alphabetum'>
-                    {{ object.commentary.content|safe|default:'Not specified' }}
+                    {{ object.commentary|safe|default:'Not specified' }}
 
                 </div>
-
-                {% comment %}
-                <p>
-                    {% if perms.research.view_comment %}
-                    {{ object.commentary.comments.count }} comments
-                    <a href='{% url "list_comments_on_text" object.commentary.pk %}'>view</a>
-                    {% endif %}
-                </p>
-                {% endcomment %}
             </div>
         </div>
     </section>

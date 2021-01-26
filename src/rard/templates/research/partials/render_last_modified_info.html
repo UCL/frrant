@@ -1,0 +1,5 @@
+    
+    {# expects a context object called 'object' which has a history attr #}
+    
+    {% include 'research/partials/render_history_item_info.html' with history_item=object.history.latest %}
+    {% if object.history_url %}<a href='{{ object.history_url }}'>Changelog</a>{% endif %}

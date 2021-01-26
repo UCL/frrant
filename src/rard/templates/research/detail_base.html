@@ -1,8 +1,49 @@
 {% extends 'research/base.html' %}
-{% load i18n %}
+{% load i18n get_history %}
 
 {% block outer %}
 
 {{ block.super }}
+
+
+<hr>
+
+<p>
+    <small>
+    {% include 'research/partials/render_last_modified_info.html' with object=object %}
+
+    </small>
+</p>
+
+{% comment %}
+<h3>Simple-History:</h3>
+
+<p>{% include 'research/partials/render_history_item.html' with history_item=object.history.latest %}</p>
+
+<h3>Most Recent History</h3>
+{% if object.history_url %}<a href='{{ object.history_url }}'>View all</a>{% endif %}
+
+{% for history_item in object.history.all|slice:':6' %}
+
+<p>{% include 'research/partials/render_history_item.html' %}</p>
+
+{% endfor %}
+
+<hr> 
+
+<h3>Reversion:</h3>
+
+<p>{% include 'research/partials/render_version_item.html' with version=object|get_latest_version %}</p>
+
+<h3>History</h3>
+
+
+{% for version in object|get_history %}
+
+<p>{% include 'research/partials/render_version_item.html' %}</p>
+
+{% endfor %}
+
+{% endcomment %}
 
 {% endblock %}

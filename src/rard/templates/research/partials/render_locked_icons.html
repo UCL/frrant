@@ -1,0 +1,31 @@
+{# Assumes a context object named 'object' which is a LockableModel instance #}
+
+{% load humanize object_lock %}
+
+<small class='text-muted'>
+    {% if object.is_locked %}
+
+    {% if object.locked_by == request.user %}
+    {% with lockrequests=lock.objectlockrequest_set.all %}
+    {% if lockrequests.first %}
+    {% with more=lockrequests|slice:'1:' %}
+    <i class='fa fa-info-circle'
+        title='Lock requested by {{ lockrequests.first.from_user }} {% if more.count > 0 %}+{{ more.count }} other{{ more.count|pluralize }}{% endif %}'></i>
+    {% endwith %}
+    {% endif %}
+    {% endwith %}
+    {% endif %}
+
+    <i class='fa fa-lock'
+        title="Locked for editing by <b>{% if object.locked_by == request.user %} you {% else %} {{ object.locked_by }}{% endif %}</b> on {{ object.locked_at }}"
+        data-placement="top" data-html='true' data-toggle='tooltip'></i>
+
+    {% if object.locked_until %}
+    <i class='far fa-clock' title='Locked until {{ object.locked_until }}' data-placement="top" data-html='true'
+        data-toggle='tooltip'></i>
+    {% endif %}
+
+    {% else %}
+    Available
+    {% endif %}
+</small>
