@@ -50,7 +50,7 @@ class WorkUpdateView(CheckLockMixin, LoginRequiredMixin,
         return reverse('work:detail', kwargs={'pk': self.object.pk})
 
     def form_valid(self, form):
-        work = form.save()
+        work = form.save(commit=False)
         updated = form.cleaned_data['antiquarians']
         existing = work.antiquarian_set.all()
         to_remove = [a for a in existing if a not in updated]

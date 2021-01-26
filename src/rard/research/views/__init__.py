@@ -25,6 +25,7 @@ from .fragment import (AddAppositumFragmentLinkView,
                        FragmentUpdateCommentaryView, FragmentUpdateView,
                        RemoveAppositumLinkView)
 from .home import HomeView
+from .history import HistoryListView
 from .original_text import (AnonymousFragmentOriginalTextCreateView,
                             FragmentOriginalTextCreateView,
                             OriginalTextDeleteView, OriginalTextUpdateView,

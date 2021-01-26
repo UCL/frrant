@@ -36,7 +36,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         qs = Antiquarian.objects.all()
         results = (
             qs.filter(name__icontains=keywords) |
-            qs.filter(introduction__content__icontains=keywords) |
+            qs.filter(introduction__icontains=keywords) |
             qs.filter(re_code__icontains=keywords)
         )
         return results.distinct()
@@ -67,7 +67,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             qs.filter(original_texts__reference__icontains=keywords) |
             qs.filter(original_texts__translation__translated_text__icontains=keywords) |  # noqa
             qs.filter(original_texts__translation__translator_name__icontains=keywords) |  # noqa
-            qs.filter(commentary__content__icontains=keywords)
+            qs.filter(commentary__icontains=keywords)
         )
         return results.distinct()
 
@@ -79,7 +79,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             qs.filter(original_texts__reference__icontains=keywords) |
             qs.filter(original_texts__translation__translated_text__icontains=keywords) |  # noqa
             qs.filter(original_texts__translation__translator_name__icontains=keywords) |  # noqa
-            qs.filter(commentary__content__icontains=keywords)
+            qs.filter(commentary__icontains=keywords)
         )
         return results.distinct()
 
@@ -91,7 +91,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             qs.filter(original_texts__reference__icontains=keywords) |
             qs.filter(original_texts__translation__translated_text__icontains=keywords) |  # noqa
             qs.filter(original_texts__translation__translator_name__icontains=keywords) |  # noqa
-            qs.filter(commentary__content__icontains=keywords)
+            qs.filter(commentary__icontains=keywords)
         )
         return results.distinct()
 

@@ -1,7 +1,9 @@
 from django.db import models
 from django.urls import reverse
+from simple_history.models import HistoricalRecords
 
 from rard.utils.basemodel import BaseModel, DatedModel, LockableModel
+from rard.research.models.mixins import HistoryViewMixin
 
 
 class WorkManager(models.Manager):
@@ -16,7 +18,12 @@ class WorkManager(models.Manager):
         ).order_by(models.F(('authors')).asc(nulls_first=True), 'name')
 
 
-class Work(DatedModel, LockableModel, BaseModel):
+class Work(HistoryViewMixin, DatedModel, LockableModel, BaseModel):
+
+    history = HistoricalRecords()
+
+    def related_lock_object(self):
+        return self
 
     class Meta:
         ordering = ['name']
@@ -88,7 +95,13 @@ class Work(DatedModel, LockableModel, BaseModel):
         ).distinct()
 
 
-class Book(DatedModel, BaseModel):
+
+class Book(HistoryViewMixin, DatedModel, BaseModel):
+
+    history = HistoricalRecords()
+
+    def related_lock_object(self):
+        return self.work
 
     class Meta:
         ordering = ['number']

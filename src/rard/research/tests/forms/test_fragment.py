@@ -35,33 +35,6 @@ class TestFragmentForm(TestCase):
         )
 
 
-class TestFragmentCommentaryForm(TestCase):
-
-    def test_commentary_initial_value_update(self):
-        fragment = Fragment.objects.create(name='name')
-        commentary = 'Something interesting'
-        fragment.commentary.content = commentary
-
-        form = FragmentCommentaryForm(instance=fragment)
-        self.assertEqual(form.fields['commentary_text'].initial, commentary)
-
-    def test_commentary_save(self):
-        fragment = Fragment.objects.create(name='fragment')
-
-        data = {
-            'commentary_text': 'Something interesting',
-        }
-        form = FragmentCommentaryForm(instance=fragment, data=data)
-
-        self.assertTrue(form.is_valid())
-        form.save()
-        refetch = Fragment.objects.get(pk=fragment.pk)
-        self.assertEqual(
-            refetch.commentary.content,
-            data['commentary_text']
-        )
-
-
 class TestFragmentLinkWorkForm(TestCase):
 
     def test_required_fields_no_work_selected(self):

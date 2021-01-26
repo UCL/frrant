@@ -1,4 +1,5 @@
 import pytest
+from unittest import skip
 from django.db.utils import IntegrityError
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
@@ -11,6 +12,7 @@ from rard.users.tests.factories import UserFactory
 pytestmark = pytest.mark.django_db
 
 
+@skip("Functionality to be deleted")
 class TestCommentListView(TestCase):
 
     def test_create_get_parent(self):
@@ -133,6 +135,7 @@ class TestCommentListView(TestCase):
         self.assertEqual(0, Comment.objects.count())
 
 
+@skip("Functionality to be deleted")
 class TestTextCommentView(TestCase):
     def test_class_setup(self):
         self.assertEqual(
@@ -141,6 +144,7 @@ class TestTextCommentView(TestCase):
         )
 
 
+@skip("Functionality to be deleted")
 class TestCommentView(TestCase):
 
     def test_creation(self):
@@ -162,6 +166,7 @@ class TestCommentView(TestCase):
             )
 
 
+@skip("Functionality to be deleted")
 class TestCommentDeleteView(TestCase):
 
     def setUp(self):
@@ -231,6 +236,7 @@ class TestCommentDeleteView(TestCase):
         )
 
 
+@skip("Functionality to be deleted")
 class TestCommentViewPermissions(TestCase):
 
     def test_permissions(self):

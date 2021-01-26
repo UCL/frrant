@@ -1,11 +1,18 @@
 from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
+from simple_history.models import HistoricalRecords
 
 from rard.utils.basemodel import BaseModel, LockableModel, OrderableModel
+from rard.research.models.mixins import HistoryViewMixin
 
 
-class Topic(OrderableModel, LockableModel, BaseModel):
+class Topic(HistoryViewMixin, OrderableModel, LockableModel, BaseModel):
+
+    history = HistoricalRecords()
+
+    def related_lock_object(self):
+        return self
 
     # class Meta:
     #     ordering = ['order']

@@ -487,7 +487,7 @@ class FragmentUpdateCommentaryView(FragmentUpdateView):
     template_name = 'research/fragment_commentary_form.html'
 
 
-class AnonymousFragmentUpdateCommentaryView(FragmentUpdateView):
+class AnonymousFragmentUpdateCommentaryView(AnonymousFragmentUpdateView):
     model = AnonymousFragment
     form_class = AnonymousFragmentCommentaryForm
     permission_required = ('research.change_fragment',)

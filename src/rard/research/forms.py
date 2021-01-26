@@ -56,30 +56,8 @@ class AntiquarianForm(DatedModelFormBase):
     class Meta:
         model = Antiquarian
         fields = ('name', 'order_name', 're_code', 'circa1', 'circa2',
-                  'year_type', 'year1', 'year2', 'dates_type')
+                  'year_type', 'year1', 'year2', 'dates_type', 'introduction')
         labels = {'order_name': 'Name for alphabetisation'}
-
-    introduction_text = forms.CharField(
-        widget=forms.Textarea,
-        required=False,
-        label='Introduction',
-    )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if self.instance.introduction:
-            self.fields['introduction_text'].initial = \
-                self.instance.introduction.content
-
-    def save(self, commit=True):
-        instance = super().save(commit=False)
-        if commit:
-            instance.save()
-            # introduction will have been created at this point
-            instance.introduction.content = \
-                self.cleaned_data['introduction_text']
-            instance.introduction.save()
-        return instance
 
 
 class AntiquarianUpdateWorksForm(forms.ModelForm):
@@ -224,44 +202,22 @@ class OriginalTextForm(forms.ModelForm):
         self.fields['citing_work'].required = required
 
 
-class CommentaryFormBase(forms.ModelForm):
-    commentary_text = forms.CharField(
-        widget=forms.Textarea,
-        required=False,
-        label='Commentary',
-    )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if self.instance and self.instance.commentary:
-            self.fields['commentary_text'].initial = \
-                self.instance.commentary.content
-
-    def save(self, commit=True):
-        instance = super().save(commit=False)
-        if commit:
-            # commentary will have been created at this point via post_save
-            instance.commentary.content = self.cleaned_data['commentary_text']
-            instance.commentary.save()
-        return instance
-
-
-class FragmentCommentaryForm(CommentaryFormBase):
+class FragmentCommentaryForm(forms.ModelForm):
     class Meta:
         model = Fragment
-        fields = ()
+        fields = ('commentary',)
 
 
-class TestimoniumCommentaryForm(CommentaryFormBase):
+class TestimoniumCommentaryForm(forms.ModelForm):
     class Meta:
         model = Testimonium
-        fields = ()
+        fields = ('commentary',)
 
 
-class AnonymousFragmentCommentaryForm(CommentaryFormBase):
+class AnonymousFragmentCommentaryForm(forms.ModelForm):
     class Meta:
         model = AnonymousFragment
-        fields = ()
+        fields = ('commentary',)
 
 
 class HistoricalFormBase(forms.ModelForm):

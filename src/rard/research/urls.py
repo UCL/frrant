@@ -13,11 +13,15 @@ common_patterns = [
     path("translation/<pk>/delete/", views.TranslationDeleteView.as_view(), name="delete_translation"),
 ]
 
+# history_patterns = [
+#     path("<content_type>/<pk>/history/", views.HistoryView.as_view(), name="history"),
+# ]
+
 # app_name = "research"
 urlpatterns = [
     path("", views.HomeView.as_view(), name="home"),
-    path("comment/<pk>/delete/", views.CommentDeleteView.as_view(), name="delete_comment"),
-    path("text-field/<pk>/comments/", views.TextObjectFieldCommentListView.as_view(), name="list_comments_on_text"),
+    # path("comment/<pk>/delete/", views.CommentDeleteView.as_view(), name="delete_comment"),
+    # path("text-field/<pk>/comments/", views.TextObjectFieldCommentListView.as_view(), name="list_comments_on_text"),
     path('antiquarian/', include(([
         path('list/', views.AntiquarianListView.as_view(), name='list'),
         path("create/", views.AntiquarianCreateView.as_view(), name="create"),
@@ -104,6 +108,11 @@ urlpatterns = [
     path('search/', include(([
         path('', views.SearchView.as_view(), name='home'),
     ], 'research'), namespace='search')),
+    
+    path('', include(([
+        path("<model_name>/<pk>/history/", views.HistoryListView.as_view(), name="list"),
+    ], 'research'), namespace='history')),
+
     path('citing-author/', include(([
         path('list/', views.CitingAuthorListView.as_view(), name='list'),
         path("work/<pk>/", views.CitingWorkDetailView.as_view(), name="work_detail"),
