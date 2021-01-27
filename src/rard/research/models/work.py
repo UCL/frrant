@@ -13,7 +13,10 @@ class WorkManager(models.Manager):
         # Make sure anonymous works are at the top with nulls_first parameter
         return qs.annotate(
             authors=models.Min('worklink__antiquarian__order_name')
-        ).order_by(models.F(('authors')).asc(nulls_first=True), 'name')
+        ).order_by(
+            models.F(('authors')).asc(nulls_first=True),
+            'name', 'year1', 'year2'
+        )
 
 
 class Work(DatedModel, LockableModel, BaseModel):
