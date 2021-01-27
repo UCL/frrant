@@ -8,14 +8,22 @@ from django.views.generic import ListView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from rard.research.models import Concordance, Fragment, OriginalText
+from rard.research.models.base import FragmentLink
 from rard.research.views.mixins import CheckLockMixin
 
 
 class ConcordanceListView(
         LoginRequiredMixin, PermissionRequiredMixin, ListView):
-    paginate_by = 5
-    model = Concordance
+    template_name = 'research/concordance_list.html'
+    paginate_by = 10
+    model = FragmentLink
     permission_required = ('research.view_concordance',)
+
+    def get_queryset(self, *args, **kwargs):
+        # just fragments who have original texts that have concordances
+        return FragmentLink.objects.filter(
+            fragment__original_texts__concordance__isnull=False
+        ).distinct()
 
 
 class ConcordanceCreateView(CheckLockMixin, LoginRequiredMixin,

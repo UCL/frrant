@@ -93,10 +93,12 @@ class TestConcordance(TestCase):
         self.assertEqual(1, len(fragment_names))
         name = fragment_names[0]
         self.assertEqual(
-            self.original_text.concordance_identifiers, ['{}a'.format(name)]
+            [x[0] for x in self.original_text.concordance_identifiers()],
+            ['{}a'.format(name)]
         )
         self.assertEqual(
-            ot2.concordance_identifiers, ['{}b'.format(name)]
+            [x[0] for x in ot2.concordance_identifiers()],
+            ['{}b'.format(name)]
         )
 
 

@@ -11,29 +11,39 @@
 
 {% block inner %}
 
-{% if page_obj.paginator.count > 0 %}
+  {% if page_obj.paginator.count > 0 %}
 
-  <table class="table">
-    <thead>
-      <tr>
-        <th scope="col">Author One</th>
-        <th scope="col">Author Two</th>
-      </tr>
-    </thead>
-    <tbody class='alphabetum'>
-      {% for object in page_obj %}
-        {% for identifier in object.original_text.concordance_identifiers %}
-          <tr>
-            <td>
-                <a href='{{ object.original_text.owner.get_absolute_url }}'>FRRAnt {{ identifier }}</a>
-            </td>
-            <td>{{ object.source }} {{ object.identifier }}</td>
-          </tr>
+    <table class="table">
+      <thead>
+        <tr>
+          <th scope="col">Author One</th>
+          <th scope="col">Author Two</th>
+        </tr>
+      </thead>
+      <tbody class='alphabetum'>
+        {% for object in page_obj %}
+
+          {# NB the object here is a FragmentLink object #}
+
+          {% for duplet in object.get_concordance_identifiers %}
+            {% with identifier=duplet.0 original_text=duplet.1 %}
+            <tr>
+              <td>
+                  <a href='{{ original_text.owner.get_absolute_url }}'>FRRAnt {{ identifier }}</a>
+              </td>
+              <td>
+                {% for c in original_text.concordance_set.all %}
+                {% if forloop.counter0 != 0 and forloop.outer.counter0 != 0 %}, {% endif %}{{ c.source }} {{ c.identifier }}
+                {% endfor %}
+              </td>
+            </tr>
+            {% endwith %}
+          {% endfor %}
         {% endfor %}
-      {% endfor %}
-    </tbody>
-  </table>
-{% endif %}
+      </tbody>
+    </table>
+
+  {% endif %}
 
   {{ block.super }}
 

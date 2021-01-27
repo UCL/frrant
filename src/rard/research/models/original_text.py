@@ -30,16 +30,19 @@ class OriginalText(BaseModel):
             citing_work_str = ' '.join([citing_work_str, self.reference])
         return citing_work_str
 
-    # the ID to use in the concordance table
-    @property
+    # the IDs to use in the concordance table
     def concordance_identifiers(self):
         ordinal = ''
         if self.owner.original_texts.count() > 1:
             index = (*self.owner.original_texts.all(),).index(self)
             ordinal = chr(ord('a')+index)
-        return [
-            '{}{}'.format(name, ordinal) for name in self.owner.get_all_names()
-        ]
+        # return duplet of identifier and the concordances themselves
+        rtn = []
+        for n in self.owner.get_all_names():
+            rtn.append(
+                ('{}{}'.format(n, ordinal), self)
+            )
+        return rtn
 
 
 class Concordance(BaseModel):
