@@ -3,22 +3,8 @@ import difflib
 import bs4
 from django import template
 from django.utils.safestring import mark_safe
-from reversion.models import Version
 
 register = template.Library()
-
-
-@register.filter
-def get_latest_version(obj):
-    # reversion (delete it)
-    latest = Version.objects.get_for_object(obj).first()
-    return latest
-
-
-@register.filter
-def get_history(obj):
-    # get all reversion objects for object
-    return Version.objects.get_for_object(obj)
 
 
 # below for simple-history
