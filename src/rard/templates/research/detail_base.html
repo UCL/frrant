@@ -5,15 +5,13 @@
 
 {{ block.super }}
 
-
+{% block last_modified %}
 <hr>
-
 <p>
     <small>
     {% include 'research/partials/render_last_modified_info.html' with object=object %}
-
     </small>
 </p>
-
+{% endblock %}
 
 {% endblock %}

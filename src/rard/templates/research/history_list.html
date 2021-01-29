@@ -2,7 +2,7 @@
 {% load i18n object_lock get_history get_object_class get_full_path_with_page %}
 
 {% block heading %}
-    {% trans 'History for ' %}{{ object }}
+    {% trans 'History for ' %}{{ object.get_history_title }}
 {% endblock %}
 
 
@@ -49,8 +49,8 @@
 
                     <div class='form-group'>
                         <input type='hidden' name='history_item_id' value='{{ history_item.pk }}'>
-                        <button type='submit' class='btn btn-light' {% if not history_item.next_record %}disabled{% endif %}
-                            name='revert'>Revert</button>
+                        <button data-placement="top" data-toggle='tooltip' title='Revert to this version' type='submit' class='btn btn-light' {% if not history_item.next_record %}disabled{% endif %}
+                            name='revert'><i class='text-muted fa fa-undo'></i></button>
                     </div>
                     {% endif %}
 

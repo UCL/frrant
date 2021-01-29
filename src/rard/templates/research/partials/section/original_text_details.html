@@ -26,10 +26,6 @@
             {% for concordance in original_text.concordance_set.all %}
                 <div class='d-flex justify-content-between mb-3'>
                 <div>{{ concordance.source }}:{{ concordance.identifier }}
-                    {% comment %}
-                    <br>
-                    <small class='text-muted'>{% include 'research/partials/render_last_modified_info.html' with object=concordance %}</small>
-                    {% endcomment %}
                 </div>
                 <div>
                     {% if can_edit and has_object_lock %}
@@ -43,6 +39,7 @@
                             <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
                                 data-what='concordance'>{% trans 'Delete' %}</button>
                             {% endif %}
+                            <a class='ml-2' href='{{ concordance.history_url }}'><small><i class='fas fa-list'></i> Changelog</small></a>
                         </div>
                     </form>
                     {% endif %}

@@ -3,6 +3,7 @@
 
 {% block heading %}{{ object.name }}{% endblock %}
 
+{% block last_modified %}{% endblock %}
 
 {% block action %}
 
@@ -59,24 +60,31 @@
                 {{ object.display_date_range|default:'-' }}
             </dd>
 
-            <dt class="col-sm-3">{% trans 'Introduction' %}</dt>
-            <dd class="col-sm-9">
-                {{ object.introduction|safe|default:'-' }}
-
-                {% comment %}
-
-                {% if perms.research.view_comment %}
-                <br>
-                {{ object.introduction.comments.count }} comments <a href='{% url "list_comments_on_text" object.introduction.pk %}'>view</a>
-                {% endif %}
-
-                {% endcomment %}
-            </dd>
-            <p>
-                
-            </p>
-
         </dl>
+        <p>
+            <small>
+            {% include 'research/partials/render_last_modified_info.html' with object=object %}
+            </small>
+        </p>
+
+
+    </section>
+    <hr>
+    <section>
+        <div class='d-flex justify-content-between w-100'>
+            <div>
+                <b class='my-3 mr-3'>Introduction</b>
+            </div>
+            <div>
+                {% if perms.research.change_antiquarian and has_object_lock %}
+                <a href='{% url "antiquarian:update_introduction" object.pk %}'>{% trans 'Edit' %}</a>
+                {% endif %}
+            </div>
+        </div>
+        <div>
+            {% include 'research/partials/text_object_preview.html' with text_object=object.introduction %}
+        </div>
+
     </section>
 
     <hr>
