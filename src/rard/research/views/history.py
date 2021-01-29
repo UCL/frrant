@@ -2,7 +2,7 @@ from django.apps import apps
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
-from django.http import HttpResponseRedirect
+from django.http import Http404, HttpResponseRedirect
 from django.views.generic import ListView
 
 
@@ -16,7 +16,10 @@ class HistoryListView(LoginRequiredMixin, ListView):
         return apps.get_model(app_label='research', model_name=model_name)
 
     def get_object(self):
-        return self.model.objects.get(pk=self.kwargs.get('pk'))
+        try:
+            return self.model.objects.get(pk=self.kwargs.get('pk'))
+        except ObjectDoesNotExist:
+            raise Http404
 
     def get_context_data(self, *args, **kwargs):
         queryset = kwargs.pop('object_list', None)

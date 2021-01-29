@@ -10,8 +10,9 @@ from django.views.generic import ListView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
-from rard.research.forms import (AntiquarianForm, AntiquarianUpdateWorksForm,
-                                 WorkForm)
+from rard.research.forms import (AntiquarianCreateForm, AntiquarianDetailsForm,
+                                 AntiquarianIntroductionForm,
+                                 AntiquarianUpdateWorksForm, WorkForm)
 from rard.research.models import Antiquarian, BibliographyItem, Work
 from rard.research.views.mixins import (CanLockMixin, CheckLockMixin,
                                         DateOrderMixin)
@@ -74,7 +75,7 @@ class AntiquarianCreateView(
         LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = Antiquarian
     permission_required = ('research.add_antiquarian',)
-    form_class = AntiquarianForm
+    form_class = AntiquarianCreateForm
 
     def get_success_url(self, *args, **kwargs):
         return reverse('antiquarian:detail', kwargs={'pk': self.object.pk})
@@ -84,10 +85,24 @@ class AntiquarianUpdateView(LoginRequiredMixin, CheckLockMixin,
                             PermissionRequiredMixin, UpdateView):
     model = Antiquarian
     permission_required = ('research.change_antiquarian',)
-    form_class = AntiquarianForm
+    form_class = AntiquarianDetailsForm
 
     def get_success_url(self, *args, **kwargs):
         return reverse('antiquarian:detail', kwargs={'pk': self.object.pk})
+
+
+class AntiquarianUpdateIntroductionView(LoginRequiredMixin, CheckLockMixin,
+                                        PermissionRequiredMixin, UpdateView):
+    model = Antiquarian
+    permission_required = ('research.change_antiquarian',)
+    form_class = AntiquarianIntroductionForm
+    template_name = 'research/antiquarian_introduction_form.html'
+
+    def get_success_url(self, *args, **kwargs):
+        return reverse(
+            'antiquarian:detail',
+            kwargs={'pk': self.object.pk}
+        )
 
 
 @method_decorator(require_POST, name='dispatch')
@@ -125,7 +140,6 @@ class AntiquarianBibliographyCreateView(CheckLockMixin, LoginRequiredMixin,
         # self.antiquarian = self.get_antiquarian()
         item = form.save(commit=False)
         item.parent = self.antiquarian
-        item.save()
         # self.antiquarian.bibliography_items.add(item)
         return super().form_valid(form)
 

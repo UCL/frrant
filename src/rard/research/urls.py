@@ -27,6 +27,7 @@ urlpatterns = [
         path("create/", views.AntiquarianCreateView.as_view(), name="create"),
         path("<pk>/", views.AntiquarianDetailView.as_view(), name="detail"),
         path("<pk>/update/", views.AntiquarianUpdateView.as_view(), name="update"),
+        path("<pk>/update/introduction/", views.AntiquarianUpdateIntroductionView.as_view(), name="update_introduction"),
         path("<pk>/delete/", views.AntiquarianDeleteView.as_view(), name="delete"),
         path("<pk>/work/create/", views.AntiquarianWorkCreateView.as_view(), name="create_work"),
         path("<pk>/works/", views.AntiquarianWorksUpdateView.as_view(), name="update_works"),

@@ -1,5 +1,3 @@
-from unittest import skip
-
 import pytest
 from django.test import TestCase
 
@@ -9,7 +7,6 @@ from rard.research.models import (Antiquarian, Fragment, Testimonium,
 pytestmark = pytest.mark.django_db
 
 
-@skip("Functionality to be deleted")
 class TestTextObjectField(TestCase):
 
     def test_required_fields(self):

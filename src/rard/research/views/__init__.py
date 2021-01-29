@@ -1,6 +1,7 @@
 from .antiquarian import (AntiquarianBibliographyCreateView,
                           AntiquarianCreateView, AntiquarianDeleteView,
                           AntiquarianDetailView, AntiquarianListView,
+                          AntiquarianUpdateIntroductionView,
                           AntiquarianUpdateView, AntiquarianWorkCreateView,
                           AntiquarianWorksUpdateView)
 from .bibliography import (BibliographyDeleteView, BibliographyListView,
@@ -56,6 +57,7 @@ __all__ = [
     'AntiquarianDetailView',
     'AntiquarianListView',
     'AntiquarianUpdateView',
+    'AntiquarianUpdateIntroductionView',
     'AntiquarianWorksUpdateView',
     'BibliographyDeleteView',
     'BibliographyListView',

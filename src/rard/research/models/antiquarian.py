@@ -5,7 +5,7 @@ from django.db.models.signals import (m2m_changed, post_delete, post_save,
 from django.urls import reverse
 from simple_history.models import HistoricalRecords
 
-from rard.research.models.mixins import HistoryViewMixin
+from rard.research.models.mixins import HistoryViewMixin, TextObjectFieldMixin
 from rard.utils.basemodel import (BaseModel, DatedModel, LockableModel,
                                   OrderableModel)
 
@@ -23,6 +23,9 @@ class WorkLink(OrderableModel, models.Model):
     )
 
     work = models.ForeignKey('Work', null=False, on_delete=models.CASCADE)
+
+    # # with respect to antiquarian
+    # order = models.IntegerField(default=None, null=True)
 
 
 def handle_deleted_work_link(sender, instance, **kwargs):
@@ -94,9 +97,15 @@ post_delete.connect(handle_deleted_work_link, sender=WorkLink)
 post_save.connect(handle_reordered_works, sender=WorkLink)
 
 
-class Antiquarian(HistoryViewMixin, LockableModel, DatedModel, BaseModel):
+class Antiquarian(HistoryViewMixin, TextObjectFieldMixin, LockableModel,
+                  DatedModel, BaseModel):
 
-    history = HistoricalRecords()
+    history = HistoricalRecords(
+        excluded_fields=[
+            'works', 'fragments', 'testimonia',
+            'bibliography_items', 'introduction'
+        ]
+    )
 
     def related_lock_object(self):
         return self
@@ -119,9 +128,9 @@ class Antiquarian(HistoryViewMixin, LockableModel, DatedModel, BaseModel):
 
     order_name = models.CharField(max_length=128, default='', blank=True)
 
-    introduction = models.TextField(
-        default='',
-        blank=True
+    introduction = models.OneToOneField(
+        'TextObjectField', on_delete=models.SET_NULL, null=True,
+        related_name='introduction_for'
     )
 
     re_code = models.CharField(
@@ -366,3 +375,6 @@ def remove_stale_antiquarian_links(sender, instance, **kwargs):
 
 
 pre_delete.connect(remove_stale_antiquarian_links, sender=Antiquarian)
+
+
+Antiquarian.init_text_object_fields()

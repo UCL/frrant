@@ -9,7 +9,11 @@ from .base import HistoricalBaseModel, TestimoniumLink
 
 class Testimonium(HistoryViewMixin, HistoricalBaseModel):
 
-    history = HistoricalRecords()
+    history = HistoricalRecords(
+        excluded_fields=[
+            'original_texts',
+        ]
+    )
 
     def related_lock_object(self):
         return self
@@ -83,3 +87,6 @@ class Testimonium(HistoryViewMixin, HistoricalBaseModel):
         return TestimoniumLink.objects.filter(
             testimonium=self
         ).order_by('antiquarian', 'order').distinct()
+
+
+Testimonium.init_text_object_fields()

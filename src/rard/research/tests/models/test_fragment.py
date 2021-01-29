@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from rard.research.models import (AnonymousFragment, CitingWork, Fragment,
-                                  OriginalText)
+                                  OriginalText, TextObjectField)
 
 pytestmark = pytest.mark.django_db
 
@@ -42,6 +42,21 @@ class TestFragment(TestCase):
     def test_initial_topics(self):
         fragment = Fragment.objects.create(name='name')
         self.assertEqual(fragment.topics.count(), 0)
+
+    def test_commentary_created(self):
+        fragment = Fragment.objects.create(name='name')
+        self.assertIsNotNone(fragment.commentary.pk)
+        self.assertEqual(
+            TextObjectField.objects.get(pk=fragment.commentary.pk),
+            fragment.commentary
+        )
+
+    def test_commentary_deleted(self):
+        fragment = Fragment.objects.create(name='name')
+        commentary_pk = fragment.commentary.pk
+        fragment.delete()
+        with self.assertRaises(TextObjectField.DoesNotExist):
+            TextObjectField.objects.get(pk=commentary_pk)
 
     def test_get_absolute_url(self):
         fragment = Fragment.objects.create(name='name')
@@ -104,6 +119,21 @@ class TestAnonymousFragment(TestCase):
     def test_initial_topics(self):
         fragment = AnonymousFragment.objects.create(name='name')
         self.assertEqual(fragment.topics.count(), 0)
+
+    def test_commentary_created(self):
+        fragment = AnonymousFragment.objects.create(name='name')
+        self.assertIsNotNone(fragment.commentary.pk)
+        self.assertEqual(
+            TextObjectField.objects.get(pk=fragment.commentary.pk),
+            fragment.commentary
+        )
+
+    def test_commentary_deleted(self):
+        fragment = AnonymousFragment.objects.create(name='name')
+        commentary_pk = fragment.commentary.pk
+        fragment.delete()
+        with self.assertRaises(TextObjectField.DoesNotExist):
+            TextObjectField.objects.get(pk=commentary_pk)
 
     def test_get_absolute_url(self):
         fragment = AnonymousFragment.objects.create(name='name')

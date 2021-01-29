@@ -4,6 +4,7 @@ from django.db.models.signals import m2m_changed, post_delete, post_save
 from django.utils.safestring import mark_safe
 
 from rard.research.models import Antiquarian
+from rard.research.models.mixins import TextObjectFieldMixin
 from rard.utils.basemodel import BaseModel, LockableModel
 
 
@@ -341,7 +342,7 @@ post_save.connect(handle_new_link, sender=TestimoniumLink)
 post_delete.connect(reindex_order_info, sender=TestimoniumLink)
 
 
-class HistoricalBaseModel(LockableModel, BaseModel):
+class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
 
     # abstract base class for shared properties of fragments and testimonia
     class Meta:
@@ -408,9 +409,10 @@ class HistoricalBaseModel(LockableModel, BaseModel):
 
     name = models.CharField(max_length=128, blank=False)
 
-    commentary = models.TextField(
-        default='',
-        blank=True
+    commentary = models.OneToOneField(
+        'TextObjectField', on_delete=models.SET_NULL, null=True,
+        related_name="commentary_for_%(class)s",
+        blank=True,
     )
 
     images = models.ManyToManyField('Image', blank=True)

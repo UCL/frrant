@@ -3,7 +3,7 @@ from django.db.utils import IntegrityError
 from django.test import TestCase
 from django.urls import reverse
 
-from rard.research.models import Antiquarian, Work
+from rard.research.models import Antiquarian, TextObjectField, Work
 from rard.research.models.antiquarian import WorkLink
 
 pytestmark = pytest.mark.django_db
@@ -62,6 +62,29 @@ class TestAntiquarian(TestCase):
         for _ in range(0, length):
             a.works.create(name='name')
         self.assertEqual(a.works.count(), length)
+
+    def test_introduction_created_with_antiquarian(self):
+        data = {
+            'name': 'John Smith',
+            're_code': 'smitre001'
+        }
+        a = Antiquarian.objects.create(**data)
+        self.assertIsNotNone(a.introduction.pk)
+        self.assertEqual(
+            TextObjectField.objects.get(pk=a.introduction.pk),
+            a.introduction
+        )
+
+    def test_introduction_deleted_with_antiquarian(self):
+        data = {
+            'name': 'John Smith',
+            're_code': 'smitre001'
+        }
+        a = Antiquarian.objects.create(**data)
+        introduction_pk = a.introduction.pk
+        a.delete()
+        with self.assertRaises(TextObjectField.DoesNotExist):
+            TextObjectField.objects.get(pk=introduction_pk)
 
     def test_order_name_instantiated_on_create(self):
         # in the absence of anything else, we copy the name into the

@@ -136,7 +136,7 @@
         <div class='row'>
             <div class="col">
                 <div class='alphabetum'>
-                    {{ object.commentary|safe|default:'Not specified' }}
+                    {{ object.commentary.content|safe|default:'Not specified' }}
                 </div>
             </div>
         </div>
@@ -170,7 +170,6 @@
                         <div>
                             <li>
                                 {% if link.linked_to %}
-                                
                                     {% with fragment=link.linked_to %}
 
                                     <span>
@@ -185,7 +184,6 @@
                                     </span>
 
                                     {% endwith %}
-
                                 {% elif link.work %}
                                     {% with work=link.work %}
                                     <a href='{% url "work:detail" work.pk %}'>{{ work }}
@@ -263,7 +261,6 @@
                             {% endif %}
                         </div>
                         <div class='rard-list-item-actions'>
-                            {% if perms.research.change_fragment and has_object_lock %}
 
                             <form novalidate class='form-inline' action='{% url "anonymous_fragment:unlink_apposita" object.pk link.pk %}' method='POST'>
                                 {% csrf_token %}
@@ -272,7 +269,7 @@
                                         data-what='appositum link'>{% trans 'Unlink' %}</button>
                                 </div>
                             </form>
-                            {% endif %}
+
                         </div>
                     </div>
 

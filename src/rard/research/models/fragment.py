@@ -51,7 +51,11 @@ post_delete.connect(handle_deleted_topic_link, sender=TopicLink)
 
 class Fragment(HistoryViewMixin, HistoricalBaseModel):
 
-    history = HistoricalRecords()
+    history = HistoricalRecords(
+        excluded_fields=[
+            'topics',
+        ]
+    )
 
     def related_lock_object(self):
         # what needs to be locked in order to change the object
@@ -141,7 +145,11 @@ class AnonymousTopicLink(models.Model):
 
 class AnonymousFragment(HistoryViewMixin, OrderableModel, HistoricalBaseModel):
 
-    history = HistoricalRecords()
+    history = HistoricalRecords(
+        excluded_fields=[
+            'topics', 'original_texts', 'fragments',
+        ]
+    )
 
     def related_lock_object(self):
         return self
@@ -272,3 +280,6 @@ post_delete.connect(handle_changed_anon_topics, sender=AnonymousTopicLink)
 post_save.connect(handle_changed_anon_topics, sender=Topic)
 
 m2m_changed.connect(handle_apposita_change, sender=Fragment.apposita.through)
+
+Fragment.init_text_object_fields()
+AnonymousFragment.init_text_object_fields()

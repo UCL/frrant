@@ -11,12 +11,12 @@ class TestAntiquarianForm(TestCase):
     def test_introduction_not_required(self):
 
         form = AntiquarianForm()
-        self.assertFalse(form.fields['introduction'].required)
+        self.assertFalse(form.fields['introduction_text'].required)
 
     def test_introduction_form_label(self):
         form = AntiquarianForm()
         self.assertEqual(
-            form.fields['introduction'].label,
+            form.fields['introduction_text'].label,
             'Introduction'
         )
 
@@ -24,11 +24,24 @@ class TestAntiquarianForm(TestCase):
         form = AntiquarianForm()
         self.assertEqual(form.fields['re_code'].label, 'RE Number')
 
+    def test_introduction_initial_value_update(self):
+        data = {
+            'name': 'John Smith',
+            're_code': '2319'
+        }
+        # create an antiquarian with a bio and check it is on the form
+        antiquarian = Antiquarian.objects.create(**data)
+        bio = 'Something interesting'
+        antiquarian.introduction.content = bio
+
+        form = AntiquarianForm(instance=antiquarian)
+        self.assertEqual(form.fields['introduction_text'].initial, bio)
+
     def test_introduction_save(self):
         data = {
             'name': 'John Smith',
             're_code': '2319',
-            'introduction': 'Something interesting'
+            'introduction_text': 'Something interesting'
         }
         form = AntiquarianForm(data=data)
         self.assertTrue(form.is_valid())
@@ -37,8 +50,8 @@ class TestAntiquarianForm(TestCase):
         self.assertEqual(antiquarian.name, data['name'])
         self.assertEqual(antiquarian.re_code, data['re_code'])
         self.assertEqual(
-            antiquarian.introduction,
-            data['introduction']
+            antiquarian.introduction.content,
+            data['introduction_text']
         )
 
     def test_date_range_saves(self):

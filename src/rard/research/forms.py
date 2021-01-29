@@ -51,13 +51,70 @@ class DatedModelFormBase(forms.ModelForm):
         return cleaned_data
 
 
-class AntiquarianForm(DatedModelFormBase):
+class AntiquarianIntroductionForm(forms.ModelForm):
+    class Meta:
+        model = Antiquarian
+        fields = ('name',)  # need to specify at least one field
 
+    introduction_text = forms.CharField(
+        widget=forms.Textarea,
+        required=False,
+        label='Introduction',
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['name'].required = False
+        if self.instance.introduction:
+            self.fields['introduction_text'].initial = \
+                self.instance.introduction.content
+
+    def save(self, commit=True):
+        if commit:
+            instance = super().save(commit=False)  # no need to save owner
+            # introduction will have been created at this point
+            instance.introduction.content = \
+                self.cleaned_data['introduction_text']
+            instance.introduction.save()
+        return instance
+
+
+class AntiquarianDetailsForm(DatedModelFormBase):
     class Meta:
         model = Antiquarian
         fields = ('name', 'order_name', 're_code', 'circa1', 'circa2',
-                  'year_type', 'year1', 'year2', 'dates_type', 'introduction')
+                  'year_type', 'year1', 'year2', 'dates_type')
         labels = {'order_name': 'Name for alphabetisation'}
+
+
+class AntiquarianCreateForm(DatedModelFormBase):
+    class Meta:
+        model = Antiquarian
+        fields = ('name', 'order_name', 're_code', 'circa1', 'circa2',
+                  'year_type', 'year1', 'year2', 'dates_type')
+        labels = {'order_name': 'Name for alphabetisation'}
+
+    introduction_text = forms.CharField(
+        widget=forms.Textarea,
+        required=False,
+        label='Introduction',
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.introduction:
+            self.fields['introduction_text'].initial = \
+                self.instance.introduction.content
+
+    def save(self, commit=True):
+        instance = super().save(commit)
+        if commit:
+            instance.save_without_historical_record()
+            # introduction will have been created at this point
+            instance.introduction.content = \
+                self.cleaned_data['introduction_text']
+            instance.introduction.save_without_historical_record()
+        return instance
 
 
 class AntiquarianUpdateWorksForm(forms.ModelForm):
@@ -202,22 +259,44 @@ class OriginalTextForm(forms.ModelForm):
         self.fields['citing_work'].required = required
 
 
-class FragmentCommentaryForm(forms.ModelForm):
+class CommentaryFormBase(forms.ModelForm):
+    commentary_text = forms.CharField(
+        widget=forms.Textarea,
+        required=False,
+        label='Commentary',
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.commentary:
+            self.fields['commentary_text'].initial = \
+                self.instance.commentary.content
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if commit:
+            # commentary will have been created at this point via post_save
+            instance.commentary.content = self.cleaned_data['commentary_text']
+            instance.commentary.save()
+        return instance
+
+
+class FragmentCommentaryForm(CommentaryFormBase):
     class Meta:
         model = Fragment
-        fields = ('commentary',)
+        fields = ()
 
 
-class TestimoniumCommentaryForm(forms.ModelForm):
+class TestimoniumCommentaryForm(CommentaryFormBase):
     class Meta:
         model = Testimonium
-        fields = ('commentary',)
+        fields = ()
 
 
-class AnonymousFragmentCommentaryForm(forms.ModelForm):
+class AnonymousFragmentCommentaryForm(CommentaryFormBase):
     class Meta:
         model = AnonymousFragment
-        fields = ('commentary',)
+        fields = ()
 
 
 class HistoricalFormBase(forms.ModelForm):

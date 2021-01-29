@@ -2,7 +2,7 @@ import pytest
 from django.test import TestCase
 from django.urls import reverse
 
-from rard.research.models import Testimonium
+from rard.research.models import Testimonium, TextObjectField
 
 pytestmark = pytest.mark.django_db
 
@@ -37,6 +37,21 @@ class TestTestimonium(TestCase):
     def test_initial_images(self):
         testimonium = Testimonium.objects.create(name='name')
         self.assertEqual(testimonium.images.count(), 0)
+
+    def test_commentary_created(self):
+        testimonium = Testimonium.objects.create(name='name')
+        self.assertIsNotNone(testimonium.commentary.pk)
+        self.assertEqual(
+            TextObjectField.objects.get(pk=testimonium.commentary.pk),
+            testimonium.commentary
+        )
+
+    def test_commentary_deleted(self):
+        testimonium = Testimonium.objects.create(name='name')
+        commentary_pk = testimonium.commentary.pk
+        testimonium.delete()
+        with self.assertRaises(TextObjectField.DoesNotExist):
+            TextObjectField.objects.get(pk=commentary_pk)
 
     def test_get_absolute_url(self):
         testimonium = Testimonium.objects.create(name='name')

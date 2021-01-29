@@ -22,7 +22,7 @@ class TextObjectFieldMixin(object):
             from rard.research.models.text_object_field import TextObjectField
             for field in cls.get_text_object_fields():
                 setattr(instance, field.name, TextObjectField.objects.create())
-            instance.save()
+            instance.save_without_historical_record()
 
     @classmethod
     def delete_text_object_fields(cls, sender, instance, **kwargs):
@@ -45,6 +45,9 @@ class HistoryViewMixin(object):
         raise NotImplementedError(
             '%s must provide a related_lock_object() method' % class_name
         )
+
+    def get_history_title(self):
+        return str(self)
 
     def history_url(self):
         # by default sort according to all objects of this class

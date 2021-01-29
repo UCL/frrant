@@ -44,7 +44,6 @@ class ConcordanceCreateView(CheckLockMixin, LoginRequiredMixin,
         self.original_text = self.get_original_text()
         concordance = form.save(commit=False)
         concordance.original_text = self.original_text
-        concordance.save()
         return super().form_valid(form)
 
     def get_original_text(self, *args, **kwargs):
