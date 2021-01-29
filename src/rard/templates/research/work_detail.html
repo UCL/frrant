@@ -3,6 +3,7 @@
 
 {% block heading %}{{ object.name }}{% endblock %}
 
+{% block last_modified %}{% endblock %}
 
 {% block action %}
 
@@ -88,6 +89,13 @@
 
             {% endif %}
         </dl>
+
+        <p>
+            <small>
+            {% include 'research/partials/render_last_modified_info.html' with object=object %}
+            </small>
+        </p>
+
     </section>
     
     <hr>
