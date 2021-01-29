@@ -102,8 +102,6 @@ class Antiquarian(HistoryViewMixin, TextObjectFieldMixin, LockableModel,
 
     history = HistoricalRecords(
         excluded_fields=[
-            'works', 'fragments', 'testimonia',
-            'bibliography_items', 'introduction'
         ]
     )
 
