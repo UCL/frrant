@@ -19,6 +19,8 @@ class DatedModelFormBase(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         year_type = self.cleaned_data.get('year_type', None)
+        dates_type = self.cleaned_data.get('dates_type', None)
+
         if year_type:
             to_validate = ('year1', )
             if year_type == Antiquarian.YEAR_RANGE:
@@ -35,6 +37,17 @@ class DatedModelFormBase(forms.ModelForm):
         year1 = self.cleaned_data.get('year1', None)
         year2 = self.cleaned_data.get('year2', None)
 
+        if dates_type or year1 or year2:
+            if not year_type:
+                self.add_error('year_type', _('This field is required.'))
+            try:
+                self.fields['dates_type']
+                if not dates_type:
+                    self.add_error('dates_type', _('This field is required.'))
+            except KeyError:
+                # we didn't have a dates field on this form so we don't
+                # insist on it
+                pass
         if not year_type:
             cleaned_data['year1'] = None
             cleaned_data['year2'] = None
