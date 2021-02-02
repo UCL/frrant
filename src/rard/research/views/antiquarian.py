@@ -31,6 +31,7 @@ class AntiquarianDetailView(
     permission_required = ('research.view_antiquarian',)
 
     def post(self, *args, **kwargs):
+
         link_pk = self.request.POST.get('link_id', None)
         work_pk = self.request.POST.get('work_id', None)
         antiquarian_pk = self.request.POST.get('antiquarian_id', None)
@@ -96,13 +97,20 @@ class AntiquarianUpdateIntroductionView(LoginRequiredMixin, CheckLockMixin,
     model = Antiquarian
     permission_required = ('research.change_antiquarian',)
     form_class = AntiquarianIntroductionForm
-    template_name = 'research/antiquarian_introduction_form.html'
+    template_name = 'research/antiquarian_detail.html'
 
     def get_success_url(self, *args, **kwargs):
         return reverse(
             'antiquarian:detail',
             kwargs={'pk': self.object.pk}
         )
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update({
+            'editing': 'introduction',
+        })
+        return context
 
 
 @method_decorator(require_POST, name='dispatch')
