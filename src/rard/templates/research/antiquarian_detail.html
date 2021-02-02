@@ -41,21 +41,8 @@
     {% with request.user|has_lock:object as has_object_lock %}
 
 
-    {% if disable_link_controls %}
-    <style>
-        /* disable links while editing */
-        .main-content a:not(.cancel-button)  {
-            pointer-events: none;
-            cursor: default;
-            color: black;
-        }
-        body {
-            background-color:#f8f9fa;
-        }
-        .trumbowyg-box {
-            background-color: white;
-        }
-    </style>
+    {% if editing %}
+    {% include 'research/partials/disable_main_links.css' %}
     {% endif %}
 
 
@@ -154,10 +141,10 @@
                     {% bootstrap_field form.introduction_text show_label=False %}
                     {% include 'research/partials/rich_text_editor.html' with field=form.introduction_text %}
 
-                <button type="submit" class="btn btn-primary">
+                <button type="submit" class="btn btn-primary inline-save-button">
                         {% trans 'Save' %}
                 </button>
-                <a class='ml-3 cancel-button' href='{% url "antiquarian:detail" object.pk %}'>{% trans 'Cancel' %}</a>
+                <a class='ml-3 inline-cancel-button' href='{% url "antiquarian:detail" object.pk %}'>{% trans 'Cancel' %}</a>
             </form>
 
             {% endif %}
