@@ -22,6 +22,10 @@ def render_diff(history_item):
                 list(old_.stripped_strings),
                 list(new_.stripped_strings),
             ):
+                if line.find('?') == 0:
+                    # ignore the intraline indicators that attempt to show
+                    # where in the line the difference happens
+                    continue
                 # for line in difflib.Differ().compare(
                 # str(change.old).splitlines(), str(change.new).splitlines()):
                 # for line in difflib.unified_diff(
