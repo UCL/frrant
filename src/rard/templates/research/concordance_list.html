@@ -13,35 +13,48 @@
 
   {% if page_obj.paginator.count > 0 %}
 
-    <table class="table">
+    {% with max_length=column_range|length %}
+
+    <style>
+      .table-responsive {
+        width: 100%;
+        overflow: auto;
+      }
+      td, th {
+        white-space: nowrap;
+      }
+    </style>
+
+
+<div class=" table-responsive">
+    <table class="table table-hover">
       <thead>
         <tr>
           <th scope="col">Author One</th>
-          <th scope="col">Author Two</th>
+          {% for i in column_range %}
+          <th scope="col">Author {{ forloop.counter }}</th>
+          {% endfor %}
         </tr>
       </thead>
       <tbody class='alphabetum'>
         {% for object in page_obj %}
+          <tr>
+              <td>
+                  <a href='{{ object.fragment.get_absolute_url }}'>FRRAnt {{ object.get_display_name }}</a>
+              </td>
 
           {# NB the object here is a FragmentLink object #}
-
-          {% for duplet in object.get_concordance_identifiers %}
-            {% with identifier=duplet.0 original_text=duplet.1 %}
-            <tr>
-              <td>
-                  <a href='{{ original_text.owner.get_absolute_url }}'>FRRAnt {{ identifier }}</a>
+          {% for c in object.get_concordance_identifiers %}
+              <td {% if forloop.last %}{% if forloop.counter < max_length %}colspan='{{ max_length }}'{% endif %}{% endif %}>
+                {{ c.source }} {{ c.identifier }}
               </td>
-              <td>
-                {% for c in original_text.concordance_set.all %}
-                {% if forloop.counter0 != 0 and forloop.outer.counter0 != 0 %}, {% endif %}{{ c.source }} {{ c.identifier }}
-                {% endfor %}
-              </td>
-            </tr>
-            {% endwith %}
           {% endfor %}
+            </tr>
         {% endfor %}
       </tbody>
     </table>
+</div>
+    {% endwith %}
 
   {% endif %}
 

@@ -25,6 +25,18 @@ class ConcordanceListView(
             fragment__original_texts__concordance__isnull=False
         ).distinct()
 
+    def get_context_data(self, *args, object_list=None, **kwargs):
+        queryset = self.object_list
+        context = super().get_context_data(*args, **kwargs)
+        max_length = max(
+            [len(o.get_concordance_identifiers()) for o in queryset.all()]
+        )
+        # supply the max number of columms for the table (for formatting)
+        context.update({
+            'column_range': range(0, max_length)
+        })
+        return context
+
 
 class ConcordanceCreateView(CheckLockMixin, LoginRequiredMixin,
                             PermissionRequiredMixin, CreateView):

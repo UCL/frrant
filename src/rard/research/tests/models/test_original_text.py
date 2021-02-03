@@ -82,23 +82,18 @@ class TestConcordance(TestCase):
     def test_concordance_identifiers(self):
         # test the names to go in the concordance table including ordinals
         # set up a second original text
-        ot2 = OriginalText.objects.create(
+        OriginalText.objects.create(
             owner=self.fragment, citing_work=self.citing_work
         )
         a = Antiquarian.objects.create(name='name1', re_code='name1')
-        FragmentLink.objects.create(fragment=self.fragment, antiquarian=a)
-
-        fragment_names = self.fragment.get_all_names()
-        # should have one in this test case
-        self.assertEqual(1, len(fragment_names))
-        name = fragment_names[0]
-        self.assertEqual(
-            [x[0] for x in self.original_text.concordance_identifiers()],
-            ['{}a'.format(name)]
+        link = FragmentLink.objects.create(
+            fragment=self.fragment, antiquarian=a
         )
+
+        concordances = link.get_concordance_identifiers()
         self.assertEqual(
-            [x[0] for x in ot2.concordance_identifiers()],
-            ['{}b'.format(name)]
+            [x[0] for x in self.original_text.concordance_set.all()],
+            concordances
         )
 
 

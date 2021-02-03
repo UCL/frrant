@@ -206,7 +206,7 @@ class FragmentLink(WorkLinkBaseModel):
         # name of the fragment link
         rtn = []
         for o in self.fragment.original_texts.all():
-            rtn.extend(o.concordance_identifiers())
+            rtn.extend([c for c in o.concordance_set.all()])
         return rtn
 
 
