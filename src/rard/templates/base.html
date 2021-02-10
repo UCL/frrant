@@ -23,8 +23,6 @@
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
 
     <!-- Your stuff: Third-party CSS libraries go here -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/Trumbowyg/2.21.0/ui/trumbowyg.min.css" rel="stylesheet">
-    <link href="{% static 'js/plugins/characters/ui/css/trumbowyg.characters.css' %}" rel="stylesheet">
     <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
     <link href="https://afry.github.io/quill-mention/quill.mention.min.css" rel="stylesheet">
     <!-- This file stores project-specific CSS -->
@@ -112,9 +110,6 @@
       .required label::after {
         content: '*'
       }
-      .trumbowyg-box {
-          margin-top: 0px!important;
-      }
       img.character {
           height: 1em!important;
           max-height: 1em!important;
@@ -135,9 +130,6 @@
       }
       .rich-editor {
         font-family: Alphabetum!important;
-      }
-      .h-fill .trumbowyg-box {
-          height: 100%!important;
       }
       button.insert {
           width: 30px;
@@ -215,8 +207,6 @@
       <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 
       <!-- Your stuff: Third-party javascript libraries go here -->
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/Trumbowyg/2.21.0/trumbowyg.min.js"></script>
-      <script src="{% static 'js/plugins/characters/trumbowyg.characters.js' %}"></script>
       <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
       <script src="https://afry.github.io/quill-mention/quill.mention.min.js"></script>
       <!-- place project specific Javascript in this file -->
