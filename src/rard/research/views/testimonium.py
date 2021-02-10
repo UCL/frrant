@@ -77,8 +77,14 @@ class TestimoniumUpdateCommentaryView(TestimoniumUpdateView):
     model = Testimonium
     form_class = TestimoniumCommentaryForm
     permission_required = ('research.change_testimonium',)
-    # use a different template showing commentary field
-    template_name = 'research/testimonium_commentary_form.html'
+    template_name = 'research/testimonium_detail.html'
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update({
+            'editing': 'commentary',
+        })
+        return context
 
 
 class TestimoniumAddWorkLinkView(CheckLockMixin, LoginRequiredMixin,

@@ -10,8 +10,9 @@ from django.views.generic import ListView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
-from rard.research.forms import (AntiquarianForm, AntiquarianUpdateWorksForm,
-                                 WorkForm)
+from rard.research.forms import (AntiquarianCreateForm, AntiquarianDetailsForm,
+                                 AntiquarianIntroductionForm,
+                                 AntiquarianUpdateWorksForm, WorkForm)
 from rard.research.models import Antiquarian, BibliographyItem, Work
 from rard.research.views.mixins import (CanLockMixin, CheckLockMixin,
                                         DateOrderMixin)
@@ -30,6 +31,7 @@ class AntiquarianDetailView(
     permission_required = ('research.view_antiquarian',)
 
     def post(self, *args, **kwargs):
+
         link_pk = self.request.POST.get('link_id', None)
         work_pk = self.request.POST.get('work_id', None)
         antiquarian_pk = self.request.POST.get('antiquarian_id', None)
@@ -74,7 +76,7 @@ class AntiquarianCreateView(
         LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = Antiquarian
     permission_required = ('research.add_antiquarian',)
-    form_class = AntiquarianForm
+    form_class = AntiquarianCreateForm
 
     def get_success_url(self, *args, **kwargs):
         return reverse('antiquarian:detail', kwargs={'pk': self.object.pk})
@@ -84,10 +86,31 @@ class AntiquarianUpdateView(LoginRequiredMixin, CheckLockMixin,
                             PermissionRequiredMixin, UpdateView):
     model = Antiquarian
     permission_required = ('research.change_antiquarian',)
-    form_class = AntiquarianForm
+    form_class = AntiquarianDetailsForm
 
     def get_success_url(self, *args, **kwargs):
         return reverse('antiquarian:detail', kwargs={'pk': self.object.pk})
+
+
+class AntiquarianUpdateIntroductionView(LoginRequiredMixin, CheckLockMixin,
+                                        PermissionRequiredMixin, UpdateView):
+    model = Antiquarian
+    permission_required = ('research.change_antiquarian',)
+    form_class = AntiquarianIntroductionForm
+    template_name = 'research/antiquarian_detail.html'
+
+    def get_success_url(self, *args, **kwargs):
+        return reverse(
+            'antiquarian:detail',
+            kwargs={'pk': self.object.pk}
+        )
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update({
+            'editing': 'introduction',
+        })
+        return context
 
 
 @method_decorator(require_POST, name='dispatch')
@@ -125,7 +148,6 @@ class AntiquarianBibliographyCreateView(CheckLockMixin, LoginRequiredMixin,
         # self.antiquarian = self.get_antiquarian()
         item = form.save(commit=False)
         item.parent = self.antiquarian
-        item.save()
         # self.antiquarian.bibliography_items.add(item)
         return super().form_valid(form)
 

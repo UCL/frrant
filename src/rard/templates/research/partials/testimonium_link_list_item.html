@@ -1,4 +1,4 @@
-{# Assumes context objects named 'link' and 'link_text' #}
+{# Assumes context objects named 'link' and 'link_text'. Optional disable_link_controls to display but disable the link controls #}
 
 {% load i18n %}
 
@@ -34,9 +34,9 @@
             <div class='form-group'>
                 <input type='hidden' name='link_id' value='{{ link.pk }}'>
                 <input type='hidden' name='object_type' value='testimonium'>
-                <button type='submit' class='btn btn-light'  {% if forloop.first %}disabled{% endif %}
+                <button type='submit' class='btn btn-light'  {% if forloop.first or disable_link_controls %}disabled{% endif %}
                     name='up_by_work'>▲</button>
-                <button type='submit' class='btn btn-light' {% if forloop.last %}disabled{% endif %}
+                <button type='submit' class='btn btn-light' {% if forloop.last or disable_link_controls %}disabled{% endif %}
                     name='down_by_work'>▼</button>
             </div>
         </form>

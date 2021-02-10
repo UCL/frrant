@@ -44,6 +44,8 @@ class TopicCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     permission_required = ('research.add_topic',)
 
     def get_success_url(self, *args, **kwargs):
+        if 'another' in self.request.POST:
+            return self.request.path
         return reverse('topic:list')
 
 

@@ -1,7 +1,9 @@
 from django.contrib.postgres.aggregates import StringAgg
 from django.db import models
 from django.urls import reverse
+from simple_history.models import HistoricalRecords
 
+from rard.research.models.mixins import HistoryViewMixin
 from rard.utils.basemodel import BaseModel, DatedModel, LockableModel
 
 
@@ -23,7 +25,12 @@ class WorkManager(models.Manager):
         )
 
 
-class Work(DatedModel, LockableModel, BaseModel):
+class Work(HistoryViewMixin, DatedModel, LockableModel, BaseModel):
+
+    history = HistoricalRecords()
+
+    def related_lock_object(self):
+        return self
 
     class Meta:
         ordering = ['name']
@@ -95,7 +102,12 @@ class Work(DatedModel, LockableModel, BaseModel):
         ).distinct()
 
 
-class Book(DatedModel, BaseModel):
+class Book(HistoryViewMixin, DatedModel, BaseModel):
+
+    history = HistoricalRecords()
+
+    def related_lock_object(self):
+        return self.work
 
     class Meta:
         ordering = ['number']

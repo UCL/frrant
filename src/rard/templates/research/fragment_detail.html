@@ -1,8 +1,13 @@
 {% extends "research/detail_base.html" %}
-{% load i18n humanize object_lock %}
+{% load i18n bootstrap4 static humanize object_lock %}
 
 {% block heading %}
     {{ object.get_display_name }}
+{% endblock %}
+
+{% block javascript %}
+    {{ block.super }}
+    <script src="{% static 'js/check_forms_dirty.js' %}"></script>
 {% endblock %}
 
 {% block action %}
@@ -27,7 +32,14 @@
 {% endblock %}
 
 {% block inner %}
+    {% with editing as disable_link_controls %}
     {% with request.user|has_lock:object as has_object_lock %}
+
+    {% if editing %}
+    {% include 'research/partials/disable_main_links.css' %}
+    {% endif %}
+
+
     <hr>
     <section>
         <div class='d-flex justify-content-between mb-3'>
@@ -122,6 +134,33 @@
     <hr>
 
     <section>
+        {% if editing == 'commentary' %}
+        <div class='d-flex justify-content-between w-100'>
+            <div>
+                <h5 class='mb-3 mr-3'>{% trans 'Commentary' %}</h5>
+            </div>
+            <div>
+            </div>
+        </div>
+
+        <div>
+            {% if perms.research.change_antiquarian and has_object_lock %}
+
+            <form novalidate enctype="multipart/form-data" autocomplete='off' action='{% url "fragment:update_commentary" object.pk %}' class="form" method='POST'>
+                {% csrf_token %}
+                    {% bootstrap_field form.commentary_text show_label=False %}
+                    {% include 'research/partials/rich_text_editor.html' with field=form.commentary_text %}
+
+                <button type="submit" class="btn btn-primary inline-save-button">
+                        {% trans 'Save' %}
+                </button>
+                <a class='ml-3 inline-cancel-button' href='{% url "fragment:detail" object.pk %}'>{% trans 'Cancel' %}</a>
+            </form>
+
+            {% endif %}
+
+        </div>
+        {% else %}
         <div class='d-flex justify-content-between mb-3'>
             <div>
                 <h5>{% trans 'Commentary' %}</h5>
@@ -133,21 +172,10 @@
             </div>
         </div>
 
-        <div class='row'>
-            <div class="col">
-                <div class='alphabetum'>
-                    {{ object.commentary.content|safe|default:'Not specified' }}
-                </div>
-                {% comment %}
-                <p>
-                    {% if perms.research.view_comment %}
-                    {{ object.commentary.comments.count }} comments
-                    <a href='{% url "list_comments_on_text" object.commentary.pk %}'>view</a>
-                    {% endif %}
-                </p>
-                {% endcomment %}
-            </div>
+        <div>
+            {% include 'research/partials/text_object_preview.html' with text_object=object.commentary %}
         </div>
+        {% endif %}
     </section>
 
     <hr>
@@ -275,4 +303,6 @@
 
 
     {% endwith %}
+    {% endwith %}
+
 {% endblock %}

@@ -3,6 +3,7 @@ from .bibliography import BibliographyItem
 from .citing_work import CitingAuthor, CitingWork
 from .comment import Comment
 from .fragment import AnonymousFragment, Fragment
+from .history import HistoricalRecordLog
 from .image import Image
 from .original_text import Concordance, OriginalText, Translation
 from .symbols import Symbol, SymbolGroup
@@ -20,6 +21,7 @@ __all__ = [
     'Comment',
     'Concordance',
     'Fragment',
+    'HistoricalRecordLog',
     'Image',
     'OriginalText',
     'Symbol',

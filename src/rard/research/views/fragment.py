@@ -484,14 +484,28 @@ class FragmentUpdateCommentaryView(FragmentUpdateView):
     model = Fragment
     form_class = FragmentCommentaryForm
     permission_required = ('research.change_fragment',)
-    template_name = 'research/fragment_commentary_form.html'
+    template_name = 'research/fragment_detail.html'
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update({
+            'editing': 'commentary',
+        })
+        return context
 
 
-class AnonymousFragmentUpdateCommentaryView(FragmentUpdateView):
+class AnonymousFragmentUpdateCommentaryView(AnonymousFragmentUpdateView):
     model = AnonymousFragment
     form_class = AnonymousFragmentCommentaryForm
     permission_required = ('research.change_fragment',)
-    template_name = 'research/fragment_commentary_form.html'
+    template_name = 'research/anonymousfragment_detail.html'
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update({
+            'editing': 'commentary',
+        })
+        return context
 
 
 class FragmentAddWorkLinkView(CheckLockMixin, LoginRequiredMixin,

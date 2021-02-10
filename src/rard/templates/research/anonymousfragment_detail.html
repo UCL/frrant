@@ -1,9 +1,15 @@
 {% extends "research/detail_base.html" %}
-{% load i18n humanize object_lock show_citing_info %}
+{% load i18n bootstrap4 static humanize object_lock show_citing_info %}
 
 {% block heading %}
     {{ object.get_display_name }}
 {% endblock %}
+
+{% block javascript %}
+    {{ block.super }}
+    <script src="{% static 'js/check_forms_dirty.js' %}"></script>
+{% endblock %}
+
 
 {% block action %}
     {% with request.user|has_lock:object as has_object_lock %}
@@ -27,7 +33,14 @@
 {% endblock %}
 
 {% block inner %}
+    {% with editing as disable_link_controls %}
     {% with request.user|has_lock:object as has_object_lock %}
+
+    {% if editing %}
+    {% include 'research/partials/disable_main_links.css' %}
+    {% endif %}
+
+
     <hr>
     <section>
         <div class='d-flex justify-content-between mb-3'>
@@ -122,6 +135,33 @@
     <hr>
 
     <section>
+        {% if editing == 'commentary' %}
+        <div class='d-flex justify-content-between w-100'>
+            <div>
+                <h5 class='mb-3 mr-3'>{% trans 'Commentary' %}</h5>
+            </div>
+            <div>
+            </div>
+        </div>
+
+        <div>
+            {% if perms.research.change_antiquarian and has_object_lock %}
+
+            <form novalidate enctype="multipart/form-data" autocomplete='off' action='{% url "anonymous_fragment:update_commentary" object.pk %}' class="form" method='POST'>
+                {% csrf_token %}
+                    {% bootstrap_field form.commentary_text show_label=False %}
+                    {% include 'research/partials/rich_text_editor.html' with field=form.commentary_text %}
+
+                <button type="submit" class="btn btn-primary inline-save-button">
+                        {% trans 'Save' %}
+                </button>
+                <a class='ml-3 inline-cancel-button' href='{% url "anonymous_fragment:detail" object.pk %}'>{% trans 'Cancel' %}</a>
+            </form>
+
+            {% endif %}
+
+        </div>
+        {% else %}
         <div class='d-flex justify-content-between mb-3'>
             <div>
                 <h5>{% trans 'Commentary' %}</h5>
@@ -133,13 +173,10 @@
             </div>
         </div>
 
-        <div class='row'>
-            <div class="col">
-                <div class='alphabetum'>
-                    {{ object.commentary.content|safe|default:'Not specified' }}
-                </div>
-            </div>
+        <div>
+            {% include 'research/partials/text_object_preview.html' with text_object=object.commentary %}
         </div>
+        {% endif %}
     </section>
 
 
@@ -170,7 +207,6 @@
                         <div>
                             <li>
                                 {% if link.linked_to %}
-                                
                                     {% with fragment=link.linked_to %}
 
                                     <span>
@@ -185,7 +221,6 @@
                                     </span>
 
                                     {% endwith %}
-
                                 {% elif link.work %}
                                     {% with work=link.work %}
                                     <a href='{% url "work:detail" work.pk %}'>{{ work }}
@@ -263,7 +298,6 @@
                             {% endif %}
                         </div>
                         <div class='rard-list-item-actions'>
-                            {% if perms.research.change_fragment and has_object_lock %}
 
                             <form novalidate class='form-inline' action='{% url "anonymous_fragment:unlink_apposita" object.pk link.pk %}' method='POST'>
                                 {% csrf_token %}
@@ -272,7 +306,7 @@
                                         data-what='appositum link'>{% trans 'Unlink' %}</button>
                                 </div>
                             </form>
-                            {% endif %}
+
                         </div>
                     </div>
 
@@ -284,6 +318,6 @@
 
     </section>
 
-
+    {% endwith %}
     {% endwith %}
 {% endblock %}

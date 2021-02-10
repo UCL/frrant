@@ -1,0 +1,17 @@
+{# expects context object object #}
+
+
+        {% if version %}
+        <span class='text-muted font-weight-light'>
+            <small>
+
+            Modified
+            {% if version.revision.user %}
+
+                by <a target='_blank' href='{{ version.revision.user.get_absolute_url }}'>{{ version.revision.user }}</a>
+
+            {% endif %}
+                on {{ version.revision.date_created }}
+            </small>
+        </span>
+        {% endif %}

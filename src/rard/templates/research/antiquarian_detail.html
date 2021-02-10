@@ -1,8 +1,16 @@
 {% extends "research/detail_base.html" %}
-{% load i18n object_lock links_for_work %}
+{% load i18n bootstrap4 object_lock links_for_work static %}
 
 {% block heading %}{{ object.name }}{% endblock %}
 
+{% block last_modified %}{% endblock %}
+
+{% block javascript %}
+
+    {{ block.super }}
+      <script src="{% static 'js/check_forms_dirty.js' %}"></script>
+
+{% endblock %}
 
 {% block action %}
 
@@ -29,7 +37,14 @@
 
 {% block inner %}
 
+    {% with editing as disable_link_controls %}
     {% with request.user|has_lock:object as has_object_lock %}
+
+
+    {% if editing %}
+    {% include 'research/partials/disable_main_links.css' %}
+    {% endif %}
+
 
     <hr>
     <section>
@@ -43,6 +58,45 @@
                 {% endif %}
             </div>
         </div>
+
+        {% comment %}
+        {% if editing == 'details' %}
+            <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
+                {% csrf_token %}
+                {% bootstrap_field form.name layout='horizontal' %}
+                {% bootstrap_field form.order_name layout='horizontal' %}
+                {% bootstrap_field form.re_code layout='horizontal' %}
+                {% include 'research/partials/render_date_form_fields.html' with layout='horizontal' %}
+
+                <button type="submit" class="btn btn-primary">
+                    {% trans 'Save' %}
+                </button>
+                <a class='ml-2' href='{% url "antiquarian:detail" object.pk %}'>{% trans 'Cancel' %}</a>
+            </form>
+
+        {% else %}
+            <dl class="row mb-0">
+                <dt class="col-sm-3">{% trans 'Name' %}</dt>
+                <dd class="col-sm-9">{{ object.name }}</dd>
+
+                <dt class="col-sm-3">{% trans 'Name for Alphabetisation' %}</dt>
+                <dd class="col-sm-9">{{ object.order_name }}</dd>
+
+                <dt class="col-sm-3">{% trans 'RE Number' %}</dt>
+                <dd class="col-sm-9">{{ object.re_code|default:'-' }}</dd>
+                
+                <dt class="col-sm-3">{% trans 'Relevant Dates' %}</dt>
+                <dd class="col-sm-9">
+                    {{ object.display_date_range|default:'-' }}
+                </dd>
+            </dl>
+            <p>
+                <small>
+                {% include 'research/partials/render_last_modified_info.html' with object=object %}
+                </small>
+            </p>
+        {% endif %}
+        {% endcomment %}
 
         <dl class="row mb-0">
             <dt class="col-sm-3">{% trans 'Name' %}</dt>
@@ -59,24 +113,62 @@
                 {{ object.display_date_range|default:'-' }}
             </dd>
 
-            <dt class="col-sm-3">{% trans 'Introduction' %}</dt>
-            <dd class="col-sm-9">
-                {{ object.introduction.content|safe|default:'-' }}
-
-                {% comment %}
-
-                {% if perms.research.view_comment %}
-                <br>
-                {{ object.introduction.comments.count }} comments <a href='{% url "list_comments_on_text" object.introduction.pk %}'>view</a>
-                {% endif %}
-
-                {% endcomment %}
-            </dd>
-            <p>
-                
-            </p>
-
         </dl>
+        <p>
+            <small>
+            {% include 'research/partials/render_last_modified_info.html' with object=object %}
+            </small>
+        </p>
+
+    </section>
+    <hr>
+    <section>
+
+        {% if editing == 'introduction' %}
+        <div class='d-flex justify-content-between w-100'>
+            <div>
+                <h5 class='mb-3 mr-3'>{% trans 'Introduction' %}</h5>
+            </div>
+            <div>
+            </div>
+        </div>
+
+        <div>
+            {% if perms.research.change_antiquarian and has_object_lock %}
+
+            <form novalidate enctype="multipart/form-data" autocomplete='off' action='{% url "antiquarian:update_introduction" object.pk %}' class="form" method='POST'>
+                {% csrf_token %}
+                    {% bootstrap_field form.introduction_text show_label=False %}
+                    {% include 'research/partials/rich_text_editor.html' with field=form.introduction_text %}
+
+                <button type="submit" class="btn btn-primary inline-save-button">
+                        {% trans 'Save' %}
+                </button>
+                <a class='ml-3 inline-cancel-button' href='{% url "antiquarian:detail" object.pk %}'>{% trans 'Cancel' %}</a>
+            </form>
+
+            {% endif %}
+
+        </div>
+        {% else %}
+
+
+        <div class='d-flex justify-content-between w-100'>
+            <div>
+                <h5 class='mb-3 mr-3'>{% trans 'Introduction' %}</h5>
+            </div>
+            <div>
+                {% if perms.research.change_antiquarian and has_object_lock %}
+                <a href='{% url "antiquarian:update_introduction" object.pk %}'>{% trans 'Edit' %}</a>
+                {% endif %}
+            </div>
+        </div>
+        <div>
+            {% include 'research/partials/text_object_preview.html' with text_object=object.introduction %}
+        </div>
+
+        {% endif %}
+
     </section>
 
     <hr>
@@ -130,9 +222,9 @@
                     <div class='form-group'>
                         <input type='hidden' name='work_id' value='{{ work.pk }}'>
                         <input type='hidden' name='antiquarian_id' value='{{ object.pk }}'>
-                        <button type='submit' class='btn btn-light btn-sm' {% if forloop.first %}disabled{% endif %}
+                        <button type='submit' class='btn btn-light btn-sm' {% if forloop.first or disable_link_controls %}disabled{% endif %}
                             name='work_up'>▲</button>
-                        <button type='submit' class='btn btn-light btn-sm' {% if forloop.last %}disabled{% endif %}
+                        <button type='submit' class='btn btn-light btn-sm' {% if forloop.last or disable_link_controls %}disabled{% endif %}
                             name='work_down'>▼</button>
                     </div>
 
@@ -140,7 +232,9 @@
 
                 </div>
                 <div>
+                    {% if perms.research.change_antiquarian and has_object_lock %}
                     <a href='{% url "anonymous_fragment:create_appositum_for" "work" work.pk %}'>{% trans 'Create Appositum' %}</a>
+                    {% endif %}
                 </div>
             </div>
 
@@ -182,8 +276,10 @@
                 <b class='my-3 mr-3'>Unknown Work</b>
             </div>
             <div>
+                {% if perms.research.change_antiquarian and has_object_lock %}
                 <a href='{% url "anonymous_fragment:create_appositum_for" "antiquarian" object.pk %}'>
                     {% trans 'Create Appositum' %}</a>
+                {% endif %}
             </div>
         </div>
 
@@ -287,6 +383,7 @@
         {% endfor %}
     </section>
 
+    {% endwith %}
     {% endwith %}
 
 {% endblock %}

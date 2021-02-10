@@ -1,6 +1,7 @@
 from .antiquarian import (AntiquarianBibliographyCreateView,
                           AntiquarianCreateView, AntiquarianDeleteView,
                           AntiquarianDetailView, AntiquarianListView,
+                          AntiquarianUpdateIntroductionView,
                           AntiquarianUpdateView, AntiquarianWorkCreateView,
                           AntiquarianWorksUpdateView)
 from .bibliography import (BibliographyDeleteView, BibliographyListView,
@@ -24,6 +25,7 @@ from .fragment import (AddAppositumFragmentLinkView,
                        FragmentUpdateAntiquariansView,
                        FragmentUpdateCommentaryView, FragmentUpdateView,
                        RemoveAppositumLinkView)
+from .history import HistoryListView
 from .home import HomeView
 from .original_text import (AnonymousFragmentOriginalTextCreateView,
                             FragmentOriginalTextCreateView,
@@ -55,6 +57,7 @@ __all__ = [
     'AntiquarianDetailView',
     'AntiquarianListView',
     'AntiquarianUpdateView',
+    'AntiquarianUpdateIntroductionView',
     'AntiquarianWorksUpdateView',
     'BibliographyDeleteView',
     'BibliographyListView',
@@ -90,6 +93,7 @@ __all__ = [
     'FragmentRemoveBookLinkView',
     'FragmentUpdateView',
     'FragmentUpdateAntiquariansView',
+    'HistoryListView',
     'HomeView',
     'OriginalTextDeleteView',
     'OriginalTextUpdateView',
