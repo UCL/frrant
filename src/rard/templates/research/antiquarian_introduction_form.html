@@ -2,32 +2,17 @@
 {% load i18n bootstrap4 %}
 
 {% block heading %}
-    {% if object %}
-        {% trans 'Edit Antiquarian Details' %}
-    {% else %}
-        {% trans 'Create Antiquarian' %}
-    {% endif %}
+        {% trans 'Edit Introduction' %}
 {% endblock %}
 
 {% block inner %}
     <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
         {% csrf_token %}
-        {% bootstrap_field form.name %}
-        {% bootstrap_field form.order_name %}
-        {% bootstrap_field form.re_code %}
-        {% include 'research/partials/render_date_form_fields.html' %}
-
-        {% if form.introduction_text %}
             {% bootstrap_field form.introduction_text %}
             {% include 'research/partials/rich_text_editor.html' with field=form.introduction_text %}
-        {% endif %}
 
       <button type="submit" class="btn btn-primary">
-            {% if object %}
                 {% trans 'Save' %}
-            {% else %}
-                {% trans 'Create' %}
-            {% endif %}
         </button>
     </form>
 {% endblock %}

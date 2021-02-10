@@ -1,10 +1,22 @@
 from django.contrib.contenttypes.fields import GenericRelation
 from django.urls import reverse
+from simple_history.models import HistoricalRecords
+
+from rard.research.models.mixins import HistoryViewMixin
 
 from .base import HistoricalBaseModel, TestimoniumLink
 
 
-class Testimonium(HistoricalBaseModel):
+class Testimonium(HistoryViewMixin, HistoricalBaseModel):
+
+    history = HistoricalRecords(
+        excluded_fields=[
+            'original_texts',
+        ]
+    )
+
+    def related_lock_object(self):
+        return self
 
     LINK_TYPE = TestimoniumLink
 

@@ -1,13 +1,21 @@
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
+from simple_history.models import HistoricalRecords
 
+from rard.research.models import Antiquarian
+from rard.research.models.mixins import HistoryViewMixin
 from rard.utils.basemodel import BaseModel
 
 
-class TextObjectField(BaseModel):
-    # store text in a separate object to allow comments and/or
-    # bib items to be associated with them
+class TextObjectField(HistoryViewMixin, BaseModel):
+    history = HistoricalRecords()
+
+    def related_lock_object(self):
+        return self.get_related_object()
+
+    # store text in a separate object to allow its own
+    # audit trail to be held
     content = models.TextField(default='', blank=True)
 
     comments = GenericRelation('Comment', related_query_name='text_fields')
@@ -15,6 +23,12 @@ class TextObjectField(BaseModel):
     references = GenericRelation(
         'BibliographyItem', related_query_name='text_fields'
     )
+
+    def get_history_title(self):
+        obj = self.get_related_object()
+        if isinstance(obj, Antiquarian):
+            return 'Introduction'
+        return 'Commentary'
 
     def __str__(self):
         return self.content

@@ -1,0 +1,12 @@
+    {# {{ history_item.get_history_type_display }} #}
+    {{ history_item.get_history_type_display }} 
+        {% if history_item.history_change_reason %}
+        [{{ history_item.history_change_reason }}]
+        {% endif %}
+    {% if history_item.history_user %}
+
+        {# some special intervention like commandline does not show a system user #}
+        by <a target='_blank' href='{{ history_item.history_user.get_absolute_url }}'>{{ history_item.history_user }}</a>
+
+    {% endif %}
+        on {{ history_item.history_date }}

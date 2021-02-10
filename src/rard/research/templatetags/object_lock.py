@@ -5,7 +5,12 @@ register = template.Library()
 
 @register.filter
 def has_lock(user, obj):
-    return obj.is_locked() and obj.locked_by == user
+    if getattr(obj, 'is_locked', None):
+        return obj.is_locked() and obj.locked_by == user
+    elif getattr(obj, 'related_lock_object', None):
+        # things that are not lockable themselves like original texts
+        # but who can be edited if a related object is locked e.g. fragment
+        return has_lock(user, obj.related_lock_object())
 
 
 @register.filter

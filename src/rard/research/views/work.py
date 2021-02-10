@@ -33,11 +33,14 @@ class WorkCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     success_url = reverse_lazy('work:list')
     permission_required = ('research.add_work',)
 
+    def get_success_url(self, *args, **kwargs):
+        return reverse('work:detail', kwargs={'pk': self.object.pk})
+
     def form_valid(self, form):
-        work = form.save()
+        rtn = super().form_valid(form)
         for a in form.cleaned_data['antiquarians']:
-            a.works.add(work)
-        return super().form_valid(form)
+            a.works.add(self.object)
+        return rtn
 
 
 class WorkUpdateView(CheckLockMixin, LoginRequiredMixin,
@@ -50,7 +53,7 @@ class WorkUpdateView(CheckLockMixin, LoginRequiredMixin,
         return reverse('work:detail', kwargs={'pk': self.object.pk})
 
     def form_valid(self, form):
-        work = form.save()
+        work = form.save(commit=False)
         updated = form.cleaned_data['antiquarians']
         existing = work.antiquarian_set.all()
         to_remove = [a for a in existing if a not in updated]
@@ -101,7 +104,6 @@ class BookCreateView(CheckLockMixin, LoginRequiredMixin,
     def form_valid(self, form):
         book = form.save(commit=False)
         book.work = self.get_work()
-        book.save()
         return super().form_valid(form)
 
     def get_context_data(self, *args, **kwargs):

@@ -3,6 +3,7 @@
 
 {% block heading %}{{ object.name }}{% endblock %}
 
+{% block last_modified %}{% endblock %}
 
 {% block action %}
 
@@ -78,6 +79,7 @@
                                 <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
                                     data-what='book'>{% trans 'Delete' %}</button>
                                 {% endif %}
+                                <a class='ml-2' href='{{ book.history_url }}'><small><i class='fas fa-list'></i> Changelog</small></a>
                             </div>
                         </form>
                     </div>
@@ -87,6 +89,13 @@
 
             {% endif %}
         </dl>
+
+        <p>
+            <small>
+            {% include 'research/partials/render_last_modified_info.html' with object=object %}
+            </small>
+        </p>
+
     </section>
     
     <hr>

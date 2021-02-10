@@ -30,7 +30,6 @@ class TranslationCreateView(CheckLockMixin, LoginRequiredMixin,
     def form_valid(self, form):
         translation = form.save(commit=False)
         translation.original_text = self.get_original_text()
-        translation.save()
         return super().form_valid(form)
 
     def get_original_text(self, *args, **kwargs):

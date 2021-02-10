@@ -3,8 +3,9 @@ from django.db import models
 from django.db.models.signals import (m2m_changed, post_delete, post_save,
                                       pre_delete)
 from django.urls import reverse
+from simple_history.models import HistoricalRecords
 
-from rard.research.models.mixins import TextObjectFieldMixin
+from rard.research.models.mixins import HistoryViewMixin, TextObjectFieldMixin
 from rard.utils.basemodel import (BaseModel, DatedModel, LockableModel,
                                   OrderableModel)
 
@@ -96,7 +97,16 @@ post_delete.connect(handle_deleted_work_link, sender=WorkLink)
 post_save.connect(handle_reordered_works, sender=WorkLink)
 
 
-class Antiquarian(TextObjectFieldMixin, LockableModel, DatedModel, BaseModel):
+class Antiquarian(HistoryViewMixin, TextObjectFieldMixin, LockableModel,
+                  DatedModel, BaseModel):
+
+    history = HistoricalRecords(
+        excluded_fields=[
+        ]
+    )
+
+    def related_lock_object(self):
+        return self
 
     class Meta:
         ordering = ['order_name', 're_code']
