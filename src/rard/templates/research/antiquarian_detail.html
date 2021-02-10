@@ -36,7 +36,7 @@
 {% endblock %}
 
 {% block inner %}
-
+    
     {% with editing as disable_link_controls %}
     {% with request.user|has_lock:object as has_object_lock %}
 
@@ -139,7 +139,7 @@
             <form novalidate enctype="multipart/form-data" autocomplete='off' action='{% url "antiquarian:update_introduction" object.pk %}' class="form" method='POST'>
                 {% csrf_token %}
                     {% bootstrap_field form.introduction_text show_label=False %}
-                    {% include 'research/partials/rich_text_editor.html' with field=form.introduction_text %}
+                    {% include 'research/partials/rich_text_editor.html' with field=form.introduction_text enable_mentions=True %}
 
                 <button type="submit" class="btn btn-primary inline-save-button">
                         {% trans 'Save' %}

@@ -3,6 +3,7 @@
 from itertools import chain
 
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_GET
@@ -99,9 +100,36 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         keywords = self.request.GET.get('q', None)
         if keywords is not None and keywords.strip() == '':
             # empty search field. Redirect to cleared page
-            return redirect(self.request.path)
+            ret = redirect(self.request.path)
+        else:
+            ret = super().get(request, *args, **kwargs)
 
-        return super().get(request, *args, **kwargs)
+        if request.is_ajax() or True:
+            ajax_data = []
+
+            from django.apps import apps
+            dd = apps.all_models['research']
+            model_name_cache = {}
+
+            # return just the name, pk and type for display
+            for o in self.get_queryset():
+                model_name = model_name_cache.get(o.__class__, None)
+                if not model_name:
+                    model_name = next(
+                        k for k, value in dd.items() if value == o.__class__)
+                    model_name_cache[o.__class__] = model_name
+
+                ajax_data.append(
+                    {
+                        'id': o.pk,
+                        'target': model_name,
+                        'value': str(o)
+                    }
+                )
+
+            return JsonResponse(data=ajax_data, safe=False)
+
+        return ret
 
     def get_context_data(self, *args, **kwargs):
         queryset = kwargs.pop('object_list', None)
@@ -123,7 +151,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
 
         result_set = []
 
-        to_search = self.request.GET.getlist('what')
+        to_search = self.request.GET.getlist('what', ['all'])
         if to_search == ['all']:
             to_search = self.SEARCH_METHODS.keys()
 

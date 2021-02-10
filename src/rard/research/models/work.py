@@ -14,6 +14,7 @@ class WorkManager(models.Manager):
         # mark up the queryset with the lowest author name and then
         # order by that followed by name
         # Make sure anonymous works are at the top with nulls_first parameter
+
         return qs.annotate(
             authors=StringAgg(
                 'worklink__antiquarian__order_name',

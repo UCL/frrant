@@ -1,11 +1,10 @@
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import models
 from simple_history.models import HistoricalRecords
 
 from rard.research.models import Antiquarian
 from rard.research.models.mixins import HistoryViewMixin
-from rard.utils.basemodel import BaseModel
+from rard.utils.basemodel import BaseModel, DynamicTextField
 
 
 class TextObjectField(HistoryViewMixin, BaseModel):
@@ -16,7 +15,7 @@ class TextObjectField(HistoryViewMixin, BaseModel):
 
     # store text in a separate object to allow its own
     # audit trail to be held
-    content = models.TextField(default='', blank=True)
+    content = DynamicTextField(default='', blank=True)
 
     comments = GenericRelation('Comment', related_query_name='text_fields')
 

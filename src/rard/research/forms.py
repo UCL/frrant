@@ -77,6 +77,8 @@ class AntiquarianIntroductionForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        if self.instance:
+            self.instance.introduction.update_content_mentions()
         self.fields['name'].required = False
         if self.instance.introduction:
             self.fields['introduction_text'].initial = \
@@ -282,6 +284,7 @@ class CommentaryFormBase(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance and self.instance.commentary:
+            self.instance.commentary.update_content_mentions()
             self.fields['commentary_text'].initial = \
                 self.instance.commentary.content
 

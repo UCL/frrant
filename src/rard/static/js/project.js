@@ -62,58 +62,131 @@ $('body').on("submit", "form", function (e) {
         return false;
     }
     $(this).data('submitted', true);
-
-    $('.rich-editor').each(function() {
-        // copy each rich editor's content to its related control
-        var for_id = $(this).data('for');
-        var html = $(this).trumbowyg('html');
-        $(`#${for_id}`).text(html);
-    })
 });
 
-$('.rich-editor').trumbowyg(
-    {
-        // resetCss: true,
-        autogrow: true,
-        removeformatPasted: true,
-        // tagsToRemove: ['script', 'span'],
-        // tagsToKeep: ['img'],
-        btns: [
-            // ['characters'],
-            ['undo', 'redo'],
-            ['vinculum_on', 'vinculum_off'], 
-            ['strong', 'em'],
-            ['superscript', 'subscript'],
-            ['justifyLeft', 'justifyCenter', 'justifyRight', 'justifyFull'],
-            ['unorderedList', 'orderedList'],
-            // ['horizontalRule'],
-            ['removeformat'],
-        ],
-       langs: {
-            en: {
-                fontFamily: 'Alphabetum'
-            },
-       }
-    }
-).on('tbwinit', function(e, a)
-    {
-        // set our initial html from the related control
-        var for_id = $(this).data('for');
-        var $for = $(`#${for_id}`);
-        var html = $for.text();
-        $for.hide();
-        $(this).trumbowyg('html', html);
 
-        // set the tooltip of the characters in the list and blank their content
-        // as background images are set in css
-        $('.trumbowyg-dropdown-characters > button').each(function() {
-            $(this).attr('title', $(this).text());
-            $(this).text('')
-        });
+Quill.register('modules/mention', quillMention);
+var icons = Quill.import("ui/icons");
+// import fontawesome icons for the undo/redo buttons
+icons['undo'] = '<i class="fa fa-undo fa-xs align-text-top" aria-hidden="true"></i>';
+icons['redo'] = '<i class="fa fa-redo fa-xs align-text-top" aria-hidden="true"></i>';
+// and for the vinculum buttons
+icons['vinculum_on'] = 'V\u0305'
+icons['vinculum_off'] = 'V'
+
+async function suggestPeople(searchTerm) {
+
+    // call backend synchonously here and wait
+    let matches = []
+    await $.ajax({
+        url: `/search/?q=${searchTerm}`,
+        type: "GET",
+        context: document.body,
+        dataType: 'json',
+        async: false,
+        success: function (data, textStatus, jqXHR) {
+            matches = data;
+            console.log('data is')
+            console.dir(data)
+        },
+        error: function (e) {
+        }
+    });
+    return matches;
+};
+
+$('.rich-editor').each(function() {
+
+    let config = {
+        theme: 'snow',
+        history: {
+            delay: 1000,
+            maxStack: 1000,
+            userOnly: false
+        },
+        modules: {
+            toolbar: {
+                container: [
+                    [{ undo: 'undo' }, { redo: 'redo' }],
+                    [ 'bold', 'italic', 'underline', 'strike' ],
+                    [{ vinculum_on: 'vinculum_on' }, { vinculum_off: 'vinculum_off' }],
+                    [{ 'script': 'super' }, { 'script': 'sub' }],
+                    [{ 'list': 'ordered' }, { 'list': 'bullet'}],
+                    [ { 'align': [] }],
+                    [ 'clean' ]
+                ],
+                handlers: {
+                    undo: function (value) {
+                        this.quill.history.undo();
+                    },
+                    redo: function (value) {
+                        this.quill.history.redo();
+                    },
+                    vinculum_on: function (value) {
+                        var range = this.quill.getSelection();
+                        if (range) {
+                            if (range.length > 0) {
+                                var text = this.quill.getText(range.index, range.length);
+                                let html = '';
+                                for (let i = 0; i < text.length; i++) {
+                                    html += text[i] + '\u0305'
+                                }
+                                this.quill.deleteText(range.index, range.length)
+                                this.quill.insertText(range.index, html)
+                            }
+                        }
+                    },
+                    vinculum_off: function (value) {
+                        var range = this.quill.getSelection();
+                        if (range) {
+                            if (range.length > 0) {
+                                var text = this.quill.getText(range.index, range.length);
+
+                                let html = '';
+                                for (let i = 0; i < text.length; i++) {
+                                    if (text[i] != '\u0305') {
+                                        html += text[i];
+                                    }
+                                }
+                                this.quill.deleteText(range.index, range.length)
+                                this.quill.insertText(range.index, html)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    if ($(this).hasClass('enable-mentions')) {
+        config['modules']['mention'] = {
+            allowedChars: /^[A-Za-z\sÅÄÖåäö]*$/,
+            mentionDenotationChars: ["@", "#"],
+            source: async function(searchTerm, renderList) {
+                const matchedPeople = await suggestPeople(searchTerm);
+                console.log('MATCHED PEOPLE '+matchedPeople)
+                renderList(matchedPeople);
+            }
+        }
     }
-).on('tbwchange', function() {
-}).on('keyup', function(e) {
+    
+    new Quill('#'+$(this).attr('id'), config);
+
+
+    let that = this;
+    var for_id = $(this).data('for');
+    var $for = $(`#${for_id}`);
+
+    var html = $for.text();
+    $(this).find('.ql-editor').html(html);
+    $for.hide();
+
+    $('body').on("submit", "form", function (e) {
+        let html = $(that).find('.ql-editor').html();
+        $for.text(html);
+    });
 });
+
 
 // store scroll position on save and reload - useful for inline posts not
 // returning the user to the top of the page

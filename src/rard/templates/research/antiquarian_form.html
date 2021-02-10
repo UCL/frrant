@@ -19,7 +19,7 @@
 
         {% if form.introduction_text %}
             {% bootstrap_field form.introduction_text %}
-            {% include 'research/partials/rich_text_editor.html' with field=form.introduction_text %}
+            {% include 'research/partials/rich_text_editor.html' with field=form.introduction_text enable_mentions=True %}
         {% endif %}
 
       <button type="submit" class="btn btn-primary">
