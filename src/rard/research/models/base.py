@@ -200,6 +200,15 @@ class FragmentLink(WorkLinkBaseModel):
         on_delete=models.CASCADE
     )
 
+    def get_concordance_identifiers(self):
+        # only fragments have these, and we group them
+        # on the concordance table according to the
+        # name of the fragment link
+        rtn = []
+        for o in self.fragment.original_texts.all():
+            rtn.extend([c for c in o.concordance_set.all()])
+        return rtn
+
 
 class AppositumFragmentLink(WorkLinkBaseModel):
 
