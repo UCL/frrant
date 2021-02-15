@@ -56,7 +56,7 @@ class DynamicTextField(TextField):
 
                             replacement = bs4.BeautifulSoup(
                                 '<span contenteditable="false">'
-                                'span class="ql-mention-denotation-char">'
+                                '<span class="ql-mention-denotation-char">'
                                 '@</span>{}</span>'.format(
                                     actual_name
                                 ),
