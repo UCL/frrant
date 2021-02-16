@@ -25,7 +25,7 @@ class OriginalText(HistoryViewMixin, BaseModel):
     citing_work = models.ForeignKey('CitingWork', on_delete=models.CASCADE)
 
     # e.g. page 24
-    reference = models.CharField(max_length=128, blank=True)
+    reference = models.CharField(max_length=128, blank=False)
 
     content = models.TextField(blank=False)
 
