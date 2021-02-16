@@ -79,7 +79,7 @@ async function suggestPeople(searchTerm) {
     // call backend synchonously here and wait
     let matches = []
     await $.ajax({
-        url: `/search/?q=${searchTerm}`,
+        url: `/search/ajax/mention/?q=${searchTerm}`,
         type: "GET",
         context: document.body,
         dataType: 'json',
@@ -161,7 +161,7 @@ $('.rich-editor').each(function() {
     if ($(this).hasClass('enable-mentions')) {
         config['modules']['mention'] = {
             allowedChars: /^[A-Za-z\sÅÄÖåäö]*$/,
-            mentionDenotationChars: ["@", "#"],
+            mentionDenotationChars: ["@"],
             source: async function(searchTerm, renderList) {
                 const matchedPeople = await suggestPeople(searchTerm);
                 console.log('MATCHED PEOPLE '+matchedPeople)
