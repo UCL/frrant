@@ -14,10 +14,16 @@
         {% csrf_token %}
 
         {% for field in form %}
-        {% bootstrap_field field %}
 
         {% if field.name == 'title' %}
-        {% include 'research/partials/rich_text_editor.html' with field=field %}
+
+            {% bootstrap_field field field_class='d-none' %}
+            {% include 'research/partials/rich_text_editor.html' with field=field %}
+
+        {% else %}
+
+            {% bootstrap_field field %}
+
         {% endif %}
                     
         {% endfor %}

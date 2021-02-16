@@ -146,7 +146,7 @@
 
             <form novalidate enctype="multipart/form-data" autocomplete='off' action='{% url "testimonium:update_commentary" object.pk %}' class="form" method='POST'>
                 {% csrf_token %}
-                    {% bootstrap_field form.commentary_text show_label=False %}
+                    {% bootstrap_field form.commentary_text field_class='d-none' show_label=False %}
                     {% include 'research/partials/rich_text_editor.html' with field=form.commentary_text enable_mentions=True %}
 
                 <button type="submit" class="btn btn-primary inline-save-button">
