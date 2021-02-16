@@ -4,7 +4,7 @@ from django.db import models
 from simple_history.models import HistoricalRecords
 
 from rard.research.models.mixins import HistoryViewMixin
-from rard.utils.basemodel import BaseModel
+from rard.utils.basemodel import BaseModel, DynamicTextField
 
 
 class OriginalText(HistoryViewMixin, BaseModel):
@@ -25,11 +25,11 @@ class OriginalText(HistoryViewMixin, BaseModel):
     citing_work = models.ForeignKey('CitingWork', on_delete=models.CASCADE)
 
     # e.g. page 24
-    reference = models.CharField(max_length=128, blank=True)
+    reference = models.CharField(max_length=128, blank=False)
 
     content = models.TextField(blank=False)
 
-    apparatus_criticus = models.TextField(default='', blank=True)
+    apparatus_criticus = DynamicTextField(default='', blank=True)
 
     def citing_work_reference_display(self):
         citing_work_str = str(self.citing_work)

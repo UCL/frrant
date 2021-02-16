@@ -1,9 +1,10 @@
 
-{# assumes form field as a context variable named 'field' #}
+{# assumes form field as a context variable named 'field' and whether to enable mentions 'enable_mentions' #}
 
 <div class='row mb-3 mt-n3'>
-    <div class='col h-fill'>
-        <div class='rich-editor' spellcheck="false"  id='{{ field.auto_id }}_rich_editor_content' data-for='{{ field.auto_id }}'>
+    <div class='col h-fill' style='min-height: 400px; padding-bottom: 60px;'>
+        <div id='{{ field.auto_id }}_editor' class='rich-editor {% if enable_mentions %}enable-mentions{% endif %}' spellcheck="false"  id='{{ field.auto_id }}_rich_editor_content' data-for='{{ field.auto_id }}'>
         </div>
+        {% if enable_mentions %}<div class='text-muted'><small>@mentions are enabled</small></div>{% endif %}
     </div>
 </div>

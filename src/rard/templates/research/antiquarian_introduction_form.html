@@ -8,8 +8,8 @@
 {% block inner %}
     <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
         {% csrf_token %}
-            {% bootstrap_field form.introduction_text %}
-            {% include 'research/partials/rich_text_editor.html' with field=form.introduction_text %}
+            {% bootstrap_field form.introduction_text field_class='d-none' %}
+            {% include 'research/partials/rich_text_editor.html' with field=form.introduction_text enable_mentions=True %}
 
       <button type="submit" class="btn btn-primary">
                 {% trans 'Save' %}

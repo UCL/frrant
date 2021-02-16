@@ -6,14 +6,11 @@
             color: black;
             /* opacity: 0.5; */
         }
-        .main-content button[type=submit]:not(.inline-save-button)  {
+        .main-content button[type=submit]:not(.inline-save-button, .dynamic-link-button)  {
             pointer-events: none;
             opacity: 0.5;
         }
         body {
             background-color:#f8f9fa;
-        }
-        .trumbowyg-box {
-            background-color: white;
         }
     </style>

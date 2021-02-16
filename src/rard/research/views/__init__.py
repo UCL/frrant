@@ -27,6 +27,7 @@ from .fragment import (AddAppositumFragmentLinkView,
                        RemoveAppositumLinkView)
 from .history import HistoryListView
 from .home import HomeView
+from .mention import MentionSearchView
 from .original_text import (AnonymousFragmentOriginalTextCreateView,
                             FragmentOriginalTextCreateView,
                             OriginalTextDeleteView, OriginalTextUpdateView,
@@ -95,6 +96,7 @@ __all__ = [
     'FragmentUpdateAntiquariansView',
     'HistoryListView',
     'HomeView',
+    'MentionSearchView',
     'OriginalTextDeleteView',
     'OriginalTextUpdateView',
     'RemoveAppositumLinkView',
