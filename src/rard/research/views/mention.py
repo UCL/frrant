@@ -33,7 +33,7 @@ class MentionSearchView(LoginRequiredMixin, View):
     def antiquarian_search(cls, keywords):
         qs = Antiquarian.objects.all()
         results = (
-            qs.filter(name__istartswith=keywords)
+            qs.filter(name__icontains=keywords)
         )
         return results.distinct()
 
@@ -41,7 +41,7 @@ class MentionSearchView(LoginRequiredMixin, View):
     def topic_search(cls, keywords):
         qs = Topic.objects.all()
         results = (
-            qs.filter(name__istartswith=keywords)
+            qs.filter(name__icontains=keywords)
         )
         return results.distinct()
 
@@ -49,7 +49,7 @@ class MentionSearchView(LoginRequiredMixin, View):
     def work_search(cls, keywords):
         qs = Work.objects.all()
         results = (
-            qs.filter(name__istartswith=keywords)
+            qs.filter(name__icontains=keywords)
         )
         return results.distinct()
 
@@ -58,7 +58,7 @@ class MentionSearchView(LoginRequiredMixin, View):
         qs = Fragment.objects.all()
         results = (
             qs.filter(
-                antiquarian_fragmentlinks__antiquarian__name__istartswith=keywords  # noqa
+                antiquarian_fragmentlinks__antiquarian__name__icontains=keywords  # noqa
             )
         )
         return results.distinct()
@@ -68,7 +68,7 @@ class MentionSearchView(LoginRequiredMixin, View):
         qs = AnonymousFragment.objects.all()
         results = (
             qs.filter(
-                appositumfragmentlinks_from__antiquarian__name__istartswith=keywords  # noqa
+                appositumfragmentlinks_from__antiquarian__name__icontains=keywords  # noqa
             )
         )
         return results.distinct()
@@ -78,7 +78,7 @@ class MentionSearchView(LoginRequiredMixin, View):
         qs = Testimonium.objects.all()
         results = (
             qs.filter(
-                antiquarian_testimoniumlinks__antiquarian__name__istartswith=keywords  # noqa
+                antiquarian_testimoniumlinks__antiquarian__name__icontains=keywords  # noqa
             )
         )
         return results.distinct()
