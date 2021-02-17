@@ -79,15 +79,13 @@ async function suggestPeople(searchTerm) {
     // call backend synchonously here and wait
     let matches = []
     await $.ajax({
-        url: `/search/ajax/mention/?q=${searchTerm}`,
+        url: `${g_mention_url}?q=${searchTerm}`,
         type: "GET",
         context: document.body,
         dataType: 'json',
         async: false,
         success: function (data, textStatus, jqXHR) {
             matches = data;
-            console.log('data is')
-            console.dir(data)
         },
         error: function (e) {
         }
@@ -164,7 +162,6 @@ $('.rich-editor').each(function() {
             mentionDenotationChars: ["@"],
             source: async function(searchTerm, renderList) {
                 const matchedPeople = await suggestPeople(searchTerm);
-                console.log('MATCHED PEOPLE '+matchedPeople)
                 renderList(matchedPeople);
             }
         }
