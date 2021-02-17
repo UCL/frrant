@@ -55,10 +55,23 @@
                 <h5>{% trans 'Fragments' %}</h5>
             </div>
             <div>
+               <form novalidate autocomplete='off' action='{{ request.path }}' class="form" method='GET'>
+                    <div class="form-row align-items-center">
+                        <div class="input-group mb-3">
+                            <div class="input-group-prepend">
+                                <label class="input-group-text bg-white border-0" for="fragment_order">Order by:</label>
+                            </div>
+                            <select class="custom-select submit-on-change form-control form-control-sm" id='fragment_order' name='order'>
+                                <option value='antiquarian' {% if not order or order == 'antiquarian' %}selected{% endif %}>Antiquarian</option>
+                                <option value='citing_author' {% if order == 'citing_author' %}selected{% endif %}>Citing Author</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
 
-        {% for fragment in object.fragment_set.all %}
+        {% for fragment in fragments %}
 
         {% include 'research/partials/fragment_list_item.html' with fragment=fragment %}
 

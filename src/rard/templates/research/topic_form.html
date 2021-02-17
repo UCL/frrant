@@ -13,12 +13,17 @@
     <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
         {% csrf_token %}
         {% bootstrap_form form %}
-        <button type="submit" class="btn btn-primary">
             {% if object %}
+                <button type="submit" class="btn btn-primary">
                 {% trans 'Save' %}
+                </button>
             {% else %}
+                <button type="submit" class="btn btn-primary">
                 {% trans 'Create' %}
+                </button>
+                <button name='another' type="submit" class="btn btn-outline-primary">
+                {% trans 'Create and add another' %}
+                </button>
             {% endif %}
-        </button>
     </form>
 {% endblock %}

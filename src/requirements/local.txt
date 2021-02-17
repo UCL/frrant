@@ -34,3 +34,7 @@ django-debug-toolbar==2.2  # https://github.com/jazzband/django-debug-toolbar
 django-extensions==3.0.8  # https://github.com/django-extensions/django-extensions
 django-coverage-plugin==1.8.0  # https://github.com/nedbat/django_coverage_plugin
 pytest-django==3.9.0  # https://github.com/pytest-dev/pytest-django
+
+# Overrides
+# ------------------------------------------------------------------------------
+jedi==0.17.2  # needs to be pinned to this as incompat with latest ipython

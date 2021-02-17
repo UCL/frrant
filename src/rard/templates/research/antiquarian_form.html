@@ -17,8 +17,10 @@
         {% bootstrap_field form.re_code %}
         {% include 'research/partials/render_date_form_fields.html' %}
 
-        {% bootstrap_field form.introduction_text %}
-        {% include 'research/partials/rich_text_editor.html' with field=form.introduction_text %}
+        {% if form.introduction_text %}
+            {% bootstrap_field form.introduction_text field_class='d-none' %}
+            {% include 'research/partials/rich_text_editor.html' with field=form.introduction_text enable_mentions=True %}
+        {% endif %}
 
       <button type="submit" class="btn btn-primary">
             {% if object %}

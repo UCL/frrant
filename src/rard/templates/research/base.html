@@ -40,10 +40,16 @@
 }
 
 /* Add styles to the form container */
-.form-container {
+.symbol-popup .form-container {
   max-width: 300px;
   padding: 10px;
   background-color: white;
+}
+
+.symbol-palette {
+  display:none;
+  max-height: 33vh;
+  overflow-y: auto;
 }
 
 /* .ordered-list-item:first-of-type .form-group [name*='up']  {
@@ -58,7 +64,7 @@
 
 
 /* Full-width textarea */
-.form-container textarea {
+.symbol-popup .form-container textarea {
   width: 100%;
   padding: 15px;
   margin: 5px 0 22px 0;
@@ -69,13 +75,13 @@
 }
 
 /* When the textarea gets focus, do something */
-.form-container textarea:focus {
+.symbol-popup .form-container textarea:focus {
   background-color: #ddd;
   outline: none;
 }
 
 /* Add some hover effects to buttons */
-.form-container .btn:hover, .open-button:hover {
+.symbol-popup .form-container .btn:hover, .open-button:hover {
   opacity: 1;
 }
 
@@ -191,11 +197,11 @@
       </a>
     </nav>
   </div>
-  <div class='col'>
+  <div class='col-md-10 main-content'>
     {% block outer %}
     <div class="d-flex">
       <div>
-        <h3 class='historical mb-3'>{% block heading %}{% endblock %}</h3>
+        <h3 class='historical mb-3 mr-3'>{% block heading %}{% endblock %}</h3>
       </div>
       <div class='ml-auto'>{% block action %}{% endblock %}</div>
     </div>

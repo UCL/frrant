@@ -1,0 +1,78 @@
+{% extends "research/list_base.html" %}
+{% load i18n object_lock get_history get_object_class get_full_path_with_page %}
+
+{% block heading %}
+    {% trans 'History for ' %}{{ object.get_history_title }}
+{% endblock %}
+
+
+
+{% block action %}
+
+    {% with request.user|has_lock:object as has_object_lock %}
+
+        <div class='d-flex justify-content-between align-items-center mb-2'>
+            <div class='mr-3'>
+                {% include 'research/partials/render_locked_icons.html' with object=object.related_lock_object %}
+                <a class='ml-3' href='{{ object.related_lock_object.get_absolute_url }}'>{% trans 'View Item' %}</a>
+            </div>
+        </div>
+    {% endwith %}
+
+{% endblock %}
+
+{% block inner %}
+
+    {% with request.user|has_lock:object as has_object_lock %}
+
+        {% for history_item in page_obj %}
+
+        <div class='rard-list-item d-flex justify-content-between'>
+            <div>
+
+            {% if history_item %}
+               <small>{% include 'research/partials/render_history_item_info.html' %}</small>
+            {% endif %}
+
+            </div>
+            <div>
+
+                <form novalidate class='form-inline' action='' method='POST'>
+                    {% csrf_token %}
+
+                    {% if diff_item != history_item.pk and history_item.prev_record %}
+                        <a data-placement="top" data-toggle='tooltip' title='Show diff against previous version' class='btn btn-link btn-sm' href='{{ request|get_full_path_with_page:page_obj.number }}&diff={{ history_item.pk }}'>
+                            <i class='text-muted fa fa-eye'></i>
+                        </a>
+                    {% endif %}
+                    {% if has_object_lock %}
+
+                    <div class='form-group'>
+                        <input type='hidden' name='history_item_id' value='{{ history_item.pk }}'>
+                        <button data-placement="top" data-toggle='tooltip' title='Revert to this version' type='submit' class='btn btn-light' {% if not history_item.next_record %}disabled{% endif %}
+                            name='revert'><i class='text-muted fa fa-undo'></i></button>
+                    </div>
+                    {% endif %}
+
+                </form>
+            </div>
+        </div>
+
+
+
+            {% if diff_item == history_item.pk %}
+            <div class="card card-body bg-light historical">
+                {{ history_item|render_diff|safe }}
+            </div>
+            {% endif %}
+            {% if not forloop.last %}
+            <hr>
+            {% endif %}
+
+        {% endfor %}
+
+    {% endwith %}
+
+    {{ block.super }}
+
+{% endblock %}

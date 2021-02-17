@@ -99,9 +99,11 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         keywords = self.request.GET.get('q', None)
         if keywords is not None and keywords.strip() == '':
             # empty search field. Redirect to cleared page
-            return redirect(self.request.path)
+            ret = redirect(self.request.path)
+        else:
+            ret = super().get(request, *args, **kwargs)
 
-        return super().get(request, *args, **kwargs)
+        return ret
 
     def get_context_data(self, *args, **kwargs):
         queryset = kwargs.pop('object_list', None)
@@ -123,7 +125,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
 
         result_set = []
 
-        to_search = self.request.GET.getlist('what')
+        to_search = self.request.GET.getlist('what', ['all'])
         if to_search == ['all']:
             to_search = self.SEARCH_METHODS.keys()
 

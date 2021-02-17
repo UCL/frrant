@@ -1,6 +1,9 @@
+from django.contrib.postgres.aggregates import StringAgg
 from django.db import models
 from django.urls import reverse
+from simple_history.models import HistoricalRecords
 
+from rard.research.models.mixins import HistoryViewMixin
 from rard.utils.basemodel import BaseModel, DatedModel, LockableModel
 
 
@@ -11,12 +14,24 @@ class WorkManager(models.Manager):
         # mark up the queryset with the lowest author name and then
         # order by that followed by name
         # Make sure anonymous works are at the top with nulls_first parameter
+
         return qs.annotate(
-            authors=models.Min('worklink__antiquarian__order_name')
-        ).order_by(models.F(('authors')).asc(nulls_first=True), 'name')
+            authors=StringAgg(
+                'worklink__antiquarian__order_name',
+                delimiter=','
+            )
+        ).order_by(
+            models.F(('authors')).asc(nulls_first=True),
+            'name', 'year1', 'year2'
+        )
 
 
-class Work(DatedModel, LockableModel, BaseModel):
+class Work(HistoryViewMixin, DatedModel, LockableModel, BaseModel):
+
+    history = HistoricalRecords()
+
+    def related_lock_object(self):
+        return self
 
     class Meta:
         ordering = ['name']
@@ -88,7 +103,12 @@ class Work(DatedModel, LockableModel, BaseModel):
         ).distinct()
 
 
-class Book(DatedModel, BaseModel):
+class Book(HistoryViewMixin, DatedModel, BaseModel):
+
+    history = HistoricalRecords()
+
+    def related_lock_object(self):
+        return self.work
 
     class Meta:
         ordering = ['number']

@@ -2,9 +2,11 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models, transaction
 from django.db.models.signals import m2m_changed, post_delete, post_save
 from django.urls import reverse
+from simple_history.models import HistoricalRecords
 
 from rard.research.models.base import (AppositumFragmentLink, FragmentLink,
                                        HistoricalBaseModel)
+from rard.research.models.mixins import HistoryViewMixin
 from rard.research.models.topic import Topic
 from rard.utils.basemodel import OrderableModel
 
@@ -47,7 +49,17 @@ m2m_changed.connect(handle_changed_topics, sender=TopicLink)
 post_delete.connect(handle_deleted_topic_link, sender=TopicLink)
 
 
-class Fragment(HistoricalBaseModel):
+class Fragment(HistoryViewMixin, HistoricalBaseModel):
+
+    history = HistoricalRecords(
+        excluded_fields=[
+            'topics',
+        ]
+    )
+
+    def related_lock_object(self):
+        # what needs to be locked in order to change the object
+        return self
 
     # fragments can also have topics
     topics = models.ManyToManyField('Topic', blank=True, through='TopicLink')
@@ -114,9 +126,6 @@ class Fragment(HistoricalBaseModel):
         return self.appositumfragmentlinks_to.order_by('work', 'work_order')
 
 
-Fragment.init_text_object_fields()
-
-
 class AnonymousTopicLink(models.Model):
 
     # need a different class for anonymous topics so they can
@@ -134,7 +143,16 @@ class AnonymousTopicLink(models.Model):
     order = models.IntegerField(default=None, null=True)
 
 
-class AnonymousFragment(OrderableModel, HistoricalBaseModel):
+class AnonymousFragment(HistoryViewMixin, OrderableModel, HistoricalBaseModel):
+
+    history = HistoricalRecords(
+        excluded_fields=[
+            'topics', 'original_texts', 'fragments',
+        ]
+    )
+
+    def related_lock_object(self):
+        return self
 
     class Meta(HistoricalBaseModel.Meta):
         ordering = ['order']
@@ -192,9 +210,6 @@ class AnonymousFragment(OrderableModel, HistoricalBaseModel):
                 if item.order != count:
                     item.order = count
                     item.save()
-
-
-AnonymousFragment.init_text_object_fields()
 
 
 # handle changes in topic order and re-order anonymous fragments
@@ -265,3 +280,6 @@ post_delete.connect(handle_changed_anon_topics, sender=AnonymousTopicLink)
 post_save.connect(handle_changed_anon_topics, sender=Topic)
 
 m2m_changed.connect(handle_apposita_change, sender=Fragment.apposita.through)
+
+Fragment.init_text_object_fields()
+AnonymousFragment.init_text_object_fields()

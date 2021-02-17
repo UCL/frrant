@@ -1,0 +1,13 @@
+{# Assumes a context object named 'text_object' #}
+<div class="card mt-3 mb-5 bg-light">
+    <div class="card-body">
+        <div class='card-text alphabetum'>
+            {{ text_object.render_content|safe }}
+        </div>
+        <small class='text-muted'>{% include 'research/partials/render_last_modified_info.html' with object=text_object %}</small>
+        
+        <div>
+        </div>
+
+    </div>
+</div>

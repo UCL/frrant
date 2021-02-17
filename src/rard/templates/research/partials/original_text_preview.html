@@ -1,9 +1,12 @@
 {# Assumes a context object named 'original_text' #}
-
 <div class="card mt-3 mb-5 bg-light">
     <div class="card-body">
         <div class='card-text alphabetum'>
             {{ original_text.content|safe }}
         </div>
+        <small class='text-muted'>{% include 'research/partials/render_last_modified_info.html' with object=original_text %}</small>
+        <div>
+        </div>
+
     </div>
 </div>

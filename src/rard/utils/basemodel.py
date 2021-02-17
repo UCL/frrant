@@ -1,13 +1,138 @@
+import bs4
+from django.apps import apps
 from django.conf import settings
 from django.contrib.contenttypes.fields import (GenericForeignKey,
                                                 GenericRelation)
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.shortcuts import get_current_site
+from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
 from django.db import models
+from django.db.models.fields import TextField
 from django.template.loader import render_to_string
 from django.utils import timezone
 from model_utils.models import TimeStampedModel
+
+
+class DynamicTextField(TextField):
+
+    # class to search for dynamic links in text fields
+    def contribute_to_class(self, cls, name, **kwargs):
+
+        super().contribute_to_class(cls, name, **kwargs)
+        if not self.null:
+            field_name = self.name
+
+            def update_editable_mentions(self):
+                # before editing we would like to check that
+                # the text in aech of the mentions
+                # is up to date
+                value = getattr(self, field_name)
+                soup = bs4.BeautifulSoup(value, features="html.parser")
+                links = soup.find_all("span", class_="mention")
+
+                for link in links:
+
+                    item_to_replace = link.find(
+                        'span', contenteditable='false'
+                    )
+                    if not item_to_replace:
+                        # format of the link is not as we expect so
+                        # ignore it for now
+                        continue
+
+                    model_name = link.attrs.get('data-target', None)
+                    pkstr = link.attrs.get('data-id', None)
+
+                    replacement = None
+
+                    if model_name and pkstr:
+                        try:
+                            model = apps.get_model(
+                                app_label='research', model_name=model_name
+                            )
+                            linked = model.objects.get(pk=int(pkstr))
+                            actual_name = str(linked)
+
+                            replacement = bs4.BeautifulSoup(
+                                '<span contenteditable="false">'
+                                '<span class="ql-mention-denotation-char">'
+                                '@</span>{}</span>'.format(
+                                    actual_name
+                                ),
+                                features="html.parser"
+                            )
+                            item_to_replace.replace_with(replacement)
+                            link['data-value'] = actual_name
+
+                        except (AttributeError, KeyError, ValueError,
+                                ObjectDoesNotExist):
+                            # the user has a bad link and needs to
+                            # replace it, so mark it in error
+                            link['class'].extend(['error'])
+
+                setattr(self, field_name, str(soup))
+
+                self.save_without_historical_record()
+
+            def render_dynamic_content(self):
+                value = getattr(self, field_name)
+                soup = bs4.BeautifulSoup(value, features="html.parser")
+                links = soup.find_all("span", class_="mention")
+
+                for link in links:
+                    model_name = link.attrs.get('data-target', None)
+                    pkstr = link.attrs.get('data-id', None)
+
+                    replacement = None
+
+                    if model_name and pkstr:
+                        try:
+                            model = apps.get_model(
+                                app_label='research', model_name=model_name
+                            )
+                            linked = model.objects.get(pk=int(pkstr))
+                            replacement = bs4.BeautifulSoup(
+                                '<a href="{}">{}</a>'.format(
+                                    linked.get_absolute_url(),
+                                    str(linked)
+                                ),
+                                features="html.parser"
+                            )
+                        except (AttributeError, KeyError, ValueError,
+                                ObjectDoesNotExist):
+                            # indicate a bad link. Alternative we could use
+                            # the content of the definition as a fall-back
+                            # and render that? If so, just remove the
+                            # replacement line below and that will happen
+                            # i.e. <dynamic>this content here</dynamic>
+
+                            # try and extract the name not the @ from
+                            # the content
+                            # but fallback to the full link text if need be
+                            linktext = str(link.text)
+                            linktext = linktext.replace('@', '')
+
+                            replacement = bs4.BeautifulSoup(
+                                '<span class="bad-link">{}</span>'.format(
+                                    linktext
+                                ),
+                                features="html.parser"
+                            )
+                        # replace with the new link in the rendered output
+                        if replacement:
+                            link.replace_with(replacement)
+
+                return str(soup)
+
+            setattr(
+                cls, 'render_%s' % self.name,
+                render_dynamic_content
+            )
+            setattr(
+                cls, 'update_%s_mentions' % self.name,
+                update_editable_mentions
+            )
 
 
 class ObjectLock(models.Model):

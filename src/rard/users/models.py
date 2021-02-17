@@ -1,5 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from rard.utils.basemodel import BaseModel
@@ -32,3 +33,6 @@ class User(AbstractUser, BaseModel):
             last_name='User',
             username=cls.SENTINEL_USERNAME
         )[0]
+
+    def get_absolute_url(self):
+        return reverse('users:detail', kwargs={'username': self.username})

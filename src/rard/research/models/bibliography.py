@@ -1,11 +1,18 @@
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from simple_history.models import HistoricalRecords
 
+from rard.research.models.mixins import HistoryViewMixin
 from rard.utils.basemodel import BaseModel
 
 
-class BibliographyItem(BaseModel):
+class BibliographyItem(HistoryViewMixin, BaseModel):
+
+    history = HistoricalRecords()
+
+    def related_lock_object(self):
+        return self.parent
 
     class Meta:
         ordering = ['author_surnames', 'year']

@@ -1,4 +1,5 @@
 from django.db.models.signals import post_delete, post_save
+from django.urls import reverse
 
 
 class TextObjectFieldMixin(object):
@@ -21,7 +22,7 @@ class TextObjectFieldMixin(object):
             from rard.research.models.text_object_field import TextObjectField
             for field in cls.get_text_object_fields():
                 setattr(instance, field.name, TextObjectField.objects.create())
-            instance.save()
+            instance.save_without_historical_record()
 
     @classmethod
     def delete_text_object_fields(cls, sender, instance, **kwargs):
@@ -36,31 +37,34 @@ class TextObjectFieldMixin(object):
         post_delete.connect(cls.delete_text_object_fields, sender=cls)
 
 
-# class OrderableMixin(object):
+class HistoryViewMixin(object):
 
-#     def related_queryset(self):
-#         # by default sort according to all objects of this class
-#         # and this can be overidden in the subclasses in case
-#         # you need to order e.g. wrt a particular data member e.g. work
-#         return self.__class__.objects.all()
+    def related_lock_object(self):  # pragma: no cover
+        # the object that needs to have a lock to allow reverts
+        class_name = self.__class__.__name__
+        raise NotImplementedError(
+            '%s must provide a related_lock_object() method' % class_name
+        )
 
-#     def prev(self):
-#         return self.related_queryset().filter(order__lt=self.order).last()
+    def get_history_title(self):
+        return str(self)
 
-#     def next(self):
-#         return self.related_queryset().filter(order__gt=self.order).first()
+    def history_url(self):
+        # by default sort according to all objects of this class
+        # and this can be overidden in the subclasses in case
+        # you need to order e.g. wrt a particular data member e.g. work
+        from django.apps import apps
+        dd = apps.all_models['research']
+        model_name = next(
+            key for key, value in dd.items() if value == self.__class__)
 
-#     def swap(self, replacement):
-#         self.order, replacement.order = replacement.order, self.order
-#         self.save()
-#         replacement.save()
-
-#     def up(self):
-#         previous = self.prev()
-#         if previous:
-#             self.swap(previous)
-
-#     def down(self):
-#         next_ = self.next()
-#         if next_:
-#             self.swap(next_)
+        try:
+            return reverse(
+                'history:list',
+                kwargs={
+                    'model_name': model_name,
+                    'pk': self.pk
+                }
+            )
+        except NameError:
+            return None

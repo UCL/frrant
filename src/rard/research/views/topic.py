@@ -37,6 +37,32 @@ class TopicDetailView(CanLockMixin, LoginRequiredMixin,
     model = Topic
     permission_required = ('research.view_topic',)
 
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        qs = self.get_object().fragment_set.all()
+        order = self.request.GET.get('order', None)
+        if order == 'citing_author':
+            qs = qs.order_by('original_texts__citing_author__name')
+        else:
+            qs = qs.order_by(
+                'antiquarian_fragmentlinks__antiquarian__order_name'
+            )
+
+        rtn = []
+        for x in qs:
+            # don't add duplicates as we are ordering by a name field
+            # and the duplicates will have the first name
+            # first in the list and therefore look wrong
+            if x not in rtn:
+                rtn.append(x)
+        qs = rtn
+
+        context.update({
+            'fragments': qs,
+            'order': order,
+        })
+        return context
+
 
 class TopicCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = Topic
@@ -44,6 +70,8 @@ class TopicCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     permission_required = ('research.add_topic',)
 
     def get_success_url(self, *args, **kwargs):
+        if 'another' in self.request.POST:
+            return self.request.path
         return reverse('topic:list')
 
 

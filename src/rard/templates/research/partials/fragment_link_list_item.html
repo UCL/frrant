@@ -1,4 +1,4 @@
-{# Assumes a context object named 'link' and 'link_text' #}
+{# Assumes a context object named 'link' and 'link_text'. Optional disable_link_controls to display but disable the link controls #}
 
 {% load i18n %}
 
@@ -17,9 +17,6 @@
                 <i title='Possible link' data-placement="top" data-toggle='tooltip' class='fa fa-question-circle fa-xs text-muted'></i>
                 {% endif %}
 
-                {% comment %}
-                <span class='badge badge-secondary'>{{ link.definite|yesno:"Definite,Possible"}}</span>
-                {% endcomment %}
             <br>
             <small>
                 <span class='ml-4 text-muted'>
@@ -36,9 +33,9 @@
             <div class='form-group'>
                 <input type='hidden' name='link_id' value='{{ link.pk }}'>
                 <input type='hidden' name='object_type' value='fragment'>
-                <button type='submit' class='btn btn-light'  {% if forloop.first %}disabled{% endif %}
+                <button type='submit' class='btn btn-light'  {% if forloop.first or disable_link_controls %}disabled{% endif %}
                     name='up_by_work'>▲</button>
-                <button type='submit' class='btn btn-light'  {% if forloop.last %}disabled{% endif %}
+                <button type='submit' class='btn btn-light'  {% if forloop.last or disable_link_controls %}disabled{% endif %}
                     name='down_by_work'>▼</button>
             </div>
         </form>

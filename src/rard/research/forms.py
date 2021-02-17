@@ -19,6 +19,8 @@ class DatedModelFormBase(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         year_type = self.cleaned_data.get('year_type', None)
+        dates_type = self.cleaned_data.get('dates_type', None)
+
         if year_type:
             to_validate = ('year1', )
             if year_type == Antiquarian.YEAR_RANGE:
@@ -35,6 +37,17 @@ class DatedModelFormBase(forms.ModelForm):
         year1 = self.cleaned_data.get('year1', None)
         year2 = self.cleaned_data.get('year2', None)
 
+        if dates_type or year1 or year2:
+            if not year_type:
+                self.add_error('year_type', _('This field is required.'))
+            try:
+                self.fields['dates_type']
+                if not dates_type:
+                    self.add_error('dates_type', _('This field is required.'))
+            except KeyError:
+                # we didn't have a dates field on this form so we don't
+                # insist on it
+                pass
         if not year_type:
             cleaned_data['year1'] = None
             cleaned_data['year2'] = None
@@ -51,8 +64,45 @@ class DatedModelFormBase(forms.ModelForm):
         return cleaned_data
 
 
-class AntiquarianForm(DatedModelFormBase):
+class AntiquarianIntroductionForm(forms.ModelForm):
+    class Meta:
+        model = Antiquarian
+        fields = ('name',)  # need to specify at least one field
 
+    introduction_text = forms.CharField(
+        widget=forms.Textarea,
+        required=False,
+        label='Introduction',
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance:
+            self.instance.introduction.update_content_mentions()
+        self.fields['name'].required = False
+        if self.instance.introduction:
+            self.fields['introduction_text'].initial = \
+                self.instance.introduction.content
+
+    def save(self, commit=True):
+        if commit:
+            instance = super().save(commit=False)  # no need to save owner
+            # introduction will have been created at this point
+            instance.introduction.content = \
+                self.cleaned_data['introduction_text']
+            instance.introduction.save()
+        return instance
+
+
+class AntiquarianDetailsForm(DatedModelFormBase):
+    class Meta:
+        model = Antiquarian
+        fields = ('name', 'order_name', 're_code', 'circa1', 'circa2',
+                  'year_type', 'year1', 'year2', 'dates_type')
+        labels = {'order_name': 'Name for alphabetisation'}
+
+
+class AntiquarianCreateForm(DatedModelFormBase):
     class Meta:
         model = Antiquarian
         fields = ('name', 'order_name', 're_code', 'circa1', 'circa2',
@@ -72,13 +122,13 @@ class AntiquarianForm(DatedModelFormBase):
                 self.instance.introduction.content
 
     def save(self, commit=True):
-        instance = super().save(commit=False)
+        instance = super().save(commit)
         if commit:
-            instance.save()
+            instance.save_without_historical_record()
             # introduction will have been created at this point
             instance.introduction.content = \
                 self.cleaned_data['introduction_text']
-            instance.introduction.save()
+            instance.introduction.save_without_historical_record()
         return instance
 
 
@@ -234,6 +284,7 @@ class CommentaryFormBase(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance and self.instance.commentary:
+            self.instance.commentary.update_content_mentions()
             self.fields['commentary_text'].initial = \
                 self.instance.commentary.content
 
