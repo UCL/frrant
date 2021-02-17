@@ -65,7 +65,7 @@ https://docs.docker.com/docker-for-mac/#file-sharing
 
 ```cd ~/projects/rard/src```
 
-Note that for running locally (on our own machines) we use the `local.yml` config and not `development.yml` which is for deployment to the target development platform.
+Note that for running locally (on our own machines) we use the `local.yml` config and not `production.yml` which is for deployment to the production platform.
 
 ```docker-compose -f local.yml build```
 
@@ -225,6 +225,12 @@ and
 ```docker-compose -f local.yml run django python manage.py migrate```
 
 
+If your static files (css, js, fonts etc) have changed then on the production environments you will also need to refresh all of the static files in the deployed static folder.
+
+```docker-compose -f production.yml run django python manage.py collectstatic```
+
+Answer 'yes' to the 'are you sure question'. It might say something like '0 files updated' but this message is notoriously misleading. Check to see whether the static files (js etc) being used are the ones you expect.
+
 ### Requirements
 
 Requirements are applied when the containers are built. 
@@ -286,6 +292,9 @@ POSTGRES_PASSWORD=<secret password>
 ```
 
 for the username/password to use for postgres database.
+
+
+If your static files have changed in a deployment (css, js, fonts etc) then you need to run the 'collectstatic' command described earlier.
 
 
 ## SSL Certificates
@@ -360,3 +369,6 @@ add or change the following line:
 Then apply the settings with e.g.
 
 `service network restart`
+
+
+If the Javascript and css is not looking how you expect after production, ensure you have run 'collectstatic' on the target machine(s). See the description given earlier.
