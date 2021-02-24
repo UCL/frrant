@@ -9,7 +9,8 @@ from django.views.decorators.http import require_GET
 from django.views.generic import ListView, TemplateView
 
 from rard.research.models import (AnonymousFragment, Antiquarian, Fragment,
-                                  Testimonium, Topic, Work)
+                                  Testimonium, Topic, Work,
+                                  BibliographyItem)
 
 
 @method_decorator(require_GET, name='dispatch')
@@ -28,6 +29,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             'fragments': self.fragment_search,
             'topics': self.topic_search,
             'works': self.work_search,
+            'bibliography': self.bibliography_search
         }
 
     # move to queryset on model managers
@@ -67,6 +69,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             qs.filter(original_texts__reference__icontains=keywords) |
             qs.filter(original_texts__translation__translated_text__icontains=keywords) |  # noqa
             qs.filter(original_texts__translation__translator_name__icontains=keywords) |  # noqa
+            qs.filter(original_texts__apparatus_criticus__icontains=keywords) |
             qs.filter(commentary__content__icontains=keywords)
         )
         return results.distinct()
@@ -79,6 +82,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             qs.filter(original_texts__reference__icontains=keywords) |
             qs.filter(original_texts__translation__translated_text__icontains=keywords) |  # noqa
             qs.filter(original_texts__translation__translator_name__icontains=keywords) |  # noqa
+            qs.filter(original_texts__apparatus_criticus__icontains=keywords) |
             qs.filter(commentary__content__icontains=keywords)
         )
         return results.distinct()
@@ -91,7 +95,17 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             qs.filter(original_texts__reference__icontains=keywords) |
             qs.filter(original_texts__translation__translated_text__icontains=keywords) |  # noqa
             qs.filter(original_texts__translation__translator_name__icontains=keywords) |  # noqa
+            qs.filter(original_texts__apparatus_criticus__icontains=keywords) |
             qs.filter(commentary__content__icontains=keywords)
+        )
+        return results.distinct()
+
+    @classmethod
+    def bibliography_search(cls, keywords):
+        qs = BibliographyItem.objects.all()
+        results = (
+            qs.filter(authors__icontains=keywords) |
+            qs.filter(title__icontains=keywords)
         )
         return results.distinct()
 
