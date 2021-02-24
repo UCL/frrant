@@ -137,6 +137,7 @@ class TestSearchView(TestCase):
                 'fragments',
                 'topics',
                 'works',
+                'bibliography'
             ]
         )
 
