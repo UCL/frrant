@@ -137,6 +137,8 @@ class TestSearchView(TestCase):
                 'fragments',
                 'topics',
                 'works',
+                'bibliography',
+                'apparatus criticus',
             ]
         )
 
@@ -206,18 +208,18 @@ class TestSearchView(TestCase):
         }
         f1 = Fragment.objects.create()
         f1.original_texts.create(**data)
-        self.assertEqual(list(view.fragment_search('TuF')), [f1])
-        self.assertEqual(list(view.fragment_search('ffi')), [])
-
-        f1 = AnonymousFragment.objects.create()
-        f1.original_texts.create(**data)
-        self.assertEqual(list(view.anonymous_fragment_search('STUf')), [f1])
-        self.assertEqual(list(view.anonymous_fragment_search('stua')), [])
-
+        data['apparatus_criticus'] = 'nonsense'
         t1 = Testimonium.objects.create()
         t1.original_texts.create(**data)
-        self.assertEqual(list(view.testimonium_search('stU')), [t1])
-        self.assertEqual(list(view.testimonium_search('yff')), [])
+        data['apparatus_criticus'] = 'rubbish'
+        f2 = AnonymousFragment.objects.create()
+        f2.original_texts.create(**data)
+
+        self.assertEqual(list(view.apparatus_criticus_search('TuF')), [f1])
+        self.assertEqual(list(view.apparatus_criticus_search('bBi')), [f2])
+        self.assertEqual(list(view.apparatus_criticus_search('nseN')), [t1])
+        self.assertEqual(list(view.apparatus_criticus_search('s')), [f1, f2, t1])
+        self.assertEqual(list(view.apparatus_criticus_search('content')), [])
 
         # bibliography
         parent = TextObjectField.objects.create(content='foo')
