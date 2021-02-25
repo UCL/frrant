@@ -77,12 +77,11 @@ class AntiquarianIntroductionForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.instance.introduction:
+        if self.instance and self.instance.introduction:
             self.instance.introduction.update_content_mentions()
-        self.fields['name'].required = False
-        if self.instance.introduction:
             self.fields['introduction_text'].initial = \
                 self.instance.introduction.content
+        self.fields['name'].required = False
 
     def save(self, commit=True):
         if commit:

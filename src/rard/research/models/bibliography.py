@@ -14,6 +14,11 @@ class BibliographyItem(HistoryViewMixin, BaseModel):
     def related_lock_object(self):
         return self.parent
 
+    def __str__(self):
+        if self.year:
+            return self.author_surnames + ' [' + self.year + ']'
+        return self.author_surnames
+
     class Meta:
         ordering = ['author_surnames', 'year']
 
