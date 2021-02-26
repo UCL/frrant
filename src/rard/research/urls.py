@@ -35,6 +35,7 @@ urlpatterns = [
     ], 'research'), namespace='antiquarian')),
     path('bibliography/', include(([
         path('list/', views.BibliographyListView.as_view(), name='list'),
+        path("<pk>/", views.BibliographyDetailView.as_view(), name="detail"),
         path("<pk>/update/", views.BibliographyUpdateView.as_view(), name="update"),
         path("<pk>/delete/", views.BibliographyDeleteView.as_view(), name="delete"),
     ], 'research'), namespace='bibliography')),

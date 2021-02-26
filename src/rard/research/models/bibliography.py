@@ -1,11 +1,14 @@
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.urls import reverse
+from django.utils.safestring import mark_safe
 from simple_history.models import HistoricalRecords
 
 from rard.research.models.mixins import HistoryViewMixin
 from rard.utils.basemodel import BaseModel
 
+import re
 
 class BibliographyItem(HistoryViewMixin, BaseModel):
 
@@ -15,9 +18,14 @@ class BibliographyItem(HistoryViewMixin, BaseModel):
         return self.parent
 
     def __str__(self):
+        r = self.author_surnames
         if self.year:
-            return self.author_surnames + ' [' + self.year + ']'
-        return self.author_surnames
+            r += ' [' + self.year + ']'
+        title = re.sub(r'<[^>]*>', ' ', self.title)
+        return r + ': ' + re.sub(r'\s+', ' ', title).strip()
+
+    def get_absolute_url(self):
+        return reverse('bibliography:detail', kwargs={'pk': self.pk})
 
     class Meta:
         ordering = ['author_surnames', 'year']
