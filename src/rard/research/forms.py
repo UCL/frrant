@@ -77,7 +77,7 @@ class AntiquarianIntroductionForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.instance:
+        if self.instance and self.instance.introduction:
             self.instance.introduction.update_content_mentions()
         self.fields['name'].required = False
         if self.instance.introduction:
