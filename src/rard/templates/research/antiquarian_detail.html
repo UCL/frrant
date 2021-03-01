@@ -119,6 +119,41 @@
             {% include 'research/partials/render_last_modified_info.html' with object=object %}
             </small>
         </p>
+    </section>
+    <section>
+        <dl class="row mb-0">
+            <dt class="col-sm-3">{% trans 'Concordances' %}</dt>
+            <dd class="col-sm-7">
+                {% if object.antiquarianconcordance_set.count == 0 %}
+                    None
+                {% endif %}
+                {% for concordance in object.antiquarianconcordance_set.all %}
+                    <div class='d-flex justify-content-between mb-3'>
+                    <div>{{ concordance }}</div>
+                    <div>
+                        {% if perms.research.add_antiquarianconcordance and has_object_lock %}
+                        <form novalidate class='form-inline' action='{% url "antiquarian:delete_concordance" concordance.pk %}' method='POST'>
+                            {% csrf_token %}
+                            <div class='form-row align-items-center'>
+                                {% if perms.research.change_antiquarianconcordance %}
+                                <a href='{% url "antiquarian:update_concordance" concordance.pk %}'>Edit</a>
+                                {% endif %}
+                                {% if perms.research.delete_concordance %}
+                                <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+                                    data-what='concordance'>{% trans 'Delete' %}</button>
+                                {% endif %}
+                                <a class='ml-2' href='{{ concordance.history_url }}'><small><i class='fas fa-list'></i> Changelog</small></a>
+                            </div>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </dd>
+            {% if perms.research.add_antiquarianconcordance and has_object_lock %}
+            <dd class="col-sm-2 actions"><a style='float:right' href='{% url "antiquarian:create_concordance" object.pk %}'>Add</a></dd>
+            {% endif %}
+        </dl>
 
     </section>
     <hr>

@@ -1,0 +1,29 @@
+{% extends "research/base.html" %}
+{% load i18n bootstrap4 %}
+
+{% block heading %}
+    {% if object %}
+        {% blocktrans with antiquarian=antiquarian %}
+        Update Concordance for {{ antiquarian }} 
+        {% endblocktrans %}
+    {% else %}
+        {% blocktrans with antiquarian=antiquarian %}
+        Create Concordance for {{ antiquarian }} 
+        {% endblocktrans %}
+    {% endif %}
+{% endblock %}
+
+{% block inner %}
+
+    <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
+        {% csrf_token %}
+        {% bootstrap_form form %}
+        <button type="submit" class="btn btn-primary">
+            {% if object %}
+                {% trans 'Save' %}
+            {% else %}
+                {% trans 'Create' %}
+            {% endif %}
+        </button>
+    </form>
+{% endblock %}
