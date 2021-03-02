@@ -8,7 +8,7 @@ from .antiquarian import (AntiquarianBibliographyCreateView,
                           AntiquarianUpdateView, AntiquarianWorkCreateView,
                           AntiquarianWorksUpdateView)
 from .bibliography import (BibliographyDeleteView, BibliographyListView,
-                           BibliographyUpdateView, BibliographyDetailView)
+                           BibliographyUpdateView)
 from .citing_work import (CitingAuthorListView, CitingWorkDeleteView,
                           CitingWorkDetailView, CitingWorkUpdateView)
 from .comments import CommentDeleteView, TextObjectFieldCommentListView

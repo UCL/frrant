@@ -17,12 +17,6 @@ class BibliographyListView(LoginRequiredMixin,
     permission_required = ('research.view_bibliographyitem',)
 
 
-class BibliographyDetailView(CanLockMixin, LoginRequiredMixin,
-                             PermissionRequiredMixin, DetailView):
-    model = BibliographyItem
-    permission_required = ('research.view_bibliographyitem',)
-
-
 class BibliographyUpdateView(CheckLockMixin, LoginRequiredMixin,
                              PermissionRequiredMixin, UpdateView):
 

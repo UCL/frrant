@@ -25,7 +25,7 @@ class BibliographyItem(HistoryModelMixin, BaseModel):
         return r + ': ' + re.sub(r'\s+', ' ', title).strip()
 
     def get_absolute_url(self):
-        return reverse('bibliography:detail', kwargs={'pk': self.pk})
+        return self.parent.get_absolute_url()
 
     class Meta:
         ordering = ['author_surnames', 'year']
