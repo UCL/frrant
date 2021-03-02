@@ -96,6 +96,7 @@ class TestOriginalTextCreateViews(TestCase):
             'new_citing_work': True,
             'new_author': True,
             'new_author_name': AUTHOR_NAME,
+            'reference': 'page 1',
             'title': CITING_WORK_TITLE
         }
         # assert no original texts initially
