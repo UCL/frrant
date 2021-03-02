@@ -285,3 +285,67 @@ function openForm() {
 function closeForm() {
   document.getElementById("myForm").style.display = "none";
 }
+
+
+function allowDrop(ev) {
+  ev.preventDefault();
+//   var src_pos = ev.dataTransfer.getData("Text");
+
+//   var dst_pos = $(ev.target).data("pos");
+//   console.log('can we drop '+src_pos+' onto '+dst_pos)
+//   if (src_pos != dst_pos) {
+    $(ev.target).css('height', '100px')
+//   }
+}
+
+function dragleave(ev) {
+  ev.preventDefault();
+  $(ev.target).css('height', '10px')
+
+}
+function dragend(ev) {
+  ev.preventDefault();
+  $('.drop-target').hide();
+  $('.ordered-list-item').attr('draggable', 'false')
+
+}
+
+$('.drag-handle').mousedown(function() {
+    let item = $(this).closest('.ordered-list-item');
+    if (item) {
+        console.log('MADE PARENT DRAGGABLE')
+        item.attr('draggable', 'true')
+    }
+});
+
+$('.drag-handle').mouseup(function() {
+    let item = $(this).closest('.ordered-list-item');
+    if (item) {
+        console.log('MADE PARENT NOT DRAGGABLE')
+        item.attr('draggable', 'false')
+    }
+})
+
+function drag(ev) {
+    let src_pos = $(ev.target).data('pos');
+    let pos = parseInt(src_pos);
+    console.log(src_pos);
+  ev.dataTransfer.setData("Text", src_pos.toString()); 
+  $('.drop-target').show();
+  let not_allowed = [pos, pos+1];
+  for (let i=0;i < not_allowed.length; i++) {
+      let index = not_allowed[i];
+        $('.drop-target').filter('[data-pos="'+index+'"]').hide();
+
+  }
+  console.log('set the data to '+ev.dataTransfer.getData("Text"))
+}
+
+function drop(ev) {
+  ev.preventDefault();
+  var src_pos = ev.dataTransfer.getData("Text");
+  alert('drop '+src_pos+' to pos '+$(ev.target).data('pos'))
+  dragend(ev);
+//   var data = ev.dataTransfer.getData("text");
+//   ev.target.appendChild(document.getElementById(data));
+}

@@ -2,11 +2,11 @@ from django.contrib.auth.mixins import (LoginRequiredMixin,
                                         PermissionRequiredMixin)
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpResponseRedirect
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
-from django.views.generic import ListView
+from django.views.generic import ListView, View
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
@@ -44,9 +44,11 @@ class AntiquarianDetailView(
                 link = antiquarian.worklink_set.get(work=work)
 
                 if 'work_up' in self.request.POST:
-                    link.up()
+                    # link.up()
+                    link.move_to(link.order - 1)
                 elif 'work_down' in self.request.POST:
                     link.down()
+                    link.move_to(link.order + 1)
             except (Work.DoesNotExist, KeyError):
                 pass
 
@@ -63,13 +65,78 @@ class AntiquarianDetailView(
                 model_class = model_classes[object_type]
                 link = model_class.objects.get(pk=link_pk)
                 if 'up_by_work' in self.request.POST:
-                    link.up_by_work()
+                    # link.up_by_work()
+                    link.move_to_by_work(link.work_order - 1)
                 elif 'down_by_work' in self.request.POST:
-                    link.down_by_work()
+                    # link.down_by_work()
+                    link.move_to_by_work(link.work_order + 1)
 
             except (ObjectDoesNotExist, KeyError):
                 pass
         return HttpResponseRedirect(self.request.path)
+
+
+class AntiquarianMoveWorkView(
+    LoginRequiredMixin, PermissionRequiredMixin, View):
+    permission_required = ('research.change_antiquarian',)
+
+    render_partial_template = 'research/partials/render_locked_info.html'
+
+    def post(self, *args, **kwargs):
+
+        link_pk = self.request.POST.get('link_id', None)
+        work_pk = self.request.POST.get('work_id', None)
+        antiquarian_pk = self.request.POST.get('antiquarian_id', None)
+
+        object_type = self.request.POST.get('object_type', None)
+        if work_pk:
+            # moving a work up in the collection
+            try:
+                work = Work.objects.get(pk=work_pk)
+                antiquarian = Antiquarian.objects.get(pk=antiquarian_pk)
+                link = antiquarian.worklink_set.get(work=work)
+
+                if 'move_to' in self.request.POST:
+                    pos = int(self.request.POST.get('move_to'))
+                    link.move_to(pos)
+                    # TODO move before this index
+                    # link.up()
+                    pass
+            except (Work.DoesNotExist, KeyError):
+                pass
+
+        if link_pk and object_type:
+            from rard.research.models.base import (AppositumFragmentLink,
+                                                   FragmentLink,
+                                                   TestimoniumLink)
+            model_classes = {
+                'fragment': FragmentLink,
+                'anonymous_fragment': AppositumFragmentLink,
+                'testimonium': TestimoniumLink,
+            }
+            try:
+                model_class = model_classes[object_type]
+                link = model_class.objects.get(pk=link_pk)
+                if 'move_to_by_work' in self.request.POST:
+                    pos = int(self.request.POST.get('move_to_by_work'))
+                    link.move_to_by_work(pos)
+                    pass
+                #     link.up_by_work()
+                # elif 'down_by_work' in self.request.POST:
+                #     link.down_by_work()
+
+            except (ObjectDoesNotExist, KeyError):
+                pass
+
+            context = {
+                'antiquarian': antiquarian,
+                'has_object_lock': True,
+                'can_edit': True,
+            }
+            return render(
+                self.request, self.render_partial_template, context
+            )
+        # return HttpResponseRedirect(self.request.path)
 
 
 class AntiquarianCreateView(

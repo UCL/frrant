@@ -3,11 +3,13 @@
 {% load i18n %}
 
 {% with fragment=link.linked %}
-<div class='ordered-list-item rard-list-item d-flex justify-content-between'>
+<div class='drop-target' ondrop="drop(event)" data-pos='{{ forloop.counter0 }}' ondragleave="dragleave(event)" ondragover="allowDrop(event)" style='display:none; height: 10px; background: gray'></div>
+<div draggable='false' data-pos='{{ forloop.counter0 }}' ondragend="dragend(event)" ondragstart="drag(event)" class='ordered-list-item rard-list-item d-flex justify-content-between'>
     <div>
         <li>
+                <i style='cursor: move;' data-pos='{{ forloop.counter0 }}' class='drag-handle fas fa-bars'></i>
                 {% if perms.research.view_fragment %}
-                <a href='{% url "fragment:detail" fragment.pk %}'>{{ link_text }}</a> 
+                [{{ link.pk }}] <a href='{% url "fragment:detail" fragment.pk %}'>{{ link_text }}</a> 
                 {% else %}
                     {{ link_text }}
                 {% endif %}
@@ -42,4 +44,9 @@
         {% endif %}
     </div>
 </div>
+{% if forloop.last %}
+{# add drop target at end #}
+<div class='drop-target' ondrop="drop(event)" data-pos='{{ forloop.counter }}' ondragleave="dragleave(event)" ondragover="allowDrop(event)" style='display:none; height: 10px; background: gray'></div>
+{% endif %}
+
 {% endwith %}

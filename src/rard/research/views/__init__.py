@@ -1,6 +1,7 @@
 from .antiquarian import (AntiquarianBibliographyCreateView,
                           AntiquarianCreateView, AntiquarianDeleteView,
                           AntiquarianDetailView, AntiquarianListView,
+                          AntiquarianMoveWorkView,
                           AntiquarianUpdateIntroductionView,
                           AntiquarianUpdateView, AntiquarianWorkCreateView,
                           AntiquarianWorksUpdateView)
@@ -57,6 +58,7 @@ __all__ = [
     'AntiquarianDeleteView',
     'AntiquarianDetailView',
     'AntiquarianListView',
+    'AntiquarianMoveWorkView',
     'AntiquarianUpdateView',
     'AntiquarianUpdateIntroductionView',
     'AntiquarianWorksUpdateView',
