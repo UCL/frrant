@@ -8,9 +8,9 @@ class DateOrderMixin():
     def get_queryset(self):
         qs = super().get_queryset()
         if self.request.GET.get('order') == 'earliest':
-            qs = qs.order_by('year1', 'year2')
+            qs = qs.order_by('order_year')
         if self.request.GET.get('order') == 'latest':
-            qs = qs.order_by('-year1', '-year2')
+            qs = qs.order_by('-order_year')
         return qs
 
     def get_context_data(self, *args, **kwargs):

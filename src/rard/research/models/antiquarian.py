@@ -111,17 +111,6 @@ class Antiquarian(HistoryModelMixin, TextObjectFieldMixin, LockableModel,
     class Meta:
         ordering = ['order_name', 're_code']
 
-    # extend the dates functionality with more detail
-    # on what the dates means
-
-    DATES_LIVED = 'lived'
-    DATES_ACTIVE = 'active'
-
-    DATES_INFO_CHOICES = [
-        (DATES_LIVED, 'Lived'),
-        (DATES_ACTIVE, 'Active'),
-    ]
-
     name = models.CharField(max_length=128, blank=False)
 
     order_name = models.CharField(max_length=128, default='', blank=True)
@@ -150,13 +139,6 @@ class Antiquarian(HistoryModelMixin, TextObjectFieldMixin, LockableModel,
         through='TestimoniumLink'
     )
 
-    # what the year info means
-    dates_type = models.CharField(
-        max_length=16,
-        choices=DATES_INFO_CHOICES,
-        blank=True
-    )
-
     bibliography_items = GenericRelation(
         'BibliographyItem', related_query_name='bibliography_items'
     )
@@ -169,11 +151,6 @@ class Antiquarian(HistoryModelMixin, TextObjectFieldMixin, LockableModel,
 
     def ordered_fragments(self):
         return self.fragments.distinct()
-
-    def display_date_range(self):
-        return super().display_date_range(
-            prepend=self.get_dates_type_display()
-        )
 
     def save(self, *args, **kwargs):
         if not self.order_name:

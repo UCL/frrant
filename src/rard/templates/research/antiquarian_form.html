@@ -15,7 +15,8 @@
         {% bootstrap_field form.name %}
         {% bootstrap_field form.order_name %}
         {% bootstrap_field form.re_code %}
-        {% include 'research/partials/render_date_form_fields.html' %}
+        {% bootstrap_field form.date_range %}
+        {% bootstrap_field form.order_year %}
 
         {% if form.introduction_text %}
             {% bootstrap_field form.introduction_text field_class='d-none' %}

@@ -165,78 +165,12 @@ class TestAntiquarian(TestCase):
             a.display_date_range(),
             ''
         )
-
-        a.year_type = Antiquarian.YEAR_RANGE
-        a.year1 = -10
-        a.year2 = -2
-        a.circa1 = False
+        DATE_RANGE = 'From then till now'
+        a.date_range = DATE_RANGE
         self.assertEqual(
             a.display_date_range(),
-            'From 10 to 2 BC'
+            DATE_RANGE
         )
-        a.year2 = 20
-        self.assertEqual(
-            a.display_date_range(),
-            'From 10 BC to 20 AD'
-        )
-        a.circa1 = True
-        self.assertEqual(
-            a.display_date_range(),
-            'From c. 10 BC to 20 AD'
-        )
-        a.circa2 = True
-        self.assertEqual(
-            a.display_date_range(),
-            'From c. 10 BC to c. 20 AD'
-        )
-        a.year_type = Antiquarian.YEAR_AFTER
-        a.circa1 = False
-        a.circa2 = False
-        self.assertEqual(
-            a.display_date_range(),
-            'After 10 BC'
-        )
-        a.circa1 = True
-        self.assertEqual(
-            a.display_date_range(),
-            'After c. 10 BC'
-        )
-        a.year_type = Antiquarian.YEAR_BEFORE
-        a.circa1 = False
-        self.assertEqual(
-            a.display_date_range(),
-            'Before 10 BC'
-        )
-        a.circa1 = True
-        self.assertEqual(
-            a.display_date_range(),
-            'Before c. 10 BC'
-        )
-        a.year_type = Antiquarian.YEAR_SINGLE
-        self.assertEqual(
-            a.display_date_range(),
-            'c. 10 BC'
-        )
-        a.dates_type = Antiquarian.DATES_ACTIVE
-        self.assertEqual(
-            a.display_date_range(),
-            'Active c. 10 BC'
-        )
-        a.year_type = Antiquarian.YEAR_BEFORE
-        self.assertEqual(
-            a.display_date_range(),
-            'Active before c. 10 BC'
-        )
-
-    def test_bcad(self):
-        # test the function that does BC/AD
-        self.assertEqual(Antiquarian._bcad(-10), '10 BC')
-        self.assertEqual(Antiquarian._bcad(0), '0 AD')
-        self.assertEqual(Antiquarian._bcad(30), '30 AD')
-
-        # handle null values gracefully
-        self.assertEqual(Antiquarian._bcad(None), '')
-        self.assertEqual(Antiquarian._bcad('bad value'), '')
 
 
 class TestWorkLink(TestCase):

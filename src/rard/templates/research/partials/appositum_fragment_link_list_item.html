@@ -11,8 +11,9 @@
                 {% else %}
                     {{ link_text }}
                 {% endif %}
+                <button class="btn btn-link toggle-element-button" type="button" data-toggles="appositumlink_{{ link.pk }}"></button>
             <br>
-            <small>
+            <small id='appositumlink_{{ link.pk }}' class='toggle-element'>
                 <span class='ml-4 text-muted'>
                     {{ fragment.get_citing_display|safe }}
                 </span>

@@ -78,6 +78,16 @@
                 {% endif %}
             </dd>
             {% endif %}
+            
+            <dt class="col-sm-3">{% trans 'Relevant Dates' %}</dt>
+            <dd class="col-sm-7">
+                {{ object.display_date_range|default:'-' }}
+            </dd>
+            <dd class='col-sm-2 actions'>
+                {% if perms.research.change_fragment and has_object_lock %}
+                <a style='float:right;' href='{% url "anonymous_fragment:update" object.pk %}'>{% trans 'Edit' %}</a>
+                {% endif %}
+            </dd>
 
             <dt class="col-sm-3">{% trans 'Original Texts' %}</dt>
             <dd class="col-sm-7">{{ object.original_texts.count }} </dd>

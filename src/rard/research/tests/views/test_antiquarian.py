@@ -205,8 +205,12 @@ class TestAntiquarianListView(TestCase):
         view = AntiquarianListView()
 
         # create some data to search
-        a1 = Antiquarian.objects.create(name='name', re_code='1', year1=100)
-        a2 = Antiquarian.objects.create(name='name', re_code='2', year1=500)
+        a1 = Antiquarian.objects.create(
+            name='name', re_code='1', order_year=100
+        )
+        a2 = Antiquarian.objects.create(
+            name='name', re_code='2', order_year=500
+        )
 
         # search for 'me' in the antiquarians
         data = {

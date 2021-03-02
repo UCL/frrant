@@ -59,45 +59,6 @@
             </div>
         </div>
 
-        {% comment %}
-        {% if editing == 'details' %}
-            <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
-                {% csrf_token %}
-                {% bootstrap_field form.name layout='horizontal' %}
-                {% bootstrap_field form.order_name layout='horizontal' %}
-                {% bootstrap_field form.re_code layout='horizontal' %}
-                {% include 'research/partials/render_date_form_fields.html' with layout='horizontal' %}
-
-                <button type="submit" class="btn btn-primary">
-                    {% trans 'Save' %}
-                </button>
-                <a class='ml-2' href='{% url "antiquarian:detail" object.pk %}'>{% trans 'Cancel' %}</a>
-            </form>
-
-        {% else %}
-            <dl class="row mb-0">
-                <dt class="col-sm-3">{% trans 'Name' %}</dt>
-                <dd class="col-sm-9">{{ object.name }}</dd>
-
-                <dt class="col-sm-3">{% trans 'Name for Alphabetisation' %}</dt>
-                <dd class="col-sm-9">{{ object.order_name }}</dd>
-
-                <dt class="col-sm-3">{% trans 'RE Number' %}</dt>
-                <dd class="col-sm-9">{{ object.re_code|default:'-' }}</dd>
-                
-                <dt class="col-sm-3">{% trans 'Relevant Dates' %}</dt>
-                <dd class="col-sm-9">
-                    {{ object.display_date_range|default:'-' }}
-                </dd>
-            </dl>
-            <p>
-                <small>
-                {% include 'research/partials/render_last_modified_info.html' with object=object %}
-                </small>
-            </p>
-        {% endif %}
-        {% endcomment %}
-
         <dl class="row mb-0">
             <dt class="col-sm-3">{% trans 'Name' %}</dt>
             <dd class="col-sm-9">{{ object.name }}</dd>

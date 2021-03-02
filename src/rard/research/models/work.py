@@ -22,7 +22,7 @@ class WorkManager(models.Manager):
             )
         ).order_by(
             models.F(('authors')).asc(nulls_first=True),
-            'name', 'year1', 'year2'
+            'name', 'order_year'
         )
 
 

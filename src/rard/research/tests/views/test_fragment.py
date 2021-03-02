@@ -23,6 +23,7 @@ class TestFragmentSuccessUrls(TestCase):
             'name': 'name',
             'apparatus_criticus': 'app_criticus',
             'content': 'content',
+            'reference': 'Page 1',
             'citing_work': self.citing_work.pk,
         }
         # assert no fragments initially
@@ -49,8 +50,9 @@ class TestFragmentSuccessUrls(TestCase):
             'name': 'name',
             'apparatus_criticus': 'app_criticus',
             'content': 'content',
+            'reference': 'Page 1',
             'new_citing_work': 'true',
-            'title': 'citing work title'
+            'title': 'citing work title',
         }
         # assert no fragments initially
         self.assertEqual(0, Fragment.objects.count())
@@ -73,6 +75,7 @@ class TestFragmentSuccessUrls(TestCase):
             'name': 'name',
             'apparatus_criticus': 'app_criticus',
             'content': 'content',
+            'reference': 'Page 1',
             'new_citing_work': 'true',
             # we have missing data here
         }

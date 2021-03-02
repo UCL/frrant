@@ -8,7 +8,7 @@ from rard.research.models.base import (AppositumFragmentLink, FragmentLink,
                                        HistoricalBaseModel)
 from rard.research.models.mixins import HistoryModelMixin
 from rard.research.models.topic import Topic
-from rard.utils.basemodel import OrderableModel
+from rard.utils.basemodel import DatedModel, OrderableModel
 
 
 class TopicLink(models.Model):
@@ -145,7 +145,7 @@ class AnonymousTopicLink(models.Model):
 
 class AnonymousFragment(HistoryModelMixin, OrderableModel,
                         HistoricalBaseModel):
-
+  
     history = HistoricalRecords(
         excluded_fields=[
             'topics', 'original_texts', 'fragments',
