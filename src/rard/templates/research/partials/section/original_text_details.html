@@ -25,8 +25,7 @@
             {% endif %}
             {% for concordance in original_text.concordance_set.all %}
                 <div class='d-flex justify-content-between mb-3'>
-                <div>{{ concordance.source }}:{{ concordance.identifier }}
-                </div>
+                <div>{{ concordance }}</div>
                 <div>
                     {% if can_edit and has_object_lock %}
                     <form novalidate class='form-inline' action='{% url "concordance:delete" concordance.pk %}' method='POST'>

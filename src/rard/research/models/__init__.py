@@ -1,4 +1,4 @@
-from .antiquarian import Antiquarian
+from .antiquarian import Antiquarian, AntiquarianConcordance
 from .bibliography import BibliographyItem
 from .citing_work import CitingAuthor, CitingWork
 from .comment import Comment
@@ -15,6 +15,7 @@ from .work import Book, Work
 __all__ = [
     'AnonymousFragment',
     'Antiquarian',
+    'AntiquarianConcordance',
     'BibliographyItem',
     'CitingAuthor',
     'CitingWork',

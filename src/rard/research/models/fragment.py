@@ -6,7 +6,7 @@ from simple_history.models import HistoricalRecords
 
 from rard.research.models.base import (AppositumFragmentLink, FragmentLink,
                                        HistoricalBaseModel)
-from rard.research.models.mixins import HistoryViewMixin
+from rard.research.models.mixins import HistoryModelMixin
 from rard.research.models.topic import Topic
 from rard.utils.basemodel import DatedModel, OrderableModel
 
@@ -49,7 +49,7 @@ m2m_changed.connect(handle_changed_topics, sender=TopicLink)
 post_delete.connect(handle_deleted_topic_link, sender=TopicLink)
 
 
-class Fragment(HistoryViewMixin, HistoricalBaseModel, DatedModel):
+class Fragment(HistoryModelMixin, HistoricalBaseModel):
 
     history = HistoricalRecords(
         excluded_fields=[
@@ -143,9 +143,9 @@ class AnonymousTopicLink(models.Model):
     order = models.IntegerField(default=None, null=True)
 
 
-class AnonymousFragment(HistoryViewMixin, OrderableModel, HistoricalBaseModel,
-                        DatedModel):
-
+class AnonymousFragment(HistoryModelMixin, OrderableModel,
+                        HistoricalBaseModel):
+  
     history = HistoricalRecords(
         excluded_fields=[
             'topics', 'original_texts', 'fragments',

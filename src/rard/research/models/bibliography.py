@@ -3,11 +3,11 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from simple_history.models import HistoricalRecords
 
-from rard.research.models.mixins import HistoryViewMixin
+from rard.research.models.mixins import HistoryModelMixin
 from rard.utils.basemodel import BaseModel
 
 
-class BibliographyItem(HistoryViewMixin, BaseModel):
+class BibliographyItem(HistoryModelMixin, BaseModel):
 
     history = HistoricalRecords()
 

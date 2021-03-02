@@ -3,7 +3,7 @@ from django.db import models
 from django.urls import reverse
 from simple_history.models import HistoricalRecords
 
-from rard.research.models.mixins import HistoryViewMixin
+from rard.research.models.mixins import HistoryModelMixin
 from rard.utils.basemodel import BaseModel, DatedModel, LockableModel
 
 
@@ -26,7 +26,7 @@ class WorkManager(models.Manager):
         )
 
 
-class Work(HistoryViewMixin, DatedModel, LockableModel, BaseModel):
+class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
 
     history = HistoricalRecords()
 
@@ -103,7 +103,7 @@ class Work(HistoryViewMixin, DatedModel, LockableModel, BaseModel):
         ).distinct()
 
 
-class Book(HistoryViewMixin, DatedModel, BaseModel):
+class Book(HistoryModelMixin, DatedModel, BaseModel):
 
     history = HistoricalRecords()
 

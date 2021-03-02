@@ -5,7 +5,7 @@ from django.db.models.signals import (m2m_changed, post_delete, post_save,
 from django.urls import reverse
 from simple_history.models import HistoricalRecords
 
-from rard.research.models.mixins import HistoryViewMixin, TextObjectFieldMixin
+from rard.research.models.mixins import HistoryModelMixin, TextObjectFieldMixin
 from rard.utils.basemodel import (BaseModel, DatedModel, LockableModel,
                                   OrderableModel)
 
@@ -97,7 +97,7 @@ post_delete.connect(handle_deleted_work_link, sender=WorkLink)
 post_save.connect(handle_reordered_works, sender=WorkLink)
 
 
-class Antiquarian(HistoryViewMixin, TextObjectFieldMixin, LockableModel,
+class Antiquarian(HistoryModelMixin, TextObjectFieldMixin, LockableModel,
                   DatedModel, BaseModel):
 
     history = HistoricalRecords(
@@ -353,3 +353,23 @@ pre_delete.connect(remove_stale_antiquarian_links, sender=Antiquarian)
 
 
 Antiquarian.init_text_object_fields()
+
+
+class AntiquarianConcordance(HistoryModelMixin, BaseModel):
+
+    history = HistoricalRecords()
+
+    def related_lock_object(self):
+        return self.antiquarian
+
+    antiquarian = models.ForeignKey('Antiquarian', on_delete=models.CASCADE)
+
+    source = models.CharField(max_length=128, blank=False)
+
+    identifier = models.CharField(max_length=128, blank=False)
+
+    class Meta:
+        ordering = ('source', 'identifier')
+
+    def __str__(self):
+        return '%s:%s' % (self.source, self.identifier)
