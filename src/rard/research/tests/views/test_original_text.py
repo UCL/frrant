@@ -92,7 +92,6 @@ class TestOriginalTextCreateViews(TestCase):
 
         data = {
             'content': 'content',
-            'reference': 'Page 1',
             'new_citing_work': True,
             'new_author': True,
             'new_author_name': AUTHOR_NAME,

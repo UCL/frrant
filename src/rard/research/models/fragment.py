@@ -49,7 +49,7 @@ m2m_changed.connect(handle_changed_topics, sender=TopicLink)
 post_delete.connect(handle_deleted_topic_link, sender=TopicLink)
 
 
-class Fragment(HistoryModelMixin, HistoricalBaseModel):
+class Fragment(HistoryModelMixin, HistoricalBaseModel, DatedModel):
 
     history = HistoricalRecords(
         excluded_fields=[
@@ -143,9 +143,9 @@ class AnonymousTopicLink(models.Model):
     order = models.IntegerField(default=None, null=True)
 
 
-class AnonymousFragment(HistoryModelMixin, OrderableModel,
-                        HistoricalBaseModel):
-  
+class AnonymousFragment(HistoryModelMixin, OrderableModel, HistoricalBaseModel,
+                        DatedModel):
+
     history = HistoricalRecords(
         excluded_fields=[
             'topics', 'original_texts', 'fragments',
