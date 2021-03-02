@@ -2,12 +2,12 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.urls import reverse
 from simple_history.models import HistoricalRecords
 
-from rard.research.models.mixins import HistoryViewMixin
+from rard.research.models.mixins import HistoryModelMixin
 
 from .base import HistoricalBaseModel, TestimoniumLink
 
 
-class Testimonium(HistoryViewMixin, HistoricalBaseModel):
+class Testimonium(HistoryModelMixin, HistoricalBaseModel):
 
     history = HistoricalRecords(
         excluded_fields=[

@@ -9,61 +9,6 @@ from rard.research.models.base import (AppositumFragmentLink, FragmentLink,
                                        TestimoniumLink)
 
 
-class DatedModelFormBase(forms.ModelForm):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['year1'].widget.attrs['placeholder'] = 'Enter Year'
-        self.fields['year2'].widget.attrs['placeholder'] = 'Enter Year'
-
-    def clean(self):
-        cleaned_data = super().clean()
-        year_type = self.cleaned_data.get('year_type', None)
-        dates_type = self.cleaned_data.get('dates_type', None)
-
-        if year_type:
-            to_validate = ('year1', )
-            if year_type == Antiquarian.YEAR_RANGE:
-                to_validate = ('year1', 'year2')
-
-            for name in to_validate:
-                value = self.cleaned_data.get(name)
-                try:
-                    # test it's an acceptable number
-                    int(value)
-                except (TypeError, ValueError):
-                    self.add_error(name, _('Please enter a whole number.'))
-
-        year1 = self.cleaned_data.get('year1', None)
-        year2 = self.cleaned_data.get('year2', None)
-
-        if dates_type or year1 or year2:
-            if not year_type:
-                self.add_error('year_type', _('This field is required.'))
-            try:
-                self.fields['dates_type']
-                if not dates_type:
-                    self.add_error('dates_type', _('This field is required.'))
-            except KeyError:
-                # we didn't have a dates field on this form so we don't
-                # insist on it
-                pass
-        if not year_type:
-            cleaned_data['year1'] = None
-            cleaned_data['year2'] = None
-        elif year_type == Antiquarian.YEAR_RANGE:
-            if year1 and year2:
-                if int(year1) >= int(year2):
-                    self.add_error(
-                        'year1', _('The start year must be earlier.'))
-                    self.add_error(
-                        'year2', _('The end year must be later.'))
-        else:
-            # force year2 off unless we are a range
-            cleaned_data['year2'] = None
-        return cleaned_data
-
-
 class AntiquarianIntroductionForm(forms.ModelForm):
     class Meta:
         model = Antiquarian
@@ -93,19 +38,17 @@ class AntiquarianIntroductionForm(forms.ModelForm):
         return instance
 
 
-class AntiquarianDetailsForm(DatedModelFormBase):
+class AntiquarianDetailsForm(forms.ModelForm):
     class Meta:
         model = Antiquarian
-        fields = ('name', 'order_name', 're_code', 'circa1', 'circa2',
-                  'year_type', 'year1', 'year2', 'dates_type')
+        fields = ('name', 'order_name', 're_code', 'date_range', 'order_year',)
         labels = {'order_name': 'Name for alphabetisation'}
 
 
-class AntiquarianCreateForm(DatedModelFormBase):
+class AntiquarianCreateForm(forms.ModelForm):
     class Meta:
         model = Antiquarian
-        fields = ('name', 'order_name', 're_code', 'circa1', 'circa2',
-                  'year_type', 'year1', 'year2', 'dates_type')
+        fields = ('name', 'order_name', 're_code', 'date_range', 'order_year',)
         labels = {'order_name': 'Name for alphabetisation'}
 
     introduction_text = forms.CharField(
@@ -141,7 +84,7 @@ class AntiquarianUpdateWorksForm(forms.ModelForm):
         }
 
 
-class WorkForm(DatedModelFormBase):
+class WorkForm(forms.ModelForm):
 
     antiquarians = forms.ModelMultipleChoiceField(
         widget=forms.CheckboxSelectMultiple,
@@ -163,7 +106,7 @@ class WorkForm(DatedModelFormBase):
                 self.instance.antiquarian_set.all()
 
 
-class BookForm(DatedModelFormBase):
+class BookForm(forms.ModelForm):
     class Meta:
         model = Book
         exclude = ('work',)
@@ -409,7 +352,7 @@ class FragmentForm(HistoricalFormBase):
 
     class Meta:
         model = Fragment
-        fields = ('topics',)
+        fields = ('topics', 'date_range', 'order_year',)
         widgets = {'topics': forms.CheckboxSelectMultiple}
 
 
@@ -417,7 +360,7 @@ class AnonymousFragmentForm(forms.ModelForm):
 
     class Meta:
         model = AnonymousFragment
-        fields = ('topics',)
+        fields = ('topics', 'date_range', 'order_year',)
         widgets = {'topics': forms.CheckboxSelectMultiple}
 
 

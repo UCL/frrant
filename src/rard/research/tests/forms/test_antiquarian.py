@@ -65,14 +65,12 @@ class TestAntiquarianForms(TestCase):
             form_data['introduction_text']
         )
 
-    def test_date_range_saves(self):
+    def test_date_info_saves(self):
         data = {
             'name': 'John Smith',
             're_code': '2319',
-            'dates_type': Antiquarian.DATES_LIVED,
-            'year_type': Antiquarian.YEAR_RANGE,
-            'year1': -10,
-            'year2': -2
+            'date_range': 'From then to now',
+            'order_year': -234,
         }
         form = AntiquarianDetailsForm(data=data)
         self.assertTrue(form.is_valid())
@@ -80,87 +78,14 @@ class TestAntiquarianForms(TestCase):
 
         self.assertEqual(antiquarian.name, data['name'])
         self.assertEqual(antiquarian.re_code, data['re_code'])
-        self.assertEqual(antiquarian.dates_type, data['dates_type'])
-        self.assertEqual(antiquarian.year_type, data['year_type'])
-        self.assertEqual(antiquarian.year1, data['year1'])
-        self.assertEqual(antiquarian.year2, data['year2'])
+        self.assertEqual(antiquarian.date_range, data['date_range'])
+        self.assertEqual(antiquarian.order_year, data['order_year'])
 
-    def test_bad_date_range(self):
-        # make from date > to date
-        data = {
-            'name': 'John Smith',
-            're_code': '2319',
-            'dates_type': Antiquarian.DATES_LIVED,
-            'year_type': Antiquarian.YEAR_RANGE,
-            'year1': -10,
-            'year2': -20  # oops
-        }
-        form = AntiquarianDetailsForm(data=data)
-        self.assertFalse(form.is_valid())
-        self.assertEqual(len(form.errors), 2)
-        self.assertIn("year1", form.errors)
-        self.assertIn("year2", form.errors)
-
-    def test_missing_dates_type(self):
+    def test_date_info_optional(self):
         # if we specify some dates we need a dates type
         data = {
             'name': 'John Smith',
             're_code': '2319',
-            'year_type': Antiquarian.YEAR_RANGE,
-            'year1': 10,
-            'year2': 20
         }
-        form = AntiquarianDetailsForm(data=data)
-        self.assertFalse(form.is_valid())
-        self.assertEqual(len(form.errors), 1)
-        self.assertIn("dates_type", form.errors)
-
-    def test_missing_year_type(self):
-        # if we specify some dates we need a dates type
-        data = {
-            'name': 'John Smith',
-            're_code': '2319',
-            'dates_type': Antiquarian.DATES_LIVED,
-            'year1': 10,
-            'year2': 20
-        }
-        form = AntiquarianDetailsForm(data=data)
-        self.assertFalse(form.is_valid())
-        self.assertEqual(len(form.errors), 1)
-        self.assertIn("year_type", form.errors)
-
-    def test_bad_value(self):
-        # make from date > to date
-        data = {
-            'name': 'John Smith',
-            're_code': '2319',
-            'dates_type': Antiquarian.DATES_LIVED,
-            'year_type': Antiquarian.YEAR_RANGE,
-            'year1': None,  # oops
-            'year2': -20
-        }
-        form = AntiquarianDetailsForm(data=data)
-        self.assertFalse(form.is_valid())
-        self.assertEqual(len(form.errors), 1)
-        self.assertIn("year1", form.errors)
-
-    def test_before_after_single_clears_year2(self):
-        for year_type in (
-                Antiquarian.YEAR_BEFORE,
-                Antiquarian.YEAR_AFTER,
-                Antiquarian.YEAR_SINGLE):
-            # make from date > to date
-            data = {
-                'name': 'John Smith',
-                're_code': '2319',
-                'dates_type': Antiquarian.DATES_LIVED,
-                'year_type': year_type,
-                'year1': -10,
-                'year2': 20  # not needed but somehow set
-            }
         form = AntiquarianDetailsForm(data=data)
         self.assertTrue(form.is_valid())
-        antiquarian = form.save()
-        self.assertEqual(antiquarian.year_type, data['year_type'])
-        self.assertEqual(antiquarian.year1, data['year1'])
-        self.assertEqual(antiquarian.year2, None)  # should be cleared

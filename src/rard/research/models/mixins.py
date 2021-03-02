@@ -37,7 +37,7 @@ class TextObjectFieldMixin(object):
         post_delete.connect(cls.delete_text_object_fields, sender=cls)
 
 
-class HistoryViewMixin(object):
+class HistoryModelMixin(object):
 
     def related_lock_object(self):  # pragma: no cover
         # the object that needs to have a lock to allow reverts

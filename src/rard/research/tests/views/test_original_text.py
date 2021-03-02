@@ -59,7 +59,7 @@ class TestOriginalTextCreateViews(TestCase):
         # data for both original text and fragment
         data = {
             'content': 'content',
-            'reference': 'page 1',
+            'reference': 'Page 1',
             'citing_work': self.citing_work.pk,
         }
         # assert no original texts initially
@@ -221,7 +221,7 @@ class TestOriginalTextUpdateView(TestCase):
 
         data = {
             'content': 'content',
-            'reference': 'page 1',
+            'reference': 'Page 1',
             'new_citing_work': True,
             'new_author': True,
             'new_author_name': AUTHOR_NAME,

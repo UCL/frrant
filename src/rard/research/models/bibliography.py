@@ -5,12 +5,12 @@ from django.urls import reverse
 from django.utils.safestring import mark_safe
 from simple_history.models import HistoricalRecords
 
-from rard.research.models.mixins import HistoryViewMixin
+from rard.research.models.mixins import HistoryModelMixin
 from rard.utils.basemodel import BaseModel
 
 import re
 
-class BibliographyItem(HistoryViewMixin, BaseModel):
+class BibliographyItem(HistoryModelMixin, BaseModel):
 
     history = HistoricalRecords()
 

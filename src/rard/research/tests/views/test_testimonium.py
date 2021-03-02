@@ -23,7 +23,7 @@ class TestTestimoniumSuccessUrls(TestCase):
             'name': 'name',
             'apparatus_criticus': 'app_criticus',
             'content': 'content',
-            'reference': 'page 1',
+            'reference': 'Page 1',
             'citing_work': self.citing_work.pk,
         }
         # assert no testimonia initially
