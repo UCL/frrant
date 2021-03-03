@@ -141,6 +141,15 @@ class TestConcordanceViews(TestCase):
             response.context_data['original_text'], concordance.original_text
         )
 
+    def test_empty_concordance_list_view(self):
+        url = reverse(
+            'concordance:list'
+        )
+        request = RequestFactory().get(url)
+        request.user = self.user
+        response = ConcordanceListView.as_view()(request)
+        self.assertEqual(response.status_code, 200)
+
     def test_create_view_with_original_text(self):
         url = reverse(
             'concordance:create',
