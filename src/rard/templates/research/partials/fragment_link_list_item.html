@@ -16,9 +16,10 @@
                 {% else %}
                 <i title='Possible link' data-placement="top" data-toggle='tooltip' class='fa fa-question-circle fa-xs text-muted'></i>
                 {% endif %}
+                <button class="btn btn-link toggle-element-button" type="button" data-toggles="fragmentlink_{{ link.pk }}"></button>
 
             <br>
-            <small>
+            <small id='fragmentlink_{{ link.pk }}' class='toggle-element'>
                 <span class='ml-4 text-muted'>
                     {{ fragment.get_citing_display|safe }}
                 </span>

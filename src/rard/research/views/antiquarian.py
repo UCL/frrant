@@ -13,7 +13,8 @@ from django.views.generic.edit import CreateView, DeleteView, UpdateView
 from rard.research.forms import (AntiquarianCreateForm, AntiquarianDetailsForm,
                                  AntiquarianIntroductionForm,
                                  AntiquarianUpdateWorksForm, WorkForm)
-from rard.research.models import Antiquarian, BibliographyItem, Work
+from rard.research.models import (Antiquarian, AntiquarianConcordance,
+                                  BibliographyItem, Work)
 from rard.research.views.mixins import (CanLockMixin, CheckLockMixin,
                                         DateOrderMixin)
 
@@ -221,3 +222,87 @@ class AntiquarianWorkCreateView(CheckLockMixin, LoginRequiredMixin,
             'antiquarian': self.antiquarian,
         })
         return context
+
+
+class AntiquarianConcordanceCreateView(CheckLockMixin, LoginRequiredMixin,
+                                       PermissionRequiredMixin, CreateView):
+
+    check_lock_object = 'antiquarian'
+
+    # create a concordance for an original text
+    model = AntiquarianConcordance
+    permission_required = ('research.add_antiquarianconcordance',)
+    fields = ('source', 'identifier')
+
+    def dispatch(self, request, *args, **kwargs):
+        # need to ensure we have the lock object view attribute
+        # initialised in dispatch
+        self.get_antiquarian()
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_success_url(self, *args, **kwargs):
+        return self.object.antiquarian.get_absolute_url()
+
+    def form_valid(self, form):
+        concordance = form.save(commit=False)
+        concordance.antiquarian = self.get_antiquarian()
+        return super().form_valid(form)
+
+    def get_antiquarian(self, *args, **kwargs):
+        if not getattr(self, 'antiquarian', False):
+            self.antiquarian = get_object_or_404(
+                Antiquarian,
+                pk=self.kwargs.get('pk')
+            )
+        return self.antiquarian
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update({
+            'antiquarian': self.get_antiquarian(),
+        })
+        return context
+
+
+class AntiquarianConcordanceUpdateView(CheckLockMixin, LoginRequiredMixin,
+                                       PermissionRequiredMixin, UpdateView):
+
+    check_lock_object = 'antiquarian'
+
+    model = AntiquarianConcordance
+    permission_required = ('research.change_antiquarianconcordance',)
+    fields = ('source', 'identifier')
+
+    def dispatch(self, request, *args, **kwargs):
+        # need to ensure we have the lock object view attribute
+        # initialised in dispatch
+        self.antiquarian = self.get_object().antiquarian
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update({
+            'antiquarian': self.antiquarian,
+        })
+        return context
+
+    def get_success_url(self, *args, **kwargs):
+        return self.object.antiquarian.get_absolute_url()
+
+
+@method_decorator(require_POST, name='dispatch')
+class AntiquarianConcordanceDeleteView(CheckLockMixin, LoginRequiredMixin,
+                                       PermissionRequiredMixin, DeleteView):
+    check_lock_object = 'antiquarian'
+
+    model = AntiquarianConcordance
+    permission_required = ('research.delete_antiquarianconcordance',)
+
+    def dispatch(self, request, *args, **kwargs):
+        # need to ensure we have the lock object view attribute
+        # initialised in dispatch
+        self.antiquarian = self.get_object().antiquarian
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_success_url(self, *args, **kwargs):
+        return self.object.antiquarian.get_absolute_url()

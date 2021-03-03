@@ -3,21 +3,18 @@
 
 {% block heading %}
     {% if object %}
-        {% trans 'Update Book' %}
-    {% else %}
-        {% trans 'Create Book' %}
-    {% endif %}
-    {% if work %}
-    <small>
-        {% blocktrans with name=work.name %}
-            For {{ name }}
+        {% blocktrans with antiquarian=antiquarian %}
+        Update Concordance for {{ antiquarian }} 
         {% endblocktrans %}
-    </small>
+    {% else %}
+        {% blocktrans with antiquarian=antiquarian %}
+        Create Concordance for {{ antiquarian }} 
+        {% endblocktrans %}
     {% endif %}
-        
 {% endblock %}
 
 {% block inner %}
+
     <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
         {% csrf_token %}
         {% bootstrap_form form %}

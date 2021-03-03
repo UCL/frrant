@@ -3,11 +3,11 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from simple_history.models import HistoricalRecords
 
-from rard.research.models.mixins import HistoryViewMixin
+from rard.research.models.mixins import HistoryModelMixin
 from rard.utils.basemodel import BaseModel, DynamicTextField
 
 
-class OriginalText(HistoryViewMixin, BaseModel):
+class OriginalText(HistoryModelMixin, BaseModel):
 
     history = HistoricalRecords()
 
@@ -59,7 +59,7 @@ class OriginalText(HistoryViewMixin, BaseModel):
         return 'Original Text %d' % display_value
 
 
-class Concordance(HistoryViewMixin, BaseModel):
+class Concordance(HistoryModelMixin, BaseModel):
 
     history = HistoricalRecords()
 
@@ -75,8 +75,11 @@ class Concordance(HistoryViewMixin, BaseModel):
     class Meta:
         ordering = ('source', 'identifier')
 
+    def __str__(self):
+        return '%s:%s' % (self.source, self.identifier)
 
-class Translation(HistoryViewMixin, BaseModel):
+
+class Translation(HistoryModelMixin, BaseModel):
 
     history = HistoricalRecords()
 

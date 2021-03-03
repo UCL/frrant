@@ -14,10 +14,12 @@
                     {% endif %}
                 {% endwith %}
                 {% include 'research/partials/render_inline_lock_icon.html' with object=fragment %}
+
+                <button class="btn btn-link toggle-element-button" type="button" data-toggles="anonfragment_{{ fragment.pk }}"></button>
             </span>
         </li>
         <div>
-            <div class="card border-0 pt-1 pb-0 bg-transparent card-body">
+            <div id='anonfragment_{{ fragment.pk }}' class="toggle-element card border-0 pt-1 pb-0 bg-transparent card-body">
             <small>
                 <span class='text-muted'>
 
@@ -25,19 +27,6 @@
                     {{ fragment|show_citing_info:citing_author|safe }}
                     {% endwith %}
 
-                    {% comment %}
-                    {% if not fragment.get_all_names %}
-                        No links
-                    {% else %}
-                    <ul class='pl-3'>
-                        {% for name in fragment.get_all_names %}
-                        <li>
-                            {{ name }}
-                        </li>
-                        {% endfor %}
-                    </ul>
-                    {% endif %}
-                    {% endcomment %}
                 </span>
             </small>
             </div>
