@@ -5,7 +5,9 @@ from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
 from rard.research.models import (Antiquarian, CitingWork, Fragment,
-                                  Testimonium, Topic, Work)
+                                  Testimonium, Topic, Work,
+                                  BibliographyItem, TextObjectField,
+                                  AnonymousFragment)
 from rard.research.views import SearchView
 from rard.users.tests.factories import UserFactory
 
@@ -135,6 +137,8 @@ class TestSearchView(TestCase):
                 'fragments',
                 'topics',
                 'works',
+                'bibliography',
+                'apparatus criticus',
             ]
         )
 
@@ -195,3 +199,43 @@ class TestSearchView(TestCase):
         self.assertEqual(list(view.testimonium_search('notme')), [t2])
         self.assertEqual(list(view.testimonium_search('NoTMe')), [t2])
         self.assertEqual(list(view.testimonium_search('Me')), [t1, t2])
+
+        # fragments with apparatus criticus
+        data = {
+            'content': 'content',
+            'apparatus_criticus': 'stuff',
+            'citing_work': cw
+        }
+        f1 = Fragment.objects.create()
+        f1.original_texts.create(**data)
+        data['apparatus_criticus'] = 'nonsense'
+        t1 = Testimonium.objects.create()
+        t1.original_texts.create(**data)
+        data['apparatus_criticus'] = 'rubbish'
+        f2 = AnonymousFragment.objects.create()
+        f2.original_texts.create(**data)
+
+        self.assertEqual(list(view.apparatus_criticus_search('TuF')), [f1])
+        self.assertEqual(list(view.apparatus_criticus_search('bBi')), [f2])
+        self.assertEqual(list(view.apparatus_criticus_search('nseN')), [t1])
+        self.assertEqual(list(view.apparatus_criticus_search('s')), [f1, f2, t1])
+        self.assertEqual(list(view.apparatus_criticus_search('content')), [])
+
+        # bibliography
+        parent = TextObjectField.objects.create(content='foo')
+        data = {
+            'authors': 'Aab, W',
+            'title': 'The Roman Age',
+            'parent': parent
+        }
+        b1 = BibliographyItem.objects.create(**data)
+        data = {
+            'authors': 'Beeb, Z',
+            'title': 'The Roman Era',
+            'parent': parent
+        }
+        b2 = BibliographyItem.objects.create(**data)
+
+        self.assertEqual(list(view.bibliography_search('aab')), [b1])
+        self.assertEqual(list(view.bibliography_search('EE')), [b2])
+        self.assertEqual(list(view.bibliography_search('romAN')), [b1, b2])
