@@ -3,10 +3,11 @@ from django.contrib.auth.mixins import (LoginRequiredMixin,
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
 from django.views.generic import ListView
+from django.views.generic.detail import DetailView
 from django.views.generic.edit import DeleteView, UpdateView
 
 from rard.research.models import BibliographyItem
-from rard.research.views.mixins import CheckLockMixin
+from rard.research.views.mixins import (CanLockMixin, CheckLockMixin)
 
 
 class BibliographyListView(LoginRequiredMixin,
