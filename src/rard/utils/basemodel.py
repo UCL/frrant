@@ -489,8 +489,9 @@ class OrderableModel(models.Model):
         if pos == old_pos:
             return
 
-        # if beyond the end, put it at the end (useful for UI)
-        pos = min(pos, self.related_queryset().count())
+        # if beyond the end do nothing (UI bug)
+        if pos >= self.related_queryset().count():
+            return
 
         if pos < old_pos:
             to_reorder = self.related_queryset().exclude(

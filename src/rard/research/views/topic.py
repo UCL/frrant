@@ -1,10 +1,12 @@
+from django.contrib.auth.context_processors import PermWrapper
 from django.contrib.auth.mixins import (LoginRequiredMixin,
                                         PermissionRequiredMixin)
-from django.http import HttpResponseRedirect
+from django.http import Http404, HttpResponseRedirect, JsonResponse
+from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
-from django.views.generic import ListView
+from django.views.generic import ListView, View
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
@@ -91,3 +93,42 @@ class TopicDeleteView(CheckLockMixin, LoginRequiredMixin,
     model = Topic
     success_url = reverse_lazy('topic:list')
     permission_required = ('research.delete_topic',)
+
+
+class MoveTopicView(LoginRequiredMixin, View):
+
+    render_partial_template = 'research/partials/ordered_topic_area.html'
+
+    def render_valid_response(self, page_index):
+        from django.core.paginator import Paginator
+        view = TopicListView()
+        pages = Paginator(view.get_queryset(), view.paginate_by)
+        context = {
+            'page_obj': pages.page(page_index),
+            'has_object_lock': True,
+            'can_edit': True,
+            'perms': PermWrapper(self.request.user)
+        }
+        html = render_to_string(self.render_partial_template, context)
+        ajax_data = {'status': 200, 'html': html}
+        return JsonResponse(data=ajax_data, safe=False)
+
+    def post(self, *args, **kwargs):
+
+        topic_pk = self.request.POST.get('topic_id', None)
+        page_index = self.request.POST.get('page_index', None)
+        if topic_pk:
+            # moving a topic in the collection
+            try:
+                topic = Topic.objects.get(pk=topic_pk)
+
+                if 'move_to' in self.request.POST:
+                    pos = int(self.request.POST.get('move_to'))
+                    topic.move_to(pos)
+
+            except (Topic.DoesNotExist, KeyError):
+                raise Http404
+
+            return self.render_valid_response(int(page_index))
+
+        raise Http404

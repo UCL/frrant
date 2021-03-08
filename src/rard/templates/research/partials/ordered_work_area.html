@@ -1,0 +1,149 @@
+{% load i18n links_for_work %}
+
+
+{% with object=antiquarian %}
+
+        <div class='ordered-list'>
+        {% for work in object.ordered_works.all %}
+
+        <div class='drop-target' data-pos='{{ forloop.counter0 }}' data-objecttype='work'>
+        </div>
+
+            <div id='work_{{ work.pk }}'class='drag-item ordered-list-item' draggable='false' data-work='{{ work.pk }}' data-antiquarian='{{ object.pk }}' data-objecttype='work' data-pos='{{ forloop.counter0 }}'>
+                <div class='d-flex justify-content-between w-100'>
+                    <div>
+                        <b class='my-3 mr-3'><a href='{% url "work:detail" work.pk %}'>{{ work.name }}</a></b>
+            
+                        {% if can_edit and has_object_lock %}
+                        <button type='button' class='drag-handle btn btn-light btn-sm' style='cursor: move;' data-pos='{{ forloop.counter0 }}'><i class='fas fa-bars'></i></button>
+
+                        <button data-work='{{ work.pk }}' data-antiquarian='{{ object.pk }}' data-objecttype='work'
+                            data-pos='{{ forloop.counter0 }}' type='button' class='btn btn-light btn-sm' {% if forloop.first or disable_link_controls %}disabled{% endif %} name='work_up'><i class='fas fa-caret-up'></i></button>
+                        <button data-work='{{ work.pk }}' data-antiquarian='{{ object.pk }}' data-objecttype='work'
+                            data-pos='{{ forloop.counter0 }}' type='button' class='btn btn-light btn-sm' {% if forloop.last or disable_link_controls %}disabled{% endif %} name='work_down'><i class='fas fa-caret-down'></i></button>
+                        {% endif %}
+            
+                    </div>
+                    <div>
+                        {% if can_edit and has_object_lock %}
+                        <a href='{% url "anonymous_fragment:create_appositum_for" "work" work.pk %}'>{% trans 'Create Appositum' %}</a>
+                        {% endif %}
+                    </div>
+                </div>
+
+{% comment %}
+        <form novalidate class='ordered-list-item form-inline' action='' method='POST'>
+            <div class='d-flex justify-content-between w-100'>
+                <div>
+                    <b class='my-3 mr-3'><a href='{% url "work:detail" work.pk %}'>{{ work.name }}</a></b>
+
+                    {% if can_edit and has_object_lock %}
+
+                <button data-work='{{ work.pk }}' data-antiquarian='{{ object.pk }}' data-objecttype='work' data-pos='{{ forloop.counter0 }}' type='button' class='btn btn-light btn-sm' {% if forloop.first or disable_link_controls %}disabled{% endif %}
+                    name='work_up'>UP</button>
+                <button data-work='{{ work.pk }}' data-antiquarian='{{ object.pk }}' data-objecttype='work' data-pos='{{ forloop.counter0 }}' type='button' class='btn btn-light btn-sm' {% if forloop.last or disable_link_controls %}disabled{% endif %}
+                    name='work_down'>DOWN</button>
+
+
+                    {% csrf_token %}
+                    <div class='form-group'>
+                        <input type='hidden' name='work_id' value='{{ work.pk }}'>
+                        <input type='hidden' name='antiquarian_id' value='{{ object.pk }}'>
+                        <button type='submit' class='btn btn-light btn-sm' {% if forloop.first or disable_link_controls %}disabled{% endif %}
+                            name='work_up'>▲</button>
+                        <button type='submit' class='btn btn-light btn-sm' {% if forloop.last or disable_link_controls %}disabled{% endif %}
+                            name='work_down'>▼</button>
+                    </div>
+
+                    {% endif %}
+
+                </div>
+                <div>
+                    {% if can_edit and has_object_lock %}
+                    <a href='{% url "anonymous_fragment:create_appositum_for" "work" work.pk %}'>{% trans 'Create Appositum' %}</a>
+                    {% endif %}
+                </div>
+            </div>
+
+        </form>
+{% endcomment %}
+
+        <ul>
+            <div class='ordered-list'>
+            {% with tlinks=object|testimonium_links_for_work:work %}
+            {% with flinks=object|fragment_links_for_work:work %}
+            {% with alinks=object|appositum_links_for_work:work %}
+
+                {% for link in tlinks %}
+                    {% include 'research/partials/testimonium_link_list_item.html' with link=link link_text=link.get_work_display_name_full|safe can_edit=can_edit has_object_lock=has_object_lock %}
+                {% endfor %}
+
+                {% for link in flinks %}
+                    {% include 'research/partials/fragment_link_list_item.html' with link=link  link_text=link.get_work_display_name_full|safe can_edit=can_edit has_object_lock=has_object_lock %}
+                {% endfor %}
+
+                {% for link in alinks %}
+                    {% include 'research/partials/appositum_fragment_link_list_item.html' with link=link link_text=link.get_work_display_name_full|safe can_edit=can_edit has_object_lock=has_object_lock %}
+                {% endfor %}
+            
+                {% if not flinks and not tlinks and not alinks %}
+                <div class='text-muted my-3 ml-4'><em>No linked material for this work</em></div>
+                {% endif %}
+        
+            {% endwith %}
+            {% endwith %}
+            {% endwith %}
+            </div>
+        </ul>
+                    </div>
+
+        {% if forloop.last %}
+        {# add drop target at end #}
+        <div class='drop-target' data-pos='{{ forloop.counter }}' data-objecttype='work'>
+        </div>
+        {% endif %}
+
+        {% endfor %}
+
+        <div class='d-flex justify-content-between w-100'>
+            <div>
+                <b class='my-3 mr-3'>Unknown Work</b>
+            </div>
+            <div>
+                {% if can_edit and has_object_lock %}
+                <a href='{% url "anonymous_fragment:create_appositum_for" "antiquarian" object.pk %}'>
+                    {% trans 'Create Appositum' %}</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <ul>
+
+        {% with tlinks=object|testimonium_links_for_work:None %}
+        {% with flinks=object|fragment_links_for_work:None %}
+        {% with alinks=object|appositum_links_for_work:None %}
+
+
+            {% for link in tlinks %}
+                {% include 'research/partials/testimonium_link_list_item.html' with link=link link_text=link.get_display_name|safe can_edit=can_edit has_object_lock=has_object_lock %}
+            {% endfor %}
+            {% for link in flinks %}
+                {% include 'research/partials/fragment_link_list_item.html' with link=link link_text=link.get_display_name|safe can_edit=can_edit has_object_lock=has_object_lock %}
+            {% endfor %}
+            {% for link in alinks %}
+                {% include 'research/partials/appositum_fragment_link_list_item.html' with link=link link_text=link.get_display_name|safe can_edit=can_edit has_object_lock=has_object_lock %}
+            {% endfor %}
+
+            {% if not flinks and not tlinks and not alinks %}
+            <div class='text-muted my-3 ml-4'><em>No linked material</em></div>
+            {% endif %}
+
+
+        {% endwith %}
+        {% endwith %}
+        {% endwith %}
+
+        </ul>
+        </div>
+
+{% endwith %}

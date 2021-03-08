@@ -289,36 +289,25 @@ function closeForm() {
 
 
 function allowDrop(ev) {
-  ev.preventDefault();
-//   var src_pos = ev.dataTransfer.getData("Text");
-
-//   var dst_pos = $(ev.target).data("pos");
-//   console.log('can we drop '+src_pos+' onto '+dst_pos)
-//   if (src_pos != dst_pos) {
-    // $(ev.target).css('height', '100px')
+    ev.preventDefault();
     $(ev.target).addClass('over')
-//   }
 }
 
 function dragleave(ev) {
   ev.preventDefault();
-//   $(ev.target).css('height', '10px')
     $(ev.target).removeClass('over')
-
 }
+
 function dragend(ev) {
-    console.log('dragend firing')
   ev.preventDefault();
   $('.drop-target').hide();
   $('.ordered-list-item').attr('draggable', 'false')
-
 }
 
 $('body').on('mousedown', '.drag-handle', function(ev) {
     // ev.preventDefault();
     let item = $(this).closest('.ordered-list-item');
     if (item) {
-        console.log('MADE PARENT DRAGGABLE')
         item.attr('draggable', 'true')
     }
 });
@@ -327,19 +316,15 @@ $('body').on('mouseup', '.drag-handle', function(ev) {
     // ev.preventDefault();
     let item = $(this).closest('.ordered-list-item');
     if (item) {
-        console.log('MADE PARENT NOT DRAGGABLE')
         item.attr('draggable', 'false')
     }
 })
 
 function drag(ev) {
-    console.log('drag firing')
     let src_pos = $(ev.target).data('pos');
     let object_type = $(ev.target).data('objecttype');
 
     let pos = parseInt(src_pos);
-    console.log(src_pos);
-
     ev.dataTransfer.setData("Text", ev.target.id); 
 
     // if we manipulate the DOM on drag start we need
@@ -347,12 +332,10 @@ function drag(ev) {
   setTimeout(function(){ 
         $('.drop-target').filter('[data-objecttype="'+object_type+'"]').show();
         let not_allowed = [pos, pos+1];
-        for (let i=0;i < not_allowed.length; i++) {
+        for (let i=0; i < not_allowed.length; i++) {
             let index = not_allowed[i];
-                $('.drop-target').filter('[data-pos="'+index+'"]').hide();
-
+            $('.drop-target').filter('[data-pos="'+index+'"]').hide();
         }
-        console.log('set the data to '+ev.dataTransfer.getData("Text"))
     }, 10);
 
 }
@@ -360,47 +343,69 @@ function drag(ev) {
 function drop(ev) {
   ev.preventDefault();
   var dragged_id = ev.dataTransfer.getData("Text");
-//   alert('dragged id '+dragged_id)
+
     let item = $('#'+dragged_id);
-//   alert('drop '+src_pos+' to pos '+$(ev.target).data('pos'))
-    // alert('drop ev.items '+ev.dataTransfer.items.length)
-    // let item = ev.dataTransfer.items[0];
-    console.dir(item);
-    // let pos = $(item).data('pos');
     let object_type = $(item).data('objecttype');
-    // let new_pos = pos + 1;
     let target_pos = parseInt($(ev.target).data('pos'));
     let old_pos = parseInt( $(item).data('pos') );
-    console.log('old_pos '+old_pos)
-    console.log('target_pos '+target_pos)
     let new_pos = target_pos;
     // if moving down, subtract 1
     if (target_pos > old_pos) {
         new_pos = target_pos - 1;
-        console.log('moving down')
     }
-    console.log('new pos '+new_pos)
-    // alert('dropped to position '+new_pos)
     let antiquarian_id = $(item).data('antiquarian');
 
     let data = {};
-    if (object_type == 'work') {
+    if (object_type == 'topic') {
+        let topic_id = $(item).data('topic');
+        data = {'topic_id': topic_id};
+        data['move_to'] = new_pos;
+        // also need the page number
+        let page_index = $('.ordered-list').data('page');
+        data['page_index'] = page_index;
+        moveTopicTo(data)
+    } else if (object_type == 'work') {
         let work_id = $(item).data('work');
         data = {'work_id': work_id};
         data['antiquarian_id'] = antiquarian_id;
         data['move_to'] = new_pos;
+        moveLinkTo(data)
     } else {
         let link_id = $(item).data('link');
         data = {'link_id': link_id, 'object_type': object_type};
         data['antiquarian_id'] = antiquarian_id;
         data['move_to_by_work'] = new_pos;
+        moveLinkTo(data)
     }
-
-    moveLinkTo(data)
 
     dragend(ev);
 
 }
+
+
+$('body').on('click', 'button[name="topic_down"]', function() {
+
+    let pos = $(this).data('pos');
+    let new_pos = pos + 1;
+    let topic_id = $(this).data('topic');
+    let page_index = $('.ordered-list').data('page');
+    let data = {'topic_id': topic_id, 'move_to': new_pos, 'page_index': page_index};
+    moveTopicTo(data)
+
+})
+
+
+$('body').on('click', 'button[name="topic_up"]', function() {
+
+    let pos = $(this).data('pos');
+    // let object_type = $(this).data('objecttype');
+    let new_pos = pos - 1;
+    let topic_id = $(this).data('topic');
+    let page_index = $('.ordered-list').data('page');
+    let data = {'topic_id': topic_id, 'move_to': new_pos, 'page_index': page_index};
+    moveTopicTo(data)
+
+})
 
 $('body').on('click', 'button[name="work_down"]', function() {
 
@@ -478,15 +483,19 @@ $('body').on('dragend', '.drag-item', function(event) {
 });
 
 
-// function moveLinkTo(antiquarian_id, link_id, object_type, new_pos) {
+
 function moveLinkTo(post_data) {
+    runMoveAction(post_data, "/ajax/move-link/")
+}
+
+function moveTopicTo(post_data) {
+    runMoveAction(post_data, "/ajax/move-topic/")
+}
+
+function runMoveAction(post_data, post_url) {
 
     let sel = '.ordered-list'
     let $list_area = $(sel).first();
-    // let link_id = $link_object.data('id')
-    // let data = {'link_id': link_id, 'object_type': object_type};
-    // data['antiquarian_id'] = antiquarian_id;
-    // data['move_to_by_work'] = new_pos;
     
     let data = post_data;
 
@@ -502,24 +511,25 @@ function moveLinkTo(post_data) {
     $("body").css("cursor", "progress");
 
     $.ajax({
-        url: "/ajax/move-link/",
+        url: post_url,
         type: "POST",
         data: data,
         headers: headers,
         context: document.body,
         dataType: 'json',
-        // async: false,
         success: function (data, textStatus, jqXHR) {
 
             $list_area.replaceWith(data.html);
             $("body").css("cursor", "default");
-            if (cache_forms) {
+            try {
                 cache_forms();
             }
-        // $list_area.css('pointer-events', 'auto')
+            catch(err) {
+            }
         },
         error: function (e) {
             alert(e)
         }
     });
 };
+
