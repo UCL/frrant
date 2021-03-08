@@ -1,8 +1,10 @@
+from django.contrib.auth.context_processors import PermWrapper
 from django.contrib.auth.mixins import (LoginRequiredMixin,
                                         PermissionRequiredMixin)
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import HttpResponseRedirect
-from django.shortcuts import get_object_or_404, render
+from django.http import Http404, HttpResponseRedirect, JsonResponse
+from django.shortcuts import get_object_or_404
+from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
@@ -76,11 +78,20 @@ class AntiquarianDetailView(
         return HttpResponseRedirect(self.request.path)
 
 
-class AntiquarianMoveWorkView(
-    LoginRequiredMixin, PermissionRequiredMixin, View):
-    permission_required = ('research.change_antiquarian',)
+class MoveLinkView(LoginRequiredMixin, View):
 
-    render_partial_template = 'research/partials/render_locked_info.html'
+    render_partial_template = 'research/partials/ordered_work_area.html'
+
+    def render_valid_response(self, antiquarian):
+        context = {
+            'antiquarian': antiquarian,
+            'has_object_lock': True,
+            'can_edit': True,
+            'perms': PermWrapper(self.request.user)
+        }
+        html = render_to_string(self.render_partial_template, context)
+        ajax_data = {'status': 200, 'html': html}
+        return JsonResponse(data=ajax_data, safe=False)
 
     def post(self, *args, **kwargs):
 
@@ -88,22 +99,23 @@ class AntiquarianMoveWorkView(
         work_pk = self.request.POST.get('work_id', None)
         antiquarian_pk = self.request.POST.get('antiquarian_id', None)
 
+        antiquarian = Antiquarian.objects.get(pk=antiquarian_pk)
         object_type = self.request.POST.get('object_type', None)
+
         if work_pk:
-            # moving a work up in the collection
+            # moving a work in the collection
             try:
                 work = Work.objects.get(pk=work_pk)
-                antiquarian = Antiquarian.objects.get(pk=antiquarian_pk)
                 link = antiquarian.worklink_set.get(work=work)
 
                 if 'move_to' in self.request.POST:
                     pos = int(self.request.POST.get('move_to'))
                     link.move_to(pos)
-                    # TODO move before this index
-                    # link.up()
-                    pass
+
             except (Work.DoesNotExist, KeyError):
-                pass
+                raise Http404
+
+            return self.render_valid_response(antiquarian)
 
         if link_pk and object_type:
             from rard.research.models.base import (AppositumFragmentLink,
@@ -120,23 +132,13 @@ class AntiquarianMoveWorkView(
                 if 'move_to_by_work' in self.request.POST:
                     pos = int(self.request.POST.get('move_to_by_work'))
                     link.move_to_by_work(pos)
-                    pass
-                #     link.up_by_work()
-                # elif 'down_by_work' in self.request.POST:
-                #     link.down_by_work()
 
             except (ObjectDoesNotExist, KeyError):
-                pass
+                raise Http404
 
-            context = {
-                'antiquarian': antiquarian,
-                'has_object_lock': True,
-                'can_edit': True,
-            }
-            return render(
-                self.request, self.render_partial_template, context
-            )
-        # return HttpResponseRedirect(self.request.path)
+            return self.render_valid_response(antiquarian)
+
+        raise Http404
 
 
 class AntiquarianCreateView(

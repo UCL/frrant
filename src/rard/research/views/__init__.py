@@ -1,10 +1,9 @@
 from .antiquarian import (AntiquarianBibliographyCreateView,
                           AntiquarianCreateView, AntiquarianDeleteView,
                           AntiquarianDetailView, AntiquarianListView,
-                          AntiquarianMoveWorkView,
                           AntiquarianUpdateIntroductionView,
                           AntiquarianUpdateView, AntiquarianWorkCreateView,
-                          AntiquarianWorksUpdateView)
+                          AntiquarianWorksUpdateView, MoveLinkView)
 from .bibliography import (BibliographyDeleteView, BibliographyListView,
                            BibliographyUpdateView)
 from .citing_work import (CitingAuthorListView, CitingWorkDeleteView,
@@ -58,7 +57,7 @@ __all__ = [
     'AntiquarianDeleteView',
     'AntiquarianDetailView',
     'AntiquarianListView',
-    'AntiquarianMoveWorkView',
+    'MoveLinkView',
     'AntiquarianUpdateView',
     'AntiquarianUpdateIntroductionView',
     'AntiquarianWorksUpdateView',

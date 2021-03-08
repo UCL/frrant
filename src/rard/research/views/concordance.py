@@ -28,9 +28,8 @@ class ConcordanceListView(
     def get_context_data(self, *args, object_list=None, **kwargs):
         queryset = self.object_list
         context = super().get_context_data(*args, **kwargs)
-        max_length = max(
-            [len(o.get_concordance_identifiers()) for o in queryset.all()]
-        )
+        items = [len(o.get_concordance_identifiers()) for o in queryset.all()]
+        max_length = max(items) if items else 0
         # supply the max number of columms for the table (for formatting)
         context.update({
             'column_range': range(0, max_length)

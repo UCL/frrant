@@ -144,16 +144,19 @@ class WorkLinkBaseModel(LinkBaseModel):
         old_pos = self.work_order
         if pos == old_pos:
             return
-        if pos >= self.related_work_queryset().count():
-            raise ValueError(
-                'You are attempting to move beyond the '
-                'end of a list'
-            )
+
+        # if beyond the end, put it at the end (useful for UI)
+        pos = min(pos, self.related_work_queryset().count())
+
         if pos < old_pos:
-            to_reorder = self.related_work_queryset().exclude(pk=self.pk).filter(work_order__gte=pos)
+            to_reorder = self.related_work_queryset().exclude(
+                pk=self.pk
+            ).filter(work_order__gte=pos)
             reindex_start_pos = pos + 1
         else:
-            to_reorder = self.related_work_queryset().exclude(pk=self.pk).filter(work_order__lte=pos)
+            to_reorder = self.related_work_queryset().exclude(
+                pk=self.pk
+            ).filter(work_order__lte=pos)
             reindex_start_pos = 0
 
         with transaction.atomic():
