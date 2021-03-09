@@ -7,7 +7,7 @@ from django.views.generic.detail import DetailView
 from django.views.generic.edit import DeleteView, UpdateView
 
 from rard.research.models import BibliographyItem
-from rard.research.views.mixins import (CanLockMixin, CheckLockMixin)
+from rard.research.views.mixins import CanLockMixin, CheckLockMixin
 
 
 class BibliographyListView(LoginRequiredMixin,

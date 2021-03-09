@@ -8,9 +8,9 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_GET
 from django.views.generic import ListView, TemplateView
 
-from rard.research.models import (AnonymousFragment, Antiquarian, Fragment,
-                                  Testimonium, Topic, Work,
-                                  BibliographyItem)
+from rard.research.models import (AnonymousFragment, Antiquarian,
+                                  BibliographyItem, Fragment, Testimonium,
+                                  Topic, Work)
 
 
 @method_decorator(require_GET, name='dispatch')

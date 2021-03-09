@@ -4,10 +4,9 @@ from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
-from rard.research.models import (Antiquarian, CitingWork, Fragment,
-                                  Testimonium, Topic, Work,
-                                  BibliographyItem, TextObjectField,
-                                  AnonymousFragment)
+from rard.research.models import (AnonymousFragment, Antiquarian,
+                                  BibliographyItem, CitingWork, Fragment,
+                                  Testimonium, TextObjectField, Topic, Work)
 from rard.research.views import SearchView
 from rard.users.tests.factories import UserFactory
 

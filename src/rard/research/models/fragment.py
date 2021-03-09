@@ -68,42 +68,29 @@ class Fragment(HistoryModelMixin, HistoricalBaseModel, DatedModel):
         'OriginalText', related_query_name='original_texts'
     )
 
-    def _get_linked_works_and_books(self, definite):
-        # a list of definite linked works and books
-        all_links = self.antiquarian_fragmentlinks.filter(
-            definite=definite,
+    def definite_work_and_book_links(self):
+        return self.antiquarian_fragmentlinks.filter(
+            definite=True,
             work__isnull=False,
         ).order_by('work', '-book').distinct()
 
-        rtn = set()
-        for link in all_links:
-            if link.book:
-                rtn.add(link.book)
-            else:
-                rtn.add(link.work)
-        return rtn
+    def possible_work_and_book_links(self):
+        return self.antiquarian_fragmentlinks.filter(
+            definite=False,
+            work__isnull=False,
+        ).order_by('work', '-book').distinct()
 
-    def possible_works_and_books(self):
-        return self._get_linked_works_and_books(definite=False)
+    def definite_antiquarian_links(self):
+        return self.antiquarian_fragmentlinks.filter(
+            definite=True,
+            work__isnull=True
+        )
 
-    def definite_works_and_books(self):
-        return self._get_linked_works_and_books(definite=True)
-
-    def definite_antiquarians(self):
-        from rard.research.models import Antiquarian
-        return Antiquarian.objects.filter(
-            fragmentlinks__in=self.antiquarian_fragmentlinks.all(),
-            fragmentlinks__definite=True,
-            fragmentlinks__work__isnull=True,
-        ).distinct()
-
-    def possible_antiquarians(self):
-        from rard.research.models import Antiquarian
-        return Antiquarian.objects.filter(
-            fragmentlinks__in=self.antiquarian_fragmentlinks.all(),
-            fragmentlinks__definite=False,
-            fragmentlinks__work__isnull=True,
-        ).distinct()
+    def possible_antiquarian_links(self):
+        return self.antiquarian_fragmentlinks.filter(
+            definite=False,
+            work__isnull=True
+        )
 
     def get_absolute_url(self):
         return reverse('fragment:detail', kwargs={'pk': self.pk})

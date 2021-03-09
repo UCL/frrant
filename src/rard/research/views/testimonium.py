@@ -13,7 +13,7 @@ from django.views.generic.edit import DeleteView, UpdateView
 from rard.research.forms import (TestimoniumAntiquariansForm,
                                  TestimoniumCommentaryForm, TestimoniumForm,
                                  TestimoniumLinkWorkForm)
-from rard.research.models import Book, Testimonium, Work
+from rard.research.models import Antiquarian, Book, Testimonium, Work
 from rard.research.models.base import TestimoniumLink
 from rard.research.views.fragment import HistoricalBaseCreateView
 from rard.research.views.mixins import CanLockMixin, CheckLockMixin
@@ -120,28 +120,38 @@ class TestimoniumAddWorkLinkView(CheckLockMixin, LoginRequiredMixin,
 
     def form_valid(self, form):
         data = form.cleaned_data
-        work = data['work']
-        book = data['book']
-        link_to_antiquarians = work.antiquarian_set.all() or [None]
+        data['definite'] = 'definite' in self.request.POST
+        antiquarian = data['antiquarian']
 
-        for antiquarian in link_to_antiquarians:
-            data['testimonium'] = self.get_testimonium()
-            data['antiquarian'] = antiquarian
-            data['book'] = book
-            TestimoniumLink.objects.get_or_create(**data)
+        data['testimonium'] = self.get_testimonium()
+        data['antiquarian'] = antiquarian
+        TestimoniumLink.objects.get_or_create(**data)
 
         return super().form_valid(form)
+
+    def get_antiquarian(self, *args, **kwargs):
+        # look for antiquarian in the GET or POST parameters
+        self.antiquarian = None
+        if self.request.method == 'GET':
+            antiquarian_pk = self.request.GET.get('antiquarian', None)
+        elif self.request.method == 'POST':
+            antiquarian_pk = self.request.POST.get('antiquarian', None)
+        if antiquarian_pk:
+            try:
+                self.antiquarian = Antiquarian.objects.get(pk=antiquarian_pk)
+            except Antiquarian.DoesNotExist:
+                raise Http404
+        return self.antiquarian
 
     def get_work(self, *args, **kwargs):
         # look for work in the GET or POST parameters
         self.work = None
-
         if self.request.method == 'GET':
             work_pk = self.request.GET.get('work', None)
         elif self.request.method == 'POST':
             work_pk = self.request.POST.get('work', None)
-
-        if work_pk is not None:
+        print('work_pk is %s of type %s' % (work_pk, type(work_pk)))
+        if work_pk not in ('', None):
             try:
                 self.work = Work.objects.get(pk=work_pk)
             except Work.DoesNotExist:
@@ -153,19 +163,23 @@ class TestimoniumAddWorkLinkView(CheckLockMixin, LoginRequiredMixin,
         context.update({
             'testimonium': self.get_testimonium(),
             'work': self.get_work(),
+            'antiquarian': self.get_antiquarian(),
         })
         return context
 
     def get_form_kwargs(self):
         values = super().get_form_kwargs()
+        values['antiquarian'] = self.get_antiquarian()
         values['work'] = self.get_work()
         return values
 
 
-class TestimoniumRemoveLinkView(CheckLockMixin, LoginRequiredMixin,
-                                PermissionRequiredMixin, RedirectView):
+@method_decorator(require_POST, name='dispatch')
+class RemoveTestimoniumLinkView(CheckLockMixin, LoginRequiredMixin,
+                                PermissionRequiredMixin, DeleteView):
 
     check_lock_object = 'testimonium'
+    model = TestimoniumLink
 
     def dispatch(self, request, *args, **kwargs):
         # need to ensure we have the lock object view attribute
@@ -173,50 +187,17 @@ class TestimoniumRemoveLinkView(CheckLockMixin, LoginRequiredMixin,
         self.get_testimonium()
         return super().dispatch(request, *args, **kwargs)
 
-    # base class for both remove work and remove book from a testimonium
     permission_required = ('research.change_testimonium',)
 
     def get_success_url(self, *args, **kwargs):
-        return reverse(
-            'testimonium:detail', kwargs={'pk': self.testimonium.pk}
-        )
-
-    def get_linked_object(self, *args, **kwargs):
-        if not getattr(self, 'linked', False):
-            self.linked = get_object_or_404(
-                self.linked_class,
-                pk=self.kwargs.get('linked_pk')
+        return self.request.META.get(
+            'HTTP_REFERER',
+            reverse(
+                'testimonium:detail', kwargs={'pk': self.testimonium.pk}
             )
-        return self.linked
+        )
 
     def get_testimonium(self, *args, **kwargs):
         if not getattr(self, 'testimonium', False):
-            self.testimonium = get_object_or_404(
-                Testimonium,
-                pk=self.kwargs.get('pk')
-            )
+            self.testimonium = self.get_object().testimonium
         return self.testimonium
-
-    def post(self, request, *args, **kwargs):
-        testimonium = self.get_testimonium()
-        data = {
-            'testimonium': testimonium,
-            self.link_object_field_name: self.get_linked_object()
-        }
-        qs = TestimoniumLink.objects.filter(**data)
-        qs.delete()
-        return redirect(self.get_success_url())
-
-
-@method_decorator(require_POST, name='dispatch')
-class TestimoniumRemoveWorkLinkView(TestimoniumRemoveLinkView):
-
-    linked_class = Work
-    link_object_field_name = 'work'
-
-
-@method_decorator(require_POST, name='dispatch')
-class TestimoniumRemoveBookLinkView(TestimoniumRemoveLinkView):
-
-    linked_class = Book
-    link_object_field_name = 'book'

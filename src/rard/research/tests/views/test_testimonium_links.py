@@ -3,10 +3,10 @@ from django.http.response import Http404
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
-from rard.research.models import Testimonium, Work
+from rard.research.models import Antiquarian, Testimonium, Work
 from rard.research.models.base import TestimoniumLink
-from rard.research.views import (TestimoniumAddWorkLinkView,
-                                 TestimoniumRemoveWorkLinkView)
+from rard.research.views import (RemoveTestimoniumLinkView,
+                                 TestimoniumAddWorkLinkView)
 from rard.users.tests.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
@@ -32,12 +32,15 @@ class TestTestimoniumAddWorkLinkView(TestCase):
     def test_create_link_post(self):
 
         testimonium = Testimonium.objects.create(name='name')
+        antiquarian = Antiquarian.objects.create(name='name', re_code=1)
         work = Work.objects.create(name='name')
+        antiquarian.works.add(work)
         url = reverse(
             'testimonium:add_work_link',
             kwargs={'pk': testimonium.pk}
         )
         data = {
+            'antiquarian': antiquarian.pk,
             'work': work.pk
         }
         request = RequestFactory().post(url, data=data)
@@ -114,7 +117,7 @@ class TestTestimoniumRemoveWorkLinkView(TestCase):
         work = Work.objects.create(name='name')
         TestimoniumLink.objects.create(work=work, testimonium=testimonium)
 
-        view = TestimoniumRemoveWorkLinkView()
+        view = RemoveTestimoniumLinkView()
         request = RequestFactory().get("/")
         request.user = UserFactory.create()
 
@@ -130,7 +133,7 @@ class TestTestimoniumRemoveWorkLinkView(TestCase):
 
         testimonium = Testimonium.objects.create(name='name')
         work = Work.objects.create(name='name')
-        TestimoniumLink.objects.create(work=work, testimonium=testimonium)
+        link = TestimoniumLink.objects.create(work=work, testimonium=testimonium)
 
         request = RequestFactory().post('/')
         request.user = UserFactory.create()
@@ -138,13 +141,13 @@ class TestTestimoniumRemoveWorkLinkView(TestCase):
         testimonium.lock(request.user)
 
         self.assertEqual(TestimoniumLink.objects.count(), 1)
-        TestimoniumRemoveWorkLinkView.as_view()(
-            request, pk=testimonium.pk, linked_pk=work.pk
+        RemoveTestimoniumLinkView.as_view()(
+            request, pk=link.pk
         )
         self.assertEqual(TestimoniumLink.objects.count(), 0)
 
     def test_permission_required(self):
         self.assertIn(
             'research.change_testimonium',
-            TestimoniumRemoveWorkLinkView.permission_required
+            RemoveTestimoniumLinkView.permission_required
         )
