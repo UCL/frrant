@@ -167,6 +167,10 @@ class WorkLinkBaseModel(LinkBaseModel):
             self.work_order = pos
             self.save()
 
+        self.antiquarian.reindex_fragment_and_testimonium_links()
+
+        Antiquarian.reindex_null_fragment_and_testimonium_links()
+
     def up_by_work(self):
         previous = self.prev_by_work()
         if previous:
