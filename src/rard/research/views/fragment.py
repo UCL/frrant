@@ -104,11 +104,24 @@ class HistoricalBaseCreateView(OriginalTextCitingWorkView):
 
         self.post_process_saved_object(self.saved_object)
 
+        if 'then_add_links' in self.request.POST:
+            # lock the object
+            self.saved_object.lock(self.request.user)
+
         return redirect(
             self.get_success_url()
         )
 
+    def get_add_links_url(self):
+        return reverse(
+            self.add_links_url_name, kwargs={'pk': self.saved_object.pk}
+        )
+        
     def get_success_url(self):
+        if 'then_add_links' in self.request.POST:
+            # go to the 'add links' page
+            return self.get_add_links_url()
+
         return reverse(
             self.success_url_name, kwargs={'pk': self.saved_object.pk}
         )
@@ -117,6 +130,7 @@ class HistoricalBaseCreateView(OriginalTextCitingWorkView):
 class FragmentCreateView(PermissionRequiredMixin, HistoricalBaseCreateView):
     form_class = FragmentForm
     success_url_name = 'fragment:detail'
+    add_links_url_name = 'fragment:add_work_link'
     title = 'Create Fragment'
     permission_required = ('research.add_fragment',)
 
@@ -132,12 +146,21 @@ class AnonymousFragmentCreateView(FragmentCreateView):
     form_class = AnonymousFragmentForm
     success_url_name = 'anonymous_fragment:detail'
     title = 'Create Anonymous Fragment'
-    # permission_required = ('research.add_fragment',)
+    permission_required = ('research.add_anonymousfragment',)
+
+    def get_add_links_url(self):
+        link_type = self.request.POST.get('then_add_links', None)
+        url_name = 'link_fragment' if link_type == 'fragment' else 'link' 
+        return reverse(
+            'anonymous_fragment:{}'.format(url_name),
+            kwargs={'pk': self.saved_object.pk}
+        )
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context.update({
-            'title': self.title
+            'title': self.title,
+            'is_anonymous_fragment': True,
         })
         return context
 
@@ -248,6 +271,8 @@ class AddAppositumGeneralLinkView(CheckLockMixin, LoginRequiredMixin,
     )
 
     def get_success_url(self, *args, **kwargs):
+        if 'another' in self.request.POST:
+            return self.request.path
         return reverse(
             'anonymous_fragment:detail',
             kwargs={'pk': self.get_anonymous_fragment().pk}
@@ -349,6 +374,8 @@ class AddAppositumFragmentLinkView(CheckLockMixin, LoginRequiredMixin,
     )
 
     def get_success_url(self, *args, **kwargs):
+        if 'another' in self.request.POST:
+            return self.request.path
         return reverse(
             'anonymous_fragment:detail',
             kwargs={'pk': self.get_anonymous_fragment().pk}
@@ -527,6 +554,9 @@ class FragmentAddWorkLinkView(CheckLockMixin, LoginRequiredMixin,
     )
 
     def get_success_url(self, *args, **kwargs):
+        if 'another' in self.request.POST:
+            return self.request.path
+
         return reverse(
             'fragment:detail', kwargs={'pk': self.get_fragment().pk}
         )
@@ -541,7 +571,6 @@ class FragmentAddWorkLinkView(CheckLockMixin, LoginRequiredMixin,
 
     def form_valid(self, form):
         data = form.cleaned_data
-        data['definite'] = 'definite' in self.request.POST
         antiquarian = data['antiquarian']
 
         data['fragment'] = self.get_fragment()

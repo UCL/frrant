@@ -14,11 +14,10 @@
         {% bootstrap_field form.linked_to %}
 
         <button type="submit" class="btn btn-primary">
-            {% if object %}
-                {% trans 'Save' %}
-            {% else %}
-                {% trans 'Create' %}
-            {% endif %}
+            {% trans 'Create' %}
+        </button>
+        <button name='another' type="submit" class="btn btn-outline-primary">
+            {% trans 'Create and add another' %}
         </button>
     </form>
 

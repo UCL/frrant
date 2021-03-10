@@ -24,14 +24,15 @@
     <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
         {% csrf_token %}
         {% bootstrap_field form.book %}
+        {% bootstrap_field form.definite %}
 
         <input type='hidden' name='antiquarian' value='{{ antiquarian.pk }}' />
         <input type='hidden' name='work' value='{{ work.pk }}' />
-        <button type="submit" name='definite' class="btn btn-primary">
-            <i class='fa fa-check-circle'></i> {% trans 'Definite Link' %}
+        <button type="submit" class="btn btn-primary">
+            {% trans 'Create' %}
         </button>
-        <button type="submit" class="btn btn-secondary">
-            <i class='fa fa-question-circle'></i> {% trans 'Possible Link' %}
+        <button name='another' type="submit" class="btn btn-outline-primary">
+            {% trans 'Create and add another' %}
         </button>
 
     </form>

@@ -32,5 +32,19 @@
         <button type="submit" class="btn btn-primary">
             {% trans 'Create' %}
         </button>
+
+        {% if is_anonymous_fragment %}
+        <button type="submit" name='then_add_links' value='general' class="btn btn-outline-primary">
+            {% trans 'Create and Add Antiquarian/Work Link' %}
+        </button>
+        <button type="submit" name='then_add_links' value='fragment' class="btn btn-outline-primary">
+            {% trans 'Create and Add Fragment Link' %}
+        </button>
+        {% else %}
+        <button type="submit" name='then_add_links' class="btn btn-outline-primary">
+            {% trans 'Create and Add Links' %}
+        </button>
+        {% endif %}
+
     </form>
 {% endblock %}

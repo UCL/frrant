@@ -22,6 +22,7 @@ from rard.research.views.mixins import CanLockMixin, CheckLockMixin
 class TestimoniumCreateView(PermissionRequiredMixin, HistoricalBaseCreateView):
     form_class = TestimoniumForm
     success_url_name = 'testimonium:detail'
+    add_links_url_name = 'testimonium:add_work_link'
     title = 'Create Testimonium'
     permission_required = ('research.add_testimonium',)
 
@@ -106,6 +107,9 @@ class TestimoniumAddWorkLinkView(CheckLockMixin, LoginRequiredMixin,
     )
 
     def get_success_url(self, *args, **kwargs):
+        if 'another' in self.request.POST:
+            return self.request.path
+            
         return reverse(
             'testimonium:detail', kwargs={'pk': self.get_testimonium().pk}
         )
@@ -120,7 +124,6 @@ class TestimoniumAddWorkLinkView(CheckLockMixin, LoginRequiredMixin,
 
     def form_valid(self, form):
         data = form.cleaned_data
-        data['definite'] = 'definite' in self.request.POST
         antiquarian = data['antiquarian']
 
         data['testimonium'] = self.get_testimonium()
