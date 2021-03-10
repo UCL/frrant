@@ -21,6 +21,12 @@ class CitingAuthorListView(DateOrderMixin, LoginRequiredMixin,
     )
 
 
+class CitingAuthorDetailView(CanLockMixin, LoginRequiredMixin,
+                             PermissionRequiredMixin, DetailView):
+    model = CitingAuthor
+    permission_required = ('research.view_citingauthor',)
+
+
 class CitingWorkDetailView(CanLockMixin, LoginRequiredMixin,
                            PermissionRequiredMixin, DetailView):
     model = CitingWork
