@@ -326,11 +326,12 @@ function drag(ev) {
 
     let pos = parseInt(src_pos);
     ev.dataTransfer.setData("Text", ev.target.id); 
-
+    // Only show drop targets belonging to the same work
+    let work_div = $(ev.target).closest('.ordered-list-item[data-objecttype="work"]');
     // if we manipulate the DOM on drag start we need
     // to do it within a setTimeout. Apparently
   setTimeout(function(){ 
-        $('.drop-target').filter('[data-objecttype="'+object_type+'"]').show();
+        work_div.find('.drop-target').filter('[data-objecttype="'+object_type+'"]').show();
         let not_allowed = [pos, pos+1];
         for (let i=0; i < not_allowed.length; i++) {
             let index = not_allowed[i];
@@ -528,7 +529,8 @@ function runMoveAction(post_data, post_url) {
             }
         },
         error: function (e) {
-            alert(e)
+            console.log(e)
+            alert('Sorry, an error occurred.')
         }
     });
 };

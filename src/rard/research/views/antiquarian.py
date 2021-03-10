@@ -46,7 +46,6 @@ class AntiquarianDetailView(
                 link = antiquarian.worklink_set.get(work=work)
 
                 if 'work_up' in self.request.POST:
-                    # link.up()
                     link.move_to(link.order - 1)
                 elif 'work_down' in self.request.POST:
                     link.down()
@@ -67,10 +66,8 @@ class AntiquarianDetailView(
                 model_class = model_classes[object_type]
                 link = model_class.objects.get(pk=link_pk)
                 if 'up_by_work' in self.request.POST:
-                    # link.up_by_work()
                     link.move_to_by_work(link.work_order - 1)
                 elif 'down_by_work' in self.request.POST:
-                    # link.down_by_work()
                     link.move_to_by_work(link.work_order + 1)
 
             except (ObjectDoesNotExist, KeyError):
@@ -271,7 +268,6 @@ class AntiquarianWorkCreateView(CheckLockMixin, LoginRequiredMixin,
         return super().dispatch(*args, **kwargs)
 
     def form_valid(self, form):
-        # self.antiquarian = self.get_antiquarian()
         work = form.save()
         self.antiquarian.works.add(work)
         return super().form_valid(form)
