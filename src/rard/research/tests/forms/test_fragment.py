@@ -1,8 +1,7 @@
 import pytest
 from django.test import TestCase
 
-from rard.research.forms import (FragmentCommentaryForm, FragmentForm,
-                                 FragmentLinkWorkForm)
+from rard.research.forms import FragmentCommentaryForm, FragmentLinkWorkForm
 from rard.research.models import Antiquarian, Book, Fragment, Work
 
 pytestmark = pytest.mark.django_db

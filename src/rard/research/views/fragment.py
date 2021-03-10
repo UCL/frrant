@@ -18,8 +18,7 @@ from rard.research.forms import (AnonymousFragmentCommentaryForm,
                                  FragmentAntiquariansForm,
                                  FragmentCommentaryForm, FragmentForm,
                                  FragmentLinkWorkForm, OriginalTextForm)
-from rard.research.models import (AnonymousFragment, Antiquarian, Book,
-                                  Fragment, Work)
+from rard.research.models import AnonymousFragment, Antiquarian, Fragment, Work
 from rard.research.models.base import AppositumFragmentLink, FragmentLink
 from rard.research.views.mixins import CanLockMixin, CheckLockMixin
 
@@ -116,7 +115,7 @@ class HistoricalBaseCreateView(OriginalTextCitingWorkView):
         return reverse(
             self.add_links_url_name, kwargs={'pk': self.saved_object.pk}
         )
-        
+
     def get_success_url(self):
         if 'then_add_links' in self.request.POST:
             # go to the 'add links' page
@@ -150,7 +149,7 @@ class AnonymousFragmentCreateView(FragmentCreateView):
 
     def get_add_links_url(self):
         link_type = self.request.POST.get('then_add_links', None)
-        url_name = 'link_fragment' if link_type == 'fragment' else 'link' 
+        url_name = 'link_fragment' if link_type == 'fragment' else 'link'
         return reverse(
             'anonymous_fragment:{}'.format(url_name),
             kwargs={'pk': self.saved_object.pk}

@@ -133,7 +133,9 @@ class TestTestimoniumRemoveWorkLinkView(TestCase):
 
         testimonium = Testimonium.objects.create(name='name')
         work = Work.objects.create(name='name')
-        link = TestimoniumLink.objects.create(work=work, testimonium=testimonium)
+        link = TestimoniumLink.objects.create(
+            work=work, testimonium=testimonium
+        )
 
         request = RequestFactory().post('/')
         request.user = UserFactory.create()

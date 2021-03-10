@@ -3,8 +3,6 @@ import re
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.urls import reverse
-from django.utils.safestring import mark_safe
 from simple_history.models import HistoricalRecords
 
 from rard.research.models.mixins import HistoryModelMixin

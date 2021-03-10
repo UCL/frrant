@@ -104,6 +104,7 @@ __all__ = [
     'OriginalTextUpdateView',
     'RemoveAppositumLinkView',
     'SearchView',
+    'RemoveTestimoniumLinkView',
     'TestimoniumAddWorkLinkView',
     'TestimoniumCreateView',
     'TestimoniumDeleteView',

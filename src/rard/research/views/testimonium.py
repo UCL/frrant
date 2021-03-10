@@ -1,19 +1,18 @@
 from django.contrib.auth.mixins import (LoginRequiredMixin,
                                         PermissionRequiredMixin)
 from django.http.response import Http404
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
 from django.views.generic import FormView, ListView
-from django.views.generic.base import RedirectView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import DeleteView, UpdateView
 
 from rard.research.forms import (TestimoniumAntiquariansForm,
                                  TestimoniumCommentaryForm, TestimoniumForm,
                                  TestimoniumLinkWorkForm)
-from rard.research.models import Antiquarian, Book, Testimonium, Work
+from rard.research.models import Antiquarian, Testimonium, Work
 from rard.research.models.base import TestimoniumLink
 from rard.research.views.fragment import HistoricalBaseCreateView
 from rard.research.views.mixins import CanLockMixin, CheckLockMixin
@@ -109,7 +108,7 @@ class TestimoniumAddWorkLinkView(CheckLockMixin, LoginRequiredMixin,
     def get_success_url(self, *args, **kwargs):
         if 'another' in self.request.POST:
             return self.request.path
-            
+
         return reverse(
             'testimonium:detail', kwargs={'pk': self.get_testimonium().pk}
         )

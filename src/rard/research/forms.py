@@ -262,12 +262,6 @@ class HistoricalFormBase(forms.ModelForm):
     def save(self, commit=True):
         instance = super().save(commit=False)
         if commit:
-
-            link_classes = {
-                Testimonium: TestimoniumLink,
-                Fragment: FragmentLink
-            }
-            link_class = link_classes[self._meta.model]
             instance.save()
             self.save_m2m()
 
