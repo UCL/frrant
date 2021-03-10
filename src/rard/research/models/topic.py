@@ -3,11 +3,11 @@ from django.urls import reverse
 from django.utils.text import slugify
 from simple_history.models import HistoricalRecords
 
-from rard.research.models.mixins import HistoryViewMixin
+from rard.research.models.mixins import HistoryModelMixin
 from rard.utils.basemodel import BaseModel, LockableModel, OrderableModel
 
 
-class Topic(HistoryViewMixin, OrderableModel, LockableModel, BaseModel):
+class Topic(HistoryModelMixin, OrderableModel, LockableModel, BaseModel):
 
     history = HistoricalRecords()
 

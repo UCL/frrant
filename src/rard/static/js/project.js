@@ -1,6 +1,60 @@
 /* Project specific Javascript goes here. */
 $.event.addProp('dataTransfer');
 
+// The show detail mechanism:
+
+// NB values stored as strings in the session storage
+let show_detail = sessionStorage.getItem('show_detail') !== 'false';
+$('#toggle-elements').prop('checked', show_detail ? 'checked': '');
+
+function toggleElements(show) {
+    if (show) {
+        $('.toggle-element').fadeIn(function() {
+            $('.toggle-element-button').addClass('open')
+        });
+    } else {
+        $('.toggle-element').fadeOut(function() {
+            $('.toggle-element-button').removeClass('open')
+        });
+    }
+    sessionStorage.setItem('show_detail', show);
+}
+
+toggleElements(show_detail);
+
+// if no toggleable elements on screen then hide the control
+// to avoid confusion (could also disable it)
+
+if ($('.toggle-element').length == 0) {
+    // $('#toggle-elements').prop('disabled', 'disabled');
+    $('.toggle-switch').hide();
+} else {
+    $('.toggle-switch').show();
+}
+
+
+$('.toggle-element-button').click(function() {
+    let rel_id = $(this).data('toggles');
+    let $elem = $('#'+rel_id);
+    let that = this;
+    if ($elem.is(':visible')) {
+        $elem.fadeOut(function() {
+            $(that).removeClass('open')
+        });
+    } else {
+        $elem.fadeIn(function() {
+            $(that).addClass('open')
+        });
+    }
+})
+
+$('#toggle-elements').click(function() {
+    let show_detail = $(this).is(':checked');
+    toggleElements(show_detail);
+})
+
+// End of show detail mechanism
+
 $('.rard-toggle-control input').change(function (e, init) {
     let checked = $(this).is(':checked');
     let $parent = $(this).closest('.rard-toggle-control');

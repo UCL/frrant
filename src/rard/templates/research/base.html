@@ -4,6 +4,19 @@
 {% block content %}
 <style>
 
+.toggle-element, .toggle-switch {
+  display:none;
+}
+.toggle-element-button {
+  text-decoration: none!important;
+}
+.toggle-element-button:after {
+  content: '+';
+}
+.toggle-element-button.open:after {
+    content: '-';
+}
+
 .open-button {
   background-color: #555;
   color: white;
@@ -40,7 +53,6 @@
 .drop-target.over {
     height: 100px; 
    /* background: green; */
-
 }
 
 /* hidden by default */
@@ -141,13 +153,21 @@
 <div class="symbol-popup picker" id="myForm">
   <div class='form-container'>
           {% include 'research/partials/symbol_picker.html' %}
-
   </div>
 </div>
 
 {% endblock %}
+<div class='row'>
+  <div class='col mt-n4 mb-1 ml-3'>
+    <div class="custom-control custom-switch toggle-switch float-right">
+      <input type="checkbox" class="custom-control-input" id='toggle-elements'>
+      <label class="custom-control-label" for="toggle-elements"><small class='text-muted'>Show Details</small></label>
+    </div>
 
-<div class='row mt-5'>
+  </div>
+</div>
+
+<div class='row'>
   <div class='col-md-2 mb-5'>
     <nav class='nav flex-column'>
       {% if perms.research.view_antiquarian %}

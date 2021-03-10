@@ -34,6 +34,9 @@ urlpatterns = [
         path("<pk>/work/create/", views.AntiquarianWorkCreateView.as_view(), name="create_work"),
         path("<pk>/works/", views.AntiquarianWorksUpdateView.as_view(), name="update_works"),
         path("<pk>/bibliograpny/create/", views.AntiquarianBibliographyCreateView.as_view(), name="create_bibliography"),
+        path("<pk>/concordance/create/", views.AntiquarianConcordanceCreateView.as_view(), name="create_concordance"),
+        path("concordance/<pk>/update/", views.AntiquarianConcordanceUpdateView.as_view(), name="update_concordance"),
+        path("concordance/<pk>/delete/", views.AntiquarianConcordanceDeleteView.as_view(), name="delete_concordance"),
     ], 'research'), namespace='antiquarian')),
     path('bibliography/', include(([
         path('list/', views.BibliographyListView.as_view(), name='list'),

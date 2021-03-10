@@ -3,11 +3,11 @@ from django.core.exceptions import ObjectDoesNotExist
 from simple_history.models import HistoricalRecords
 
 from rard.research.models import Antiquarian
-from rard.research.models.mixins import HistoryViewMixin
+from rard.research.models.mixins import HistoryModelMixin
 from rard.utils.basemodel import BaseModel, DynamicTextField
 
 
-class TextObjectField(HistoryViewMixin, BaseModel):
+class TextObjectField(HistoryModelMixin, BaseModel):
     history = HistoricalRecords()
 
     def related_lock_object(self):
