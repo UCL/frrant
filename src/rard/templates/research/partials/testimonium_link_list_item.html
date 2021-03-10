@@ -23,11 +23,11 @@
                 <button class="btn btn-link toggle-element-button" type="button" data-toggles="testimoniumlink_{{ link.pk }}"></button>
 
             <br>
-            <small id='testimoniumlink_{{ link.pk }}' class='toggle-element'>
+            <div id='testimoniumlink_{{ link.pk }}' class='toggle-element'>
                 <span class='ml-4 text-muted'>
-                    {{ testimonium.get_citing_display }}
+                    <small>{{ testimonium.get_citing_display }}</small>
                 </span>
-            </small>
+            </div>
         </li>
     </div>
     <div class='rard-list-item-actions'>

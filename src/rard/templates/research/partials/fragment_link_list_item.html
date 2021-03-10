@@ -21,11 +21,11 @@
                 <button class="btn btn-link toggle-element-button" type="button" data-toggles="fragmentlink_{{ link.pk }}"></button>
 
             <br>
-            <small id='fragmentlink_{{ link.pk }}' class='toggle-element'>
+            <div id='fragmentlink_{{ link.pk }}' class='toggle-element'>
                 <span class='ml-4 text-muted'>
-                    {{ fragment.get_citing_display|safe }}
+                    <small>{{ fragment.get_citing_display|safe }}</small>
                 </span>
-            </small>
+            </div>
         </li>
     </div>
     <div class='rard-list-item-actions'>
