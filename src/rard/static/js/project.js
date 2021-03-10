@@ -9,13 +9,11 @@ $('#toggle-elements').prop('checked', show_detail ? 'checked': '');
 
 function toggleElements(show) {
     if (show) {
-        $('.toggle-element').fadeIn(function() {
-            $('.toggle-element-button').addClass('open')
-        });
+        $('.toggle-element').removeClass('hidden')
+        $('.toggle-element-button').addClass('open')
     } else {
-        $('.toggle-element').fadeOut(function() {
-            $('.toggle-element-button').removeClass('open')
-        });
+        $('.toggle-element').addClass('hidden')
+        $('.toggle-element-button').removeClass('open')
     }
     sessionStorage.setItem('show_detail', show);
 }
@@ -33,18 +31,13 @@ if ($('.toggle-element').length == 0) {
 }
 
 
-$('.toggle-element-button').click(function() {
-    let rel_id = $(this).data('toggles');
-    let $elem = $('#'+rel_id);
-    let that = this;
-    if ($elem.is(':visible')) {
-        $elem.fadeOut(function() {
-            $(that).removeClass('open')
-        });
+$('body').on('click', '.toggle-element-button', function(e) {
+    $(this).toggleClass('open');
+    let show = $(this).hasClass('open');
+    if (show) {
+        $(this).closest('li').find('.toggle-element').removeClass('hidden')
     } else {
-        $elem.fadeIn(function() {
-            $(that).addClass('open')
-        });
+        $(this).closest('li').find('.toggle-element').addClass('hidden')
     }
 })
 
@@ -381,7 +374,7 @@ function drag(ev) {
     let pos = parseInt(src_pos);
     ev.dataTransfer.setData("Text", ev.target.id); 
     // Only show drop targets belonging to the same work
-    let work_div = $(ev.target).closest('.ordered-list-item[data-objecttype="work"]');
+    let work_div = $(ev.target).closest('.parent-ordering-group');
     // if we manipulate the DOM on drag start we need
     // to do it within a setTimeout. Apparently
   setTimeout(function(){ 
@@ -581,6 +574,8 @@ function runMoveAction(post_data, post_url) {
             }
             catch(err) {
             }
+            toggleElements(show_detail);
+            $('[data-toggle="tooltip"]').tooltip()
         },
         error: function (e) {
             console.log(e)
