@@ -37,6 +37,10 @@ class WorkCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
 
     def form_valid(self, form):
         rtn = super().form_valid(form)
+        for book in form.cleaned_data['books']:
+            if type(book) is list and len(book) == 2:
+                b = Book(number=book[0], subtitle=book[1], work=self.object)
+                b.save()
         for a in form.cleaned_data['antiquarians']:
             a.works.add(self.object)
         return rtn

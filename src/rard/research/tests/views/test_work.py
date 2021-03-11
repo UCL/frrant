@@ -2,7 +2,7 @@ import pytest
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
-from rard.research.models import Antiquarian, Work
+from rard.research.models import Antiquarian, Work, Book
 from rard.research.views import (WorkCreateView, WorkDeleteView,
                                  WorkDetailView, WorkListView, WorkUpdateView)
 from rard.users.tests.factories import UserFactory
@@ -102,6 +102,44 @@ class TestWorkCreateView(TestCase):
         a = Antiquarian.objects.get(pk=a.pk)
         self.assertEqual(
             a.works.count(), 1
+        )
+
+    def test_create_with_books(self):
+
+        url = reverse(
+            'work:create'
+        )
+        a = Antiquarian.objects.create(name='bar', re_code=2)
+        data = {
+            'antiquarians': [a.pk],
+            'name': 'another name',
+            'books_0_0': 2,
+            'books_0_1': 'deux',
+            'books_1_0': 1,
+            'books_1_1': 'un',
+        }
+        request = RequestFactory().post(url, data=data)
+        request.user = UserFactory.create()
+
+        WorkCreateView.as_view()(
+            request
+        )
+        a = Antiquarian.objects.get(pk=a.pk)
+        self.assertEqual(
+            a.works.count(), 1
+        )
+        w = a.works.all()[0]
+        self.assertEqual(
+            Book.objects.filter(work=w).count(), 2
+        )
+        self.assertEqual(
+            w.book_set.count(), 2
+        )
+        self.assertEqual(
+            w.book_set.all()[1].number, 2
+        )
+        self.assertEqual(
+            w.book_set.all()[1].subtitle, 'deux'
         )
 
 

@@ -1,0 +1,9 @@
+<table class="books-widget">
+    <tr>
+        <th class="book-number">Number</th>
+        <th class="book-title">Book Title</th>
+    </tr>
+    {% for widget in widget.subwidgets %}
+    <tr>{% include widget.template_name %}</tr>
+    {% endfor %}
+</table>

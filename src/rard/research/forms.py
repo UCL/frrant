@@ -84,6 +84,109 @@ class AntiquarianUpdateWorksForm(forms.ModelForm):
         }
 
 
+class BookWidget(forms.MultiWidget):
+    template_name = 'widgets/book.html'
+
+    def __init__(self, *args, **kwargs):
+        super(BookWidget, self).__init__(
+            widgets = (
+                forms.widgets.NumberInput(attrs={
+                    'placeholder': 'Number',
+                }),
+                forms.widgets.TextInput(attrs={
+                    'placeholder': 'Book title',
+                }),
+            ),
+            *args, **kwargs
+        )
+
+    def decompress(self, value):
+        return value or [None, None]
+
+
+class BookField(forms.MultiValueField):
+    widget = BookWidget
+
+    def __init__(self, *args, **kwargs):
+        super(BookField, self).__init__(
+            fields = (
+                forms.IntegerField(required=False, min_value=1),
+                forms.CharField(required=False, max_length=128),
+            ),
+            require_all_fields=False,
+            *args,
+            **kwargs
+        )
+
+    def validate(self, value):
+        super().validate(value)
+        if value[0] or value[1]:
+            if not value[0]:
+                raise forms.ValidationError(
+                    _("Book '%(title)s' needs a number"),
+                    params={'title': value[1]},
+                    code='book-number-needed'
+                )
+            if not value[1]:
+                raise forms.ValidationError(
+                    _('Book number %(number)d needs a title'),
+                    params={'number': value[0]},
+                    code='book-title-needed'
+                )
+
+    def compress(self, data):
+        return data
+
+
+class BooksWidget(forms.MultiWidget):
+    template_name = 'widgets/books.html'
+
+    def __init__(self, count, *args, **kwargs):
+        self.count = count
+        super(BooksWidget, self).__init__(
+            widgets=[BookWidget] * count,
+            *args, **kwargs
+        )
+
+    def decompress(self, value):
+        return value or [None] * self.count
+
+
+class BooksField(forms.MultiValueField):
+    def __init__(self, *args, **kwargs):
+        try:
+            count = kwargs['widget'].count
+        except:
+            count = 5
+        super(BooksField, self).__init__(
+            fields=[BookField(required=False) for n in range(0, count)],
+            require_all_fields=False,
+            *args,
+            **kwargs
+        )
+
+    def compress(self, data):
+        return data
+
+    def validate(self, value):
+        super().validate(value)
+        seen = {}
+        dups = {}
+        for v in value:
+            if v:
+                n = v[0]
+                if n in seen:
+                    dups[n] = True
+                else:
+                    seen[n] = True
+        if dups:
+            raise forms.ValidationError(
+                _('The following book numbers are duplicated, please make them all distinct: %(nos)s'),
+                params={'nos': ', '.join(map(str, dups.keys()))},
+                code='book-number-duplicated'
+            )
+
+
 class WorkForm(forms.ModelForm):
 
     antiquarians = forms.ModelMultipleChoiceField(
@@ -92,9 +195,19 @@ class WorkForm(forms.ModelForm):
         required=False,
     )
 
+    books = BooksField(widget=BooksWidget(8))
+
     class Meta:
         model = Work
-        exclude = ('fragments',)
+        fields = (
+            'name',
+            'subtitle',
+            'antiquarians',
+            'number_of_books',
+            'date_range',
+            'order_year',
+            'books',
+        )
         labels = {'name': 'Name of Work'}
 
     def __init__(self, *args, **kwargs):
