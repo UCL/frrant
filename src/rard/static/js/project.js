@@ -370,11 +370,10 @@ $('body').on('mouseup', '.drag-handle', function(ev) {
 function drag(ev) {
     let src_pos = $(ev.target).data('pos');
     let object_type = $(ev.target).data('objecttype');
-
     let pos = parseInt(src_pos);
     ev.dataTransfer.setData("Text", ev.target.id); 
     // Only show drop targets belonging to the same work
-    let work_div = $(ev.target).closest('.parent-ordering-group');
+    let work_div = $(ev.target).parent().closest('.parent-ordering-group');
     // if we manipulate the DOM on drag start we need
     // to do it within a setTimeout. Apparently
   setTimeout(function(){ 

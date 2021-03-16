@@ -3,7 +3,7 @@
 
 {% with object=antiquarian %}
 
-        <div class='ordered-list'>
+        <div class='ordered-list parent-ordering-group'>
         {% for work in object.ordered_works.all %}
 
         <div class='drop-target' data-pos='{{ forloop.counter0 }}' data-objecttype='work'>
