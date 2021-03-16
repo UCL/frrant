@@ -6,7 +6,7 @@ from .antiquarian import (AntiquarianBibliographyCreateView,
                           AntiquarianDetailView, AntiquarianListView,
                           AntiquarianUpdateIntroductionView,
                           AntiquarianUpdateView, AntiquarianWorkCreateView,
-                          AntiquarianWorksUpdateView)
+                          AntiquarianWorksUpdateView, MoveLinkView)
 from .bibliography import (BibliographyDeleteView, BibliographyListView,
                            BibliographyUpdateView)
 from .citing_work import (CitingAuthorListView, CitingWorkDeleteView,
@@ -43,8 +43,8 @@ from .testimonium import (TestimoniumAddWorkLinkView, TestimoniumCreateView,
                           TestimoniumUpdateAntiquariansView,
                           TestimoniumUpdateCommentaryView,
                           TestimoniumUpdateView)
-from .topic import (TopicCreateView, TopicDeleteView, TopicDetailView,
-                    TopicListView, TopicUpdateView)
+from .topic import (MoveTopicView, TopicCreateView, TopicDeleteView,
+                    TopicDetailView, TopicListView, TopicUpdateView)
 from .translation import (TranslationCreateView, TranslationDeleteView,
                           TranslationUpdateView)
 from .work import (BookCreateView, BookDeleteView, BookUpdateView,
@@ -63,6 +63,7 @@ __all__ = [
     'AntiquarianDeleteView',
     'AntiquarianDetailView',
     'AntiquarianListView',
+    'MoveLinkView',
     'AntiquarianUpdateView',
     'AntiquarianUpdateIntroductionView',
     'AntiquarianWorksUpdateView',
@@ -103,6 +104,7 @@ __all__ = [
     'HistoryListView',
     'HomeView',
     'MentionSearchView',
+    'MoveTopicView',
     'OriginalTextDeleteView',
     'OriginalTextUpdateView',
     'RemoveAppositumLinkView',

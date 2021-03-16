@@ -20,6 +20,8 @@ common_patterns = [
 # app_name = "research"
 urlpatterns = [
     path("", views.HomeView.as_view(), name="home"),
+    path("ajax/move-link/", views.MoveLinkView.as_view(), name="move_link"),
+    path("ajax/move-topic/", views.MoveTopicView.as_view(), name="move_move"),
     # path("comment/<pk>/delete/", views.CommentDeleteView.as_view(), name="delete_comment"),
     # path("text-field/<pk>/comments/", views.TextObjectFieldCommentListView.as_view(), name="list_comments_on_text"),
     path('antiquarian/', include(([

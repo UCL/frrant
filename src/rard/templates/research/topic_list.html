@@ -1,6 +1,11 @@
 {% extends "research/list_base.html" %}
 {% load i18n %}
 
+{% block css %}
+<meta name="token" content="{{ csrf_token }}">
+{{ block.super }}
+{% endblock %}
+
 {% block heading %}
     {% trans 'Topics' %}
 {% endblock %}
@@ -12,29 +17,8 @@
 {% endblock %}
 
 {% block inner %}
-<div class='ordered-list'>
 
-    {% for object in page_obj %}
-
-        <form novalidate class='ordered-list-item form-inline' action='' method='POST'>
-        {% include 'research/partials/topic_list_item.html' with topic=object %}
-
-            {% if perms.research.change_topic %}
-
-            {% csrf_token %}
-            <div class='form-group ml-auto'>
-                <input type='hidden' name='topic_id' value='{{ object.pk }}'>
-                <button type='submit' class='btn btn-light btn-sm' {% if forloop.first %}disabled{% endif %}
-                    name='up'>▲</button>
-                <button type='submit' class='btn btn-light btn-sm' {% if forloop.last %}disabled{% endif %}
-                    name='down'>▼</button>
-            </div>
-
-            {% endif %}
-        </form>
-
-    {% endfor %}
-</div>
+    {% include 'research/partials/ordered_topic_area.html' %}
 
     {{ block.super }}
 

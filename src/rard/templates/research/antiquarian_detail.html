@@ -1,6 +1,11 @@
 {% extends "research/detail_base.html" %}
 {% load i18n bootstrap4 object_lock links_for_work static %}
 
+{% block css %}
+<meta name="token" content="{{ csrf_token }}">
+{{ block.super }}
+{% endblock %}
+
 {% block heading %}{{ object.name }}{% endblock %}
 
 {% block last_modified %}{% endblock %}
@@ -205,109 +210,7 @@
             </div>
         </div>
 
-        <div class='ordered-list'>
-        {% for work in object.ordered_works.all %}
-        <form novalidate class='ordered-list-item form-inline' action='' method='POST'>
-            <div class='d-flex justify-content-between w-100'>
-                <div>
-                    <b class='my-3 mr-3'><a href='{% url "work:detail" work.pk %}'>{{ work.name }}</a></b>
-
-                    {% if perms.research.change_antiquarian and has_object_lock %}
-
-                    {% csrf_token %}
-                    <div class='form-group'>
-                        <input type='hidden' name='work_id' value='{{ work.pk }}'>
-                        <input type='hidden' name='antiquarian_id' value='{{ object.pk }}'>
-                        <button type='submit' class='btn btn-light btn-sm' {% if forloop.first or disable_link_controls %}disabled{% endif %}
-                            name='work_up'>▲</button>
-                        <button type='submit' class='btn btn-light btn-sm' {% if forloop.last or disable_link_controls %}disabled{% endif %}
-                            name='work_down'>▼</button>
-                    </div>
-
-                    {% endif %}
-
-                </div>
-                <div>
-                    {% if perms.research.change_antiquarian and has_object_lock %}
-                    <a href='{% url "anonymous_fragment:create_appositum_for" "work" work.pk %}'>{% trans 'Create Appositum' %}</a>
-                    {% endif %}
-                </div>
-            </div>
-
-        </form>
-
-        <ul>
-            <div class='ordered-list'>
-            {% with tlinks=object|testimonium_links_for_work:work %}
-            {% with flinks=object|fragment_links_for_work:work %}
-            {% with alinks=object|appositum_links_for_work:work %}
-
-                {% for link in tlinks %}
-                    {% include 'research/partials/testimonium_link_list_item.html' with link=link link_text=link.get_work_display_name_full|safe can_edit=perms.research.change_antiquarian has_object_lock=has_object_lock %}
-                {% endfor %}
-
-                {% for link in flinks %}
-                    {% include 'research/partials/fragment_link_list_item.html' with link=link  link_text=link.get_work_display_name_full|safe can_edit=perms.research.change_antiquarian has_object_lock=has_object_lock %}
-                {% endfor %}
-
-                {% for link in alinks %}
-                    {% include 'research/partials/appositum_fragment_link_list_item.html' with link=link link_text=link.get_work_display_name_full|safe can_edit=perms.research.change_antiquarian has_object_lock=has_object_lock %}
-                {% endfor %}
-            
-                {% if not flinks and not tlinks and not alinks %}
-                <div class='text-muted my-3 ml-4'><em>No linked material for this work</em></div>
-                {% endif %}
-        
-            {% endwith %}
-            {% endwith %}
-            {% endwith %}
-            </div>
-        </ul>
-        
-        
-        {% endfor %}
-
-        <div class='d-flex justify-content-between w-100'>
-            <div>
-                <b class='my-3 mr-3'>Unknown Work</b>
-            </div>
-            <div>
-                {% if perms.research.change_antiquarian and has_object_lock %}
-                <a href='{% url "anonymous_fragment:create_appositum_for" "antiquarian" object.pk %}'>
-                    {% trans 'Create Appositum' %}</a>
-                {% endif %}
-            </div>
-        </div>
-
-        <ul>
-
-        {% with tlinks=object|testimonium_links_for_work:None %}
-        {% with flinks=object|fragment_links_for_work:None %}
-        {% with alinks=object|appositum_links_for_work:None %}
-
-
-            {% for link in tlinks %}
-                {% include 'research/partials/testimonium_link_list_item.html' with link=link link_text=link.get_display_name|safe can_edit=perms.research.change_antiquarian has_object_lock=has_object_lock %}
-            {% endfor %}
-            {% for link in flinks %}
-                {% include 'research/partials/fragment_link_list_item.html' with link=link link_text=link.get_display_name|safe can_edit=perms.research.change_antiquarian has_object_lock=has_object_lock %}
-            {% endfor %}
-            {% for link in alinks %}
-                {% include 'research/partials/appositum_fragment_link_list_item.html' with link=link link_text=link.get_display_name|safe can_edit=perms.research.change_antiquarian has_object_lock=has_object_lock %}
-            {% endfor %}
-
-            {% if not flinks and not tlinks and not alinks %}
-            <div class='text-muted my-3 ml-4'><em>No linked material</em></div>
-            {% endif %}
-
-
-        {% endwith %}
-        {% endwith %}
-        {% endwith %}
-
-        </ul>
-        </div>
-
+        {% include 'research/partials/ordered_work_area.html' with antiquarian=object can_edit=perms.research.change_antiquarian has_object_lock=has_object_lock %}
 
     </section>
 
