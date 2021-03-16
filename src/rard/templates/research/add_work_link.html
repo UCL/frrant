@@ -3,15 +3,21 @@
 
 {% block heading %}
     {% blocktrans with name=form.instance.linked_field %}
-        Add link to work / book to {{ name }}
+        Link {{ name }} to antiquarian, work or book 
     {% endblocktrans %}
 {% endblock %}
 
 {% block inner %}
 
-    {# Use a GET form to select the work #}
+
+    {# Use a GET form to select the work and antiquarian #}
+    <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form work-form" method='GET'>
+        {% bootstrap_field form.antiquarian field_class='submit-on-change' %}
+    </form>
+
     <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form work-form" method='GET'>
         {% bootstrap_field form.work field_class='submit-on-change' %}
+        <input type='hidden' name='antiquarian' value='{{ antiquarian.pk }}' />
     </form>
 
     {# where a work has been specified add it as a hidden control and show the relevant books (if any) #}
@@ -20,13 +26,15 @@
         {% bootstrap_field form.book %}
         {% bootstrap_field form.definite %}
 
+        <input type='hidden' name='antiquarian' value='{{ antiquarian.pk }}' />
         <input type='hidden' name='work' value='{{ work.pk }}' />
         <button type="submit" class="btn btn-primary">
-            {% if object %}
-                {% trans 'Save' %}
-            {% else %}
-                {% trans 'Create' %}
-            {% endif %}
+            {% trans 'Create' %}
         </button>
+        <button name='another' type="submit" class="btn btn-outline-primary">
+            {% trans 'Create and add another' %}
+        </button>
+
     </form>
 {% endblock %}
+

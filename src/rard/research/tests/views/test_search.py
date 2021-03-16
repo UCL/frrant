@@ -4,10 +4,9 @@ from django.contrib.auth.models import AnonymousUser
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
-from rard.research.models import (Antiquarian, CitingWork, Fragment,
-                                  Testimonium, Topic, Work,
-                                  BibliographyItem, TextObjectField,
-                                  AnonymousFragment)
+from rard.research.models import (AnonymousFragment, Antiquarian,
+                                  BibliographyItem, CitingWork, Fragment,
+                                  Testimonium, TextObjectField, Topic, Work)
 from rard.research.views import SearchView
 from rard.users.tests.factories import UserFactory
 
@@ -218,7 +217,8 @@ class TestSearchView(TestCase):
         self.assertEqual(list(view.apparatus_criticus_search('TuF')), [f1])
         self.assertEqual(list(view.apparatus_criticus_search('bBi')), [f2])
         self.assertEqual(list(view.apparatus_criticus_search('nseN')), [t1])
-        self.assertEqual(list(view.apparatus_criticus_search('s')), [f1, f2, t1])
+        self.assertEqual(
+            list(view.apparatus_criticus_search('s')), [f1, f2, t1])
         self.assertEqual(list(view.apparatus_criticus_search('content')), [])
 
         # bibliography

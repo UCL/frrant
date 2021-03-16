@@ -25,32 +25,5 @@
         </li>
     </div>
     <div class='rard-list-item-actions'>
-    {% if can_edit and has_object_lock %}
-        {% if testimonium %}
-            {% if book %}
-            <form novalidate class='form-inline' action='{% url "testimonium:remove_book_link" testimonium.pk book.pk %}' method='POST'>
-            {% else %}
-            <form novalidate class='form-inline' action='{% url "testimonium:remove_work_link" testimonium.pk work.pk %}' method='POST'>
-            {% endif %}
-                {% csrf_token %}
-                <div class='form-group'>
-                    <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
-                        data-what='link'>{% trans 'Remove Link' %}</button>
-                </div>
-            </form>
-        {% elif fragment %}
-            {% if book %}
-            <form novalidate class='form-inline' action='{% url "fragment:remove_book_link" fragment.pk book.pk %}' method='POST'>
-            {% else %}
-            <form novalidate class='form-inline' action='{% url "fragment:remove_work_link" fragment.pk work.pk %}' method='POST'>
-            {% endif %}
-                {% csrf_token %}
-                <div class='form-group'>
-                    <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
-                        data-what='link'>{% trans 'Remove Link' %}</button>
-                </div>
-            </form>
-        {% endif %}
-    {% endif %}
     </div>
 </div>
