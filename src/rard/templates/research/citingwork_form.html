@@ -1,0 +1,26 @@
+{% extends "research/base.html" %}
+{% load i18n bootstrap4 %}
+
+{% block heading %}
+    {% if object %}
+        {% trans 'Update Citing Work' %}
+    {% else %}
+        {% trans 'Create Citing Work' %}
+    {% endif %}
+{% endblock %}
+
+{% block inner %}
+    <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
+        {% csrf_token %}
+        {% bootstrap_form form %}
+            {% if object %}
+                <button type="submit" class="btn btn-primary">
+                {% trans 'Save' %}
+                </button>
+            {% else %}
+                <button type="submit" class="btn btn-primary">
+                {% trans 'Create' %}
+                </button>
+            {% endif %}
+    </form>
+{% endblock %}

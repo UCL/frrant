@@ -1,0 +1,19 @@
+{# Assumes a context object named 'citingauthor' #}
+
+{% load i18n %}
+
+<div class='rard-list-item d-flex justify-content-between'>
+    <div>
+        <li>
+            {% with citingauthor as link_text %}
+                {% if perms.research.view_citingauthor %}
+                <a href='{% url "citingauthor:detail" citingauthor.pk %}'>{{ link_text }}</a> 
+                {% else %}
+                    {{ link_text }} 
+                {% endif %}
+            {% endwith %}
+        </li>
+    </div>
+    <div class='rard-list-item-actions'>
+    </div>
+</div>

@@ -1,10 +1,21 @@
 from django.db import models
+from django.urls import reverse
 from django.utils.translation import gettext as _
+from simple_history.models import HistoricalRecords
 
-from rard.utils.basemodel import BaseModel
+from rard.research.models.mixins import HistoryModelMixin
+from rard.utils.basemodel import BaseModel, DatedModel, LockableModel
 
 
-class CitingWork(BaseModel):
+class CitingWork(HistoryModelMixin, LockableModel, DatedModel, BaseModel):
+
+    history = HistoricalRecords(
+        excluded_fields=[
+        ]
+    )
+
+    def related_lock_object(self):
+        return self
 
     # allow blank name as may be anonymous
     author = models.ForeignKey(
@@ -15,6 +26,9 @@ class CitingWork(BaseModel):
     title = models.CharField(max_length=256, blank=False)
 
     edition = models.CharField(max_length=128, blank=True)
+
+    def get_absolute_url(self):
+        return reverse('citingauthor:work_detail', kwargs={'pk': self.pk})
 
     def __str__(self):
         tokens = [
@@ -36,9 +50,25 @@ class CitingWork(BaseModel):
         ).distinct()
 
 
-class CitingAuthor(BaseModel):
+class CitingAuthor(HistoryModelMixin, LockableModel, DatedModel, BaseModel):
+
+    class Meta:
+        ordering = ['order_name',]
 
     name = models.CharField(max_length=256, blank=False)
+
+    order_name = models.CharField(max_length=128, default='', blank=True)
+
+    history = HistoricalRecords(
+        excluded_fields=[
+        ]
+    )
+
+    def get_absolute_url(self):
+        return reverse('citingauthor:detail', kwargs={'pk': self.pk})
+
+    def related_lock_object(self):
+        return self
 
     def __str__(self):
         return self.name

@@ -5,7 +5,7 @@
 <div class='rard-list-item d-flex justify-content-between'>
     <div>
         <li>
-            {% with antiquarian.name as link_text %}
+            {% with antiquarian as link_text %}
                 {% if perms.research.view_antiquarian %}
                 <a href='{% url "antiquarian:detail" antiquarian.pk %}'>{{ link_text }}</a> 
                 {% else %}

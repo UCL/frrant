@@ -6,32 +6,23 @@
 {% endblock %}
 
 {% block action %}
+<div class='d-flex justify-content-between align-items-center'>
+    <div>
+        {% include 'research/partials/render_date_order_form.html' %}
+    </div>
+    {% if perms.research.add_citingauthor %}
+    <div>
+        <a class='ml-3' href='{% url "citingauthor:create" %}'>{% trans 'Create New' %}</a>
+    </div>
+    {% endif %}
+</div>
 {% endblock %}
 
 {% block inner %}
+
     {% for object in page_obj %}
-        <h5 class='mt-2'>{{ object }}</h5>
-        {% comment %}
-        {% for citingwork in object.citingwork_set.all %}
-            {% include 'research/partials/citingwork_list_item.html' with citingwork=citingwork %}
-        {% endfor %}
-        {% endcomment %}
 
-        <ul>
-
-        {% for item in object.ordered_materials.testimonia %}
-        {% include 'research/partials/testimonium_list_item.html' with testimonium=item citing_author=object %}
-        {% endfor %}
-
-        {% for item in object.ordered_materials.fragments %}
-        {% include 'research/partials/fragment_list_item.html' with fragment=item citing_author=object %}
-        {% endfor %}
-
-        {% for item in object.ordered_materials.apposita %}
-        {% include 'research/partials/fragment_list_item.html' with fragment=item citing_author=object %}
-        {% endfor %}
-
-        </ul>
+    {% include 'research/partials/citingauthor_list_item.html' with citingauthor=object %}
 
     {% endfor %}
 

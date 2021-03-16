@@ -119,8 +119,10 @@ urlpatterns = [
 
     path('citing-author/', include(([
         path('list/', views.CitingAuthorListView.as_view(), name='list'),
-        path("<pk>/", views.CitingAuthorDetailView.as_view(), name="author_detail"),
-        # path("<pk>/update/", views.CitingAuthorUpdateView.as_view(), name="update_author"),
+        path("create/", views.CitingAuthorCreateView.as_view(), name="create"),
+        path("<pk>/", views.CitingAuthorDetailView.as_view(), name="detail"),
+        path("<pk>/delete/", views.CitingAuthorDeleteView.as_view(), name="delete"),
+        path("<pk>/update/", views.CitingAuthorUpdateView.as_view(), name="update"),
         # path("work/<pk>/update/", views.CitingWorkUpdateView.as_view(), name="update_work"),
         path("work/<pk>/", views.CitingWorkDetailView.as_view(), name="work_detail"),
         path("work/<pk>/update/", views.CitingWorkUpdateView.as_view(), name="update_work"),

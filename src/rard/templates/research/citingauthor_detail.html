@@ -1,0 +1,79 @@
+{% extends "research/detail_base.html" %}
+{% load i18n object_lock %}
+
+{% block heading %}{{ object }}{% endblock %}
+
+{% block action %}
+
+    {% with request.user|has_lock:object as has_object_lock %}
+
+        {% include 'research/partials/render_locked_info.html' %}
+
+        <div class='d-flex justify-content-end'>
+        {% if has_object_lock %}
+            {% if perms.research.delete_citingauthor %}
+            <form novalidate class='form-inline' action='{% url "citingauthor:delete" object.pk %}' method='POST'>
+                {% csrf_token %}
+                <div class='form-group'>
+                    <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+                        data-what='citing author'>{% trans 'Delete' %}</button>
+                </div>
+            </form>
+            {% endif %}
+        {% endif %}
+        </div>
+    {% endwith %}
+
+{% endblock %}
+
+
+{% block inner %}
+    {% with request.user|has_lock:object as has_object_lock %}
+
+    <hr>
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Details' %}</h5>
+            </div>
+            <div>
+                {% if perms.research.change_citingauthor and has_object_lock %}
+                <a href='{% url "citingauthor:update" object.pk %}'>{% trans 'Edit' %}</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <dl class="row mb-0">
+            <dt class="col-sm-3">{% trans 'Name' %}</dt>
+            <dd class="col-sm-9">{{ object.name }}</dd>        
+            <dt class="col-sm-3">{% trans 'Name for Alphabetisation' %}</dt>
+            <dd class="col-sm-9">{{ object.order_name }}</dd>
+            <dt class="col-sm-3">{% trans 'Relevant Dates' %}</dt>
+            <dd class="col-sm-9">
+                {{ object.display_date_range|default:'-' }}
+            </dd>
+            <dt class="col-sm-3">{% trans 'Year for Ordering' %}</dt>
+            <dd class="col-sm-9">{{ object.order_year }}</dd>
+        </dl>
+    </section>
+
+    <hr>
+
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Works' %}</h5>
+            </div>
+            <div>
+            </div>
+        </div>
+
+        {% for work in object.citingwork_set.all %}
+
+            {{ work }}
+
+        {% endfor %}
+    </section>
+    {% endwith %}
+
+{% endblock %}
