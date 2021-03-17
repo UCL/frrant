@@ -1,0 +1,38 @@
+{# Assumes context objects named link object named 'link' also 'can_edit' and 'has_object_lock' #}
+
+{% load i18n %}
+{% with antiquarian=link.antiquarian linked_field=link.linked_field %}
+<div class='rard-list-item d-flex justify-content-between'>
+    <div>
+        <li>
+            {% with antiquarian.name as link_text %}
+                {% if perms.research.view_antiquarian %}
+                <a href='{% url "antiquarian:detail" antiquarian.pk %}'>{{ link_text }}</a> 
+                {% else %}
+                    {{ link_text }}
+                {% endif %}
+                {% if antiquarian.display_date_range %}
+                <span class='date-range-element text-muted'><small>[{{ antiquarian.display_date_range }}]</small></span>
+                {% endif %}
+                {% include 'research/partials/render_inline_lock_icon.html' with object=antiquarian %}
+            {% endwith %}
+        </li>
+    </div>
+    <div class='rard-list-item-actions'>
+    {% if can_edit and has_object_lock %}
+
+            {% if linked_field == 'fragment' %}
+            <form novalidate class='form-inline' action='{% url "fragment:remove_fragment_link" link.pk %}' method='POST'>
+            {% else %}
+            <form novalidate class='form-inline' action='{% url "testimonium:remove_testimonium_link" link.pk %}' method='POST'>
+            {% endif %}
+                {% csrf_token %}
+                <div class='form-group'>
+                    <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+                        data-what='link'>{% trans 'Remove Link' %}</button>
+                </div>
+            </form>
+    {% endif %}
+    </div>
+</div>
+{% endwith %}

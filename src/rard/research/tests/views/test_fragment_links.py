@@ -3,10 +3,9 @@ from django.http.response import Http404
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
-from rard.research.models import Fragment, Work
+from rard.research.models import Antiquarian, Fragment, Work
 from rard.research.models.base import FragmentLink
-from rard.research.views import (FragmentAddWorkLinkView,
-                                 FragmentRemoveWorkLinkView)
+from rard.research.views import FragmentAddWorkLinkView, RemoveFragmentLinkView
 from rard.users.tests.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
@@ -30,12 +29,15 @@ class TestFragmentAddWorkLinkView(TestCase):
     def test_create_link_post(self):
 
         fragment = Fragment.objects.create(name='name')
+        antiquarian = Antiquarian.objects.create(name='name', re_code=1)
         work = Work.objects.create(name='name')
+        antiquarian.works.add(work)
         url = reverse(
             'fragment:add_work_link',
             kwargs={'pk': fragment.pk}
         )
         data = {
+            'antiquarian': antiquarian.pk,
             'work': work.pk
         }
         request = RequestFactory().post(url, data=data)
@@ -109,7 +111,7 @@ class TestFragmentRemoveWorkLinkView(TestCase):
         work = Work.objects.create(name='name')
         FragmentLink.objects.create(work=work, fragment=fragment)
 
-        view = FragmentRemoveWorkLinkView()
+        view = RemoveFragmentLinkView()
         request = RequestFactory().get("/")
         request.user = UserFactory.create()
         fragment.lock(request.user)
@@ -126,20 +128,20 @@ class TestFragmentRemoveWorkLinkView(TestCase):
 
         fragment = Fragment.objects.create(name='name')
         work = Work.objects.create(name='name')
-        FragmentLink.objects.create(work=work, fragment=fragment)
+        link = FragmentLink.objects.create(work=work, fragment=fragment)
 
         request = RequestFactory().post('/')
         request.user = UserFactory.create()
         fragment.lock(request.user)
 
         self.assertEqual(FragmentLink.objects.count(), 1)
-        FragmentRemoveWorkLinkView.as_view()(
-            request, pk=fragment.pk, linked_pk=work.pk
+        RemoveFragmentLinkView.as_view()(
+            request, pk=link.pk
         )
         self.assertEqual(FragmentLink.objects.count(), 0)
 
     def test_permission_required(self):
         self.assertIn(
             'research.change_fragment',
-            FragmentRemoveWorkLinkView.permission_required
+            RemoveFragmentLinkView.permission_required
         )

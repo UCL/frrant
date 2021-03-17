@@ -2,7 +2,9 @@
 
 {% load i18n %}
 
-<div class='rard-list-item d-flex justify-content-between'>
+<div class='drop-target' data-pos='{{ forloop.counter0 }}' data-objecttype='topic'>
+</div>
+<div id='topic_{{ topic.pk }}' data-topic='{{ topic.pk }}' draggable='false' data-objecttype='topic' data-pos='{{ forloop.counter0 }}' class='drag-item ordered-list-item rard-list-item d-flex justify-content-between'>
     <div>
         <li>
             {% with topic.name as link_text %}
@@ -15,5 +17,17 @@
         </li>
     </div>
     <div class='rard-list-item-actions'>
-    </div>
+    {% if can_edit %}
+        <button type='button' class='drag-handle btn btn-light' style='cursor: move;' data-pos='{{ forloop.counter0 }}'><i class='fas fa-bars'></i></button>
+        <button data-topic='{{ topic.pk }}' data-objecttype='topic' data-pos='{{ forloop.counter0 }}' type='button' class='btn btn-light btn-sm' {% if forloop.first %}disabled{% endif %}
+            name='topic_up'><i class='fas fa-caret-up'></i></button>
+        <button data-topic='{{ topic.pk }}' data-objecttype='topic' data-pos='{{ forloop.counter0 }}' type='button' class='btn btn-light btn-sm' {% if forloop.last %}disabled{% endif %}
+            name='topic_down'><i class='fas fa-caret-down'></i></button>
+    {% endif %}
+   </div>
 </div>
+{% if forloop.last %}
+{# add drop target at end #}
+<div class='drop-target' data-pos='{{ forloop.counter }}' data-objecttype='topic'>
+</div>
+{% endif %}

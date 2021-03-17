@@ -1,0 +1,13 @@
+{% load i18n %}
+
+{# assumes paginator context object page_obj #}
+
+<div class='ordered-list parent-ordering-group' data-page='{{ page_obj.number }}'>
+    {% for object in page_obj %}
+
+        {% include 'research/partials/topic_list_item.html' with topic=object can_edit=perms.research.change_topic %}
+
+
+    {% endfor %}
+</div>
+
