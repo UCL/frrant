@@ -28,7 +28,7 @@
         {% endfor %}
 
         {% for item in object.ordered_materials.apposita %}
-        {% include 'research/partials/fragment_list_item.html' with fragment=item citing_author=object %}
+        {% include 'research/partials/anonymousfragment_list_item.html' with fragment=item citing_author=object %}
         {% endfor %}
 
         </ul>
