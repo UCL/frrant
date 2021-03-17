@@ -231,6 +231,34 @@ If your static files (css, js, fonts etc) have changed then on the production en
 
 Answer 'yes' to the 'are you sure question'. It might say something like '0 files updated' but this message is notoriously misleading. Check to see whether the static files (js etc) being used are the ones you expect.
 
+### Loading data fixtures
+
+To take a snapshot of e.g. the production database and install it locally we do the following:
+
+Go to the production machine and run the following command:
+
+```sudo docker-compose -f production.yml run --rm django python manage.py dumpdata --indent=4  --natural-foreign --natural-primary -a  > dump.json```
+
+This dumps all (-a) the data in the database into a json file that we can load locally.
+
+Now scp the json file to your local machine and run the following commands:
+
+
+First, remove existing database:
+
+```docker-compose -f local.yml down -v```
+
+Rebuild database:
+
+```docker-compose -f local.yml up --build```
+
+Fill the database from the fixture:
+
+```docker-compose -f local.yml run -e LOADING=true --rm django python manage.py loaddata dump.json```
+
+Note that the environment variable LOADING=true is *essential* for this to work. As long as it is set to some value (e.g. LOADING=1, LOADING=foo) then it will work.
+
+
 ### Requirements
 
 Requirements are applied when the containers are built. 

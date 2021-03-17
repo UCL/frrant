@@ -6,6 +6,7 @@ from django.utils.safestring import mark_safe
 from rard.research.models import Antiquarian
 from rard.research.models.mixins import TextObjectFieldMixin
 from rard.utils.basemodel import BaseModel, LockableModel
+from rard.utils.decorators import disable_for_loaddata
 
 
 class LinkBaseModel(BaseModel):
@@ -323,6 +324,7 @@ class AppositumFragmentLink(WorkLinkBaseModel):
                 )
 
 
+@disable_for_loaddata
 def check_order_info(sender, instance, action, model, pk_set, **kwargs):
 
     from rard.research.models import Antiquarian, Fragment, Testimonium
@@ -345,6 +347,7 @@ def check_order_info(sender, instance, action, model, pk_set, **kwargs):
         Antiquarian.reindex_null_fragment_and_testimonium_links()
 
 
+@disable_for_loaddata
 def handle_new_link(sender, instance, created, **kwargs):
     if created:
         if isinstance(instance, FragmentLink):
@@ -352,6 +355,7 @@ def handle_new_link(sender, instance, created, **kwargs):
         reindex_order_info(sender, instance, **kwargs)
 
 
+@disable_for_loaddata
 def reindex_order_info(sender, instance, **kwargs):
     # when we delete a fragmentlink we need to:
     # reindex all work_links for the work it pointed to

@@ -9,6 +9,7 @@ from rard.research.models.base import (AppositumFragmentLink, FragmentLink,
 from rard.research.models.mixins import HistoryModelMixin
 from rard.research.models.topic import Topic
 from rard.utils.basemodel import DatedModel, OrderableModel
+from rard.utils.decorators import disable_for_loaddata
 
 
 class TopicLink(models.Model):
@@ -25,10 +26,12 @@ class TopicLink(models.Model):
     order = models.IntegerField(default=None, null=True)
 
 
+@disable_for_loaddata
 def handle_deleted_topic_link(sender, instance, **kwargs):
     instance.topic.reindex_fragment_links()
 
 
+@disable_for_loaddata
 def handle_changed_topics(sender, instance, action, model, pk_set, **kwargs):
     if action not in ('post_add', 'post_remove'):
         return
@@ -202,6 +205,7 @@ class AnonymousFragment(HistoryModelMixin, OrderableModel, HistoricalBaseModel,
 
 # handle changes in topic order and re-order anonymous fragments
 
+@disable_for_loaddata
 def reindex_anonymous_fragments():
     # where there has been a change, ensure the
     # ordering of fragments is correct (zero-indexed)
@@ -224,6 +228,7 @@ def reindex_anonymous_fragments():
             anon.save()
 
 
+@disable_for_loaddata
 def handle_apposita_change(sender, instance, action, model, pk_set, **kwargs):
     if action not in ('post_add', 'post_remove', 'post_clear'):
         return
@@ -241,6 +246,7 @@ def handle_apposita_change(sender, instance, action, model, pk_set, **kwargs):
                 AppositumFragmentLink.ensure_apposita_links(link)
 
 
+@disable_for_loaddata
 def prune_apposita_links(fragment):
     # any apposita links for anon fragments NOT in the fragment
     # set, we need to delete them
@@ -251,10 +257,12 @@ def prune_apposita_links(fragment):
         stale.delete()
 
 
+@disable_for_loaddata
 def handle_changed_anon_topics(sender, instance, **kwargs):
     reindex_anonymous_fragments()
 
 
+@disable_for_loaddata
 def handle_changed_anon_topic_links(
         sender, instance, action, model, pk_set, **kwargs):
     if action not in ('post_add', 'post_remove'):
