@@ -30,7 +30,7 @@
         {% bootstrap_field form.order_year %}
 
         {{ form.errors.books }}
-        {% bootstrap_field form.books %}
+        {{ form.books }}
 
         <button type="submit" class="btn btn-primary">
             {% if object %}

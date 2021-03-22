@@ -113,10 +113,10 @@ class TestWorkCreateView(TestCase):
         data = {
             'antiquarians': [a.pk],
             'name': 'another name',
-            'books_0_0': 2,
-            'books_0_1': 'deux',
-            'books_1_0': 1,
-            'books_1_1': 'un',
+            'books_0_num': 2,
+            'books_0_title': 'deux',
+            'books_1_num': 1,
+            'books_1_title': 'un',
         }
         request = RequestFactory().post(url, data=data)
         request.user = UserFactory.create()

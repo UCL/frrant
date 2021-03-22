@@ -1,9 +1,58 @@
-<table class="books-widget">
-    <tr>
+{% block head %}
+<script>
+function noop() {}
+
+function copyProperties(which, from, to) {
+    for (var i = 0; i !== which.length; ++i) {
+        var w = which[i];
+        if (from.hasAttribute(w)) {
+            to.setAttribute(w, from.getAttribute(w));
+        }
+    }
+}
+
+function addBookWidget(name, n) {
+    var tbody = document.getElementById(name + '-widgets');
+    var inps = tbody.getElementsByTagName('input');
+    for (var i = 0; i !== inps.length; ++i) {
+        inps[i].oninput = noop;
+    }
+    console.log(inps);
+    var tr = document.createElement('tr');
+    var td0 = document.createElement('td');
+    var td1 = document.createElement('td');
+    var inp0 = document.createElement('input');
+    var inp1 = document.createElement('input');
+    td0.append(inp0);
+    td1.append(inp1);
+    tr.append(td0, td1);
+    copyProperties(['type', 'class', 'placeholder', 'title'], inps[0], inp0);
+    copyProperties(['type', 'class', 'placeholder', 'title'], inps[1], inp1);
+    ++n
+    inp0.setAttribute('name', name + '_' + n + '_num');
+    inp1.setAttribute('name', name + '_' + n + '_title');
+    inp0.oninput = addBookWidget.bind(null, name, n);
+    inp1.oninput = addBookWidget.bind(null, name, n);
+    tbody.append(tr);
+}
+</script>
+{% endblock %}
+
+<table>
+    <thead><tr>
         <th class="book-number">Number</th>
         <th class="book-title">Book Title</th>
-    </tr>
-    {% for widget in widget.subwidgets %}
-    <tr>{% include widget.template_name %}</tr>
-    {% endfor %}
+    </tr></thead>
+    <tbody id="{{widget.name}}-widgets">
+        {% for row in widget.value %}
+        <tr>
+            <td><input type="text" name="{{widget.name}}_{{forloop.counter|add:'-1'}}_num" value="{{row.num}}" placeholder="Number" class="form-control" title="" required=""></td>
+            <td><input type="text" name="{{widget.name}}_{{forloop.counter|add:'-1'}}_title" value="{{row.title}}" placeholder="Book title" class="form-control" title="" required=""></td>
+        </tr>
+        {% endfor %}
+        <tr>
+            <td><input type="text" name="{{widget.name}}_{{widget.value|length}}_num" placeholder="Number" class="form-control" title="" required="" oninput="addBookWidget('{{widget.name}}', {{widget.value|length}})"></td>
+            <td><input type="text" name="{{widget.name}}_{{widget.value|length}}_title" placeholder="Book title" class="form-control" title="" required="" oninput="addBookWidget('{{widget.name}}', {{widget.value|length}})"></td>
+        </tr>
+    </tbody>
 </table>
