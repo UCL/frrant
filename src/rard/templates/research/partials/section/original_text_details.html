@@ -21,6 +21,8 @@
     <dt class="col-sm-3">{% trans 'Reference' %}</dt>
     <dd class="col-sm-9">{{ original_text.reference|default:'-' }}</dd>
 
+    <dt class="col-sm-3">{% trans 'Reference Order' %}</dt>
+    <dd class="col-sm-9">{{ original_text.reference_order|default:'-' }}</dd>
 
     <dt class="col-sm-3">{% trans 'Apparatus Criticus' %}</dt>
     <dd class="col-sm-9">{{ original_text.apparatus_criticus|safe|default:'-'|linebreaks }}</dd>
