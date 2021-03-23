@@ -224,7 +224,9 @@ class OriginalTextDetailsForm(forms.ModelForm):
 
     class Meta:
         model = OriginalText
-        fields = ('reference', 'content', 'apparatus_criticus')
+        fields = (
+            'reference', 'reference_order', 'content', 'apparatus_criticus',
+        )
         labels = {
             'content': _('Original Text'),
         }
@@ -236,7 +238,10 @@ class OriginalTextDetailsForm(forms.ModelForm):
 class OriginalTextForm(OriginalTextAuthorForm):
     class Meta:
         model = OriginalText
-        fields = ('citing_work', 'reference', 'content', 'apparatus_criticus')
+        fields = (
+            'citing_work', 'reference', 'reference_order',
+            'content', 'apparatus_criticus',
+        )
         labels = {
             'content': _('Original Text'),
         }

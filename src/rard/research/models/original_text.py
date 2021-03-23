@@ -27,6 +27,9 @@ class OriginalText(HistoryModelMixin, BaseModel):
     # e.g. page 24
     reference = models.CharField(max_length=128, blank=False)
 
+    # the value 24 to be used in 'ordering by reference' taking example above
+    reference_order = models.IntegerField(blank=False, null=True, default=None)
+
     content = models.TextField(blank=False)
 
     apparatus_criticus = DynamicTextField(default='', blank=True)

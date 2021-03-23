@@ -51,8 +51,7 @@ class CitingAuthor(HistoryModelMixin, LockableModel, DatedModel, BaseModel):
                 original_texts__citing_work__author=self).distinct(),
             'fragments': fragments,
             'apposita': AnonymousFragment.objects.filter(
-                fragments__in=fragments
-            ).distinct()
+                original_texts__citing_work__author=self).distinct()
         }
 
     def save(self, *args, **kwargs):
@@ -107,7 +106,7 @@ class CitingWork(HistoryModelMixin, LockableModel, DatedModel, BaseModel):
     def apposita(self):
         from rard.research.models import AnonymousFragment
         return AnonymousFragment.objects.filter(
-            fragments__in=self.fragments()
+            original_texts__citing_work=self
         ).distinct()
 
     def save(self, *args, **kwargs):

@@ -50,13 +50,30 @@ class CitingAuthorUpdateView(CheckLockMixin, LoginRequiredMixin,
         )
 
 
+from rard.research.models import OriginalText
 class CitingAuthorListView(DateOrderMixin, LoginRequiredMixin,
                            PermissionRequiredMixin, ListView):
     paginate_by = 10
-    model = CitingAuthor
+    model = OriginalText
+    template_name = 'research/citingauthor_list.html'
     permission_required = (
         'research.view_citingauthor', 'research.view_citingwork',
     )
+    def get_queryset(self):
+        # NB do not call super() method here as we are doing something
+        # differnt with the date ordering here
+        ordering = ['citing_work__author']
+        if self.request.GET.get('order') == 'earliest':
+            ordering = ['citing_work__author__order_year', 'citing_work__author']
+        elif self.request.GET.get('order') == 'latest':
+            ordering = ['-citing_work__author__order_year', '-citing_work__author']            
+
+        ordering += [
+            'content_type',  # by fragment, then testimonium, then anon frag
+            'citing_work',   # group by work
+            'reference_order'  # then by reference
+        ]
+        return OriginalText.objects.all().order_by(*ordering)
 
 
 class CitingAuthorDetailView(CanLockMixin, LoginRequiredMixin,
