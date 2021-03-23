@@ -24,6 +24,7 @@ class TestFragmentSuccessUrls(TestCase):
             'apparatus_criticus': 'app_criticus',
             'content': 'content',
             'reference': 'Page 1',
+            'reference_order': 1,
             'citing_work': self.citing_work.pk,
             'citing_author': self.citing_work.author.pk,
             'create_object': True
@@ -53,6 +54,7 @@ class TestFragmentSuccessUrls(TestCase):
             'apparatus_criticus': 'app_criticus',
             'content': 'content',
             'reference': 'Page 1',
+            'reference_order': 1,
             'title': 'citing work title',
             'citing_work': self.citing_work.pk,
             'citing_author': self.citing_work.author.pk,
@@ -80,6 +82,7 @@ class TestFragmentSuccessUrls(TestCase):
             'apparatus_criticus': 'app_criticus',
             'content': 'content',
             'reference': 'Page 1',
+            'reference_order': 1,
             # we have missing data here
         }
         # assert no fragments initially

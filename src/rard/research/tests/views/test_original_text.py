@@ -62,6 +62,7 @@ class TestOriginalTextCreateViews(TestCase):
         data = {
             'content': 'content',
             'reference': 'Page 1',
+            'reference_order': 1,
             'citing_work': self.citing_work.pk,
             'citing_author': self.citing_work.author.pk,
             'create_object': True
@@ -220,6 +221,7 @@ class TestOriginalTextUpdateView(TestCase):
 
         data = {
             'reference': REFERENCE,
+            'reference_order': 1,
             'content': NEW_CONTENT,
             'create_object': True
         }
