@@ -25,6 +25,8 @@ class TestTestimoniumSuccessUrls(TestCase):
             'content': 'content',
             'reference': 'Page 1',
             'citing_work': self.citing_work.pk,
+            'citing_author': self.citing_work.author.pk,
+            'create_object': True
         }
         # assert no testimonia initially
         self.assertEqual(0, Testimonium.objects.count())

@@ -7,6 +7,60 @@ from rard.research.models.mixins import HistoryModelMixin
 from rard.utils.basemodel import BaseModel, DatedModel, LockableModel
 
 
+class CitingAuthor(HistoryModelMixin, LockableModel, DatedModel, BaseModel):
+
+    class Meta:
+        ordering = ('order_name',)
+
+    name = models.CharField(max_length=256, blank=False)
+
+    order_name = models.CharField(max_length=128, default='', blank=True)
+
+    history = HistoricalRecords(
+        excluded_fields=[
+        ]
+    )
+
+    ANONYMOUS_ORDERNAME = 'anonymous_citing_author_order_name'
+
+    @classmethod
+    def get_anonymous_citing_author(cls):
+        return cls.objects.get_or_create(name='Anonymous',
+                                         order_name=cls.ANONYMOUS_ORDERNAME)[0]
+
+    def get_absolute_url(self):
+        return reverse('citingauthor:detail', kwargs={'pk': self.pk})
+
+    def related_lock_object(self):
+        return self
+
+    def __str__(self):
+        return self.name or 'Unnamed Author'
+
+    def ordered_materials(self):
+        # for all (or a page of) links to materials we need to create a
+        # dict for display on the page. Fetch all and order in a dict
+        # is probably faster than a set of individual db queries
+        from rard.research.models import (AnonymousFragment, Fragment,
+                                          Testimonium)
+        fragments = Fragment.objects.filter(
+            original_texts__citing_work__author=self
+        ).distinct()
+        return {
+            'testimonia': Testimonium.objects.filter(
+                original_texts__citing_work__author=self).distinct(),
+            'fragments': fragments,
+            'apposita': AnonymousFragment.objects.filter(
+                fragments__in=fragments
+            ).distinct()
+        }
+
+    def save(self, *args, **kwargs):
+        if not self.order_name:
+            self.order_name = self.name
+        super().save(*args, **kwargs)
+
+
 class CitingWork(HistoryModelMixin, LockableModel, DatedModel, BaseModel):
 
     history = HistoricalRecords(
@@ -19,7 +73,8 @@ class CitingWork(HistoryModelMixin, LockableModel, DatedModel, BaseModel):
 
     # allow blank name as may be anonymous
     author = models.ForeignKey(
-        'CitingAuthor', on_delete=models.SET_NULL,
+        'CitingAuthor',
+        on_delete=models.SET(CitingAuthor.get_anonymous_citing_author),
         default=None, null=True, blank=True
     )
 
@@ -49,44 +104,13 @@ class CitingWork(HistoryModelMixin, LockableModel, DatedModel, BaseModel):
             original_texts__citing_work=self
         ).distinct()
 
-
-class CitingAuthor(HistoryModelMixin, LockableModel, DatedModel, BaseModel):
-
-    class Meta:
-        ordering = ['order_name',]
-
-    name = models.CharField(max_length=256, blank=False)
-
-    order_name = models.CharField(max_length=128, default='', blank=True)
-
-    history = HistoricalRecords(
-        excluded_fields=[
-        ]
-    )
-
-    def get_absolute_url(self):
-        return reverse('citingauthor:detail', kwargs={'pk': self.pk})
-
-    def related_lock_object(self):
-        return self
-
-    def __str__(self):
-        return self.name
-
-    def ordered_materials(self):
-        # for all (or a page of) links to materials we need to create a
-        # dict for display on the page. Fetch all and order in a dict
-        # is probably faster than a set of individual db queries
-        from rard.research.models import (AnonymousFragment, Fragment,
-                                          Testimonium)
-        fragments = Fragment.objects.filter(
-            original_texts__citing_work__author=self
+    def apposita(self):
+        from rard.research.models import AnonymousFragment
+        return AnonymousFragment.objects.filter(
+            fragments__in=self.fragments()
         ).distinct()
-        return {
-            'testimonia': Testimonium.objects.filter(
-                original_texts__citing_work__author=self).distinct(),
-            'fragments': fragments,
-            'apposita': AnonymousFragment.objects.filter(
-                fragments__in=fragments
-            ).distinct()
-        }
+
+    def save(self, *args, **kwargs):
+        if not self.author:
+            self.author = CitingAuthor.get_anonymous_citing_author()
+        super().save(*args, **kwargs)

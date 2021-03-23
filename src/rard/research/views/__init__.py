@@ -9,9 +9,10 @@ from .antiquarian import (AntiquarianBibliographyCreateView,
                           AntiquarianWorksUpdateView)
 from .bibliography import (BibliographyDeleteView, BibliographyListView,
                            BibliographyUpdateView)
-from .citing_work import (CitingAuthorCreateView, CitingAuthorDeleteView,
-                          CitingAuthorListView, CitingAuthorDetailView,
-                          CitingAuthorUpdateView, CitingWorkDeleteView, 
+from .citing_work import (CitingAuthorCreateView, CitingAuthorCreateWorkView,
+                          CitingAuthorDeleteView, CitingAuthorDetailView,
+                          CitingAuthorListView, CitingAuthorUpdateView,
+                          CitingWorkCreateView, CitingWorkDeleteView,
                           CitingWorkDetailView, CitingWorkUpdateView)
 from .comments import CommentDeleteView, TextObjectFieldCommentListView
 from .concordance import (ConcordanceCreateView, ConcordanceDeleteView,
@@ -35,7 +36,9 @@ from .home import HomeView
 from .mention import MentionSearchView
 from .original_text import (AnonymousFragmentOriginalTextCreateView,
                             FragmentOriginalTextCreateView,
-                            OriginalTextDeleteView, OriginalTextUpdateView,
+                            OriginalTextDeleteView,
+                            OriginalTextUpdateAuthorView,
+                            OriginalTextUpdateView,
                             TestimoniumOriginalTextCreateView)
 from .search import SearchView
 from .testimonium import (TestimoniumAddWorkLinkView, TestimoniumCreateView,
@@ -75,10 +78,12 @@ __all__ = [
     'BookUpdateView',
     'BookDeleteView',
     'CitingAuthorCreateView',
+    'CitingAuthorCreateWorkView',
     'CitingAuthorDeleteView',
     'CitingAuthorDetailView',
     'CitingAuthorListView',
     'CitingAuthorUpdateView',
+    'CitingWorkCreateView',
     'CitingWorkDeleteView',
     'CitingWorkDetailView',
     'CitingWorkUpdateView',
@@ -110,6 +115,7 @@ __all__ = [
     'HomeView',
     'MentionSearchView',
     'OriginalTextDeleteView',
+    'OriginalTextUpdateAuthorView',
     'OriginalTextUpdateView',
     'RemoveAppositumLinkView',
     'SearchView',
