@@ -7,7 +7,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.mail import send_mail
-from django.db import models
+from django.db import models, transaction
 from django.db.models.fields import TextField
 from django.template.loader import render_to_string
 from django.utils import timezone
@@ -415,6 +415,35 @@ class OrderableModel(models.Model):
         self.order, replacement.order = replacement.order, self.order
         self.save()
         replacement.save()
+
+    def move_to(self, pos):
+        # move to a particular index in the set
+        old_pos = self.order
+        if pos == old_pos:
+            return
+
+        # if beyond the end do nothing (UI bug)
+        if pos >= self.related_queryset().count():
+            return
+
+        if pos < old_pos:
+            to_reorder = self.related_queryset().exclude(
+                pk=self.pk
+            ).filter(order__gte=pos)
+            reindex_start_pos = pos + 1
+        else:
+            to_reorder = self.related_queryset().exclude(
+                pk=self.pk
+            ).filter(order__lte=pos)
+            reindex_start_pos = 0
+
+        with transaction.atomic():
+            for count, obj in enumerate(to_reorder):
+                obj.order = count + reindex_start_pos
+                obj.save()
+
+            self.order = pos
+            self.save()
 
     def up(self):
         previous = self.prev()

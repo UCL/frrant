@@ -24,11 +24,10 @@
         <input type='hidden' name='antiquarian' value='{{ antiquarian.pk }}' />
         <input type='hidden' name='work' value='{{ work.pk }}' />
         <button type="submit" class="btn btn-primary">
-            {% if object %}
-                {% trans 'Save' %}
-            {% else %}
-                {% trans 'Create' %}
-            {% endif %}
+            {% trans 'Create' %}
+        </button>
+        <button name='another' type="submit" class="btn btn-outline-primary">
+        {% trans 'Create and add another' %}
         </button>
     </form>
 

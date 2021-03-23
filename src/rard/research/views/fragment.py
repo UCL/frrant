@@ -124,11 +124,24 @@ class HistoricalBaseCreateView(OriginalTextCitingWorkView):
 
         self.post_process_saved_object(self.saved_object)
 
+        if 'then_add_links' in self.request.POST:
+            # lock the object
+            self.saved_object.lock(self.request.user)
+
         return redirect(
             self.get_success_url()
         )
 
+    def get_add_links_url(self):
+        return reverse(
+            self.add_links_url_name, kwargs={'pk': self.saved_object.pk}
+        )
+
     def get_success_url(self):
+        if 'then_add_links' in self.request.POST:
+            # go to the 'add links' page
+            return self.get_add_links_url()
+
         return reverse(
             self.success_url_name, kwargs={'pk': self.saved_object.pk}
         )
@@ -137,6 +150,7 @@ class HistoricalBaseCreateView(OriginalTextCitingWorkView):
 class FragmentCreateView(PermissionRequiredMixin, HistoricalBaseCreateView):
     form_class = FragmentForm
     success_url_name = 'fragment:detail'
+    add_links_url_name = 'fragment:add_work_link'
     title = 'Create Fragment'
     permission_required = ('research.add_fragment',)
 
@@ -154,10 +168,19 @@ class AnonymousFragmentCreateView(FragmentCreateView):
     title = 'Create Anonymous Fragment'
     permission_required = ('research.add_anonymousfragment',)
 
+    def get_add_links_url(self):
+        link_type = self.request.POST.get('then_add_links', None)
+        url_name = 'link_fragment' if link_type == 'fragment' else 'link'
+        return reverse(
+            'anonymous_fragment:{}'.format(url_name),
+            kwargs={'pk': self.saved_object.pk}
+        )
+
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context.update({
-            'title': self.title
+            'title': self.title,
+            'is_anonymous_fragment': True,
         })
         return context
 
@@ -262,6 +285,8 @@ class AddAppositumGeneralLinkView(CheckLockMixin, LoginRequiredMixin,
     )
 
     def get_success_url(self, *args, **kwargs):
+        if 'another' in self.request.POST:
+            return self.request.path
         return reverse(
             'anonymous_fragment:detail',
             kwargs={'pk': self.get_anonymous_fragment().pk}
@@ -363,6 +388,8 @@ class AddAppositumFragmentLinkView(CheckLockMixin, LoginRequiredMixin,
     )
 
     def get_success_url(self, *args, **kwargs):
+        if 'another' in self.request.POST:
+            return self.request.path
         return reverse(
             'anonymous_fragment:detail',
             kwargs={'pk': self.get_anonymous_fragment().pk}
@@ -541,6 +568,9 @@ class FragmentAddWorkLinkView(CheckLockMixin, LoginRequiredMixin,
     )
 
     def get_success_url(self, *args, **kwargs):
+        if 'another' in self.request.POST:
+            return self.request.path
+
         return reverse(
             'fragment:detail', kwargs={'pk': self.get_fragment().pk}
         )
@@ -555,17 +585,27 @@ class FragmentAddWorkLinkView(CheckLockMixin, LoginRequiredMixin,
 
     def form_valid(self, form):
         data = form.cleaned_data
-        work = data['work']
-        book = data['book']
-        link_to_antiquarians = work.antiquarian_set.all() or [None]
+        antiquarian = data['antiquarian']
 
-        for antiquarian in link_to_antiquarians:
-            data['fragment'] = self.get_fragment()
-            data['antiquarian'] = antiquarian
-            data['book'] = book
-            FragmentLink.objects.get_or_create(**data)
+        data['fragment'] = self.get_fragment()
+        data['antiquarian'] = antiquarian
+        FragmentLink.objects.get_or_create(**data)
 
         return super().form_valid(form)
+
+    def get_antiquarian(self, *args, **kwargs):
+        # look for antiquarian in the GET or POST parameters
+        self.antiquarian = None
+        if self.request.method == 'GET':
+            antiquarian_pk = self.request.GET.get('antiquarian', None)
+        elif self.request.method == 'POST':
+            antiquarian_pk = self.request.POST.get('antiquarian', None)
+        if antiquarian_pk:
+            try:
+                self.antiquarian = Antiquarian.objects.get(pk=antiquarian_pk)
+            except Antiquarian.DoesNotExist:
+                raise Http404
+        return self.antiquarian
 
     def get_work(self, *args, **kwargs):
         # look for work in the GET or POST parameters
@@ -574,7 +614,7 @@ class FragmentAddWorkLinkView(CheckLockMixin, LoginRequiredMixin,
             work_pk = self.request.GET.get('work', None)
         elif self.request.method == 'POST':
             work_pk = self.request.POST.get('work', None)
-        if work_pk:
+        if work_pk not in ('', None):
             try:
                 self.work = Work.objects.get(pk=work_pk)
             except Work.DoesNotExist:
@@ -586,19 +626,23 @@ class FragmentAddWorkLinkView(CheckLockMixin, LoginRequiredMixin,
         context.update({
             'fragment': self.get_fragment(),
             'work': self.get_work(),
+            'antiquarian': self.get_antiquarian(),
         })
         return context
 
     def get_form_kwargs(self):
         values = super().get_form_kwargs()
+        values['antiquarian'] = self.get_antiquarian()
         values['work'] = self.get_work()
         return values
 
 
-class FragmentRemoveLinkView(CheckLockMixin, LoginRequiredMixin,
-                             PermissionRequiredMixin, RedirectView):
+@method_decorator(require_POST, name='dispatch')
+class RemoveFragmentLinkView(CheckLockMixin, LoginRequiredMixin,
+                             PermissionRequiredMixin, DeleteView):
 
     check_lock_object = 'fragment'
+    model = FragmentLink
 
     def dispatch(self, request, *args, **kwargs):
         # need to ensure we have the lock object view attribute
@@ -610,46 +654,14 @@ class FragmentRemoveLinkView(CheckLockMixin, LoginRequiredMixin,
     permission_required = ('research.change_fragment',)
 
     def get_success_url(self, *args, **kwargs):
-        return reverse(
-            'fragment:detail', kwargs={'pk': self.fragment.pk}
-        )
-
-    def get_linked_object(self, *args, **kwargs):
-        if not getattr(self, 'linked', False):
-            self.linked = get_object_or_404(
-                self.linked_class,
-                pk=self.kwargs.get('linked_pk')
+        return self.request.META.get(
+            'HTTP_REFERER',
+            reverse(
+                'fragment:detail', kwargs={'pk': self.fragment.pk}
             )
-        return self.linked
+        )
 
     def get_fragment(self, *args, **kwargs):
         if not getattr(self, 'fragment', False):
-            self.fragment = get_object_or_404(
-                Fragment,
-                pk=self.kwargs.get('pk')
-            )
+            self.fragment = self.get_object().fragment
         return self.fragment
-
-    def post(self, request, *args, **kwargs):
-        fragment = self.get_fragment()
-        data = {
-            'fragment': fragment,
-            self.link_object_field_name: self.get_linked_object()
-        }
-        qs = FragmentLink.objects.filter(**data)
-        qs.delete()
-        return redirect(self.get_success_url())
-
-
-@method_decorator(require_POST, name='dispatch')
-class FragmentRemoveWorkLinkView(FragmentRemoveLinkView):
-
-    linked_class = Work
-    link_object_field_name = 'work'
-
-
-@method_decorator(require_POST, name='dispatch')
-class FragmentRemoveBookLinkView(FragmentRemoveLinkView):
-
-    linked_class = Book
-    link_object_field_name = 'book'

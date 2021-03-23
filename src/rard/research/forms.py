@@ -293,79 +293,11 @@ class AnonymousFragmentCommentaryForm(CommentaryFormBase):
 
 class HistoricalFormBase(forms.ModelForm):
 
-    definite_antiquarians = forms.ModelMultipleChoiceField(
-        widget=forms.CheckboxSelectMultiple,
-        queryset=Antiquarian.objects.all(),
-        required=False,
-    )
-
-    possible_antiquarians = forms.ModelMultipleChoiceField(
-        widget=forms.CheckboxSelectMultiple,
-        queryset=Antiquarian.objects.all(),
-        required=False,
-    )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.fields['definite_antiquarians'].initial = \
-            self.instance.definite_antiquarians()
-
-        self.fields['possible_antiquarians'].initial = \
-            self.instance.possible_antiquarians()
-
     def save(self, commit=True):
         instance = super().save(commit=False)
         if commit:
-
-            link_classes = {
-                Testimonium: TestimoniumLink,
-                Fragment: FragmentLink
-            }
-            link_class = link_classes[self._meta.model]
             instance.save()
             self.save_m2m()
-
-            # create links for the antiquarians and works mentioned
-            definite_antiquarians = self.cleaned_data['definite_antiquarians']
-            for a in definite_antiquarians.all():
-                data = {
-                    'antiquarian': a,
-                    link_class.linked_field: instance,
-                    'definite': True,
-                    'work': None
-                }
-                link_class.objects.get_or_create(**data)
-
-            # clear others
-            data = {
-                link_class.linked_field: instance,
-                'work': None,
-                'definite': True
-            }
-            link_class.objects.filter(**data).exclude(
-                antiquarian__in=definite_antiquarians
-            ).delete()
-
-            possible_antiquarians = self.cleaned_data['possible_antiquarians']
-            for a in possible_antiquarians.all():
-                data = {
-                    'antiquarian': a,
-                    link_class.linked_field: instance,
-                    'definite': False,
-                    'work': None
-                }
-                link_class.objects.get_or_create(**data)
-
-            # clear others
-            data = {
-                link_class.linked_field: instance,
-                'definite': False,
-                'work': None
-            }
-            link_class.objects.filter(**data).exclude(
-                antiquarian__in=possible_antiquarians
-            ).delete()
 
         return instance
 
@@ -407,16 +339,29 @@ class TestimoniumForm(HistoricalFormBase):
 
 class BaseLinkWorkForm(forms.ModelForm):
     class Meta:
-        fields = ('work', 'book', 'definite',)
+        fields = ('antiquarian', 'work', 'book', 'definite',)
         labels = {'definite': _('Definite Link')}
 
     def __init__(self, *args, **kwargs):
+        antiquarian = kwargs.pop('antiquarian')
         work = kwargs.pop('work')
 
         super().__init__(*args, **kwargs)
         self.fields['book'].required = False
+        self.fields['work'].required = False
+        if antiquarian:
+            self.fields['antiquarian'].initial = antiquarian
+            self.fields['work'].queryset = antiquarian.works.all()
+        else:
+            self.fields['work'].queryset = Work.objects.none()
+            self.fields['work'].disabled = True
+
         if work:
-            self.fields['work'].initial = work
+            if antiquarian:
+                self.fields['work'].initial = work
+            else:
+                self.fields['work'].initial = None
+
             self.fields['book'].queryset = work.book_set.all()
         else:
             self.fields['book'].queryset = Book.objects.none()
