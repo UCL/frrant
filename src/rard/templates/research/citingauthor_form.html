@@ -21,5 +21,10 @@
                 {% trans 'Create' %}
             {% endif %}
         </button>
+        {% if not object %}
+            <button type="submit" name='then_add_works' class="btn btn-outline-primary">
+            {% trans 'Create and Add Works' %}
+            </button>
+        {% endif %}
     </form>
 {% endblock %}

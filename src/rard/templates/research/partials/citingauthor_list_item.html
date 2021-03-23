@@ -11,6 +11,10 @@
                 {% else %}
                     {{ link_text }} 
                 {% endif %}
+                {% if citingauthor.display_date_range %}
+                <span class='date-range-element text-muted'><small>[{{ citingauthor.display_date_range }}]</small></span>
+                {% endif %}
+                {% include 'research/partials/render_inline_lock_icon.html' with object=citingauthor %}
             {% endwith %}
         </li>
     </div>

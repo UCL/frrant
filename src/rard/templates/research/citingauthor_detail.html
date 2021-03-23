@@ -65,15 +65,49 @@
                 <h5>{% trans 'Works' %}</h5>
             </div>
             <div>
+                {% if perms.research.change_citingauthor and has_object_lock %}
+                <a href='{% url "citingauthor:create_work_for_author" object.pk %}'>{% trans 'New Work' %}</a>
+                {% endif %}
             </div>
         </div>
 
         {% for work in object.citingwork_set.all %}
 
-            {{ work }}
+            {% include 'research/partials/citingwork_list_item.html' with citingwork=work %}
 
         {% endfor %}
     </section>
+
+    <hr>
+
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Linked Material' %}</h5>
+            </div>
+            <div>
+            </div>
+        </div>
+
+
+        <ul>
+
+        {% for item in object.ordered_materials.testimonia %}
+        {% include 'research/partials/testimonium_list_item.html' with testimonium=item citing_author=object %}
+        {% endfor %}
+
+        {% for item in object.ordered_materials.fragments %}
+        {% include 'research/partials/fragment_list_item.html' with fragment=item citing_author=object %}
+        {% endfor %}
+
+        {% for item in object.ordered_materials.apposita %}
+        {% include 'research/partials/anonymousfragment_list_item.html' with fragment=item citing_author=object %}
+        {% endfor %}
+
+        </ul>
+
+    </section>
+
     {% endwith %}
 
 {% endblock %}

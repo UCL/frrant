@@ -8,7 +8,7 @@
         {% if original_text.citing_work %}
         
             {% if original_text.citing_work.author %}
-                <a href='{% url "citingauthor:author_detail" original_text.citing_work.author.pk %}'>{{ original_text.citing_work.author }}</a>, 
+                <a href='{% url "citingauthor:detail" original_text.citing_work.author.pk %}'>{{ original_text.citing_work.author }}</a>,
             {% else %}
             Unknown,
             {% endif %}

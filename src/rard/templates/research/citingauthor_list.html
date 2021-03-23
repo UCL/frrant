@@ -12,7 +12,8 @@
     </div>
     {% if perms.research.add_citingauthor %}
     <div>
-        <a class='ml-3' href='{% url "citingauthor:create" %}'>{% trans 'Create New' %}</a>
+        <a class='ml-3' href='{% url "citingauthor:create" %}'>{% trans 'New Author' %}</a>
+        <a class='ml-3' href='{% url "citingauthor:create_work" %}'>{% trans 'New Work' %}</a>
     </div>
     {% endif %}
 </div>
@@ -23,6 +24,23 @@
     {% for object in page_obj %}
 
     {% include 'research/partials/citingauthor_list_item.html' with citingauthor=object %}
+
+
+        <ul>
+
+        {% for item in object.ordered_materials.testimonia %}
+        {% include 'research/partials/testimonium_list_item.html' with testimonium=item citing_author=object %}
+        {% endfor %}
+
+        {% for item in object.ordered_materials.fragments %}
+        {% include 'research/partials/fragment_list_item.html' with fragment=item citing_author=object %}
+        {% endfor %}
+
+        {% for item in object.ordered_materials.apposita %}
+        {% include 'research/partials/anonymousfragment_list_item.html' with fragment=item citing_author=object %}
+        {% endfor %}
+
+        </ul>
 
     {% endfor %}
 

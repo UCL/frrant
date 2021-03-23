@@ -7,6 +7,11 @@
     {% else %}
         {% trans 'Create Citing Work' %}
     {% endif %}
+    {% if citing_author %}
+        {% blocktrans with citing_author=citing_author %}
+         <small>for {{ citing_author }}</small>
+        {% endblocktrans %}
+    {% endif %}
 {% endblock %}
 
 {% block inner %}
@@ -20,6 +25,9 @@
             {% else %}
                 <button type="submit" class="btn btn-primary">
                 {% trans 'Create' %}
+                </button>
+                <button name='another' type="submit" class="btn btn-outline-primary">
+                {% trans 'Create and add another' %}
                 </button>
             {% endif %}
     </form>

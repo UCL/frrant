@@ -1,7 +1,18 @@
 {% extends "research/detail_base.html" %}
 {% load i18n object_lock %}
 
-{% block heading %}{{ object }}{% endblock %}
+{% block heading %}
+
+<div class='mb-2'>
+    <small>
+        <a href='{{ object.author.get_absolute_url }}'>{{ object.author }}</a>
+    </small>
+</div>
+
+<div>{{ object.title }}</div>
+
+
+{% endblock %}
 
 {% block action %}
 
@@ -45,11 +56,23 @@
 
         <dl class="row mb-0">
             <dt class="col-sm-3">{% trans 'Author' %}</dt>
-            <dd class="col-sm-9">{{ object.author }}</dd>
+            <dd class="col-sm-9">
+                {% if perms.research.view_citingauthor %}
+                <a href='{{ object.author.get_absolute_url }}'>{{ object.author }}</a>
+                {% else %}
+                    {{ object.author }}
+                {% endif %}
+            </dd>
             <dt class="col-sm-3">{% trans 'Title' %}</dt>
             <dd class="col-sm-9">{{ object.title }}</dd>
             <dt class="col-sm-3">{% trans 'Edition' %}</dt>
             <dd class="col-sm-9">{{ object.edition|default:'-' }}</dd>
+            <dt class="col-sm-3">{% trans 'Relevant Dates' %}</dt>
+            <dd class="col-sm-9">
+                {{ object.display_date_range|default:'-' }}
+            </dd>
+            <dt class="col-sm-3">{% trans 'Year for Ordering' %}</dt>
+            <dd class="col-sm-9">{{ object.order_year }}</dd>
         
         </dl>
     </section>
@@ -59,36 +82,32 @@
     <section>
         <div class='d-flex justify-content-between mb-3'>
             <div>
-                <h5>{% trans 'Testimonia' %}</h5>
+                <h5>{% trans 'Linked Material' %}</h5>
             </div>
             <div>
             </div>
         </div>
 
-        {% for testimonium in object.testimonia.all %}
+        <ul>
 
-        {% include 'research/partials/testimonium_list_item.html' with testimonium=testimonium %}
-
+        {% for item in object.testimonia %}
+        {% include 'research/partials/testimonium_list_item.html' with testimonium=item citing_author=object.author %}
         {% endfor %}
+
+        {% for item in object.fragments %}
+        {% include 'research/partials/fragment_list_item.html' with fragment=item citing_author=object.author %}
+        {% endfor %}
+
+        {% for item in object.apposita %}
+        {% include 'research/partials/anonymousfragment_list_item.html' with fragment=item citing_author=object.author %}
+        {% endfor %}
+
+        </ul>
+
+
     </section>
 
-    <hr>
 
-    <section>
-        <div class='d-flex justify-content-between mb-3'>
-            <div>
-                <h5>{% trans 'Fragments' %}</h5>
-            </div>
-            <div>
-            </div>
-        </div>
-
-        {% for fragment in object.fragments.all %}
-
-        {% include 'research/partials/fragment_list_item.html' with fragment=fragment %}
-
-        {% endfor %}
-    </section>
 
     {% endwith %}
 {% endblock %}
