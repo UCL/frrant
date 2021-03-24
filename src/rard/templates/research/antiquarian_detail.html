@@ -1,11 +1,6 @@
 {% extends "research/detail_base.html" %}
 {% load i18n bootstrap4 object_lock links_for_work static %}
 
-{% block css %}
-<meta name="token" content="{{ csrf_token }}">
-{{ block.super }}
-{% endblock %}
-
 {% block heading %}{{ object.name }}{% endblock %}
 
 {% block last_modified %}{% endblock %}

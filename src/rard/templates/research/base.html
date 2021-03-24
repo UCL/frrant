@@ -1,6 +1,11 @@
 {% extends 'base.html' %}
 {% load i18n %}
 
+{% block css %}
+<meta name="token" content="{{ csrf_token }}">
+{{ block.super }}
+{% endblock %}
+
 {% block content %}
 <style>
 
@@ -145,6 +150,15 @@
     line-height: 24px;
     margin-left: 0px;
 } 
+#id_antiquarians.checkbox, #id_topics.checkbox {
+    max-height: 150px;
+    overflow-y: auto;
+    border: 1px solid #ced4da;
+    padding-left: 10px;
+    padding-top: 5px;
+    border-radius: 0.25rem;
+}
+
 </style>
 {% block symbol_picker %}
 

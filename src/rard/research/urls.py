@@ -22,6 +22,9 @@ urlpatterns = [
     path("", views.HomeView.as_view(), name="home"),
     path("ajax/move-link/", views.MoveLinkView.as_view(), name="move_link"),
     path("ajax/move-topic/", views.MoveTopicView.as_view(), name="move_move"),
+    path("ajax/create-apparatus-criticus-line/", views.CreateApparatusCriticusLineView.as_view(), name="create_apparatus_criticus_line"),
+    path("ajax/delete-apparatus-criticus-line/", views.DeleteApparatusCriticusLineView.as_view(), name="delete_apparatus_criticus_line"),
+    path("ajax/update-apparatus-criticus-line/", views.UpdateApparatusCriticusLineView.as_view(), name="update_apparatus_criticus_line"),
     # path("comment/<pk>/delete/", views.CommentDeleteView.as_view(), name="delete_comment"),
     # path("text-field/<pk>/comments/", views.TextObjectFieldCommentListView.as_view(), name="list_comments_on_text"),
     path('antiquarian/', include(([

@@ -1,11 +1,6 @@
 {% extends "research/list_base.html" %}
 {% load i18n %}
 
-{% block css %}
-<meta name="token" content="{{ csrf_token }}">
-{{ block.super }}
-{% endblock %}
-
 {% block heading %}
     {% trans 'Topics' %}
 {% endblock %}

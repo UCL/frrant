@@ -1,4 +1,5 @@
-from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.fields import (GenericForeignKey,
+                                                GenericRelation)
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from simple_history.models import HistoricalRecords
@@ -30,6 +31,15 @@ class OriginalText(HistoryModelMixin, BaseModel):
     content = models.TextField(blank=False)
 
     apparatus_criticus = DynamicTextField(default='', blank=True)
+
+    apparatus_criticus_items = GenericRelation(
+        'ApparatusCriticusItem', related_query_name='original_text'
+    )
+
+    def apparatus_criticus_lines(self):
+        # use this rather than the above as that doesn't automatically
+        # sort the results :/
+        return self.apparatus_criticus_items.all().order_by('order')
 
     def citing_work_reference_display(self):
         citing_work_str = str(self.citing_work)

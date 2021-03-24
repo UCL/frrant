@@ -7,6 +7,9 @@ from .antiquarian import (AntiquarianBibliographyCreateView,
                           AntiquarianUpdateIntroductionView,
                           AntiquarianUpdateView, AntiquarianWorkCreateView,
                           AntiquarianWorksUpdateView, MoveLinkView)
+from .apparatus_criticus import (CreateApparatusCriticusLineView,
+                                 DeleteApparatusCriticusLineView,
+                                 UpdateApparatusCriticusLineView)
 from .bibliography import (BibliographyDeleteView, BibliographyListView,
                            BibliographyUpdateView)
 from .citing_work import (CitingAuthorListView, CitingWorkDeleteView,
@@ -80,6 +83,9 @@ __all__ = [
     'ConcordanceDeleteView',
     'ConcordanceListView',
     'ConcordanceUpdateView',
+    'CreateApparatusCriticusLineView',
+    'DeleteApparatusCriticusLineView',
+    'UpdateApparatusCriticusLineView',
     'AnonymousFragmentCreateView',
     'AnonymousFragmentDeleteView',
     'AnonymousFragmentDetailView',

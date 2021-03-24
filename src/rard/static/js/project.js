@@ -141,7 +141,7 @@ async function suggestPeople(searchTerm) {
     return matches;
 };
 
-$('.rich-editor').each(function() {
+function initRichTextEditor($item) {
 
     let config = {
         theme: 'snow',
@@ -204,7 +204,7 @@ $('.rich-editor').each(function() {
         }
     };
 
-    if ($(this).hasClass('enable-mentions')) {
+    if ($item.hasClass('enable-mentions')) {
         config['modules']['mention'] = {
             allowedChars: /^[A-Za-z\sÅÄÖåäö]*$/,
             mentionDenotationChars: ["@"],
@@ -215,23 +215,34 @@ $('.rich-editor').each(function() {
         }
     }
     
-    new Quill('#'+$(this).attr('id'), config);
+    new Quill('#'+$item.attr('id'), config);
 
 
     let that = this;
-    var for_id = $(this).data('for');
+    var for_id = $item.data('for');
     var $for = $(`#${for_id}`);
 
     var html = $for.text();
-    $(this).find('.ql-editor').html(html);
+    $item.find('.ql-editor').html(html);
     $for.hide();
 
     $('body').on("submit", "form", function (e) {
         let html = $(that).find('.ql-editor').html();
         $for.text(html);
     });
-});
+}
 
+function initRichTextEditors() {
+
+    $('.rich-editor').each(function() {
+
+        let $elem = $(this);
+        initRichTextEditor($elem);
+
+    });
+}
+
+initRichTextEditors();
 
 // store scroll position on save and reload - useful for inline posts not
 // returning the user to the top of the page
@@ -530,7 +541,6 @@ $('body').on('dragend', '.drag-item', function(event) {
 });
 
 
-
 function moveLinkTo(post_data) {
     runMoveAction(post_data, "/ajax/move-link/")
 }
@@ -583,3 +593,199 @@ function runMoveAction(post_data, post_url) {
     });
 };
 
+
+
+$('body').on('click', '.show-apparatus-criticus-form', function() {
+
+    // alert('todo: show the form beneath this')
+    $('.show-apparatus-criticus-form').show();
+    let inserting_at = $(this).data('index');
+    let $new_area = $('#new_apparatus_criticus_line_area');
+    $new_area.insertAfter($(this));
+    $('#id_new_apparatus_criticus_line_editor').find('.ql-editor').html('');
+    $('#update-apparatus-criticus-line').hide();
+    $('#submit-new-apparatus-criticus-line').show();
+    $('#submit-new-apparatus-criticus-line').attr('data-index', inserting_at);
+    
+    $('.line-action').hide();
+    $new_area.show();
+});
+
+$('body').on('click', '.edit-apparatus-criticus-line', function() {
+
+    // alert('todo: show the form beneath this')
+    $('.edit-apparatus-criticus-line').show();
+    let $new_area = $('#new_apparatus_criticus_line_area');
+    let item_id = $(this).data('id');
+    let content_html = $(this).data('content');
+    $new_area.insertAfter($(this));
+    // quill needs to put things in <p> tags so make it easy for it otherwise we get
+    // unwanted automatic entering of newlines :/
+    $('#id_new_apparatus_criticus_line_editor').find('.ql-editor').html(`<p>${content_html}</p>`);
+    $('#submit-new-apparatus-criticus-line').hide();
+    $('#update-apparatus-criticus-line').show();
+    $('#update-apparatus-criticus-line').attr('data-id', item_id);
+    
+    $('.line-action').hide();
+    $new_area.show();
+});
+
+
+$('body').on('click', '#submit-new-apparatus-criticus-line', function() {
+
+    let html = $('#id_new_apparatus_criticus_line_editor').find('.ql-editor').html();
+    let action_url = $(this).data('action');
+    let insert_at = $(this).data('index');
+    let parent_id = $(this).data('parent');
+
+    // submit the form via ajax then re-render the apparatus criticus area
+
+    let data = {
+        'content': html,
+        'insert_at': insert_at,
+        'parent_id': parent_id,
+    }
+    let csrf = document.querySelector("meta[name='token']").getAttribute('content');
+    let headers = {};
+    let that = this;
+    headers['X-CSRFToken'] = csrf;
+
+    $.ajax({
+        url: action_url,
+        type: "POST",
+        data: data,
+        headers: headers,
+        context: document.body,
+        dataType: 'json',
+        success: function (data, textStatus, jqXHR) {
+
+            let $builder_area = $('#apparatus_criticus_builder_area');
+
+            $builder_area.replaceWith(data.html);
+            $("body").css("cursor", "default");
+            try {
+                cache_forms();
+            }
+            catch(err) {
+            }
+            $('[data-toggle="tooltip"]').tooltip()
+            $builder_area.find('.rich-editor').each(function() {
+                initRichTextEditor($(this)) ;
+            });
+        },
+        error: function (e) {
+            console.log(e)
+            alert('Sorry, an error occurred.')
+        }
+    });
+
+
+});
+
+$('body').on('click', '#cancel-new-apparatus-criticus-line', function() {
+    let $new_area = $('#new_apparatus_criticus_line_area');
+    $('.line-action').show();
+    $new_area.hide();
+
+});
+
+$('body').on('click', '.delete-apparatus-criticus-line', function() {
+
+    
+    if (!confirm("Are you sure you want to delete this line? This cannot be undone.")) {
+        return;
+    }
+
+    let index = $(this).data('index');
+    let line_id = $(this).data('id');
+    let action_url = $(this).data('action');
+
+    // submit the form via ajax then re-render the apparatus criticus area
+    let data = {
+        'index': index,
+        'line_id': line_id,
+    }
+    let csrf = document.querySelector("meta[name='token']").getAttribute('content');
+    let headers = {};
+    let that = this;
+    headers['X-CSRFToken'] = csrf;
+
+    $.ajax({
+        url: action_url,
+        type: "POST",
+        data: data,
+        headers: headers,
+        context: document.body,
+        dataType: 'json',
+        success: function (data, textStatus, jqXHR) {
+            let $builder_area = $('#apparatus_criticus_builder_area');
+
+            $builder_area.replaceWith(data.html);
+            $("body").css("cursor", "default");
+            try {
+                cache_forms();
+            }
+            catch(err) {
+            }
+            $('[data-toggle="tooltip"]').tooltip();
+            $builder_area.find('.rich-editor').each(function() {
+                initRichTextEditor($(this)) ;
+            });
+        },
+        error: function (e) {
+            console.log(e)
+            alert('Sorry, an error occurred.')
+        }
+    });
+
+
+});
+
+
+$('body').on('click', '#update-apparatus-criticus-line', function() {
+
+    
+    let line_id = $(this).data('id');
+    let action_url = $(this).data('action');
+    let html = $('#id_new_apparatus_criticus_line_editor').find('.ql-editor').html();
+
+    // submit the form via ajax then re-render the apparatus criticus area
+    let data = {
+        'line_id': line_id,
+        'content': html
+    }
+    let csrf = document.querySelector("meta[name='token']").getAttribute('content');
+    let headers = {};
+    let that = this;
+    headers['X-CSRFToken'] = csrf;
+
+    $.ajax({
+        url: action_url,
+        type: "POST",
+        data: data,
+        headers: headers,
+        context: document.body,
+        dataType: 'json',
+        success: function (data, textStatus, jqXHR) {
+            let $builder_area = $('#apparatus_criticus_builder_area');
+
+            $builder_area.replaceWith(data.html);
+            $("body").css("cursor", "default");
+            try {
+                cache_forms();
+            }
+            catch(err) {
+            }
+            $('[data-toggle="tooltip"]').tooltip();
+            $builder_area.find('.rich-editor').each(function() {
+                initRichTextEditor($(this)) ;
+            });
+        },
+        error: function (e) {
+            console.log(e)
+            alert('Sorry, an error occurred.')
+        }
+    });
+
+
+});

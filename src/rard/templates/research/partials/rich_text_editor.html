@@ -1,8 +1,8 @@
 
-{# assumes form field as a context variable named 'field' and whether to enable mentions 'enable_mentions' #}
+{# assumes form field as a context variable named 'field' and whether to enable mentions 'enable_mentions' and optional min_height and padding_bottom in pixels #}
 
-<div class='row mb-3 mt-n3'>
-    <div class='col h-fill' style='min-height: 400px; padding-bottom: 60px;'>
+<div class='row mb-3 mt-n3 editor-area'>
+    <div class='col h-fill' style='min-height: {% if min_height %}{{ min_height }}{% else %}400{% endif %}px; padding-bottom: {% if padding_bottom != None %}{{ padding_bottom }}{% else %}60{% endif %}px;'>
         <div id='{{ field.auto_id }}_editor' class='rich-editor {% if enable_mentions %}enable-mentions{% endif %}' spellcheck="false"  id='{{ field.auto_id }}_rich_editor_content' data-for='{{ field.auto_id }}'>
         </div>
         {% if enable_mentions %}<div class='text-muted'><small>@mentions are enabled</small></div>{% endif %}

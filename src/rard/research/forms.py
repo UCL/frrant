@@ -192,15 +192,17 @@ class CitingWorkForm(forms.ModelForm):
 
 class OriginalTextForm(forms.ModelForm):
 
+    new_apparatus_criticus_line = forms.CharField(
+        widget=forms.Textarea(attrs={'rows': 2}),
+        required=False,
+        label='Add apparatus criticus line',
+    )
     class Meta:
         model = OriginalText
-        fields = ('citing_work', 'reference', 'content', 'apparatus_criticus')
+        fields = ('citing_work', 'reference', 'content',)
         labels = {
             'content': _('Original Text'),
             'citing_work': _('Choose Existing'),
-        }
-        widgets = {
-          'apparatus_criticus': forms.Textarea(attrs={'rows': 3}),
         }
 
     def __init__(self, *args, **kwargs):

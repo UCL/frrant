@@ -1,0 +1,81 @@
+{# takes context var original_text #}
+{% load i18n bootstrap4 %}
+
+<style>
+    /* .show-apparatus-criticus-form {
+        display:none;
+    } */
+    .delete-apparatus-criticus-line {
+        visibility:hidden;
+    }
+    .edit-apparatus-criticus-line {
+        visibility:hidden;
+    }
+    .add-after-apparatus-criticus-line {
+        visibility:hidden;
+    }
+    .apparatus-criticus-line:hover .delete-apparatus-criticus-line {
+        visibility:visible;
+    }
+    .apparatus-criticus-line:hover .edit-apparatus-criticus-line {
+        visibility:visible;
+    }
+    .apparatus-criticus-line:hover .add-after-apparatus-criticus-line {
+        visibility:visible;
+    }
+    /* .show-add-button-area:hover > .show-apparatus-criticus-form {
+        display:block;
+    } */
+    .show-add-button-area:hover {
+        height: auto!important;
+        background-color: transparent!important;
+    }
+    .show-add-button-area {
+        width: 100%;
+        height: 12px;
+    }
+</style>
+<div id='apparatus_criticus_builder_area'>
+    <div class='form-group'>
+    
+        <label>Apparatus Criticus Builder</label>
+        {% if original_text %}
+
+            {% for line in original_text.apparatus_criticus_lines %}
+
+            {% if forloop.first and original_text.apparatus_criticus_lines.count > 0 %}
+                <div>
+                    <button type='button' data-index='0' class='show-apparatus-criticus-form btn btn-light btn-sm'>Add Line at start</button>
+                </div>
+            {% endif %}
+
+            <div class='apparatus-criticus-line my-2'>
+                {{ line.order|add:1 }}<span class='ml-3'>{{ line.content|safe }}</span>
+                <button data-id='{{ line.pk }}' data-content='{{ line.content|safe }}' class='line-action edit-apparatus-criticus-line btn btn-link text-primary btn-sm'>Edit</button>
+                <button data-action='{% url "delete_apparatus_criticus_line" %}' data-index='{{ line.order }}' data-id='{{ line.pk }}' class='line-action delete-apparatus-criticus-line btn btn-link text-danger btn-sm'>Delete</button>
+                <button type='button' data-index='{{ forloop.counter }}' class='line-action add-after-apparatus-criticus-line show-apparatus-criticus-form btn btn-link text-muted btn-sm'>Add Line Below</button>
+            </div>
+            {% endfor %}
+            <div>
+                <button type='button' data-index='{{ original_text.apparatus_criticus_lines.count }}' class='show-apparatus-criticus-form btn btn-light btn-sm'>
+                    {% if original_text.apparatus_criticus_lines.count > 0 %}
+                    Add Line to end
+                    {% else %}
+                    Add Line
+                    {% endif %}
+                </button>
+            </div>
+        {% endif %}
+    </div>
+
+    <div id='new_apparatus_criticus_line_area' class='mt-3' style='display:none;'>
+        {% bootstrap_field form.new_apparatus_criticus_line show_label=False %}
+        {% include 'research/partials/rich_text_editor.html' with min_height=30 padding_bottom=30 field=form.new_apparatus_criticus_line %}
+        <div class='d-flex flex-row-reverse'>
+            <button type='button' id='cancel-new-apparatus-criticus-line' class=' btn btn-secondary btn-sm'>Cancel</button>
+            <button type='button' data-parent='{{ original_text.pk }}' data-action='{% url "create_apparatus_criticus_line" %}' id='submit-new-apparatus-criticus-line' class=' mx-2 btn btn-success btn-sm'>Add Line</button>
+            <button type='button' data-id='{{ line.pk }}' data-action='{% url "update_apparatus_criticus_line" %}' id='update-apparatus-criticus-line' class=' mx-2 btn btn-success btn-sm'>Save Line</button>
+        </div>
+    </div>
+
+</div>
