@@ -251,6 +251,13 @@ function initRichTextEditor($item) {
                     renderList(lines);
                     
                 }
+            },
+            renderItem(item, searchTerm) {
+                // allows you to control how the item is displayed
+                // just keep the index so split on space
+                let list_display = item.list_display || item.value;
+                return `${list_display}`;
+
             }
         }
     }

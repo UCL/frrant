@@ -137,7 +137,7 @@ class ApparatusCriticusSearchView(LoginRequiredMixin, View):
             raise Http404
 
         ajax_data = []
-        model_name = ApparatusCriticusItem.__class__.__name__
+        model_name = ApparatusCriticusItem.__name__
 
         # return just the name, pk and type for display
         for o in self.get_queryset():
@@ -145,7 +145,9 @@ class ApparatusCriticusSearchView(LoginRequiredMixin, View):
                 {
                     'id': o.pk,
                     'target': model_name,
-                    'value': str(o)
+                    # 'value': str(o),  # to have full name in the mention
+                    'value': str(o.order + 1),  # to just have the number
+                    'list_display': str(o),
                 }
             )
 

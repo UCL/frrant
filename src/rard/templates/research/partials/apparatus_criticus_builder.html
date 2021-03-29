@@ -50,7 +50,7 @@
             {% endif %}
 
             <div class='apparatus-criticus-line my-2'>
-                {{ line.order|add:1 }}<span class='ml-3'>{{ line.content|safe }}</span>
+                <span class='historical'>{{ line.order|add:1 }}<span class='ml-3'>{{ line.content|safe }}</span></span>
                 <button data-id='{{ line.pk }}' data-content='{{ line.content|safe }}' class='line-action edit-apparatus-criticus-line btn btn-link text-primary btn-sm'>Edit</button>
                 <button data-action='{% url "delete_apparatus_criticus_line" %}' data-index='{{ line.order }}' data-id='{{ line.pk }}' class='line-action delete-apparatus-criticus-line btn btn-link text-danger btn-sm'>Delete</button>
                 <button type='button' data-index='{{ forloop.counter }}' class='line-action add-after-apparatus-criticus-line show-apparatus-criticus-form btn btn-link text-muted btn-sm'>Add Line Below</button>

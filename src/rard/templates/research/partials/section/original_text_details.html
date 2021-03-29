@@ -18,7 +18,7 @@
         <div>
             <!-- todo: make this a method in the model and add a unit test -->
             {% for line in original_text.apparatus_criticus_lines %}
-               {{ line.order|add:'1' }} {{ line|safe }} {% if not forloop.last %}|{% endif %}
+               <a href='#{{ line.get_anchor_id }}'>{{ line.order|add:1 }}</a>&nbsp;{{ line.content|safe }} {% if not forloop.last %}|{% endif %}
             {% endfor %}
         </div>
     </dd>

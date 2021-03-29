@@ -11,6 +11,7 @@ from django.db import models, transaction
 from django.db.models.fields import TextField
 from django.template.loader import render_to_string
 from django.utils import timezone
+from django.utils.safestring import mark_safe
 from model_utils.models import TimeStampedModel
 
 
@@ -24,6 +25,8 @@ class DynamicTextField(TextField):
             field_name = self.name
 
             def update_editable_mentions(self):
+                print('DynamicTextField: update_editable_mentions')
+
                 # before editing we would like to check that
                 # the text in aech of the mentions
                 # is up to date
@@ -32,7 +35,7 @@ class DynamicTextField(TextField):
                 links = soup.find_all("span", class_="mention")
 
                 for link in links:
-
+                    print('got link %s' % link)
                     item_to_replace = link.find(
                         'span', contenteditable='false'
                     )
@@ -43,34 +46,47 @@ class DynamicTextField(TextField):
 
                     model_name = link.attrs.get('data-target', None)
                     pkstr = link.attrs.get('data-id', None)
-
+                    char = link.attrs.get('data-denotation-char', None)
                     replacement = None
-
-                    if model_name and pkstr:
+                    print("WE ARE HERE")
+                    if model_name and pkstr and char:
                         try:
                             model = apps.get_model(
                                 app_label='research', model_name=model_name
                             )
                             linked = model.objects.get(pk=int(pkstr))
                             actual_name = str(linked)
+                            print('actual name here %s'  % actual_name)
+                            link['data-value'] = actual_name
 
+                            # for showing the complete app crit in the text:
+                            # replacement = bs4.BeautifulSoup(
+                            #     '<span contenteditable="false">'
+                            #     '<span class="ql-mention-denotation-char">'
+                            #     '{}</span>{}</span>'.format(
+                            #         char, actual_name
+                            #     ),
+                            #     features="html.parser"
+                            # )
+
+                            # for just showing the index number:
                             replacement = bs4.BeautifulSoup(
                                 '<span contenteditable="false">'
                                 '<span class="ql-mention-denotation-char">'
-                                '@</span>{}</span>'.format(
-                                    actual_name
+                                '{}</span>{}</span>'.format(
+                                    char, linked.order + 1
                                 ),
                                 features="html.parser"
                             )
                             item_to_replace.replace_with(replacement)
-                            link['data-value'] = actual_name
 
                         except (AttributeError, KeyError, ValueError,
                                 ObjectDoesNotExist):
                             # the user has a bad link and needs to
                             # replace it, so mark it in error
                             link['class'].extend(['error'])
-
+                            
+                print('setting to %s' % str(soup))
                 setattr(self, field_name, str(soup))
 
                 self.save_without_historical_record()
@@ -83,7 +99,7 @@ class DynamicTextField(TextField):
                 for link in links:
                     model_name = link.attrs.get('data-target', None)
                     pkstr = link.attrs.get('data-id', None)
-
+                    print('model name %s' % model_name)
                     replacement = None
 
                     if model_name and pkstr:
@@ -92,15 +108,35 @@ class DynamicTextField(TextField):
                                 app_label='research', model_name=model_name
                             )
                             linked = model.objects.get(pk=int(pkstr))
-                            replacement = bs4.BeautifulSoup(
-                                '<a href="{}">{}</a>'.format(
-                                    linked.get_absolute_url(),
-                                    str(linked)
-                                ),
-                                features="html.parser"
-                            )
+                            # is it something we can link to? 
+                            if getattr(linked, 'get_absolute_url', False):
+                                replacement = bs4.BeautifulSoup(
+                                    '<a href="{}">{}</a>'.format(
+                                        linked.get_absolute_url(),
+                                        str(linked)
+                                    ),
+                                    features="html.parser"
+                                )
+                            else:
+                                # else currently that means it's an
+                                # apparatus criticus item
+                                replacement = bs4.BeautifulSoup(
+                                    '<span id="{}" data-toggle="tooltip" '
+                                    'data-html="true" '
+                                    'data-placement="top" '
+                                    'style="cursor:pointer;" '
+                                    'title="<span class=\'historical\'>{}</span>">'
+                                    '[{}]</span>'.format(
+                                        linked.get_anchor_id(),
+                                        mark_safe(linked.content),
+                                        linked.order + 1,
+                                    ),
+                                    features="html.parser"
+                                )
+
                         except (AttributeError, KeyError, ValueError,
-                                ObjectDoesNotExist):
+                                ObjectDoesNotExist) as err:
+                            print('error %s' % str(err))
                             # indicate a bad link. Alternative we could use
                             # the content of the definition as a fall-back
                             # and render that? If so, just remove the
@@ -125,6 +161,9 @@ class DynamicTextField(TextField):
 
                 return str(soup)
 
+            # here we add a method to the class. So if the dynamic field of
+            # our class is called 'content' then the method will be
+            # 'render_content' etc
             setattr(
                 cls, 'render_%s' % self.name,
                 render_dynamic_content

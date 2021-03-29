@@ -206,12 +206,29 @@ class OriginalTextForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+
+        original_text = kwargs.get('instance', None)
+        if original_text and original_text.pk:
+            original_text.update_content_mentions()
+
         super().__init__(*args, **kwargs)
         # when creating an original text we also offer the option
         # of creating a new citing work. Hence we allow the selection
         # of an existing instance to be blank and assign a newly-created
         # work to the original text instance in the view
         self.set_citing_work_required(True)
+
+        # if self.instance and self.instance.pk:
+        #     print('SETTING THE CONTENT HERE')
+        #     print('content before %s' % self.instance.content)
+        #     self.instance.update_content_mentions()
+        #     # after updating it, ensure the updated version
+        #     # makes it to the screen
+        #     self.instance.refresh_from_db()
+        #     self.fields['content'].initial = \
+        #         self.instance.content
+        #     print('content after %s' % self.instance.content)
+
 
     def set_citing_work_required(self, required):
         # to allow set/reset required fields dynically in the view

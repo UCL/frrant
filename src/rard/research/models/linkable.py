@@ -40,6 +40,9 @@ class ApparatusCriticusItem(LinkableContentBase):
         # display one-indexed list item
         return '%d %s' % (self.order+1, self.content)
 
+    def get_anchor_id(self):
+        # a string to use in creating anchor links
+        return 'ap%s' % self.pk
 
 @disable_for_loaddata
 def handle_add_saved_item(sender, instance, created, **kwargs):

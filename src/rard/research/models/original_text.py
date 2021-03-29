@@ -28,9 +28,10 @@ class OriginalText(HistoryModelMixin, BaseModel):
     # e.g. page 24
     reference = models.CharField(max_length=128, blank=False)
 
-    content = models.TextField(blank=False)
+    content = DynamicTextField(blank=False)
 
-    apparatus_criticus = DynamicTextField(default='', blank=True)
+    # to be nuked. not required now
+    # apparatus_criticus = DynamicTextField(default='', blank=True)
 
     apparatus_criticus_items = GenericRelation(
         'ApparatusCriticusItem', related_query_name='original_text'
