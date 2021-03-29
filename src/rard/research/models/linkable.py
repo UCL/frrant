@@ -36,6 +36,10 @@ class ApparatusCriticusItem(LinkableContentBase):
         # just the items attached to this original text
         return self.parent.apparatus_criticus_lines()
 
+    def __str__(self):
+        # display one-indexed list item
+        return '%d %s' % (self.order+1, self.content)
+
 
 @disable_for_loaddata
 def handle_add_saved_item(sender, instance, created, **kwargs):

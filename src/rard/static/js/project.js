@@ -141,6 +141,28 @@ async function suggestPeople(searchTerm) {
     return matches;
 };
 
+async function getApparatusCriticusLines(searchTerm, object_id) {
+
+    // call backend synchonously here and wait
+    let matches = []
+    await $.ajax({
+        url: `${g_apparatus_criticus_url}?q=${searchTerm}&original_text=${object_id}`,
+        type: "GET",
+        context: document.body,
+        dataType: 'json',
+        async: false,
+        success: function (data, textStatus, jqXHR) {
+            console.log('success '+data)
+            matches = data;
+        },
+        error: function (e) {
+            console.log('error '+e)
+        }
+    });
+    return matches;
+};
+
+
 function initRichTextEditor($item) {
 
     let config = {
@@ -204,19 +226,36 @@ function initRichTextEditor($item) {
         }
     };
 
-    if ($item.hasClass('enable-mentions')) {
+    if ($item.hasClass('enable-mentions') || $item.hasClass('enable-apparatus-criticus')) {
+        let delimiters = [];
+        if ($item.hasClass('enable-mentions') ) {
+            delimiters.push('@')
+        }
+        if ($item.hasClass('enable-apparatus-criticus') ) {
+            delimiters.push('#')
+        }
         config['modules']['mention'] = {
-            allowedChars: /^[A-Za-z\sÅÄÖåäö]*$/,
-            mentionDenotationChars: ["@"],
-            source: async function(searchTerm, renderList) {
-                const matchedPeople = await suggestPeople(searchTerm);
-                renderList(matchedPeople);
+            allowedChars: /^[0-9A-Za-z\sÅÄÖåäö]*$/,
+            mentionDenotationChars: delimiters,
+            source: async function(searchTerm, renderList, mentionChar) {
+
+                if (mentionChar == '@') {
+                    const matchedPeople = await suggestPeople(searchTerm);
+                    renderList(matchedPeople);
+
+                } else if (mentionChar == '#') {
+                    let object_id = $item.data('object');
+                    const lines = await getApparatusCriticusLines(searchTerm, object_id);
+                    console.log('lines:')
+                    console.dir(lines)
+                    renderList(lines);
+                    
+                }
             }
         }
     }
     
     new Quill('#'+$item.attr('id'), config);
-
 
     let that = this;
     var for_id = $item.data('for');

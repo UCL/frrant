@@ -112,7 +112,8 @@ urlpatterns = [
     ], 'research'), namespace='concordance')),
     path('search/', include(([
         path('', views.SearchView.as_view(), name='home'),
-        path('ajax/mention/', views.MentionSearchView.as_view(), name='mention')
+        path('ajax/mention/', views.MentionSearchView.as_view(), name='mention'),
+        path('ajax/apparatus-criticus/', views.ApparatusCriticusSearchView.as_view(), name='apparatus_criticus'),
     ], 'research'), namespace='search')),
     path('', include(([
         path("<model_name>/<pk>/history/", views.HistoryListView.as_view(), name="list"),

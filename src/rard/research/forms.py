@@ -237,6 +237,7 @@ class CommentaryFormBase(forms.ModelForm):
         if commit:
             # commentary will have been created at this point via post_save
             instance.commentary.content = self.cleaned_data['commentary_text']
+            print('commentary content here %s' % instance.commentary.content )
             instance.commentary.save()
         return instance
 

@@ -4,7 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404, JsonResponse
 from django.template.loader import render_to_string
 from django.utils.decorators import method_decorator
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 from django.views.generic import View
 
 from rard.research.forms import OriginalTextForm
@@ -124,3 +124,63 @@ class UpdateApparatusCriticusLineView(LoginRequiredMixin,
             raise Http404
 
         raise Http404
+
+
+@method_decorator(require_GET, name='dispatch')
+class ApparatusCriticusSearchView(LoginRequiredMixin, View):
+
+    context_object_name = 'results'
+
+    def get(self, request, *args, **kwargs):
+
+        if not request.is_ajax():
+            raise Http404
+
+        ajax_data = []
+        model_name = ApparatusCriticusItem.__class__.__name__
+
+        # return just the name, pk and type for display
+        for o in self.get_queryset():
+            ajax_data.append(
+                {
+                    'id': o.pk,
+                    'target': model_name,
+                    'value': str(o)
+                }
+            )
+
+        return JsonResponse(data=ajax_data, safe=False)
+
+    def get_queryset(self):
+
+        def search_term_as_integer(s):
+            # we restrict to integers so #1 and #2 etc work
+            try: 
+                # they will have 
+                return int(s)
+            except ValueError:
+                return None
+
+        keywords = self.request.GET.get('q', '')
+        print('keywords %s' % keywords)
+        if search_term_as_integer(keywords) is None:
+            return ApparatusCriticusItem.objects.none()
+
+        pk = self.request.GET.get('original_text', None)
+        try:
+            o = OriginalText.objects.get(pk=pk)
+            qs = o.apparatus_criticus_items.order_by('order')
+
+            # now filter by the search term
+            # exact match to the index (for example #1 will appear first)
+            index = search_term_as_integer(keywords)
+            if index is not None:
+                # they will have entered 1-indexed so subtract
+                qs = qs.filter(order=index-1)
+
+            return qs.distinct()
+
+        except OriginalText.DoesNotExist:
+            pass
+    
+        return ApparatusCriticusItem.objects.none()

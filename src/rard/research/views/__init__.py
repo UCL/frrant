@@ -7,7 +7,8 @@ from .antiquarian import (AntiquarianBibliographyCreateView,
                           AntiquarianUpdateIntroductionView,
                           AntiquarianUpdateView, AntiquarianWorkCreateView,
                           AntiquarianWorksUpdateView, MoveLinkView)
-from .apparatus_criticus import (CreateApparatusCriticusLineView,
+from .apparatus_criticus import (ApparatusCriticusSearchView,
+                                 CreateApparatusCriticusLineView,
                                  DeleteApparatusCriticusLineView,
                                  UpdateApparatusCriticusLineView)
 from .bibliography import (BibliographyDeleteView, BibliographyListView,
@@ -68,6 +69,7 @@ __all__ = [
     'AntiquarianUpdateView',
     'AntiquarianUpdateIntroductionView',
     'AntiquarianWorksUpdateView',
+    'ApparatusCriticusSearchView',
     'BibliographyDeleteView',
     'BibliographyListView',
     'BibliographyUpdateView',

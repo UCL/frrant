@@ -221,7 +221,7 @@
       <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
       <script src="https://afry.github.io/quill-mention/quill.mention.min.js"></script>
       <!-- place project specific Javascript in this file -->
-      <script>const g_mention_url = '{% url "search:mention" %}';</script>
+      <script>const g_mention_url = '{% url "search:mention" %}';const g_apparatus_criticus_url = '{% url "search:apparatus_criticus" %}';</script>
       <script src="{% static 'js/project.js' %}"></script>
       
     {% endblock javascript %}
