@@ -257,7 +257,6 @@ function initRichTextEditor($item) {
     
     new Quill('#'+$item.attr('id'), config);
 
-    let that = this;
     var for_id = $item.data('for');
     var $for = $(`#${for_id}`);
 
@@ -266,7 +265,7 @@ function initRichTextEditor($item) {
     $for.hide();
 
     $('body').on("submit", "form", function (e) {
-        let html = $(that).find('.ql-editor').html();
+        let html = $item.find('.ql-editor').html();
         $for.text(html);
     });
 }
