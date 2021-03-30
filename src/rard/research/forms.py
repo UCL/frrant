@@ -83,6 +83,75 @@ class AntiquarianUpdateWorksForm(forms.ModelForm):
           'works': forms.CheckboxSelectMultiple,
         }
 
+class BooksWidget(forms.Widget):
+    template_name = 'widgets/books.html'
+
+    def format_value(self, value):
+        return value
+
+    def value_from_datadict(self, data, files, name):
+        # find all <name>_<n>_num and <name>_<n>_title parameters
+        r = {} # dict of <n> to dict with keys 'num' and 'title'
+        prefix = name + '_'
+        for k,v in data.items():
+            ps = k.rsplit('_', 2)
+            if 2 < len(ps) and ps[0] == name and ps[2] in ['num', 'title'] and v:
+                i = int(ps[1])
+                if i not in r:
+                    r[i] = {}
+                r[i][ps[2]] = v
+        rkeys = list(r.keys())
+        # ensure we report the values in the order in which
+        # they were input
+        rkeys.sort()
+        ra = [r[k] for k in rkeys]
+        return ra
+
+
+class BooksField(forms.Field):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def validate(self, value):
+        pass
+
+    def clean(self, value):
+        super().validate(value)
+        errors = []
+        vals = [v['num'].strip() for v in value if type(v) is dict and 'num' in v]
+        nums = []
+        non_nums = []
+        for v in vals:
+            if v:
+                if v.isnumeric() and 0 < int(v):
+                    nums.append(v)
+                else:
+                    non_nums.append(v)
+        errors += [
+            forms.ValidationError(
+                _('%(nn)s is not a positive number'),
+                params={'nn': nn},
+                code='book-number-not-a-number'
+            ) for nn in non_nums
+        ]
+        seen = {}
+        dups = {}
+        for n in nums:
+            if n in seen:
+                dups[n] = True
+            else:
+                seen[n] = True
+        errors += [
+            forms.ValidationError(
+                _('The book number %(n)s is duplicated.'),
+                params={'n': dup},
+                code='book-number-duplicated'
+            ) for dup in dups.keys()
+        ]
+        if errors:
+            raise forms.ValidationError(errors)
+        return value
+
 
 class WorkForm(forms.ModelForm):
 
@@ -92,9 +161,19 @@ class WorkForm(forms.ModelForm):
         required=False,
     )
 
+    books = BooksField(widget=BooksWidget, required=False)
+
     class Meta:
         model = Work
-        exclude = ('fragments',)
+        fields = (
+            'name',
+            'subtitle',
+            'antiquarians',
+            'number_of_books',
+            'date_range',
+            'order_year',
+            'books',
+        )
         labels = {'name': 'Name of Work'}
 
     def __init__(self, *args, **kwargs):
