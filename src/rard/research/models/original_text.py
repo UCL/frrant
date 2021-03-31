@@ -30,8 +30,9 @@ class OriginalText(HistoryModelMixin, BaseModel):
 
     content = DynamicTextField(blank=False)
 
-    # to be nuked. not required now
-    # apparatus_criticus = DynamicTextField(default='', blank=True)
+    # to be nuked eventually. not required now but hidden from view
+    # to preserve previous values in case our data migration is insufficient
+    apparatus_criticus = DynamicTextField(default='', blank=True)
 
     apparatus_criticus_items = GenericRelation(
         'ApparatusCriticusItem', related_query_name='original_text'
