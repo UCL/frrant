@@ -10,7 +10,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ('contenttypes', '0002_remove_content_type_name'),
-        ('research', '0038_antiquarianconcordance'),
+        ('research', '0045_auto_20210323_1642'),
     ]
 
     operations = [

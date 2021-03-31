@@ -7,7 +7,7 @@ import rard.utils.basemodel
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('research', '0039_apparatuscriticusitem'),
+        ('research', '0046_apparatuscriticusitem'),
     ]
 
     operations = [
