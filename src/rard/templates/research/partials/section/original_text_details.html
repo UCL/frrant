@@ -9,6 +9,13 @@
     <dt class="col-sm-3">{% trans 'Reference' %}</dt>
     <dd class="col-sm-9">{{ original_text.reference|default:'-' }}</dd>
 
+{% comment %}     
+    {# to restore the legacy apparatus criticus entry uncommment this block #}
+    <dt class="col-sm-3">{% trans 'Apparatus Criticus' %}</dt>
+    <dd class="col-sm-9">{{ original_text.apparatus_criticus|safe|default:'-'|linebreaks }}</dd> 
+{% endcomment %}
+
+
     <dt class="col-sm-3">{% trans 'Apparatus Criticus' %}</dt>
     <dd class="col-sm-9">
         <div>
