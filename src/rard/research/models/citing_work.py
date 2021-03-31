@@ -14,7 +14,9 @@ class CitingAuthor(HistoryModelMixin, LockableModel, DatedModel, BaseModel):
 
     name = models.CharField(max_length=256, blank=False)
 
-    order_name = models.CharField(max_length=128, default='', blank=True)
+    order_name = models.CharField(
+        max_length=128, default='', blank=True, unique=True
+    )
 
     history = HistoricalRecords(
         excluded_fields=[
@@ -36,6 +38,11 @@ class CitingAuthor(HistoryModelMixin, LockableModel, DatedModel, BaseModel):
 
     def __str__(self):
         return self.name or 'Unnamed Author'
+
+    def is_anonymous_citing_author(self):
+        # are we the special database record reserved for the
+        # anonymous citing author?
+        return self.order_name == self.ANONYMOUS_ORDERNAME
 
     def ordered_materials(self):
         # for all (or a page of) links to materials we need to create a

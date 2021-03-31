@@ -8,7 +8,7 @@ from django.views.generic import ListView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
-from rard.research.forms import CitingWorkCreateForm
+from rard.research.forms import CitingAuthorUpdateForm, CitingWorkCreateForm
 from rard.research.models import CitingAuthor, CitingWork, OriginalText
 from rard.research.views.mixins import (CanLockMixin, CheckLockMixin,
                                         DateOrderMixin)
@@ -40,9 +40,11 @@ class CitingAuthorCreateView(LoginRequiredMixin, PermissionRequiredMixin,
 
 class CitingAuthorUpdateView(CheckLockMixin, LoginRequiredMixin,
                              PermissionRequiredMixin, UpdateView):
-    model = CitingAuthor
-    fields = ('name', 'order_name', 'order_year', 'date_range',)
+    form_class = CitingAuthorUpdateForm
     permission_required = ('research.change_citingauthor',)
+
+    def get_queryset(self):
+        return CitingAuthor.objects.all()
 
     def get_success_url(self, *args, **kwargs):
         return reverse(
@@ -78,6 +80,20 @@ class CitingAuthorListView(DateOrderMixin, LoginRequiredMixin,
             'reference_order'  # then by reference
         ]
         return OriginalText.objects.all().order_by(*ordering)
+
+
+class CitingAuthorFullListView(DateOrderMixin, LoginRequiredMixin,
+                               PermissionRequiredMixin, ListView):
+    paginate_by = 10
+    model = OriginalText
+    template_name = 'research/citingauthor_full_list.html'
+    permission_required = (
+        'research.view_citingauthor', 'research.view_citingwork',
+    )
+
+    def get_queryset(self):
+        # all citing authors
+        return CitingAuthor.objects.all()
 
 
 class CitingAuthorDetailView(CanLockMixin, LoginRequiredMixin,

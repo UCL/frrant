@@ -45,9 +45,11 @@
 
         <dl class="row mb-0">
             <dt class="col-sm-3">{% trans 'Name' %}</dt>
-            <dd class="col-sm-9">{{ object.name }}</dd>        
+            <dd class="col-sm-9">{{ object.name }}</dd>
+            {% if not object.is_anonymous_citing_author %}
             <dt class="col-sm-3">{% trans 'Name for Alphabetisation' %}</dt>
             <dd class="col-sm-9">{{ object.order_name }}</dd>
+            {% endif %}
             <dt class="col-sm-3">{% trans 'Relevant Dates' %}</dt>
             <dd class="col-sm-9">
                 {{ object.display_date_range|default:'-' }}

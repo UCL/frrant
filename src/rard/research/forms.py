@@ -192,7 +192,7 @@ class CitingWorkForm(forms.ModelForm):
 
 class OriginalTextAuthorForm(forms.ModelForm):
     citing_author = forms.ModelChoiceField(
-        queryset=CitingAuthor.objects.all(),
+        queryset=CitingAuthor.objects.all().distinct(),
         required=True,
     )
 
@@ -441,3 +441,14 @@ class CitingWorkCreateForm(forms.ModelForm):
         self.fields['author'].queryset = CitingAuthor.objects.exclude(
             order_name=CitingAuthor.ANONYMOUS_ORDERNAME
         )
+
+
+class CitingAuthorUpdateForm(forms.ModelForm):
+    class Meta:
+        model = CitingAuthor
+        fields = ('name', 'order_name', 'order_year', 'date_range',)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.is_anonymous_citing_author():
+            self.fields['order_name'].disabled = True

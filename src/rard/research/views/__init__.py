@@ -11,9 +11,10 @@ from .bibliography import (BibliographyDeleteView, BibliographyListView,
                            BibliographyUpdateView)
 from .citing_work import (CitingAuthorCreateView, CitingAuthorCreateWorkView,
                           CitingAuthorDeleteView, CitingAuthorDetailView,
-                          CitingAuthorListView, CitingAuthorUpdateView,
-                          CitingWorkCreateView, CitingWorkDeleteView,
-                          CitingWorkDetailView, CitingWorkUpdateView)
+                          CitingAuthorFullListView, CitingAuthorListView,
+                          CitingAuthorUpdateView, CitingWorkCreateView,
+                          CitingWorkDeleteView, CitingWorkDetailView,
+                          CitingWorkUpdateView)
 from .comments import CommentDeleteView, TextObjectFieldCommentListView
 from .concordance import (ConcordanceCreateView, ConcordanceDeleteView,
                           ConcordanceListView, ConcordanceUpdateView)
@@ -81,6 +82,7 @@ __all__ = [
     'CitingAuthorDeleteView',
     'CitingAuthorDetailView',
     'CitingAuthorListView',
+    'CitingAuthorFullListView',
     'CitingAuthorUpdateView',
     'CitingWorkCreateView',
     'CitingWorkDeleteView',

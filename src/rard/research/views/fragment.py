@@ -18,8 +18,8 @@ from rard.research.forms import (AnonymousFragmentCommentaryForm,
                                  FragmentAntiquariansForm,
                                  FragmentCommentaryForm, FragmentForm,
                                  FragmentLinkWorkForm, OriginalTextForm)
-from rard.research.models import (AnonymousFragment, Antiquarian, Book,
-                                  CitingAuthor, CitingWork, Fragment, Work)
+from rard.research.models import (AnonymousFragment, Antiquarian, CitingAuthor,
+                                  CitingWork, Fragment, Work)
 from rard.research.models.base import AppositumFragmentLink, FragmentLink
 from rard.research.views.mixins import CanLockMixin, CheckLockMixin
 
@@ -53,7 +53,8 @@ class OriginalTextCitingWorkView(LoginRequiredMixin, TemplateView):
         context = self.get_context_data()
         forms = context['forms']
 
-        if 'create_object' in self.request.POST:
+        if 'create_object' in self.request.POST or \
+                'then_add_links' in self.request.POST:
 
             # now check the forms using the form validation
             forms_valid = all(

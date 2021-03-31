@@ -12,6 +12,7 @@
     </div>
     {% if perms.research.add_citingauthor %}
     <div>
+        <a class='ml-3' href='{% url "citingauthor:all" %}'>{% trans 'View all' %}</a>
         <a class='ml-3' href='{% url "citingauthor:create" %}'>{% trans 'New Author' %}</a>
         <a class='ml-3' href='{% url "citingauthor:create_work" %}'>{% trans 'New Work' %}</a>
     </div>

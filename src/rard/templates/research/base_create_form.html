@@ -21,7 +21,7 @@
         <input type='hidden' name='citing_author' value='{{ citing_author.pk }}' />
         {% bootstrap_field forms.original_text.citing_work field_class='submit-on-change' %}
     </form>
-        
+
     {# Use a POST form to update the rest of the details #}
     <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
         {% csrf_token %}
@@ -49,24 +49,18 @@
             <button type="submit" name='create_object' class="btn btn-primary">
                 {% trans 'Create' %}
             </button>
-
-        {% endif %}
-
-        <button type="submit" class="btn btn-primary">
-            {% trans 'Create' %}
-        </button>
-
-        {% if is_anonymous_fragment %}
-        <button type="submit" name='then_add_links' value='general' class="btn btn-outline-primary">
-            {% trans 'Create and Add Antiquarian/Work Link' %}
-        </button>
-        <button type="submit" name='then_add_links' value='fragment' class="btn btn-outline-primary">
-            {% trans 'Create and Add Fragment Link' %}
-        </button>
-        {% else %}
-        <button type="submit" name='then_add_links' class="btn btn-outline-primary">
-            {% trans 'Create and Add Links' %}
-        </button>
+            {% if is_anonymous_fragment %}
+            <button type="submit" name='then_add_links' value='general' class="btn btn-outline-primary">
+                {% trans 'Create and Add Antiquarian/Work Link' %}
+            </button>
+            <button type="submit" name='then_add_links' value='fragment' class="btn btn-outline-primary">
+                {% trans 'Create and Add Fragment Link' %}
+            </button>
+            {% else %}
+            <button type="submit" name='then_add_links' value='fragment' class="btn btn-outline-primary">
+                {% trans 'Create and Add Links' %}
+            </button>
+            {% endif %}
         {% endif %}
 
     </form>
