@@ -34,8 +34,10 @@ class OriginalTextCreateViewBase(PermissionRequiredMixin,
             # load the update view for the original text
             # (but needs to be in the correct namespace for the parent)
             namespace = resolve(self.request.path_info).namespace
-            print('namespace %s' % namespace)
-            return reverse('%s:update_original_text' % namespace, kwargs={'pk': self.original_text.pk})
+            return reverse(
+                '%s:update_original_text' % namespace,
+                kwargs={'pk': self.original_text.pk}
+            )
         return self.get_parent_object().get_absolute_url()
 
     def get_parent_object(self, *args, **kwargs):

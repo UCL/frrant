@@ -1,9 +1,8 @@
-from django.db.models.signals import post_delete, post_save
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models, transaction
+from django.db.models.signals import post_delete, post_save
 
-from rard.users.models import User
 from rard.utils.basemodel import BaseModel, OrderableModel
 from rard.utils.decorators import disable_for_loaddata
 
@@ -47,9 +46,11 @@ class ApparatusCriticusItem(LinkableContentBase):
         # a string to use in creating anchor links
         return 'ap%s' % self.pk
 
+
 @disable_for_loaddata
 def handle_add_saved_item(sender, instance, created, **kwargs):
     instance.move_to(instance.order)
+
 
 @disable_for_loaddata
 def handle_deleted_item(sender, instance, **kwargs):

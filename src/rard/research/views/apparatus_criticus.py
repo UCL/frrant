@@ -1,5 +1,4 @@
 from bs4 import BeautifulSoup
-
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404, JsonResponse
 from django.template.loader import render_to_string
@@ -8,21 +7,21 @@ from django.views.decorators.http import require_GET, require_POST
 from django.views.generic import View
 
 from rard.research.forms import OriginalTextForm
-from rard.research.models import AnonymousFragment, ApparatusCriticusItem, Fragment, Testimonium, OriginalText
+from rard.research.models import (AnonymousFragment, ApparatusCriticusItem,
+                                  Fragment, OriginalText, Testimonium)
 
 
 class ApparatusCriticusLineViewBase(View):
 
-    render_partial_template = 'research/partials/apparatus_criticus_builder.html'
+    render_partial_template = \
+        'research/partials/apparatus_criticus_builder.html'
 
     def process_content(self, content_html):
         # cannot stop quill from wrapping things with <p></p> so strip
         # that off here
-        soup =  BeautifulSoup(content_html)
+        soup = BeautifulSoup(content_html)
         p = soup.find('p')
         content = ''.join([str(x) for x in p.children])
-        print('have set content to:')
-        print(content)
         return content
 
     def render_valid_response(self, original_text):
@@ -38,7 +37,6 @@ class ApparatusCriticusLineViewBase(View):
 @method_decorator(require_POST, name='dispatch')
 class CreateApparatusCriticusLineView(LoginRequiredMixin,
                                       ApparatusCriticusLineViewBase):
-
 
     def post(self, *args, **kwargs):
 
@@ -60,9 +58,7 @@ class CreateApparatusCriticusLineView(LoginRequiredMixin,
             line = original_text.apparatus_criticus_items.create(
                 order=int(insert_at), content=content
             )
-            print('line created with order %s' % line.order)
             line.move_to(int(insert_at))
-            print('line posn now %s'  % line.order)
             return self.render_valid_response(original_text)
 
         except (OriginalText.DoesNotExist, KeyError):
@@ -109,7 +105,7 @@ class UpdateApparatusCriticusLineView(LoginRequiredMixin,
         content_html = self.request.POST.get('content', None)
 
         content = self.process_content(content_html)
-        
+
         if not all((line_id, content)):
             raise Http404
 
@@ -146,7 +142,7 @@ class ApparatusCriticusSearchView(LoginRequiredMixin, View):
             if self.parent_object:
                 # need to include the ordinal of the original text, if relevant
                 # (this is decided in the method called below)
-                ordinal = self.original_text.ordinal_with_respect_to_parent_object()
+                ordinal = self.original_text.ordinal_with_respect_to_parent_object()  # noqa
                 return '%s%s' % (ordinal, str(item.order + 1))
             else:
                 return str(item.order + 1)
@@ -158,7 +154,7 @@ class ApparatusCriticusSearchView(LoginRequiredMixin, View):
                 {
                     'id': item.pk,
                     'target': model_name,
-                    'parent': self.parent_object.pk if self.parent_object else '',
+                    'parent': self.parent_object.pk if self.parent_object else '',  # noqa
                     'originalText': self.original_text.pk,
                     # 'value': str(o),  # to have full name in the text mention
                     # 'value': str(o.order + 1),  # or to just have the number
@@ -172,7 +168,7 @@ class ApparatusCriticusSearchView(LoginRequiredMixin, View):
     def get_queryset(self):
 
         def search_original_text_ordinal(s):
-            # check whether they entered a letter in the search field 
+            # check whether they entered a letter in the search field
             import string
             if len(s) == 0:
                 return None
@@ -182,7 +178,7 @@ class ApparatusCriticusSearchView(LoginRequiredMixin, View):
 
         def search_term_as_integer(s):
             # we restrict to integers so #1 and #2 etc work
-            try: 
+            try:
                 # they will possibly have entered #a1 or #f4
                 to_search = s
                 c = search_original_text_ordinal(to_search)
@@ -193,7 +189,6 @@ class ApparatusCriticusSearchView(LoginRequiredMixin, View):
                 return None
 
         search_term = self.request.GET.get('q', '')
-        print('search_term %s' % search_term)
 
         pk = self.request.GET.get('object_id', None)
         object_class = self.request.GET.get('object_class', None)
@@ -202,9 +197,7 @@ class ApparatusCriticusSearchView(LoginRequiredMixin, View):
 
         # if they user entered e.g. #1 or #a1 this should return 1
         app_crit_one_index = search_term_as_integer(search_term)
-        print('app_crit_one_index %s' % app_crit_one_index)
         ordinal = search_original_text_ordinal(search_term)
-        print('ordinal %s' % ordinal)
 
         # store any parent object so called knows whether we are we
         # looking at an original text
@@ -218,7 +211,7 @@ class ApparatusCriticusSearchView(LoginRequiredMixin, View):
             # if we are editing a parent item that has several original texts
             # then we insist they enter the index of the original text
             # that they want the apparatus criticuses for.
-            # For example if there are three, we would expect '#a' to 
+            # For example if there are three, we would expect '#a' to
             # invoke a search for app crit items for original text a etc
             # we can be kind however and remove this requirement if the parent
             # object only has ONE original text
@@ -233,13 +226,13 @@ class ApparatusCriticusSearchView(LoginRequiredMixin, View):
             try:
                 self.parent_object = cls_.objects.get(pk=pk)
                 # get all the original texts for this parent object
-                original_texts = [o for o in self.parent_object.original_texts.all()]
+                original_texts = [
+                    o for o in self.parent_object.original_texts.all()
+                ]
                 if len(original_texts) == 1:
                     self.original_text = original_texts[0]
                 elif ordinal:
-                    print('looking up index of "%s"' % ordinal)
                     original_text_index = ord(ordinal) - ord('a')
-                    print('original_text_index %s' % original_text_index)
                     self.original_text = original_texts[original_text_index]
 
             except (AttributeError, IndexError, cls_.DoesNotExist):
@@ -250,41 +243,10 @@ class ApparatusCriticusSearchView(LoginRequiredMixin, View):
             try:
                 self.original_text = OriginalText.objects.get(pk=pk)
             except OriginalText.DoesNotExist:
-                pass            
+                pass
 
         if not self.original_text:
             return ApparatusCriticusItem.objects.none()
-
-        print('self.original_text %s' % self.original_text)
-        # # if object class is not original text then we will be editing
-        # # a parent class e.g. a fragment's commentary. In this case we
-        # # need to get all the original texts that belong to that
-        # # object and return results for all of them
-        # original_texts = []
-
-        # if object_class != 'originaltext':
-        #     cls_ = {
-        #         'fragment': Fragment,
-        #         'testimonium': Testimonium,
-        #         'anonymousfragment': AnonymousFragment,
-        #     }.get(object_class, None)
-        #     if cls_:
-        #         try:
-        #             owner = cls_.objects.get(pk=pk)
-        #             # get all the original texts for this parent object
-        #             original_texts = [o for o in owner.original_texts.all()]
-        #         except cls_.DoesNotExist:
-        #             pass
-
-        # else:
-        #     # we are looking at a single original text
-        #     try:
-        #         o = OriginalText.objects.get(pk=pk)
-        #         original_texts.append(o)
-
-        #     except OriginalText.DoesNotExist:
-        #         pass
-    
 
         qs = ApparatusCriticusItem.objects.none()
         if self.original_text:
@@ -292,21 +254,8 @@ class ApparatusCriticusSearchView(LoginRequiredMixin, View):
             if app_crit_one_index is not None:
                 # they will have entered 1-indexed so subtract
                 qs = qs.filter(order=app_crit_one_index-1)
-        # for o in original_texts:
-            
-        #     qs |= o.apparatus_criticus_items.order_by('order')
-
-        #     # now filter by the search term
-        #     # exact match to the index (for example #1 will appear first)
-        #     index = search_term_as_integer(keywords)
-        #     if index is not None:
-        #         # they will have entered 1-indexed so subtract
-        #         qs = qs.filter(order=index-1)
-
-        # return qs.distinct()
 
         return qs
-
 
 
 @method_decorator(require_POST, name='dispatch')

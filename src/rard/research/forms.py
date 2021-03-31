@@ -197,6 +197,7 @@ class OriginalTextForm(forms.ModelForm):
         required=False,
         label='Add apparatus criticus line',
     )
+
     class Meta:
         model = OriginalText
         fields = ('citing_work', 'reference', 'content',)
@@ -217,18 +218,6 @@ class OriginalTextForm(forms.ModelForm):
         # of an existing instance to be blank and assign a newly-created
         # work to the original text instance in the view
         self.set_citing_work_required(True)
-
-        # if self.instance and self.instance.pk:
-        #     print('SETTING THE CONTENT HERE')
-        #     print('content before %s' % self.instance.content)
-        #     self.instance.update_content_mentions()
-        #     # after updating it, ensure the updated version
-        #     # makes it to the screen
-        #     self.instance.refresh_from_db()
-        #     self.fields['content'].initial = \
-        #         self.instance.content
-        #     print('content after %s' % self.instance.content)
-
 
     def set_citing_work_required(self, required):
         # to allow set/reset required fields dynically in the view
@@ -254,7 +243,6 @@ class CommentaryFormBase(forms.ModelForm):
         if commit:
             # commentary will have been created at this point via post_save
             instance.commentary.content = self.cleaned_data['commentary_text']
-            print('commentary content here %s' % instance.commentary.content )
             instance.commentary.save()
         return instance
 

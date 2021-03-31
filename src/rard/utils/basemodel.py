@@ -24,10 +24,9 @@ class DynamicTextField(TextField):
         if not self.null:
             field_name = self.name
 
-
             def update_editable_mentions(self, save=True):
-                print('DynamicTextField: update_editable_mentions')
                 from rard.research.models import OriginalText
+
                 # before editing we would like to check that
                 # the text in aech of the mentions
                 # is up to date
@@ -48,10 +47,9 @@ class DynamicTextField(TextField):
                     model_name = link.attrs.get('data-target', None)
                     pkstr = link.attrs.get('data-id', None)
                     char = link.attrs.get('data-denotation-char', None)
-                    # index_str = link.attrs.get('data-value', None)
 
                     replacement = None
-                    print("WE ARE HERE")
+
                     if model_name and pkstr and char:
                         try:
                             model = apps.get_model(
@@ -69,32 +67,24 @@ class DynamicTextField(TextField):
                                 # any ordinal value
 
                                 parent_pk = link.attrs.get('data-parent', None)
-                                original_text_pk = link.attrs.get('data-original-text', None)
-                                # if we are viewing the object in a parent's commentary
-                                # then we need to potentially (if >1 original text) show
-                                # its ordinal
-                                
+                                original_text_pk = link.attrs.get(
+                                    'data-original-text', None
+                                )
+                                # if we are viewing the object in
+                                # a parent's commentary
+                                # then we need to potentially
+                                # (if >1 original text) show its ordinal
+
                                 link_text = ''
 
                                 if parent_pk:
-                                    original_text = OriginalText.objects.get(pk=int(original_text_pk))
-                                    link_text = original_text.ordinal_with_respect_to_parent_object()
+                                    original_text = OriginalText.objects.get(
+                                        pk=int(original_text_pk)
+                                    )
+                                    link_text = original_text.ordinal_with_respect_to_parent_object()  # noqa
 
                                 # in any case show the app crit link index
                                 link_text += str(linked.order + 1)
-                                # link_text = str(linked.order + 1)
-                            # actual_name = str(linked)
-                            # print('actual name here %s'  % actual_name)
-                            # link['data-value'] = actual_name
-                            # for showing the complete app crit in the text:
-                            # replacement = bs4.BeautifulSoup(
-                            #     '<span contenteditable="false">'
-                            #     '<span class="ql-mention-denotation-char">'
-                            #     '{}</span>{}</span>'.format(
-                            #         char, actual_name
-                            #     ),
-                            #     features="html.parser"
-                            # )
 
                             replacement = bs4.BeautifulSoup(
                                 '<span contenteditable="false">'
@@ -114,8 +104,7 @@ class DynamicTextField(TextField):
                             # the user has a bad link and needs to
                             # replace it, so mark it in error
                             link['class'].extend(['error'])
-                            
-                print('setting to %s' % str(soup))
+
                 setattr(self, field_name, str(soup))
                 if save:
                     self.save_without_historical_record()
@@ -131,8 +120,7 @@ class DynamicTextField(TextField):
                 for link in links:
                     model_name = link.attrs.get('data-target', None)
                     pkstr = link.attrs.get('data-id', None)
-                        
-                    print('model name %s' % model_name)
+
                     replacement = None
 
                     if model_name and pkstr:
@@ -141,7 +129,7 @@ class DynamicTextField(TextField):
                                 app_label='research', model_name=model_name
                             )
                             linked = model.objects.get(pk=int(pkstr))
-                            # is it something we can link to? 
+                            # is it something we can link to?
                             if getattr(linked, 'get_absolute_url', False):
                                 replacement = bs4.BeautifulSoup(
                                     '<a href="{}">{}</a>'.format(
@@ -154,16 +142,20 @@ class DynamicTextField(TextField):
                                 # else currently that means it's an
                                 # apparatus criticus item
                                 parent_pk = link.attrs.get('data-parent', None)
-                                original_text_pk = link.attrs.get('data-original-text', None)
-                                # if we are viewing the object in a parent's commentary
-                                # then we need to potentially (if >1 original text) show
-                                # its ordinal
-                                
+                                original_text_pk = link.attrs.get(
+                                    'data-original-text', None
+                                )
+                                # if we are viewing the object in a parent's
+                                # commentary then we need to potentially
+                                # (if >1 original text) show its ordinal
+
                                 display_str = ''
 
                                 if parent_pk:
-                                    original_text = OriginalText.objects.get(pk=int(original_text_pk))
-                                    display_str = original_text.ordinal_with_respect_to_parent_object()
+                                    original_text = OriginalText.objects.get(
+                                        pk=int(original_text_pk)
+                                    )
+                                    display_str = original_text.ordinal_with_respect_to_parent_object()  # noqa
 
                                 # in any case show the app crit link index
                                 display_str += str(linked.order + 1)
@@ -173,9 +165,10 @@ class DynamicTextField(TextField):
                                     'data-html="true" '
                                     'data-placement="top" '
                                     'style="cursor:pointer;" '
-                                    'title="<span class=\'historical\'>{}</span>">'
+                                    'title="<span class=\'historical\'>{}'
+                                    '</span>">'
                                     '[App. crit. {}]</span>'.format(
-                                        linked.get_anchor_id(),  # for dynamic linking to the original text
+                                        linked.get_anchor_id(),
                                         mark_safe(linked.content),
                                         display_str,
                                     ),
@@ -183,8 +176,7 @@ class DynamicTextField(TextField):
                                 )
 
                         except (AttributeError, KeyError, ValueError,
-                                ObjectDoesNotExist) as err:
-                            print('error %s' % str(err))
+                                ObjectDoesNotExist):
                             # indicate a bad link. Alternative we could use
                             # the content of the definition as a fall-back
                             # and render that? If so, just remove the
@@ -203,6 +195,7 @@ class DynamicTextField(TextField):
                                 ),
                                 features="html.parser"
                             )
+
                         # replace with the new link in the rendered output
                         if replacement:
                             link.replace_with(replacement)
@@ -210,7 +203,7 @@ class DynamicTextField(TextField):
                 return str(soup)
 
             # here we add a method to the class. So if the dynamic field of
-            # our class is called 'content' then the method will be
+            # our class is called 'content' then the method will be
             # 'render_content' etc
             setattr(
                 cls, 'render_%s' % self.name,
