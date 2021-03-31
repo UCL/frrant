@@ -25,6 +25,7 @@ urlpatterns = [
     path("ajax/create-apparatus-criticus-line/", views.CreateApparatusCriticusLineView.as_view(), name="create_apparatus_criticus_line"),
     path("ajax/delete-apparatus-criticus-line/", views.DeleteApparatusCriticusLineView.as_view(), name="delete_apparatus_criticus_line"),
     path("ajax/update-apparatus-criticus-line/", views.UpdateApparatusCriticusLineView.as_view(), name="update_apparatus_criticus_line"),
+    path("ajax/refresh-original-text-content/", views.RefreshOriginalTextContentView.as_view(), name="refresh_original_text_content"),
     # path("comment/<pk>/delete/", views.CommentDeleteView.as_view(), name="delete_comment"),
     # path("text-field/<pk>/comments/", views.TextObjectFieldCommentListView.as_view(), name="list_comments_on_text"),
     path('antiquarian/', include(([

@@ -24,9 +24,10 @@ class DynamicTextField(TextField):
         if not self.null:
             field_name = self.name
 
-            def update_editable_mentions(self):
-                print('DynamicTextField: update_editable_mentions')
 
+            def update_editable_mentions(self, save=True):
+                print('DynamicTextField: update_editable_mentions')
+                from rard.research.models import OriginalText
                 # before editing we would like to check that
                 # the text in aech of the mentions
                 # is up to date
@@ -47,6 +48,8 @@ class DynamicTextField(TextField):
                     model_name = link.attrs.get('data-target', None)
                     pkstr = link.attrs.get('data-id', None)
                     char = link.attrs.get('data-denotation-char', None)
+                    # index_str = link.attrs.get('data-value', None)
+
                     replacement = None
                     print("WE ARE HERE")
                     if model_name and pkstr and char:
@@ -55,10 +58,34 @@ class DynamicTextField(TextField):
                                 app_label='research', model_name=model_name
                             )
                             linked = model.objects.get(pk=int(pkstr))
-                            actual_name = str(linked)
-                            print('actual name here %s'  % actual_name)
-                            link['data-value'] = actual_name
 
+                            if char == '@':
+                                link_text = str(linked)
+                            else:
+                                # it's an apparatus criticus so we need
+                                # show its index and any ordinal relating
+                                # to the original text. e.g. if viewing this
+                                # in a fragment's commentary we need to include
+                                # any ordinal value
+
+                                parent_pk = link.attrs.get('data-parent', None)
+                                original_text_pk = link.attrs.get('data-original-text', None)
+                                # if we are viewing the object in a parent's commentary
+                                # then we need to potentially (if >1 original text) show
+                                # its ordinal
+                                
+                                link_text = ''
+
+                                if parent_pk:
+                                    original_text = OriginalText.objects.get(pk=int(original_text_pk))
+                                    link_text = original_text.ordinal_with_respect_to_parent_object()
+
+                                # in any case show the app crit link index
+                                link_text += str(linked.order + 1)
+                                # link_text = str(linked.order + 1)
+                            # actual_name = str(linked)
+                            # print('actual name here %s'  % actual_name)
+                            # link['data-value'] = actual_name
                             # for showing the complete app crit in the text:
                             # replacement = bs4.BeautifulSoup(
                             #     '<span contenteditable="false">'
@@ -69,15 +96,17 @@ class DynamicTextField(TextField):
                             #     features="html.parser"
                             # )
 
-                            # for just showing the index number:
                             replacement = bs4.BeautifulSoup(
                                 '<span contenteditable="false">'
                                 '<span class="ql-mention-denotation-char">'
                                 '{}</span>{}</span>'.format(
-                                    char, linked.order + 1
+                                    # char, linked.order + 1
+                                    char, link_text
                                 ),
                                 features="html.parser"
                             )
+                            # we do need to replace the item as its index
+                            # might have changed
                             item_to_replace.replace_with(replacement)
 
                         except (AttributeError, KeyError, ValueError,
@@ -88,10 +117,13 @@ class DynamicTextField(TextField):
                             
                 print('setting to %s' % str(soup))
                 setattr(self, field_name, str(soup))
-
-                self.save_without_historical_record()
+                if save:
+                    self.save_without_historical_record()
 
             def render_dynamic_content(self):
+                # render the mentions as links or as app crit when viewing
+                # the object on a web page
+                from rard.research.models import OriginalText
                 value = getattr(self, field_name)
                 soup = bs4.BeautifulSoup(value, features="html.parser")
                 links = soup.find_all("span", class_="mention")
@@ -99,6 +131,7 @@ class DynamicTextField(TextField):
                 for link in links:
                     model_name = link.attrs.get('data-target', None)
                     pkstr = link.attrs.get('data-id', None)
+                        
                     print('model name %s' % model_name)
                     replacement = None
 
@@ -120,16 +153,31 @@ class DynamicTextField(TextField):
                             else:
                                 # else currently that means it's an
                                 # apparatus criticus item
+                                parent_pk = link.attrs.get('data-parent', None)
+                                original_text_pk = link.attrs.get('data-original-text', None)
+                                # if we are viewing the object in a parent's commentary
+                                # then we need to potentially (if >1 original text) show
+                                # its ordinal
+                                
+                                display_str = ''
+
+                                if parent_pk:
+                                    original_text = OriginalText.objects.get(pk=int(original_text_pk))
+                                    display_str = original_text.ordinal_with_respect_to_parent_object()
+
+                                # in any case show the app crit link index
+                                display_str += str(linked.order + 1)
+
                                 replacement = bs4.BeautifulSoup(
                                     '<span id="{}" data-toggle="tooltip" '
                                     'data-html="true" '
                                     'data-placement="top" '
                                     'style="cursor:pointer;" '
                                     'title="<span class=\'historical\'>{}</span>">'
-                                    '[{}]</span>'.format(
-                                        linked.get_anchor_id(),
+                                    '[App. crit. {}]</span>'.format(
+                                        linked.get_anchor_id(),  # for dynamic linking to the original text
                                         mark_safe(linked.content),
-                                        linked.order + 1,
+                                        display_str,
                                     ),
                                     features="html.parser"
                                 )

@@ -48,13 +48,26 @@ class OriginalText(HistoryModelMixin, BaseModel):
             citing_work_str = ' '.join([citing_work_str, self.reference])
         return citing_work_str
 
+    def index_with_respect_to_parent_object(self):
+        return (*self.owner.original_texts.all(),).index(self)
+
+    def ordinal_with_respect_to_parent_object(self):
+        # if there are any sibling original texts then display
+        # an ordinal a, b, c for this original text
+        ordinal = ''
+        if self.owner.original_texts.count() > 1:
+            index = self.index_with_respect_to_parent_object()
+            ordinal = chr(ord('a')+index)
+        return ordinal
+
     # the ID to use in the concordance table
     @property
     def concordance_identifiers(self):
-        ordinal = ''
-        if self.owner.original_texts.count() > 1:
-            index = (*self.owner.original_texts.all(),).index(self)
-            ordinal = chr(ord('a')+index)
+        # ordinal = ''
+        # if self.owner.original_texts.count() > 1:
+        #     index = self.index_with_respect_to_parent_object()
+        #     ordinal = chr(ord('a')+index)
+        ordinal = self.ordinal_with_respect_to_parent_object()
         return [
             '{}{}'.format(name, ordinal) for name in self.owner.get_all_names()
         ]

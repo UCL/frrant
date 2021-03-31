@@ -34,7 +34,10 @@ class LinkableContentBase(OrderableModel, BaseModel):
 class ApparatusCriticusItem(LinkableContentBase):
     def related_queryset(self):
         # just the items attached to this original text
-        return self.parent.apparatus_criticus_lines()
+        try:
+            return self.parent.apparatus_criticus_lines()
+        except AttributeError:
+            return self.__class__.objects.none()
 
     def __str__(self):
         # display one-indexed list item

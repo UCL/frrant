@@ -1,6 +1,7 @@
 from django.contrib.auth.mixins import (LoginRequiredMixin,
                                         PermissionRequiredMixin)
 from django.shortcuts import get_object_or_404
+from django.urls import resolve, reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
 from django.views.generic.detail import SingleObjectMixin
@@ -29,6 +30,12 @@ class OriginalTextCreateViewBase(PermissionRequiredMixin,
         return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self, *args, **kwargs):
+        if 'then_add_apparatus_criticus' in self.request.POST:
+            # load the update view for the original text
+            # (but needs to be in the correct namespace for the parent)
+            namespace = resolve(self.request.path_info).namespace
+            print('namespace %s' % namespace)
+            return reverse('%s:update_original_text' % namespace, kwargs={'pk': self.original_text.pk})
         return self.get_parent_object().get_absolute_url()
 
     def get_parent_object(self, *args, **kwargs):
@@ -41,15 +48,15 @@ class OriginalTextCreateViewBase(PermissionRequiredMixin,
 
     def forms_valid(self, forms):
         # save the objects here
-        original_text = forms['original_text'].save(commit=False)
-        original_text.owner = self.get_parent_object()
+        self.original_text = forms['original_text'].save(commit=False)
+        self.original_text.owner = self.get_parent_object()
 
         create_citing_work = 'new_citing_work' in self.request.POST
 
         if create_citing_work:
-            original_text.citing_work = forms['new_citing_work'].save()
+            self.original_text.citing_work = forms['new_citing_work'].save()
 
-        original_text.save()
+        self.original_text.save()
 
         return super().forms_valid(forms)
 

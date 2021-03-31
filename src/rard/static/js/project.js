@@ -141,12 +141,12 @@ async function suggestPeople(searchTerm) {
     return matches;
 };
 
-async function getApparatusCriticusLines(searchTerm, object_id) {
+async function getApparatusCriticusLines(searchTerm, object_id, object_class) {
 
     // call backend synchonously here and wait
     let matches = []
     await $.ajax({
-        url: `${g_apparatus_criticus_url}?q=${searchTerm}&original_text=${object_id}`,
+        url: `${g_apparatus_criticus_url}?q=${searchTerm}&object_id=${object_id}&object_class=${object_class}`,
         type: "GET",
         context: document.body,
         dataType: 'json',
@@ -228,15 +228,19 @@ function initRichTextEditor($item) {
 
     if ($item.hasClass('enable-mentions') || $item.hasClass('enable-apparatus-criticus')) {
         let delimiters = [];
+        let dataAttributes = ['id', 'value', 'denotationChar', 'link', 'target'];
         if ($item.hasClass('enable-mentions') ) {
             delimiters.push('@')
         }
         if ($item.hasClass('enable-apparatus-criticus') ) {
-            delimiters.push('#')
+            delimiters.push('#');
+            dataAttributes.push('originalText');  // also need to keep track of original text owner for app crit
+            dataAttributes.push('parent');  // and the parent object e.g. fragment
         }
         config['modules']['mention'] = {
             allowedChars: /^[0-9A-Za-z\sÅÄÖåäö]*$/,
             mentionDenotationChars: delimiters,
+            dataAttributes: dataAttributes,
             source: async function(searchTerm, renderList, mentionChar) {
 
                 if (mentionChar == '@') {
@@ -245,7 +249,8 @@ function initRichTextEditor($item) {
 
                 } else if (mentionChar == '#') {
                     let object_id = $item.data('object');
-                    const lines = await getApparatusCriticusLines(searchTerm, object_id);
+                    let object_class = $item.data('class') || 'originaltext';
+                    const lines = await getApparatusCriticusLines(searchTerm, object_id, object_class);
                     console.log('lines:')
                     console.dir(lines)
                     renderList(lines);
@@ -254,8 +259,9 @@ function initRichTextEditor($item) {
             },
             renderItem(item, searchTerm) {
                 // allows you to control how the item is displayed
-                // just keep the index so split on space
                 let list_display = item.list_display || item.value;
+                console.log('list_display:')
+                console.log(list_display)
                 return `${list_display}`;
 
             }
@@ -676,6 +682,43 @@ $('body').on('click', '.edit-apparatus-criticus-line', function() {
 });
 
 
+function refreshOriginalTextApparatusCriticus() {
+    // now refresh content of editable area on the page
+    $('.rich-editor.enable-apparatus-criticus').each(function() {
+        let $editor = $(this).find('.ql-editor');
+
+        let html = $editor.html();
+
+        let csrf = document.querySelector("meta[name='token']").getAttribute('content');
+        let headers = {};
+        headers['X-CSRFToken'] = csrf;
+
+        // any text within the original text editor on the same
+        // page might have become stale due to a change in the apparatus criticus
+        // so we send it to the server to re-index any app crit links within it.
+        // nb this doesn't save anything, just refreshes the text in the editor
+        // so that it appears correct to the user. It would be all handled correctly
+        // on saving anyway, but this is a cosmetic update so the user doesn't become confused!
+        $.ajax({
+            url: '/ajax/refresh-original-text-content/',
+            type: "POST",
+            data: {'content': html},
+            headers: headers,
+            context: document.body,
+            dataType: 'json',
+            success: function (data, textStatus, jqXHR) {
+                $editor.html(data.html);
+            },
+            error: function (e) {
+                console.log(e)
+            }
+        });
+
+
+    });
+
+}
+
 $('body').on('click', '#submit-new-apparatus-criticus-line', function() {
 
     let html = $('#id_new_apparatus_criticus_line_editor').find('.ql-editor').html();
@@ -717,6 +760,7 @@ $('body').on('click', '#submit-new-apparatus-criticus-line', function() {
             $builder_area.find('.rich-editor').each(function() {
                 initRichTextEditor($(this)) ;
             });
+            refreshOriginalTextApparatusCriticus();
         },
         error: function (e) {
             console.log(e)
@@ -776,6 +820,7 @@ $('body').on('click', '.delete-apparatus-criticus-line', function() {
             $builder_area.find('.rich-editor').each(function() {
                 initRichTextEditor($(this)) ;
             });
+            refreshOriginalTextApparatusCriticus();
         },
         error: function (e) {
             console.log(e)
@@ -825,6 +870,7 @@ $('body').on('click', '#update-apparatus-criticus-line', function() {
             $builder_area.find('.rich-editor').each(function() {
                 initRichTextEditor($(this)) ;
             });
+            // don't need to update the text editor as the index will not have changed
         },
         error: function (e) {
             console.log(e)

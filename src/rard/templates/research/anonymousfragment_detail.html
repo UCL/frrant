@@ -160,7 +160,8 @@
             <form novalidate enctype="multipart/form-data" autocomplete='off' action='{% url "anonymous_fragment:update_commentary" object.pk %}' class="form" method='POST'>
                 {% csrf_token %}
                     {% bootstrap_field form.commentary_text field_class='d-none' show_label=False %}
-                    {% include 'research/partials/rich_text_editor.html' with field=form.commentary_text enable_mentions=True %}
+                    {% comment %} {% include 'research/partials/rich_text_editor.html' with field=form.commentary_text enable_mentions=True %} {% endcomment %}
+                    {% include 'research/partials/rich_text_editor.html' with object_id=object.pk object_class='anonymousfragment' field=form.commentary_text enable_mentions=True enable_apparatus_criticus=True %}
 
                 <button type="submit" class="btn btn-primary inline-save-button">
                         {% trans 'Save' %}

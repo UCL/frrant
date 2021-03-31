@@ -19,21 +19,32 @@
         {% bootstrap_field forms.original_text.reference %}
       
         {% bootstrap_field forms.original_text.content field_class='d-none' %}
-        {% include 'research/partials/rich_text_editor.html' with object_id=object.pk field=forms.original_text.content enable_apparatus_criticus=True %}
 
-        <button type="submit" class="btn btn-primary">
+        {% with enable_apparatus_criticus=object %}
+        {# only allow apparatus criticus editing if we have an object #}
+        {% include 'research/partials/rich_text_editor.html' with object_id=object.pk field=forms.original_text.content enable_apparatus_criticus=enable_apparatus_criticus %}
+        {% endwith %}
+
             {% if object %}
+            <button type="submit" class="btn btn-primary">
                 {% trans 'Save' %}
+            </button>
             {% else %}
+                <button type="submit" class="btn btn-primary">
                 {% trans 'Create' %}
+                </button>
+                <button name='then_add_apparatus_criticus' type="submit" class="btn btn-outline-primary">
+                {% trans 'Create and Add Apparatus Criticus' %}
+                </button>
             {% endif %}
         </button>
     </form>
 
     <hr>
 
+    {% if object %}
     {% include 'research/partials/apparatus_criticus_builder.html' with form=forms.original_text original_text=object %}
-
+    {% endif %}
 
     {% comment %}
     <div class='form-group'>

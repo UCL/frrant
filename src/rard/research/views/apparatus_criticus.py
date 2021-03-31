@@ -8,7 +8,7 @@ from django.views.decorators.http import require_GET, require_POST
 from django.views.generic import View
 
 from rard.research.forms import OriginalTextForm
-from rard.research.models import ApparatusCriticusItem, OriginalText
+from rard.research.models import AnonymousFragment, ApparatusCriticusItem, Fragment, Testimonium, OriginalText
 
 
 class ApparatusCriticusLineViewBase(View):
@@ -139,15 +139,31 @@ class ApparatusCriticusSearchView(LoginRequiredMixin, View):
         ajax_data = []
         model_name = ApparatusCriticusItem.__name__
 
+        # TODO here check whether we are looking at a parent object,
+        # get its letter e.g. F, T or whatever
+
+        def get_index_display(item):
+            if self.parent_object:
+                # need to include the ordinal of the original text, if relevant
+                # (this is decided in the method called below)
+                ordinal = self.original_text.ordinal_with_respect_to_parent_object()
+                return '%s%s' % (ordinal, str(item.order + 1))
+            else:
+                return str(item.order + 1)
+
         # return just the name, pk and type for display
-        for o in self.get_queryset():
+        # iterate the app crit items
+        for item in self.get_queryset():
             ajax_data.append(
                 {
-                    'id': o.pk,
+                    'id': item.pk,
                     'target': model_name,
-                    # 'value': str(o),  # to have full name in the mention
-                    'value': str(o.order + 1),  # to just have the number
-                    'list_display': str(o),
+                    'parent': self.parent_object.pk if self.parent_object else '',
+                    'originalText': self.original_text.pk,
+                    # 'value': str(o),  # to have full name in the text mention
+                    # 'value': str(o.order + 1),  # or to just have the number
+                    'value': get_index_display(item),
+                    'list_display': str(item),  # what to show in the list
                 }
             )
 
@@ -155,34 +171,162 @@ class ApparatusCriticusSearchView(LoginRequiredMixin, View):
 
     def get_queryset(self):
 
+        def search_original_text_ordinal(s):
+            # check whether they entered a letter in the search field 
+            import string
+            if len(s) == 0:
+                return None
+
+            c = s[0]
+            return c if c in string.ascii_lowercase else None
+
         def search_term_as_integer(s):
             # we restrict to integers so #1 and #2 etc work
             try: 
-                # they will have 
-                return int(s)
+                # they will possibly have entered #a1 or #f4
+                to_search = s
+                c = search_original_text_ordinal(to_search)
+                if c:
+                    to_search = to_search.lstrip(c)
+                return int(to_search)
             except ValueError:
                 return None
 
-        keywords = self.request.GET.get('q', '')
-        print('keywords %s' % keywords)
-        if search_term_as_integer(keywords) is None:
+        search_term = self.request.GET.get('q', '')
+        print('search_term %s' % search_term)
+
+        pk = self.request.GET.get('object_id', None)
+        object_class = self.request.GET.get('object_class', None)
+
+        self.original_text = None
+
+        # if they user entered e.g. #1 or #a1 this should return 1
+        app_crit_one_index = search_term_as_integer(search_term)
+        print('app_crit_one_index %s' % app_crit_one_index)
+        ordinal = search_original_text_ordinal(search_term)
+        print('ordinal %s' % ordinal)
+
+        # store any parent object so called knows whether we are we
+        # looking at an original text
+        # object or is it a parent e.g. a fragment
+        self.parent_object = None
+
+        if object_class != 'originaltext':
+
+            self.is_parent_model = True
+
+            # if we are editing a parent item that has several original texts
+            # then we insist they enter the index of the original text
+            # that they want the apparatus criticuses for.
+            # For example if there are three, we would expect '#a' to 
+            # invoke a search for app crit items for original text a etc
+            # we can be kind however and remove this requirement if the parent
+            # object only has ONE original text
+
+            # get the class of the parent object
+            cls_ = {
+                'fragment': Fragment,
+                'testimonium': Testimonium,
+                'anonymousfragment': AnonymousFragment,
+            }.get(object_class, None)
+
+            try:
+                self.parent_object = cls_.objects.get(pk=pk)
+                # get all the original texts for this parent object
+                original_texts = [o for o in self.parent_object.original_texts.all()]
+                if len(original_texts) == 1:
+                    self.original_text = original_texts[0]
+                elif ordinal:
+                    print('looking up index of "%s"' % ordinal)
+                    original_text_index = ord(ordinal) - ord('a')
+                    print('original_text_index %s' % original_text_index)
+                    self.original_text = original_texts[original_text_index]
+
+            except (AttributeError, IndexError, cls_.DoesNotExist):
+                pass
+
+        else:
+            # it is an original text object so query its app crits
+            try:
+                self.original_text = OriginalText.objects.get(pk=pk)
+            except OriginalText.DoesNotExist:
+                pass            
+
+        if not self.original_text:
             return ApparatusCriticusItem.objects.none()
 
-        pk = self.request.GET.get('original_text', None)
-        try:
-            o = OriginalText.objects.get(pk=pk)
-            qs = o.apparatus_criticus_items.order_by('order')
+        print('self.original_text %s' % self.original_text)
+        # # if object class is not original text then we will be editing
+        # # a parent class e.g. a fragment's commentary. In this case we
+        # # need to get all the original texts that belong to that
+        # # object and return results for all of them
+        # original_texts = []
 
-            # now filter by the search term
-            # exact match to the index (for example #1 will appear first)
-            index = search_term_as_integer(keywords)
-            if index is not None:
-                # they will have entered 1-indexed so subtract
-                qs = qs.filter(order=index-1)
+        # if object_class != 'originaltext':
+        #     cls_ = {
+        #         'fragment': Fragment,
+        #         'testimonium': Testimonium,
+        #         'anonymousfragment': AnonymousFragment,
+        #     }.get(object_class, None)
+        #     if cls_:
+        #         try:
+        #             owner = cls_.objects.get(pk=pk)
+        #             # get all the original texts for this parent object
+        #             original_texts = [o for o in owner.original_texts.all()]
+        #         except cls_.DoesNotExist:
+        #             pass
 
-            return qs.distinct()
+        # else:
+        #     # we are looking at a single original text
+        #     try:
+        #         o = OriginalText.objects.get(pk=pk)
+        #         original_texts.append(o)
 
-        except OriginalText.DoesNotExist:
-            pass
+        #     except OriginalText.DoesNotExist:
+        #         pass
     
-        return ApparatusCriticusItem.objects.none()
+
+        qs = ApparatusCriticusItem.objects.none()
+        if self.original_text:
+            qs = self.original_text.apparatus_criticus_items.order_by('order')
+            if app_crit_one_index is not None:
+                # they will have entered 1-indexed so subtract
+                qs = qs.filter(order=app_crit_one_index-1)
+        # for o in original_texts:
+            
+        #     qs |= o.apparatus_criticus_items.order_by('order')
+
+        #     # now filter by the search term
+        #     # exact match to the index (for example #1 will appear first)
+        #     index = search_term_as_integer(keywords)
+        #     if index is not None:
+        #         # they will have entered 1-indexed so subtract
+        #         qs = qs.filter(order=index-1)
+
+        # return qs.distinct()
+
+        return qs
+
+
+
+@method_decorator(require_POST, name='dispatch')
+class RefreshOriginalTextContentView(LoginRequiredMixin, View):
+    # take a chunk of text and refresh any apparatus criticus
+    # links within it and return to the client
+
+    def post(self, *args, **kwargs):
+
+        if not self.request.is_ajax():
+            raise Http404
+
+        existing_content = self.request.POST.get('content')
+
+        # NB we do not _save_ an original text here, we are
+        # just hijacking its formatting methods
+        o = OriginalText(content=existing_content)
+        o.update_content_mentions(save=False)
+
+        # any changes will have been made to the content of that object
+        # so return amended version to the client
+        ajax_data = {'status': 200, 'html': o.content}
+        return JsonResponse(data=ajax_data, safe=False)
