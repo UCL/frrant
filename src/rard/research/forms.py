@@ -301,6 +301,12 @@ class OriginalTextAuthorForm(forms.ModelForm):
 
 class OriginalTextDetailsForm(forms.ModelForm):
 
+    new_apparatus_criticus_line = forms.CharField(
+        widget=forms.Textarea(attrs={'rows': 2}),
+        required=False,
+        label='Add apparatus criticus line',
+    )
+
     class Meta:
         model = OriginalText
         fields = (
@@ -309,6 +315,14 @@ class OriginalTextDetailsForm(forms.ModelForm):
         labels = {
             'content': _('Original Text'),
         }
+
+    def __init__(self, *args, **kwargs):
+
+        original_text = kwargs.get('instance', None)
+        if original_text and original_text.pk:
+            original_text.update_content_mentions()
+
+        super().__init__(*args, **kwargs)
 
         
 class OriginalTextForm(OriginalTextAuthorForm):
