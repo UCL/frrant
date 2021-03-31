@@ -1,0 +1,32 @@
+{% extends "research/base.html" %}
+{% load i18n bootstrap4 %}
+
+{% block heading %}
+    {% trans 'Update Author for Original Text' %}
+{% endblock %}
+
+{% block inner %}
+
+    {# Use a GET form to select the work #}
+    <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form work-form" method='GET'>
+        {% bootstrap_field form.citing_author field_class='submit-on-change' %}
+    </form>
+
+
+    {# Use a POST form to select the work #}
+    <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
+        {% csrf_token %}
+
+        {# hide the previously-entered work info in the form #}
+        <input type='hidden' name='citing_author' value='{{ citing_author.pk }}' />
+
+        {% bootstrap_field form.citing_work %}
+
+        <button type="submit" class="btn btn-primary">
+            {% trans 'Save' %}
+        </button>
+        
+
+    </form>
+
+{% endblock %}

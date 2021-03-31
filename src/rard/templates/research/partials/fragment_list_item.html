@@ -23,7 +23,6 @@
             <div id='fragment_{{ fragment.pk }}' class="toggle-element card border-0 pt-1 pb-0 bg-transparent card-body">
                 <small>
                     <span class='text-muted'>
-
                         {% with citing_author=citing_author|default:None %}
                         {{ fragment|show_citing_info:citing_author|safe }}
                         {% endwith %}

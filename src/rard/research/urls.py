@@ -7,6 +7,7 @@ import rard.research.views as views
 # want to expose under different namespaces
 common_patterns = [
     path("original-text/<pk>/update/", views.OriginalTextUpdateView.as_view(), name="update_original_text"),
+    path("original-text/<pk>/update-author/", views.OriginalTextUpdateAuthorView.as_view(), name="update_author_original_text"),
     path("original-text/<pk>/delete/", views.OriginalTextDeleteView.as_view(), name="delete_original_text"),
     path("original-text/<pk>/create-translation/", views.TranslationCreateView.as_view(), name="create_translation"),
     path("translation/<pk>/update/", views.TranslationUpdateView.as_view(), name="update_translation"),
@@ -122,9 +123,15 @@ urlpatterns = [
 
     path('citing-author/', include(([
         path('list/', views.CitingAuthorListView.as_view(), name='list'),
+        path('all/', views.CitingAuthorFullListView.as_view(), name='all'),
+        path("create/", views.CitingAuthorCreateView.as_view(), name="create"),
+        path("<pk>/", views.CitingAuthorDetailView.as_view(), name="detail"),
+        path("<pk>/delete/", views.CitingAuthorDeleteView.as_view(), name="delete"),
+        path("<pk>/update/", views.CitingAuthorUpdateView.as_view(), name="update"),
+        path("<pk>/work/create/", views.CitingAuthorCreateWorkView.as_view(), name="create_work_for_author"),
+        path("work/create/", views.CitingWorkCreateView.as_view(), name="create_work"),
         path("work/<pk>/", views.CitingWorkDetailView.as_view(), name="work_detail"),
         path("work/<pk>/update/", views.CitingWorkUpdateView.as_view(), name="update_work"),
         path("work/<pk>/delete/", views.CitingWorkDeleteView.as_view(), name="delete_work"),
     ], 'research'), namespace='citingauthor')),
-
 ]

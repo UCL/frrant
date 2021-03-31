@@ -30,6 +30,9 @@ class OriginalText(HistoryModelMixin, BaseModel):
 
     content = DynamicTextField(blank=False)
 
+    # the value 24 to be used in 'ordering by reference' taking example above
+    reference_order = models.IntegerField(blank=False, null=True, default=None)
+
     # to be nuked eventually. not required now but hidden from view
     # to preserve previous values in case our data migration is insufficient
     apparatus_criticus = DynamicTextField(default='', blank=True)

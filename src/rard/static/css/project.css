@@ -1,13 +1,24 @@
-/* These styles are generated from project.scss. */
-
-.alert-debug {
-  color: black;
-  background-color: white;
-  border-color: #d6e9c6;
+table.books-widget {
+    width: 100%
 }
 
+table.books-widget th.book-number {
+    width: 10%
+}
+
+table.books-widget th.book-title {
+    width: 90%
+}
+
+.alert-debug {
+    background-color: #fff;
+    border-color: #d6e9c6;
+    color: #000
+}
+
+.errorlist,
 .alert-error {
-  color: #b94a48;
-  background-color: #f2dede;
-  border-color: #eed3d7;
+    background-color: #f2dede;
+    border-color: #eed3d7;
+    color: #b94a48
 }

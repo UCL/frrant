@@ -452,7 +452,7 @@ class LockableModel(models.Model):
 
 class DatedModel(models.Model):
     # for models that have a date range or value, such as
-    # antiquarians, works and books
+    # antiquarians, works, books, citing authors etc
 
     class Meta:
         abstract = True

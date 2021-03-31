@@ -1,0 +1,31 @@
+{% extends "research/base.html" %}
+{% load i18n bootstrap4 %}
+
+{% block heading %}
+        {% trans 'Update Original Text Details' %}
+{% endblock %}
+
+{% block inner %}
+
+
+    {# Use a POST form to select the work #}
+    <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
+        {% csrf_token %}
+
+        {% bootstrap_field form.reference %}
+        {% bootstrap_field form.reference_order %}
+    
+        {% bootstrap_field form.content field_class='d-none' %}
+        {% include 'research/partials/rich_text_editor.html' with field=form.content %}
+
+        {% bootstrap_field form.apparatus_criticus field_class='d-none' %}
+        {% include 'research/partials/rich_text_editor.html' with field=form.apparatus_criticus %}
+
+        <button type="submit" class="btn btn-primary">
+                {% trans 'Save' %}
+        </button>
+        
+
+    </form>
+
+{% endblock %}
