@@ -6,7 +6,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_GET, require_POST
 from django.views.generic import View
 
-from rard.research.forms import OriginalTextForm
+from rard.research.forms import OriginalTextDetailsForm
 from rard.research.models import (AnonymousFragment, ApparatusCriticusItem,
                                   Fragment, OriginalText, Testimonium)
 
@@ -27,7 +27,7 @@ class ApparatusCriticusLineViewBase(View):
     def render_valid_response(self, original_text):
         context = {
             'original_text': original_text,
-            'form': OriginalTextForm()
+            'form': OriginalTextDetailsForm()
         }
         html = render_to_string(self.render_partial_template, context)
         ajax_data = {'status': 200, 'html': html}
@@ -46,7 +46,6 @@ class CreateApparatusCriticusLineView(LoginRequiredMixin,
         parent_id = self.request.POST.get('parent_id', None)
         insert_at = self.request.POST.get('insert_at', None)
         content_html = self.request.POST.get('content', None)
-
         content = self.process_content(content_html)
 
         if not all((parent_id, insert_at, content)):

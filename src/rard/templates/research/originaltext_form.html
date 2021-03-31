@@ -22,8 +22,8 @@
         {% csrf_token %}
 
         {# hide the previously-entered work info in the form #}
-        <input type='text' name='citing_author' value='{{ citing_author.pk }}' />
-        <input type='text' name='citing_work' value='{{ citing_work.pk }}' />
+        <input type='hidden' name='citing_author' value='{{ citing_author.pk }}' />
+        <input type='hidden' name='citing_work' value='{{ citing_work.pk }}' />
 
         {% if citing_author and citing_work %}
 

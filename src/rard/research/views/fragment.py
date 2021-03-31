@@ -3,7 +3,7 @@ from django.contrib.auth.mixins import (LoginRequiredMixin,
 from django.core.exceptions import ObjectDoesNotExist
 from django.http.response import Http404
 from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse, reverse_lazy
+from django.urls import resolve, reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
 from django.views.generic import FormView, ListView, TemplateView
@@ -54,7 +54,8 @@ class OriginalTextCitingWorkView(LoginRequiredMixin, TemplateView):
         forms = context['forms']
 
         if 'create_object' in self.request.POST or \
-                'then_add_links' in self.request.POST:
+                'then_add_links' in self.request.POST or \
+                'then_add_apparatus_criticus' in self.request.POST:
 
             # now check the forms using the form validation
             forms_valid = all(
@@ -125,7 +126,8 @@ class HistoricalBaseCreateView(OriginalTextCitingWorkView):
 
         self.post_process_saved_object(self.saved_object)
 
-        if 'then_add_links' in self.request.POST:
+        if 'then_add_links' in self.request.POST or \
+            'then_add_apparatus_criticus' in self.request.POST:
             # lock the object
             self.saved_object.lock(self.request.user)
 
@@ -142,6 +144,16 @@ class HistoricalBaseCreateView(OriginalTextCitingWorkView):
         if 'then_add_links' in self.request.POST:
             # go to the 'add links' page
             return self.get_add_links_url()
+
+        if 'then_add_apparatus_criticus' in self.request.POST:
+            # load the update view for the original text
+            # (but needs to be in the correct namespace for the parent)
+            namespace = resolve(self.request.path_info).namespace
+            if self.saved_object.original_texts.count() > 0:
+                return reverse(
+                    '%s:update_original_text' % namespace,
+                    kwargs={'pk': self.saved_object.original_texts.first().pk}
+                )
 
         return reverse(
             self.success_url_name, kwargs={'pk': self.saved_object.pk}

@@ -16,10 +16,11 @@
         {% bootstrap_field form.reference_order %}
     
         {% bootstrap_field form.content field_class='d-none' %}
-        {% include 'research/partials/rich_text_editor.html' with field=form.content %}
 
-        {% bootstrap_field form.apparatus_criticus field_class='d-none' %}
-        {% include 'research/partials/rich_text_editor.html' with field=form.apparatus_criticus %}
+        {% with enable_apparatus_criticus=object %}
+        {# only allow apparatus criticus editing if we have an object #}
+        {% include 'research/partials/rich_text_editor.html' with object_id=object.pk field=form.content enable_apparatus_criticus=enable_apparatus_criticus %}
+        {% endwith %}
 
         <button type="submit" class="btn btn-primary">
                 {% trans 'Save' %}
@@ -27,5 +28,10 @@
         
 
     </form>
+    
+    <hr>
+   {% if object %}
+    {% include 'research/partials/apparatus_criticus_builder.html' with form=form original_text=object %}
+    {% endif %}
 
 {% endblock %}
