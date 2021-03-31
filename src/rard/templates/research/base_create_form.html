@@ -39,8 +39,10 @@
             {% bootstrap_field forms.original_text.content field_class='d-none' %}
             {% include 'research/partials/rich_text_editor.html' with field=forms.original_text.content %}
 
+            {% comment %}
             {% bootstrap_field forms.original_text.apparatus_criticus field_class='d-none' %}
             {% include 'research/partials/rich_text_editor.html' with field=forms.original_text.apparatus_criticus %}
+            {% endcomment %}
 
             {% for field in forms.object %}
                 {% bootstrap_field field %}
@@ -61,7 +63,8 @@
                 {% trans 'Create and Add Links' %}
             </button>
             {% endif %}
-        {% endif %}
+
+{% endif %}
 
     </form>
 {% endblock %}

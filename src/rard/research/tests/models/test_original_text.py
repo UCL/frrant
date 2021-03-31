@@ -18,7 +18,6 @@ class TestOriginalText(TestCase):
     def test_creation(self):
         data = {
             'content': 'content',
-            'apparatus_criticus': 'apparatus_criticus',
             'citing_work': self.citing_work,
         }
         text = OriginalText.objects.create(**data, owner=self.fragment)
@@ -28,15 +27,10 @@ class TestOriginalText(TestCase):
     def test_required_fields(self):
         # required fields on forms
         self.assertFalse(OriginalText._meta.get_field('content').blank)
-        # optional fields on forms
-        self.assertTrue(
-            OriginalText._meta.get_field('apparatus_criticus').blank
-        )
 
     def test_parent_object_required(self):
         data = {
             'content': 'content',
-            'apparatus_criticus': 'apparatus_criticus',
             'citing_work': self.citing_work,
         }
         # cannot create an original text with no fragment
