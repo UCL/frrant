@@ -15,7 +15,7 @@ class CitingAuthor(HistoryModelMixin, LockableModel, DatedModel, BaseModel):
     name = models.CharField(max_length=256, blank=False)
 
     order_name = models.CharField(
-        max_length=128, default='', blank=True, unique=True
+        max_length=128, default='', blank=True,
     )
 
     history = HistoricalRecords(
