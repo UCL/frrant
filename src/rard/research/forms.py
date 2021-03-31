@@ -269,30 +269,64 @@ class CitingWorkForm(forms.ModelForm):
         return instance
 
 
-class OriginalTextForm(forms.ModelForm):
+class OriginalTextAuthorForm(forms.ModelForm):
+    citing_author = forms.ModelChoiceField(
+        queryset=CitingAuthor.objects.all().distinct(),
+        required=True,
+    )
 
     class Meta:
         model = OriginalText
-        fields = ('citing_work', 'reference', 'content', 'apparatus_criticus')
+        fields = ('citing_work',)
+
+    def __init__(self, *args, **kwargs):
+        # if we have a citing author selected then populate the works
+        # field accordingly. NB this pop needs to be done before calling
+        # the super class
+        author = kwargs.pop('citing_author')
+        work = kwargs.pop('citing_work')
+
+        super().__init__(*args, **kwargs)
+
+        self.fields['citing_work'].required = True
+        if author:
+            self.fields['citing_author'].initial = author
+            self.fields['citing_work'].queryset = author.citingwork_set.all()
+            if work:
+                self.fields['citing_work'].initial = work
+        else:
+            self.fields['citing_work'].queryset = CitingWork.objects.none()
+            self.fields['citing_work'].disabled = True
+
+
+class OriginalTextDetailsForm(forms.ModelForm):
+
+    class Meta:
+        model = OriginalText
+        fields = (
+            'reference', 'reference_order', 'content', 'apparatus_criticus',
+        )
         labels = {
             'content': _('Original Text'),
-            'citing_work': _('Choose Existing'),
         }
         widgets = {
           'apparatus_criticus': forms.Textarea(attrs={'rows': 3}),
         }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # when creating an original text we also offer the option
-        # of creating a new citing work. Hence we allow the selection
-        # of an existing instance to be blank and assign a newly-created
-        # work to the original text instance in the view
-        self.set_citing_work_required(True)
 
-    def set_citing_work_required(self, required):
-        # to allow set/reset required fields dynically in the view
-        self.fields['citing_work'].required = required
+class OriginalTextForm(OriginalTextAuthorForm):
+    class Meta:
+        model = OriginalText
+        fields = (
+            'citing_work', 'reference', 'reference_order',
+            'content', 'apparatus_criticus',
+        )
+        labels = {
+            'content': _('Original Text'),
+        }
+        widgets = {
+          'apparatus_criticus': forms.Textarea(attrs={'rows': 3}),
+        }
 
 
 class CommentaryFormBase(forms.ModelForm):
@@ -474,3 +508,26 @@ class AppositumFragmentLinkForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         self.fields['linked_to'].initial = Fragment.objects.all()
+
+
+class CitingWorkCreateForm(forms.ModelForm):
+    class Meta:
+        model = CitingWork
+        fields = ('author', 'title', 'edition', 'order_year', 'date_range',)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['author'].queryset = CitingAuthor.objects.exclude(
+            order_name=CitingAuthor.ANONYMOUS_ORDERNAME
+        )
+
+
+class CitingAuthorUpdateForm(forms.ModelForm):
+    class Meta:
+        model = CitingAuthor
+        fields = ('name', 'order_name', 'order_year', 'date_range',)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.is_anonymous_citing_author():
+            self.fields['order_name'].disabled = True

@@ -24,7 +24,10 @@ class TestFragmentSuccessUrls(TestCase):
             'apparatus_criticus': 'app_criticus',
             'content': 'content',
             'reference': 'Page 1',
+            'reference_order': 1,
             'citing_work': self.citing_work.pk,
+            'citing_author': self.citing_work.author.pk,
+            'create_object': True
         }
         # assert no fragments initially
         self.assertEqual(0, Fragment.objects.count())
@@ -51,8 +54,11 @@ class TestFragmentSuccessUrls(TestCase):
             'apparatus_criticus': 'app_criticus',
             'content': 'content',
             'reference': 'Page 1',
-            'new_citing_work': 'true',
+            'reference_order': 1,
             'title': 'citing work title',
+            'citing_work': self.citing_work.pk,
+            'citing_author': self.citing_work.author.pk,
+            'create_object': True
         }
         # assert no fragments initially
         self.assertEqual(0, Fragment.objects.count())
@@ -66,8 +72,8 @@ class TestFragmentSuccessUrls(TestCase):
 
         # we created a fragment
         self.assertEqual(1, Fragment.objects.count())
-        # check we also created a citing work
-        self.assertEqual(citing_works_before + 1, CitingWork.objects.count())
+        # check we did not create a citing work
+        self.assertEqual(citing_works_before, CitingWork.objects.count())
 
     def test_create_bad_data(self):
         # bad data should reset the forms to both be not required
@@ -76,7 +82,7 @@ class TestFragmentSuccessUrls(TestCase):
             'apparatus_criticus': 'app_criticus',
             'content': 'content',
             'reference': 'Page 1',
-            'new_citing_work': 'true',
+            'reference_order': 1,
             # we have missing data here
         }
         # assert no fragments initially
@@ -96,14 +102,9 @@ class TestFragmentSuccessUrls(TestCase):
 
         # check the forms here are both not required for the user
         forms = response.context_data['forms']
-        citing_work_form = forms['new_citing_work']
         original_text_form = forms['original_text']
 
-        self.assertFalse(original_text_form.fields['citing_work'].required)
-        self.assertFalse(citing_work_form.fields['new_citing_work'].required)
-        self.assertFalse(citing_work_form.fields['author'].required)
-        self.assertFalse(citing_work_form.fields['title'].required)
-        self.assertFalse(citing_work_form.fields['edition'].required)
+        self.assertTrue(original_text_form.fields['citing_work'].required)
 
     def test_delete_success_url(self):
         view = FragmentDeleteView()

@@ -9,8 +9,12 @@ from .antiquarian import (AntiquarianBibliographyCreateView,
                           AntiquarianWorksUpdateView, MoveLinkView)
 from .bibliography import (BibliographyDeleteView, BibliographyListView,
                            BibliographyUpdateView)
-from .citing_work import (CitingAuthorListView, CitingWorkDeleteView,
-                          CitingWorkDetailView, CitingWorkUpdateView)
+from .citing_work import (CitingAuthorCreateView, CitingAuthorCreateWorkView,
+                          CitingAuthorDeleteView, CitingAuthorDetailView,
+                          CitingAuthorFullListView, CitingAuthorListView,
+                          CitingAuthorUpdateView, CitingWorkCreateView,
+                          CitingWorkDeleteView, CitingWorkDetailView,
+                          CitingWorkUpdateView)
 from .comments import CommentDeleteView, TextObjectFieldCommentListView
 from .concordance import (ConcordanceCreateView, ConcordanceDeleteView,
                           ConcordanceListView, ConcordanceUpdateView)
@@ -31,7 +35,9 @@ from .home import HomeView
 from .mention import MentionSearchView
 from .original_text import (AnonymousFragmentOriginalTextCreateView,
                             FragmentOriginalTextCreateView,
-                            OriginalTextDeleteView, OriginalTextUpdateView,
+                            OriginalTextDeleteView,
+                            OriginalTextUpdateAuthorView,
+                            OriginalTextUpdateView,
                             TestimoniumOriginalTextCreateView)
 from .search import SearchView
 from .testimonium import (RemoveTestimoniumLinkView,
@@ -71,7 +77,14 @@ __all__ = [
     'BookCreateView',
     'BookUpdateView',
     'BookDeleteView',
+    'CitingAuthorCreateView',
+    'CitingAuthorCreateWorkView',
+    'CitingAuthorDeleteView',
+    'CitingAuthorDetailView',
     'CitingAuthorListView',
+    'CitingAuthorFullListView',
+    'CitingAuthorUpdateView',
+    'CitingWorkCreateView',
     'CitingWorkDeleteView',
     'CitingWorkDetailView',
     'CitingWorkUpdateView',
@@ -103,6 +116,7 @@ __all__ = [
     'MentionSearchView',
     'MoveTopicView',
     'OriginalTextDeleteView',
+    'OriginalTextUpdateAuthorView',
     'OriginalTextUpdateView',
     'RemoveAppositumLinkView',
     'SearchView',

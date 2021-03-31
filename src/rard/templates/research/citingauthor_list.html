@@ -1,39 +1,87 @@
 {% extends "research/list_base.html" %}
-{% load i18n %}
+{% load i18n show_citing_info %}
 
 {% block heading %}
     {% trans 'Citing Authors' %}
 {% endblock %}
 
 {% block action %}
+<div class='d-flex justify-content-between align-items-center'>
+    <div>
+        {% include 'research/partials/render_date_order_form.html' %}
+    </div>
+    {% if perms.research.add_citingauthor %}
+    <div>
+        <a class='ml-3' href='{% url "citingauthor:all" %}'>{% trans 'View all' %}</a>
+        <a class='ml-3' href='{% url "citingauthor:create" %}'>{% trans 'New Author' %}</a>
+        <a class='ml-3' href='{% url "citingauthor:create_work" %}'>{% trans 'New Work' %}</a>
+    </div>
+    {% endif %}
+</div>
 {% endblock %}
 
 {% block inner %}
+
+
     {% for object in page_obj %}
-        <h5 class='mt-2'>{{ object }}</h5>
-        {% comment %}
-        {% for citingwork in object.citingwork_set.all %}
-            {% include 'research/partials/citingwork_list_item.html' with citingwork=citingwork %}
-        {% endfor %}
-        {% endcomment %}
 
-        <ul>
+        {% ifchanged %}
+            {% with citingauthor=object.citing_work.author %}
+                <div class='rard-list-item d-flex justify-content-between'>
+                    <div>
+                            {% with citingauthor as link_text %}
+                                {% if perms.research.view_citingauthor %}
+                                <a href='{% url "citingauthor:detail" citingauthor.pk %}'>{{ link_text }}</a> 
+                                {% else %}
+                                    {{ link_text }} 
+                                {% endif %}
 
-        {% for item in object.ordered_materials.testimonia %}
-        {% include 'research/partials/testimonium_list_item.html' with testimonium=item citing_author=object %}
-        {% endfor %}
+                                {% if citingauthor.display_date_range %}
+                                <span class='date-range-element text-muted'><small>[{{ citingauthor.display_date_range }}]</small></span>
+                                {% endif %}
+                                {% include 'research/partials/render_inline_lock_icon.html' with object=citingauthor %}
+                            {% endwith %}
+                    </div>
+                    <div class='rard-list-item-actions'>
+                    </div>
+                </div>
 
-        {% for item in object.ordered_materials.fragments %}
-        {% include 'research/partials/fragment_list_item.html' with fragment=item citing_author=object %}
-        {% endfor %}
+            {% endwith %}
+        {% endifchanged %}
 
-        {% for item in object.ordered_materials.apposita %}
-        {% include 'research/partials/anonymousfragment_list_item.html' with fragment=item citing_author=object %}
-        {% endfor %}
+        {% with item=object.owner %}
+        <div class='rard-list-item d-flex justify-content-between'>
+            <div>
+                <li>
+                    <span>
+                        {% with item.get_display_name as link_text %}
+                            <a href='{{ item.get_absolute_url }}'>{{ link_text }}</a> 
+                        {% endwith %}
+                        {% include 'research/partials/render_inline_lock_icon.html' with object=item %}
 
-        </ul>
+                        <button class="btn btn-link toggle-element-button" type="button" data-toggles="item_{{ forloop.counter0 }}"></button>
+
+                    </span>
+                </li>
+                <div>
+                    <div id='item_{{ forloop.counter0 }}' class="toggle-element card border-0 pt-1 pb-0 bg-transparent card-body">
+                        <small>
+                            <span class='text-muted'>
+                                {% with citing_author=object.citing_work.author %}
+                                {{ item|show_citing_info:citing_author|safe }}
+                                {% endwith %}
+                            </span>
+                        </small>
+                    </div>
+                </div>     
+            </div>
+            <div class='rard-list-item-actions'>
+            </div>
+        </div>
+        {% endwith %}
 
     {% endfor %}
+
 
     {{ block.super }}
 

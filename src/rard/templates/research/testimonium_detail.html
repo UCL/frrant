@@ -98,7 +98,10 @@
                     {% csrf_token %}
                     <div class="form-row align-items-center">
                         {% if perms.research.change_originaltext %}
-                        <a href='{% url "testimonium:update_original_text" original_text.pk %}'>Edit</a>        
+                        Edit&nbsp;
+                        <a href='{% url "testimonium:update_author_original_text" original_text.pk %}'>Citing Work</a>
+                        &nbsp;/&nbsp;
+                        <a href='{% url "testimonium:update_original_text" original_text.pk %}'>Details</a>
                         {% endif %}
                         {% if perms.research.delete_originaltext %}
                         <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2' data-what='original text'>{% trans 'Delete' %}</button>

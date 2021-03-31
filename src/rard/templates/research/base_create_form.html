@@ -12,38 +12,55 @@
 
 {% block inner %}
 
+    {# Use GET forms to select the author and work #}
+    <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form work-form" method='GET'>
+        {% bootstrap_field forms.original_text.citing_author field_class='submit-on-change' %}
+    </form>
+
+    <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form work-form" method='GET'>
+        <input type='hidden' name='citing_author' value='{{ citing_author.pk }}' />
+        {% bootstrap_field forms.original_text.citing_work field_class='submit-on-change' %}
+    </form>
+
+    {# Use a POST form to update the rest of the details #}
     <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
         {% csrf_token %}
 
-        {% include 'research/partials/citing_work_form_area.html' %}
-        
-        {% bootstrap_field forms.original_text.reference %}
+        {# hide the previously-entered work info in the form so that it's included in the final save #}
+        <input type='hidden' name='citing_author' value='{{ citing_author.pk }}' />
+        <input type='hidden' name='citing_work' value='{{ citing_work.pk }}' />
 
-        {% bootstrap_field forms.original_text.content field_class='d-none' %}
-        {% include 'research/partials/rich_text_editor.html' with field=forms.original_text.content %}
+        {% if citing_author and citing_work %}
 
-        {% bootstrap_field forms.original_text.apparatus_criticus field_class='d-none' %}
-        {% include 'research/partials/rich_text_editor.html' with field=forms.original_text.apparatus_criticus %}
 
-        {% for field in forms.object %}
-            {% bootstrap_field field %}
-        {% endfor %}
+            {% bootstrap_field forms.original_text.reference %}
+            {% bootstrap_field forms.original_text.reference_order %}
 
-        <button type="submit" class="btn btn-primary">
-            {% trans 'Create' %}
-        </button>
+            {% bootstrap_field forms.original_text.content field_class='d-none' %}
+            {% include 'research/partials/rich_text_editor.html' with field=forms.original_text.content %}
 
-        {% if is_anonymous_fragment %}
-        <button type="submit" name='then_add_links' value='general' class="btn btn-outline-primary">
-            {% trans 'Create and Add Antiquarian/Work Link' %}
-        </button>
-        <button type="submit" name='then_add_links' value='fragment' class="btn btn-outline-primary">
-            {% trans 'Create and Add Fragment Link' %}
-        </button>
-        {% else %}
-        <button type="submit" name='then_add_links' class="btn btn-outline-primary">
-            {% trans 'Create and Add Links' %}
-        </button>
+            {% bootstrap_field forms.original_text.apparatus_criticus field_class='d-none' %}
+            {% include 'research/partials/rich_text_editor.html' with field=forms.original_text.apparatus_criticus %}
+
+            {% for field in forms.object %}
+                {% bootstrap_field field %}
+            {% endfor %}
+
+            <button type="submit" name='create_object' class="btn btn-primary">
+                {% trans 'Create' %}
+            </button>
+            {% if is_anonymous_fragment %}
+            <button type="submit" name='then_add_links' value='general' class="btn btn-outline-primary">
+                {% trans 'Create and Add Antiquarian/Work Link' %}
+            </button>
+            <button type="submit" name='then_add_links' value='fragment' class="btn btn-outline-primary">
+                {% trans 'Create and Add Fragment Link' %}
+            </button>
+            {% else %}
+            <button type="submit" name='then_add_links' value='fragment' class="btn btn-outline-primary">
+                {% trans 'Create and Add Links' %}
+            </button>
+            {% endif %}
         {% endif %}
 
     </form>

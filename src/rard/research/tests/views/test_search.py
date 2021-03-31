@@ -218,7 +218,8 @@ class TestSearchView(TestCase):
         self.assertEqual(list(view.apparatus_criticus_search('bBi')), [f2])
         self.assertEqual(list(view.apparatus_criticus_search('nseN')), [t1])
         self.assertEqual(
-            list(view.apparatus_criticus_search('s')), [f1, f2, t1])
+            list(view.apparatus_criticus_search('s')), [f1, f2, t1]
+        )
         self.assertEqual(list(view.apparatus_criticus_search('content')), [])
 
         # bibliography

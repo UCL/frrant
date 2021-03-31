@@ -68,7 +68,7 @@ class Fragment(HistoryModelMixin, HistoricalBaseModel, DatedModel):
     topics = models.ManyToManyField('Topic', blank=True, through='TopicLink')
 
     original_texts = GenericRelation(
-        'OriginalText', related_query_name='original_texts'
+        'OriginalText', related_query_name='fragments'
     )
 
     def definite_work_and_book_links(self):
@@ -157,7 +157,7 @@ class AnonymousFragment(HistoryModelMixin, OrderableModel, HistoricalBaseModel,
     )
 
     original_texts = GenericRelation(
-        'OriginalText', related_query_name='original_texts'
+        'OriginalText', related_query_name='anonymous_fragments'
     )
 
     # the fragments that we are apposita for...

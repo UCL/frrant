@@ -2,35 +2,46 @@
 {% load i18n bootstrap4 %}
 
 {% block heading %}
-    {% if object %}
-        {% trans 'Update Original Text' %}
-    {% else %}
         {% trans 'Create Original Text' %}
-    {% endif %}
 {% endblock %}
 
 {% block inner %}
 
+    {# Use a GET form to select the work #}
+    <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form work-form" method='GET'>
+        {% bootstrap_field forms.original_text.citing_author field_class='submit-on-change' %}
+    </form>
+
+    <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form work-form" method='GET'>
+        <input type='hidden' name='citing_author' value='{{ citing_author.pk }}' />
+        {% bootstrap_field forms.original_text.citing_work field_class='submit-on-change' %}
+    </form>
+
+    {# Use a POST form to update the rest of the details #}
     <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
         {% csrf_token %}
 
-        {% include 'research/partials/citing_work_form_area.html' %}
+        {# hide the previously-entered work info in the form #}
+        <input type='text' name='citing_author' value='{{ citing_author.pk }}' />
+        <input type='text' name='citing_work' value='{{ citing_work.pk }}' />
+
+        {% if citing_author and citing_work %}
+
+            {% bootstrap_field forms.original_text.reference %}
+            {% bootstrap_field forms.original_text.reference_order %}
         
-        {% bootstrap_field forms.original_text.reference %}
-      
-        {% bootstrap_field forms.original_text.content field_class='d-none' %}
-        {% include 'research/partials/rich_text_editor.html' with field=forms.original_text.content %}
+            {% bootstrap_field forms.original_text.content field_class='d-none' %}
+            {% include 'research/partials/rich_text_editor.html' with field=forms.original_text.content %}
 
-        {% bootstrap_field forms.original_text.apparatus_criticus field_class='d-none' %}
-        {% include 'research/partials/rich_text_editor.html' with field=forms.original_text.apparatus_criticus %}
+            {% bootstrap_field forms.original_text.apparatus_criticus field_class='d-none' %}
+            {% include 'research/partials/rich_text_editor.html' with field=forms.original_text.apparatus_criticus %}
 
-        <button type="submit" class="btn btn-primary">
-            {% if object %}
-                {% trans 'Save' %}
-            {% else %}
-                {% trans 'Create' %}
-            {% endif %}
-        </button>
+            <button type="submit" name='create_object' class="btn btn-primary">
+                    {% trans 'Create' %}
+            </button>
+            
+        {% endif %}
+
     </form>
 
 {% endblock %}

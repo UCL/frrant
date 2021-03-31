@@ -21,7 +21,7 @@ class Testimonium(HistoryModelMixin, HistoricalBaseModel):
     LINK_TYPE = TestimoniumLink
 
     original_texts = GenericRelation(
-        'OriginalText', related_query_name='original_texts'
+        'OriginalText', related_query_name='testimonia'
     )
 
     def definite_work_and_book_links(self):
