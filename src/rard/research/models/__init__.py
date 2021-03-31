@@ -5,6 +5,7 @@ from .comment import Comment
 from .fragment import AnonymousFragment, Fragment
 from .history import HistoricalRecordLog
 from .image import Image
+from .linkable import ApparatusCriticusItem
 from .original_text import Concordance, OriginalText, Translation
 from .symbols import Symbol, SymbolGroup
 from .testimonium import Testimonium
@@ -24,6 +25,7 @@ __all__ = [
     'Fragment',
     'HistoricalRecordLog',
     'Image',
+    'ApparatusCriticusItem',
     'OriginalText',
     'Symbol',
     'SymbolGroup',

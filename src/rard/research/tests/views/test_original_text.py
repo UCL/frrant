@@ -2,9 +2,11 @@ import pytest
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
-from rard.research.models import CitingWork, Fragment, OriginalText
+from rard.research.models import (CitingAuthor, CitingWork, Fragment,
+                                  OriginalText)
 from rard.research.views import (FragmentOriginalTextCreateView,
                                  OriginalTextDeleteView,
+                                 OriginalTextUpdateAuthorView,
                                  OriginalTextUpdateView,
                                  TestimoniumOriginalTextCreateView)
 from rard.users.tests.factories import UserFactory
@@ -60,7 +62,10 @@ class TestOriginalTextCreateViews(TestCase):
         data = {
             'content': 'content',
             'reference': 'Page 1',
+            'reference_order': 1,
             'citing_work': self.citing_work.pk,
+            'citing_author': self.citing_work.author.pk,
+            'create_object': True
         }
         # assert no original texts initially
         self.assertEqual(0, OriginalText.objects.count())
@@ -84,44 +89,6 @@ class TestOriginalTextCreateViews(TestCase):
         created = OriginalText.objects.first()
         # check its owner
         self.assertEqual(created.owner, fragment)
-
-    def test_creation_new_citing_work_post(self):
-        # data for both original text and fragment
-        AUTHOR_NAME = 'John Smith'
-        CITING_WORK_TITLE = 'My Book'
-
-        data = {
-            'content': 'content',
-            'new_citing_work': True,
-            'new_author': True,
-            'new_author_name': AUTHOR_NAME,
-            'reference': 'page 1',
-            'title': CITING_WORK_TITLE
-        }
-        # assert no original texts initially
-        self.assertEqual(0, OriginalText.objects.count())
-
-        fragment = Fragment.objects.create(name='name')
-        url = reverse(
-            'fragment:create_original_text',
-            kwargs={'pk': fragment.pk}
-        )
-
-        request = RequestFactory().post(url, data=data)
-        request.user = UserFactory.create()
-
-        fragment.lock(request.user)
-
-        FragmentOriginalTextCreateView.as_view()(
-            request, pk=fragment.pk
-        )
-        # we created an original text
-        self.assertEqual(1, OriginalText.objects.count())
-        created = OriginalText.objects.first()
-        # check its owner
-        self.assertEqual(created.owner, fragment)
-        self.assertEqual(created.citing_work.author.name, AUTHOR_NAME)
-        self.assertEqual(created.citing_work.title, CITING_WORK_TITLE)
 
     def test_delete_success_url(self):
         view = OriginalTextDeleteView()
@@ -214,18 +181,49 @@ class TestOriginalTextUpdateView(TestCase):
             citing_work=self.citing_work,
         )
 
-    def test_update_post(self):
+    def test_update_author_post(self):
         # data for both original text and fragment
         AUTHOR_NAME = 'John Smith'
         CITING_WORK_TITLE = 'My Book'
 
+        author = CitingAuthor.objects.create(name=AUTHOR_NAME)
+        work = CitingWork.objects.create(
+            author=author, title=CITING_WORK_TITLE
+        )
         data = {
-            'content': 'content',
-            'reference': 'Page 1',
-            'new_citing_work': True,
-            'new_author': True,
-            'new_author_name': AUTHOR_NAME,
-            'title': CITING_WORK_TITLE
+            'citing_author': author.pk,
+            'citing_work': work.pk,
+            'create_object': True
+        }
+
+        url = reverse(
+            'fragment:update_original_text',
+            kwargs={'pk': self.original_text.pk}
+        )
+
+        request = RequestFactory().post(url, data=data)
+        request.user = self.user
+        request.object = self.original_text
+
+        OriginalTextUpdateAuthorView.as_view()(
+            request, pk=self.original_text.pk
+        )
+
+        # refetch object
+        ot = OriginalText.objects.get(pk=self.original_text.pk)
+        self.assertEqual(ot.citing_work.title, CITING_WORK_TITLE)
+        self.assertEqual(ot.citing_work.author.name, AUTHOR_NAME)
+
+    def test_update_details_post(self):
+        # data for both original text and fragment
+        REFERENCE = 'page 10e17'
+        NEW_CONTENT = 'Some new content'
+
+        data = {
+            'reference': REFERENCE,
+            'reference_order': 1,
+            'content': NEW_CONTENT,
+            'create_object': True
         }
 
         url = reverse(
@@ -243,8 +241,8 @@ class TestOriginalTextUpdateView(TestCase):
 
         # refetch object
         ot = OriginalText.objects.get(pk=self.original_text.pk)
-        self.assertEqual(ot.citing_work.title, CITING_WORK_TITLE)
-        self.assertEqual(ot.citing_work.author.name, AUTHOR_NAME)
+        self.assertEqual(ot.reference, REFERENCE)
+        self.assertEqual(ot.content, NEW_CONTENT)
 
 
 class TestOriginalTextViewPermissions(TestCase):
@@ -269,6 +267,10 @@ class TestOriginalTextViewPermissions(TestCase):
         self.assertIn(
             'research.change_originaltext',
             OriginalTextUpdateView.permission_required
+        )
+        self.assertIn(
+            'research.change_originaltext',
+            OriginalTextUpdateAuthorView.permission_required
         )
         self.assertIn(
             'research.delete_originaltext',

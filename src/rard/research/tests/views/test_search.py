@@ -202,23 +202,26 @@ class TestSearchView(TestCase):
         # fragments with apparatus criticus
         data = {
             'content': 'content',
-            'apparatus_criticus': 'stuff',
             'citing_work': cw
         }
         f1 = Fragment.objects.create()
-        f1.original_texts.create(**data)
-        data['apparatus_criticus'] = 'nonsense'
+        o1 = f1.original_texts.create(**data)
+        o1.apparatus_criticus_items.create(content='stuff')
+
         t1 = Testimonium.objects.create()
-        t1.original_texts.create(**data)
-        data['apparatus_criticus'] = 'rubbish'
+        o2 = t1.original_texts.create(**data)
+        o2.apparatus_criticus_items.create(content='nonsense')
+
         f2 = AnonymousFragment.objects.create()
-        f2.original_texts.create(**data)
+        o3 = f2.original_texts.create(**data)
+        o3.apparatus_criticus_items.create(content='rubbish')
 
         self.assertEqual(list(view.apparatus_criticus_search('TuF')), [f1])
         self.assertEqual(list(view.apparatus_criticus_search('bBi')), [f2])
         self.assertEqual(list(view.apparatus_criticus_search('nseN')), [t1])
         self.assertEqual(
-            list(view.apparatus_criticus_search('s')), [f1, f2, t1])
+            list(view.apparatus_criticus_search('s')), [f1, f2, t1]
+        )
         self.assertEqual(list(view.apparatus_criticus_search('content')), [])
 
         # bibliography

@@ -1,0 +1,37 @@
+{% extends "research/base.html" %}
+{% load i18n bootstrap4 %}
+
+{% block heading %}
+        {% trans 'Update Original Text Details' %}
+{% endblock %}
+
+{% block inner %}
+
+
+    {# Use a POST form to select the work #}
+    <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
+        {% csrf_token %}
+
+        {% bootstrap_field form.reference %}
+        {% bootstrap_field form.reference_order %}
+    
+        {% bootstrap_field form.content field_class='d-none' %}
+
+        {% with enable_apparatus_criticus=object %}
+        {# only allow apparatus criticus editing if we have an object #}
+        {% include 'research/partials/rich_text_editor.html' with object_id=object.pk field=form.content enable_apparatus_criticus=enable_apparatus_criticus %}
+        {% endwith %}
+
+        <button type="submit" class="btn btn-primary">
+                {% trans 'Save' %}
+        </button>
+        
+
+    </form>
+    
+    <hr>
+   {% if object %}
+    {% include 'research/partials/apparatus_criticus_builder.html' with form=form original_text=object %}
+    {% endif %}
+
+{% endblock %}

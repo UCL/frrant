@@ -7,6 +7,7 @@ import rard.research.views as views
 # want to expose under different namespaces
 common_patterns = [
     path("original-text/<pk>/update/", views.OriginalTextUpdateView.as_view(), name="update_original_text"),
+    path("original-text/<pk>/update-author/", views.OriginalTextUpdateAuthorView.as_view(), name="update_author_original_text"),
     path("original-text/<pk>/delete/", views.OriginalTextDeleteView.as_view(), name="delete_original_text"),
     path("original-text/<pk>/create-translation/", views.TranslationCreateView.as_view(), name="create_translation"),
     path("translation/<pk>/update/", views.TranslationUpdateView.as_view(), name="update_translation"),
@@ -22,6 +23,10 @@ urlpatterns = [
     path("", views.HomeView.as_view(), name="home"),
     path("ajax/move-link/", views.MoveLinkView.as_view(), name="move_link"),
     path("ajax/move-topic/", views.MoveTopicView.as_view(), name="move_move"),
+    path("ajax/create-apparatus-criticus-line/", views.CreateApparatusCriticusLineView.as_view(), name="create_apparatus_criticus_line"),
+    path("ajax/delete-apparatus-criticus-line/", views.DeleteApparatusCriticusLineView.as_view(), name="delete_apparatus_criticus_line"),
+    path("ajax/update-apparatus-criticus-line/", views.UpdateApparatusCriticusLineView.as_view(), name="update_apparatus_criticus_line"),
+    path("ajax/refresh-original-text-content/", views.RefreshOriginalTextContentView.as_view(), name="refresh_original_text_content"),
     # path("comment/<pk>/delete/", views.CommentDeleteView.as_view(), name="delete_comment"),
     # path("text-field/<pk>/comments/", views.TextObjectFieldCommentListView.as_view(), name="list_comments_on_text"),
     path('antiquarian/', include(([
@@ -109,7 +114,8 @@ urlpatterns = [
     ], 'research'), namespace='concordance')),
     path('search/', include(([
         path('', views.SearchView.as_view(), name='home'),
-        path('ajax/mention/', views.MentionSearchView.as_view(), name='mention')
+        path('ajax/mention/', views.MentionSearchView.as_view(), name='mention'),
+        path('ajax/apparatus-criticus/', views.ApparatusCriticusSearchView.as_view(), name='apparatus_criticus'),
     ], 'research'), namespace='search')),
     path('', include(([
         path("<model_name>/<pk>/history/", views.HistoryListView.as_view(), name="list"),
@@ -117,9 +123,15 @@ urlpatterns = [
 
     path('citing-author/', include(([
         path('list/', views.CitingAuthorListView.as_view(), name='list'),
+        path('all/', views.CitingAuthorFullListView.as_view(), name='all'),
+        path("create/", views.CitingAuthorCreateView.as_view(), name="create"),
+        path("<pk>/", views.CitingAuthorDetailView.as_view(), name="detail"),
+        path("<pk>/delete/", views.CitingAuthorDeleteView.as_view(), name="delete"),
+        path("<pk>/update/", views.CitingAuthorUpdateView.as_view(), name="update"),
+        path("<pk>/work/create/", views.CitingAuthorCreateWorkView.as_view(), name="create_work_for_author"),
+        path("work/create/", views.CitingWorkCreateView.as_view(), name="create_work"),
         path("work/<pk>/", views.CitingWorkDetailView.as_view(), name="work_detail"),
         path("work/<pk>/update/", views.CitingWorkUpdateView.as_view(), name="update_work"),
         path("work/<pk>/delete/", views.CitingWorkDeleteView.as_view(), name="delete_work"),
     ], 'research'), namespace='citingauthor')),
-
 ]

@@ -83,6 +83,75 @@ class AntiquarianUpdateWorksForm(forms.ModelForm):
           'works': forms.CheckboxSelectMultiple,
         }
 
+class BooksWidget(forms.Widget):
+    template_name = 'widgets/books.html'
+
+    def format_value(self, value):
+        return value
+
+    def value_from_datadict(self, data, files, name):
+        # find all <name>_<n>_num and <name>_<n>_title parameters
+        r = {} # dict of <n> to dict with keys 'num' and 'title'
+        prefix = name + '_'
+        for k,v in data.items():
+            ps = k.rsplit('_', 2)
+            if 2 < len(ps) and ps[0] == name and ps[2] in ['num', 'title'] and v:
+                i = int(ps[1])
+                if i not in r:
+                    r[i] = {}
+                r[i][ps[2]] = v
+        rkeys = list(r.keys())
+        # ensure we report the values in the order in which
+        # they were input
+        rkeys.sort()
+        ra = [r[k] for k in rkeys]
+        return ra
+
+
+class BooksField(forms.Field):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def validate(self, value):
+        pass
+
+    def clean(self, value):
+        super().validate(value)
+        errors = []
+        vals = [v['num'].strip() for v in value if type(v) is dict and 'num' in v]
+        nums = []
+        non_nums = []
+        for v in vals:
+            if v:
+                if v.isnumeric() and 0 < int(v):
+                    nums.append(v)
+                else:
+                    non_nums.append(v)
+        errors += [
+            forms.ValidationError(
+                _('%(nn)s is not a positive number'),
+                params={'nn': nn},
+                code='book-number-not-a-number'
+            ) for nn in non_nums
+        ]
+        seen = {}
+        dups = {}
+        for n in nums:
+            if n in seen:
+                dups[n] = True
+            else:
+                seen[n] = True
+        errors += [
+            forms.ValidationError(
+                _('The book number %(n)s is duplicated.'),
+                params={'n': dup},
+                code='book-number-duplicated'
+            ) for dup in dups.keys()
+        ]
+        if errors:
+            raise forms.ValidationError(errors)
+        return value
+
 
 class WorkForm(forms.ModelForm):
 
@@ -92,9 +161,19 @@ class WorkForm(forms.ModelForm):
         required=False,
     )
 
+    books = BooksField(widget=BooksWidget, required=False)
+
     class Meta:
         model = Work
-        exclude = ('fragments',)
+        fields = (
+            'name',
+            'subtitle',
+            'antiquarians',
+            'number_of_books',
+            'date_range',
+            'order_year',
+            'books',
+        )
         labels = {'name': 'Name of Work'}
 
     def __init__(self, *args, **kwargs):
@@ -189,21 +268,87 @@ class CitingWorkForm(forms.ModelForm):
             instance.save()
         return instance
 
-
-class OriginalTextForm(forms.ModelForm):
+      
+class OriginalTextAuthorForm(forms.ModelForm):
+    citing_author = forms.ModelChoiceField(
+        queryset=CitingAuthor.objects.all().distinct(),
+        required=True,
+    )
 
     class Meta:
         model = OriginalText
-        fields = ('citing_work', 'reference', 'content', 'apparatus_criticus')
+        fields = ('citing_work',)
+
+    def __init__(self, *args, **kwargs):
+        # if we have a citing author selected then populate the works
+        # field accordingly. NB this pop needs to be done before calling
+        # the super class
+        author = kwargs.pop('citing_author')
+        work = kwargs.pop('citing_work')
+
+        super().__init__(*args, **kwargs)
+
+        self.fields['citing_work'].required = True
+        if author:
+            self.fields['citing_author'].initial = author
+            self.fields['citing_work'].queryset = author.citingwork_set.all()
+            if work:
+                self.fields['citing_work'].initial = work
+        else:
+            self.fields['citing_work'].queryset = CitingWork.objects.none()
+            self.fields['citing_work'].disabled = True
+
+
+class OriginalTextDetailsForm(forms.ModelForm):
+
+    new_apparatus_criticus_line = forms.CharField(
+        widget=forms.Textarea(attrs={'rows': 2}),
+        required=False,
+        label='Add apparatus criticus line',
+    )
+
+    class Meta:
+        model = OriginalText
+        fields = (
+            'reference', 'reference_order', 'content',
+        )
         labels = {
             'content': _('Original Text'),
-            'citing_work': _('Choose Existing'),
-        }
-        widgets = {
-          'apparatus_criticus': forms.Textarea(attrs={'rows': 3}),
         }
 
     def __init__(self, *args, **kwargs):
+
+        original_text = kwargs.get('instance', None)
+        if original_text and original_text.pk:
+            original_text.update_content_mentions()
+
+        super().__init__(*args, **kwargs)
+
+        
+class OriginalTextForm(OriginalTextAuthorForm):
+
+    new_apparatus_criticus_line = forms.CharField(
+        widget=forms.Textarea(attrs={'rows': 2}),
+        required=False,
+        label='Add apparatus criticus line',
+    )
+
+    class Meta:
+        model = OriginalText
+        fields = (
+            'citing_work', 'reference', 'reference_order',
+            'content',
+        )
+        labels = {
+            'content': _('Original Text'),
+        }
+
+    def __init__(self, *args, **kwargs):
+
+        original_text = kwargs.get('instance', None)
+        if original_text and original_text.pk:
+            original_text.update_content_mentions()
+
         super().__init__(*args, **kwargs)
         # when creating an original text we also offer the option
         # of creating a new citing work. Hence we allow the selection
@@ -395,3 +540,26 @@ class AppositumFragmentLinkForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         self.fields['linked_to'].initial = Fragment.objects.all()
+
+
+class CitingWorkCreateForm(forms.ModelForm):
+    class Meta:
+        model = CitingWork
+        fields = ('author', 'title', 'edition', 'order_year', 'date_range',)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['author'].queryset = CitingAuthor.objects.exclude(
+            order_name=CitingAuthor.ANONYMOUS_ORDERNAME
+        )
+
+
+class CitingAuthorUpdateForm(forms.ModelForm):
+    class Meta:
+        model = CitingAuthor
+        fields = ('name', 'order_name', 'order_year', 'date_range',)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.is_anonymous_citing_author():
+            self.fields['order_name'].disabled = True

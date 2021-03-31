@@ -1,0 +1,23 @@
+{# Assumes a context object named 'citingauthor' #}
+
+{% load i18n %}
+
+<div class='rard-list-item d-flex justify-content-between'>
+    <div>
+        <li>
+            {% with citingauthor as link_text %}
+                {% if perms.research.view_citingauthor %}
+                <a href='{% url "citingauthor:detail" citingauthor.pk %}'>{{ link_text }}</a> 
+                {% else %}
+                    {{ link_text }} 
+                {% endif %}
+                {% if citingauthor.display_date_range %}
+                <span class='date-range-element text-muted'><small>[{{ citingauthor.display_date_range }}]</small></span>
+                {% endif %}
+                {% include 'research/partials/render_inline_lock_icon.html' with object=citingauthor %}
+            {% endwith %}
+        </li>
+    </div>
+    <div class='rard-list-item-actions'>
+    </div>
+</div>

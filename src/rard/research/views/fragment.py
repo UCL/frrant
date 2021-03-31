@@ -3,7 +3,7 @@ from django.contrib.auth.mixins import (LoginRequiredMixin,
 from django.core.exceptions import ObjectDoesNotExist
 from django.http.response import Http404
 from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse, reverse_lazy
+from django.urls import resolve, reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
 from django.views.generic import FormView, ListView, TemplateView
@@ -14,11 +14,12 @@ from django.views.generic.edit import DeleteView, UpdateView
 from rard.research.forms import (AnonymousFragmentCommentaryForm,
                                  AnonymousFragmentForm,
                                  AppositumFragmentLinkForm,
-                                 AppositumGeneralLinkForm, CitingWorkForm,
+                                 AppositumGeneralLinkForm,
                                  FragmentAntiquariansForm,
                                  FragmentCommentaryForm, FragmentForm,
                                  FragmentLinkWorkForm, OriginalTextForm)
-from rard.research.models import AnonymousFragment, Antiquarian, Fragment, Work
+from rard.research.models import (AnonymousFragment, Antiquarian, CitingAuthor,
+                                  CitingWork, Fragment, Work)
 from rard.research.models.base import AppositumFragmentLink, FragmentLink
 from rard.research.views.mixins import CanLockMixin, CheckLockMixin
 
@@ -27,8 +28,11 @@ class OriginalTextCitingWorkView(LoginRequiredMixin, TemplateView):
 
     def get_forms(self):
         forms = {
-            'original_text': OriginalTextForm(data=self.request.POST or None),
-            'new_citing_work': CitingWorkForm(data=self.request.POST or None)
+            'original_text': OriginalTextForm(
+                citing_author=self.get_citing_author_from_form(),
+                citing_work=self.get_citing_work_from_form(),
+                data=self.request.POST or None
+            ),
         }
         return forms
 
@@ -36,7 +40,8 @@ class OriginalTextCitingWorkView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(*args, **kwargs)
         context.update({
             'forms': self.get_forms(),
-            # 'title': self.title
+            'citing_author': self.get_citing_author_from_form(),
+            'citing_work': self.get_citing_work_from_form(),
         })
         return context
 
@@ -47,28 +52,51 @@ class OriginalTextCitingWorkView(LoginRequiredMixin, TemplateView):
 
         context = self.get_context_data()
         forms = context['forms']
-        # has the user chosen to create a new citing work?
-        create_citing_work = 'new_citing_work' in self.request.POST
 
-        # set requirements for fields dynamically according to whether
-        # the user has chosen to create a new citing work or not
-        forms['new_citing_work'].set_required(create_citing_work)
-        forms['original_text'].set_citing_work_required(not create_citing_work)
+        if 'create_object' in self.request.POST or \
+                'then_add_links' in self.request.POST or \
+                'then_add_apparatus_criticus' in self.request.POST:
 
-        # now check the forms using the form validation
-        forms_valid = all(
-            [x.is_bound and x.is_valid() for x in forms.values()]
-        )
+            # now check the forms using the form validation
+            forms_valid = all(
+                [x.is_bound and x.is_valid() for x in forms.values()]
+            )
+            if forms_valid:
+                return self.forms_valid(forms)
 
-        if forms_valid:
-            return self.forms_valid(forms)
-
-        # else reset the changes we made to required fields
-        # and invite the user to try again
-        forms['new_citing_work'].set_required(False)
-        forms['original_text'].set_citing_work_required(False)
+        else:
+            for _, form in forms.items():
+                form.errors.clear()
 
         return self.render_to_response(context)
+
+    def get_citing_author_from_form(self, *args, **kwargs):
+        # look for author in the GET or POST parameters
+        self.citing_author = None
+        if self.request.method == 'GET':
+            author_pk = self.request.GET.get('citing_author', None)
+        elif self.request.method == 'POST':
+            author_pk = self.request.POST.get('citing_author', None)
+        if author_pk:
+            try:
+                self.citing_author = CitingAuthor.objects.get(pk=author_pk)
+            except CitingAuthor.DoesNotExist:
+                raise Http404
+        return self.citing_author
+
+    def get_citing_work_from_form(self, *args, **kwargs):
+        # look for work in the GET or POST parameters
+        self.citing_work = None
+        if self.request.method == 'GET':
+            author_pk = self.request.GET.get('citing_work', None)
+        elif self.request.method == 'POST':
+            author_pk = self.request.POST.get('citing_work', None)
+        if author_pk:
+            try:
+                self.citing_work = CitingWork.objects.get(pk=author_pk)
+            except CitingWork.DoesNotExist:
+                raise Http404
+        return self.citing_work
 
 
 class HistoricalBaseCreateView(OriginalTextCitingWorkView):
@@ -94,16 +122,12 @@ class HistoricalBaseCreateView(OriginalTextCitingWorkView):
         original_text = forms['original_text'].save(commit=False)
         original_text.owner = self.saved_object
 
-        create_citing_work = 'new_citing_work' in self.request.POST
-
-        if create_citing_work:
-            original_text.citing_work = forms['new_citing_work'].save()
-
         original_text.save()
 
         self.post_process_saved_object(self.saved_object)
 
-        if 'then_add_links' in self.request.POST:
+        if 'then_add_links' in self.request.POST or \
+            'then_add_apparatus_criticus' in self.request.POST:
             # lock the object
             self.saved_object.lock(self.request.user)
 
@@ -120,6 +144,16 @@ class HistoricalBaseCreateView(OriginalTextCitingWorkView):
         if 'then_add_links' in self.request.POST:
             # go to the 'add links' page
             return self.get_add_links_url()
+
+        if 'then_add_apparatus_criticus' in self.request.POST:
+            # load the update view for the original text
+            # (but needs to be in the correct namespace for the parent)
+            namespace = resolve(self.request.path_info).namespace
+            if self.saved_object.original_texts.count() > 0:
+                return reverse(
+                    '%s:update_original_text' % namespace,
+                    kwargs={'pk': self.saved_object.original_texts.first().pk}
+                )
 
         return reverse(
             self.success_url_name, kwargs={'pk': self.saved_object.pk}
@@ -175,12 +209,6 @@ class AppositumCreateView(AnonymousFragmentCreateView):
             'owner_for': self.get_owner_for()
         })
         return context
-
-    # def get_success_url(self):
-    #     # if you want to redirect to the parent object
-    #     # rather than the new anon fragment (default)
-    #     owner = self.get_owner_for()
-    #     return owner.get_absolute_url()
 
     def post_process_saved_object(self, saved_object):
         # we need to link our anon fragment to the

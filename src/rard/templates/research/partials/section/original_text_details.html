@@ -4,14 +4,43 @@
 
 <dl class="row mb-0">
     <dt class="col-sm-3">{% trans 'Citing Work' %}</dt>
-    <dd class="col-sm-9">{{ original_text.citing_work|default:'-' }}</dd>
+    <dd class="col-sm-9">
+        {% if original_text.citing_work %}
+        
+            {% if original_text.citing_work.author %}
+                <a href='{% url "citingauthor:detail" original_text.citing_work.author.pk %}'>{{ original_text.citing_work.author }}</a>,
+            {% else %}
+            Unknown,
+            {% endif %}
+            <a href='{% url "citingauthor:work_detail" original_text.citing_work.pk %}'>{{ original_text.citing_work.title }}</a>
+        {% else %}
+        -
+        {% endif %}
+    </dd>
 
     <dt class="col-sm-3">{% trans 'Reference' %}</dt>
     <dd class="col-sm-9">{{ original_text.reference|default:'-' }}</dd>
 
+{% comment %}     
+    {# to restore the legacy apparatus criticus entry uncommment this block #}
+    <dt class="col-sm-3">{% trans 'Apparatus Criticus' %}</dt>
+    <dd class="col-sm-9">{{ original_text.apparatus_criticus|safe|default:'-'|linebreaks }}</dd> 
+{% endcomment %}
+
+    <dt class="col-sm-3">{% trans 'Reference Order' %}</dt>
+    <dd class="col-sm-9">{{ original_text.reference_order|default:'-' }}</dd>
 
     <dt class="col-sm-3">{% trans 'Apparatus Criticus' %}</dt>
-    <dd class="col-sm-9">{{ original_text.apparatus_criticus|safe|default:'-'|linebreaks }}</dd>
+    <dd class="col-sm-9">
+        <div>
+            {% for line in original_text.apparatus_criticus_lines %}
+               <a href='#{{ line.get_anchor_id }}'>{{ line.order|add:1 }}</a>&nbsp;{{ line.content|safe }} {% if not forloop.last %}|{% endif %}
+            {% endfor %}
+            {% if not original_text.apparatus_criticus_lines %}
+            -
+            {% endif %}
+        </div>
+    </dd>
 
 </dl>
 

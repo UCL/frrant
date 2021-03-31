@@ -126,9 +126,9 @@ class MoveTopicView(LoginRequiredMixin, View):
                     pos = int(self.request.POST.get('move_to'))
                     topic.move_to(pos)
 
+                return self.render_valid_response(int(page_index))
+
             except (Topic.DoesNotExist, KeyError):
                 raise Http404
-
-            return self.render_valid_response(int(page_index))
 
         raise Http404

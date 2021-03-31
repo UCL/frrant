@@ -106,6 +106,7 @@ class TestCitingAuthor(TestCase):
         testimonium.original_texts.create(citing_work=citing_work2)
 
         anon = AnonymousFragment.objects.create()
+        anon.original_texts.create(citing_work=citing_work2)
         fragment.apposita.add(anon)
 
         materials = author.ordered_materials()

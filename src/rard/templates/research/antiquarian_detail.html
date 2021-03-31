@@ -1,11 +1,6 @@
 {% extends "research/detail_base.html" %}
 {% load i18n bootstrap4 object_lock links_for_work static %}
 
-{% block css %}
-<meta name="token" content="{{ csrf_token }}">
-{{ block.super }}
-{% endblock %}
-
 {% block heading %}{{ object.name }}{% endblock %}
 
 {% block last_modified %}{% endblock %}
@@ -78,6 +73,8 @@
             <dd class="col-sm-9">
                 {{ object.display_date_range|default:'-' }}
             </dd>
+            <dt class="col-sm-3">{% trans 'Year for Ordering' %}</dt>
+            <dd class="col-sm-9">{{ object.order_year }}</dd>
 
         </dl>
         <p>

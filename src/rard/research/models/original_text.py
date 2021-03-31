@@ -1,4 +1,5 @@
-from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.fields import (GenericForeignKey,
+                                                GenericRelation)
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from simple_history.models import HistoricalRecords
@@ -27,9 +28,23 @@ class OriginalText(HistoryModelMixin, BaseModel):
     # e.g. page 24
     reference = models.CharField(max_length=128, blank=False)
 
-    content = models.TextField(blank=False)
+    content = DynamicTextField(blank=False)
 
+    # the value 24 to be used in 'ordering by reference' taking example above
+    reference_order = models.IntegerField(blank=False, null=True, default=None)
+
+    # to be nuked eventually. not required now but hidden from view
+    # to preserve previous values in case our data migration is insufficient
     apparatus_criticus = DynamicTextField(default='', blank=True)
+
+    apparatus_criticus_items = GenericRelation(
+        'ApparatusCriticusItem', related_query_name='original_text'
+    )
+
+    def apparatus_criticus_lines(self):
+        # use this rather than the above as that doesn't automatically
+        # sort the results :/
+        return self.apparatus_criticus_items.all().order_by('order')
 
     def citing_work_reference_display(self):
         citing_work_str = str(self.citing_work)
@@ -37,13 +52,26 @@ class OriginalText(HistoryModelMixin, BaseModel):
             citing_work_str = ' '.join([citing_work_str, self.reference])
         return citing_work_str
 
+    def index_with_respect_to_parent_object(self):
+        return (*self.owner.original_texts.all(),).index(self)
+
+    def ordinal_with_respect_to_parent_object(self):
+        # if there are any sibling original texts then display
+        # an ordinal a, b, c for this original text
+        ordinal = ''
+        if self.owner.original_texts.count() > 1:
+            index = self.index_with_respect_to_parent_object()
+            ordinal = chr(ord('a')+index)
+        return ordinal
+
     # the ID to use in the concordance table
     @property
     def concordance_identifiers(self):
-        ordinal = ''
-        if self.owner.original_texts.count() > 1:
-            index = (*self.owner.original_texts.all(),).index(self)
-            ordinal = chr(ord('a')+index)
+        # ordinal = ''
+        # if self.owner.original_texts.count() > 1:
+        #     index = self.index_with_respect_to_parent_object()
+        #     ordinal = chr(ord('a')+index)
+        ordinal = self.ordinal_with_respect_to_parent_object()
         return [
             '{}{}'.format(name, ordinal) for name in self.owner.get_all_names()
         ]

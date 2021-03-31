@@ -2,35 +2,79 @@
 {% load i18n bootstrap4 %}
 
 {% block heading %}
-    {% if object %}
-        {% trans 'Update Original Text' %}
-    {% else %}
         {% trans 'Create Original Text' %}
-    {% endif %}
 {% endblock %}
 
 {% block inner %}
 
+    {# Use a GET form to select the work #}
+    <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form work-form" method='GET'>
+        {% bootstrap_field forms.original_text.citing_author field_class='submit-on-change' %}
+    </form>
+
+    <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form work-form" method='GET'>
+        <input type='hidden' name='citing_author' value='{{ citing_author.pk }}' />
+        {% bootstrap_field forms.original_text.citing_work field_class='submit-on-change' %}
+    </form>
+
+    {# Use a POST form to update the rest of the details #}
     <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
         {% csrf_token %}
 
-        {% include 'research/partials/citing_work_form_area.html' %}
+        {# hide the previously-entered work info in the form #}
+        <input type='hidden' name='citing_author' value='{{ citing_author.pk }}' />
+        <input type='hidden' name='citing_work' value='{{ citing_work.pk }}' />
+
+        {% if citing_author and citing_work %}
+
+            {% bootstrap_field forms.original_text.reference %}
+            {% bootstrap_field forms.original_text.reference_order %}
         
-        {% bootstrap_field forms.original_text.reference %}
-      
-        {% bootstrap_field forms.original_text.content field_class='d-none' %}
-        {% include 'research/partials/rich_text_editor.html' with field=forms.original_text.content %}
 
-        {% bootstrap_field forms.original_text.apparatus_criticus field_class='d-none' %}
-        {% include 'research/partials/rich_text_editor.html' with field=forms.original_text.apparatus_criticus %}
+            {% bootstrap_field forms.original_text.content field_class='d-none' %}
 
-        <button type="submit" class="btn btn-primary">
-            {% if object %}
-                {% trans 'Save' %}
-            {% else %}
-                {% trans 'Create' %}
-            {% endif %}
-        </button>
+            {% with enable_apparatus_criticus=object %}
+            {# only allow apparatus criticus editing if we have an object #}
+            {% include 'research/partials/rich_text_editor.html' with object_id=object.pk field=forms.original_text.content enable_apparatus_criticus=enable_apparatus_criticus %}
+            {% endwith %}
+
+            <button type="submit" name='create_object' class="btn btn-primary">
+                    {% trans 'Create' %}
+            </button>
+             <button name='then_add_apparatus_criticus' type="submit" class="btn btn-outline-primary">
+            {% trans 'Create and Add Apparatus Criticus' %}
+            </button>
+
+        {% endif %}
+
     </form>
+
+    <hr>
+
+    {% if object %}
+    {% include 'research/partials/apparatus_criticus_builder.html' with form=forms.original_text original_text=object %}
+    {% endif %}
+
+    {% comment %}
+    <div class='form-group'>
+        <label>Apparatus Criticus</label>
+        {% if object %}
+            <div><button type='button' data-index='0' class='show_apparatus_criticus_form btn btn-light btn-sm'>+</button></div>
+            {% for line in object.apparatus_criticus_lines %}
+            <div class='border-bottom: 1px solid'>{{ line.order }}<span class='ml-3'>{{ line.content|safe }}</span></div>
+            <div><button type='button' data-index='{{ forloop.counter }}' class='show_apparatus_criticus_form btn btn-light btn-sm'>+</button></div>
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <div id='new_apparatus_criticus_line_area' class='mt-3' style='display:none;'>
+        {% bootstrap_field forms.original_text.new_apparatus_criticus_line show_label=False %}
+        {% include 'research/partials/rich_text_editor.html' with min_height=30 padding_bottom=30 field=forms.original_text.new_apparatus_criticus_line %}
+        <div class='d-flex flex-row-reverse'>
+            <button type='button' id='cancel-new-apparatus-criticus-line' class=' btn btn-secondary btn-sm'>Cancel</button>
+            <button type='button' data-parent='{{ object.pk }}' data-action='{% url "create_apparatus_criticus_line" %}' id='submit-new-apparatus-criticus-line' class=' mx-2 btn btn-success btn-sm'>Add Line</button>
+        </div>
+    </div>
+    {% endcomment %}
 
 {% endblock %}
