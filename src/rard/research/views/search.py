@@ -104,9 +104,9 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         qsa = AnonymousFragment.objects.all()
         qsf = Fragment.objects.all()
         return chain(
-            qsf.filter(original_texts__apparatus_criticus__icontains=keywords).distinct(),  # noqa
-            qsa.filter(original_texts__apparatus_criticus__icontains=keywords).distinct(),  # noqa
-            qst.filter(original_texts__apparatus_criticus__icontains=keywords).distinct()  # noqa
+            qsf.filter(original_texts__apparatus_criticus_items__content__icontains=keywords).distinct(),  # noqa
+            qsa.filter(original_texts__apparatus_criticus_items__content__icontains=keywords).distinct(),  # noqa
+            qst.filter(original_texts__apparatus_criticus_items__content__icontains=keywords).distinct()  # noqa
         )
 
     @classmethod

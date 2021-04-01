@@ -23,6 +23,10 @@ urlpatterns = [
     path("", views.HomeView.as_view(), name="home"),
     path("ajax/move-link/", views.MoveLinkView.as_view(), name="move_link"),
     path("ajax/move-topic/", views.MoveTopicView.as_view(), name="move_move"),
+    path("ajax/create-apparatus-criticus-line/", views.CreateApparatusCriticusLineView.as_view(), name="create_apparatus_criticus_line"),
+    path("ajax/delete-apparatus-criticus-line/", views.DeleteApparatusCriticusLineView.as_view(), name="delete_apparatus_criticus_line"),
+    path("ajax/update-apparatus-criticus-line/", views.UpdateApparatusCriticusLineView.as_view(), name="update_apparatus_criticus_line"),
+    path("ajax/refresh-original-text-content/", views.RefreshOriginalTextContentView.as_view(), name="refresh_original_text_content"),
     # path("comment/<pk>/delete/", views.CommentDeleteView.as_view(), name="delete_comment"),
     # path("text-field/<pk>/comments/", views.TextObjectFieldCommentListView.as_view(), name="list_comments_on_text"),
     path('antiquarian/', include(([
@@ -110,7 +114,8 @@ urlpatterns = [
     ], 'research'), namespace='concordance')),
     path('search/', include(([
         path('', views.SearchView.as_view(), name='home'),
-        path('ajax/mention/', views.MentionSearchView.as_view(), name='mention')
+        path('ajax/mention/', views.MentionSearchView.as_view(), name='mention'),
+        path('ajax/apparatus-criticus/', views.ApparatusCriticusSearchView.as_view(), name='apparatus_criticus'),
     ], 'research'), namespace='search')),
     path('', include(([
         path("<model_name>/<pk>/history/", views.HistoryListView.as_view(), name="list"),

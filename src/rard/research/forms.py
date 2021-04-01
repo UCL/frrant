@@ -316,7 +316,7 @@ class CitingWorkForm(forms.ModelForm):
             instance.save()
         return instance
 
-
+      
 class OriginalTextAuthorForm(forms.ModelForm):
     citing_author = forms.ModelChoiceField(
         queryset=CitingAuthor.objects.all().distinct(),
@@ -349,32 +349,64 @@ class OriginalTextAuthorForm(forms.ModelForm):
 
 class OriginalTextDetailsForm(forms.ModelForm):
 
+    new_apparatus_criticus_line = forms.CharField(
+        widget=forms.Textarea(attrs={'rows': 2}),
+        required=False,
+        label='Add apparatus criticus line',
+    )
+
     class Meta:
         model = OriginalText
         fields = (
-            'reference', 'reference_order', 'content', 'apparatus_criticus',
+            'reference', 'reference_order', 'content',
         )
         labels = {
             'content': _('Original Text'),
         }
-        widgets = {
-          'apparatus_criticus': forms.Textarea(attrs={'rows': 3}),
-        }
 
+    def __init__(self, *args, **kwargs):
 
+        original_text = kwargs.get('instance', None)
+        if original_text and original_text.pk:
+            original_text.update_content_mentions()
+
+        super().__init__(*args, **kwargs)
+
+        
 class OriginalTextForm(OriginalTextAuthorForm):
+
+    new_apparatus_criticus_line = forms.CharField(
+        widget=forms.Textarea(attrs={'rows': 2}),
+        required=False,
+        label='Add apparatus criticus line',
+    )
+
     class Meta:
         model = OriginalText
         fields = (
             'citing_work', 'reference', 'reference_order',
-            'content', 'apparatus_criticus',
+            'content',
         )
         labels = {
             'content': _('Original Text'),
         }
-        widgets = {
-          'apparatus_criticus': forms.Textarea(attrs={'rows': 3}),
-        }
+
+    def __init__(self, *args, **kwargs):
+
+        original_text = kwargs.get('instance', None)
+        if original_text and original_text.pk:
+            original_text.update_content_mentions()
+
+        super().__init__(*args, **kwargs)
+        # when creating an original text we also offer the option
+        # of creating a new citing work. Hence we allow the selection
+        # of an existing instance to be blank and assign a newly-created
+        # work to the original text instance in the view
+        self.set_citing_work_required(True)
+
+    def set_citing_work_required(self, required):
+        # to allow set/reset required fields dynically in the view
+        self.fields['citing_work'].required = required
 
 
 class CommentaryFormBase(forms.ModelForm):
