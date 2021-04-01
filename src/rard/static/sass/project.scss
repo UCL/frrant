@@ -1,11 +1,17 @@
 // project specific CSS goes here
 table.books-widget {
     width: 100%;
-    th.book-number {
+    .book-num {
         width: 10%;
     }
-    th.book-title {
-        width: 90%;
+    .book-title {
+        width: 60%;
+    }
+    .book-date {
+        width: 20%;
+    }
+    .book-order {
+        width: 10%;
     }
 }
 
