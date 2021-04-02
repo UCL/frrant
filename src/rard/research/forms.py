@@ -140,6 +140,13 @@ class BooksField(forms.Field):
         except:
             return False
 
+    @staticmethod
+    def has_numberless_titleless_book(value):
+        for v in value:
+            if ('num' not in v and 'title' not in v):
+                return True
+        return False
+
     def clean(self, value):
         super().validate(value)
         errors = [
@@ -179,6 +186,13 @@ class BooksField(forms.Field):
                 code='book-number-duplicated'
             ) for dup in dups.keys()
         ]
+        if self.has_numberless_titleless_book(value):
+            errors.append(
+                forms.ValidationError(
+                    _("Books require either a title or a number"),
+                    code='numberless-titleless-book'
+                )
+            )
         if errors:
             raise forms.ValidationError(errors)
         return value
