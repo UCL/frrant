@@ -16,7 +16,7 @@ class OriginalText(HistoryModelMixin, BaseModel):
         return self.owner
 
     class Meta:
-        ordering = ('citing_work', 'reference')
+        ordering = ('citing_work', 'reference_order')
 
     # original text can belong to either a fragment or a testimonium
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)

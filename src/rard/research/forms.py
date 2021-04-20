@@ -268,7 +268,7 @@ class CitingWorkForm(forms.ModelForm):
             instance.save()
         return instance
 
-      
+
 class OriginalTextAuthorForm(forms.ModelForm):
     citing_author = forms.ModelChoiceField(
         queryset=CitingAuthor.objects.all().distinct(),
