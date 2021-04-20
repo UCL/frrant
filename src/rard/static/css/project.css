@@ -2,12 +2,20 @@ table.books-widget {
     width: 100%
 }
 
-table.books-widget th.book-number {
+table.books-widget .book-num {
     width: 10%
 }
 
-table.books-widget th.book-title {
-    width: 90%
+table.books-widget .book-title {
+    width: 60%
+}
+
+table.books-widget .book-date {
+    width: 20%
+}
+
+table.books-widget .book-order {
+    width: 10%
 }
 
 .alert-debug {
