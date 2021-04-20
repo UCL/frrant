@@ -322,9 +322,12 @@ class OriginalTextDetailsForm(forms.ModelForm):
         if original_text and original_text.pk:
             original_text.update_content_mentions()
 
+        if original_text.reference_order:
+            original_text.remove_reference_order_padding()
+
         super().__init__(*args, **kwargs)
 
-        
+
 class OriginalTextForm(OriginalTextAuthorForm):
 
     new_apparatus_criticus_line = forms.CharField(
@@ -359,6 +362,12 @@ class OriginalTextForm(OriginalTextAuthorForm):
     def set_citing_work_required(self, required):
         # to allow set/reset required fields dynically in the view
         self.fields['citing_work'].required = required
+
+    def clean_reference_order(self):
+        # Reference order needs to be stored as a string with leading 0s such
+        # as 00001.00020.02340 for 1.20.2340
+        ro = self.cleaned_data["reference_order"]
+        return ".".join([i.zfill(5) for i in ro.split('.')])
 
 
 class CommentaryFormBase(forms.ModelForm):
