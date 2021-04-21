@@ -322,10 +322,16 @@ class OriginalTextDetailsForm(forms.ModelForm):
         if original_text and original_text.pk:
             original_text.update_content_mentions()
 
-        if original_text.reference_order:
+        if original_text and original_text.reference_order:
             original_text.remove_reference_order_padding()
 
         super().__init__(*args, **kwargs)
+
+    def clean_reference_order(self):
+        # Reference order needs to be stored as a string with leading 0s such
+        # as 00001.00020.02340 for 1.20.2340
+        ro = self.cleaned_data["reference_order"]
+        return ".".join([i.zfill(5) for i in ro.split('.')])
 
 
 class OriginalTextForm(OriginalTextAuthorForm):
@@ -351,6 +357,9 @@ class OriginalTextForm(OriginalTextAuthorForm):
         original_text = kwargs.get('instance', None)
         if original_text and original_text.pk:
             original_text.update_content_mentions()
+
+        if original_text and original_text.reference_order:
+            original_text.remove_reference_order_padding()
 
         super().__init__(*args, **kwargs)
         # when creating an original text we also offer the option
