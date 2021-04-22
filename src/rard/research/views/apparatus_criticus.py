@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup
+import re
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404, JsonResponse
 from django.template.loader import render_to_string
@@ -19,10 +20,8 @@ class ApparatusCriticusLineViewBase(View):
     def process_content(self, content_html):
         # cannot stop quill from wrapping things with <p></p> so strip
         # that off here
-        soup = BeautifulSoup(content_html)
-        p = soup.find('p')
-        content = ''.join([str(x) for x in p.children])
-        return content
+        m = re.fullmatch(r"\s*<p>(.*)</p>\s*", content_html)
+        return m.group(1)
 
     def render_valid_response(self, original_text):
         context = {
