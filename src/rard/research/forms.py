@@ -9,6 +9,23 @@ from rard.research.models.base import (AppositumFragmentLink, FragmentLink,
                                        TestimoniumLink)
 
 
+def validate_reference_order(ro):
+    # check ref order doesn't have any section longer than 5 characters as well
+    # as non-numeric
+    for section in ro.split('.'):
+        if len(section) > 5:
+            raise forms.ValidationError(
+                'Each reference order section should not be longer than 5 '
+                'characters.',
+                code='subset-too-long'
+            )
+    if not ro.replace('.', '').isnumeric():
+        raise forms.ValidationError(
+            'Reference order must contain only numbers.',
+            code='ro-non-numeric'
+        )
+
+
 class AntiquarianIntroductionForm(forms.ModelForm):
     class Meta:
         model = Antiquarian
