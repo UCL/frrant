@@ -344,7 +344,8 @@ class OriginalTextDetailsForm(forms.ModelForm):
             original_text.update_content_mentions()
 
         if original_text and original_text.reference_order:
-            original_text.remove_reference_order_padding()
+            original_text.reference_order = (
+                original_text.remove_reference_order_padding())
 
         super().__init__(*args, **kwargs)
 
@@ -384,7 +385,8 @@ class OriginalTextForm(OriginalTextAuthorForm):
             original_text.update_content_mentions()
 
         if original_text and original_text.reference_order:
-            original_text.remove_reference_order_padding()
+            original_text.reference_order = (
+                original_text.remove_reference_order_padding())
 
         super().__init__(*args, **kwargs)
         # when creating an original text we also offer the option
