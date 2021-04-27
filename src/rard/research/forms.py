@@ -324,6 +324,10 @@ class OriginalTextDetailsForm(forms.ModelForm):
         label='Add apparatus criticus line',
     )
 
+    reference_order = forms.CharField(
+        validators=[validate_reference_order]
+    )
+
     class Meta:
         model = OriginalText
         fields = (
@@ -357,6 +361,10 @@ class OriginalTextForm(OriginalTextAuthorForm):
         widget=forms.Textarea(attrs={'rows': 2}),
         required=False,
         label='Add apparatus criticus line',
+    )
+
+    reference_order = forms.CharField(
+        validators=[validate_reference_order]
     )
 
     class Meta:
