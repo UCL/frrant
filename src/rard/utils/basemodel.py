@@ -160,6 +160,15 @@ class DynamicTextField(TextField):
                                 # in any case show the app crit link index
                                 display_str += str(linked.order + 1)
 
+                                # Workaround to avoid app crit tooltip being
+                                # rendered wrong and shown in the original text
+                                # box
+                                content = linked.content.replace(
+                                    "'", "&apos;").replace(
+                                    '"', "&quot;").replace(
+                                    "<", "&lt;").replace(
+                                    ">", "&gt;").replace(
+                                    "&", "&amp;")
                                 replacement = bs4.BeautifulSoup(
                                     '<span id="{}" data-toggle="tooltip" '
                                     'data-html="true" '
@@ -169,7 +178,7 @@ class DynamicTextField(TextField):
                                     '</span>">'
                                     '[App. crit. {}]</span>'.format(
                                         linked.get_anchor_id(),
-                                        mark_safe(linked.content),
+                                        mark_safe(content),
                                         display_str,
                                     ),
                                     features="html.parser"
