@@ -9,7 +9,7 @@ from rard.research.models.base import (AppositumFragmentLink, FragmentLink,
                                        TestimoniumLink)
 
 
-def validate_reference_order(ro):
+def _validate_reference_order(ro):
     # check ref order doesn't have any section longer than 5 characters as well
     # as non-numeric
     for section in ro.split('.'):
@@ -387,7 +387,7 @@ class OriginalTextDetailsForm(forms.ModelForm):
     )
 
     reference_order = forms.CharField(
-        validators=[validate_reference_order]
+        validators=[_validate_reference_order]
     )
 
     class Meta:
@@ -427,7 +427,7 @@ class OriginalTextForm(OriginalTextAuthorForm):
     )
 
     reference_order = forms.CharField(
-        validators=[validate_reference_order]
+        validators=[_validate_reference_order]
     )
 
     class Meta:
