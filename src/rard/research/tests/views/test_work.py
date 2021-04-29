@@ -2,7 +2,7 @@ import pytest
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
-from rard.research.models import Antiquarian, Work, Book
+from rard.research.models import Antiquarian, Book, Work
 from rard.research.views import (WorkCreateView, WorkDeleteView,
                                  WorkDetailView, WorkListView, WorkUpdateView)
 from rard.users.tests.factories import UserFactory
