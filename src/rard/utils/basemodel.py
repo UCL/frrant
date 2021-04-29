@@ -13,7 +13,7 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 from model_utils.models import TimeStampedModel
-
+from rard.research.templatetags.entity_escape import entity_escape
 
 class DynamicTextField(TextField):
 
@@ -160,17 +160,6 @@ class DynamicTextField(TextField):
                                 # in any case show the app crit link index
                                 display_str += str(linked.order + 1)
 
-                                # Stop BeautifulSoup misinterpreting bits of
-                                # the app crit as being HTML. It can cause part
-                                # of the app crit being rendered as part of
-                                # the original text.
-                                content = linked.content.replace(
-                                    "'", "&apos;").replace(
-                                    '"', "&quot;").replace(
-                                    "<", "&lt;").replace(
-                                    ">", "&gt;")
-                                # We need an extra level of escaping (!)
-                                content = content.replace("&", "&amp;")
                                 replacement = bs4.BeautifulSoup(
                                     '<span id="{}" data-toggle="tooltip" '
                                     'data-html="true" '
@@ -180,7 +169,7 @@ class DynamicTextField(TextField):
                                     '</span>">'
                                     '[App. crit. {}]</span>'.format(
                                         linked.get_anchor_id(),
-                                        mark_safe(content),
+                                        mark_safe(entity_escape(linked.content)),
                                         display_str,
                                     ),
                                     features="html.parser"
