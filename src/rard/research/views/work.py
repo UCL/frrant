@@ -26,27 +26,37 @@ class WorkDetailView(CanLockMixin, LoginRequiredMixin,
     permission_required = ('research.view_work',)
 
 
-class WorkCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
+def add_new_books_to_work(work, form):
+    for book in form.cleaned_data['books']:
+        Book(
+            number=book.get('num'),
+            subtitle=book.get('title', ''),
+            date_range=book.get('date', ''),
+            order_year=book.get('order'),
+            work=work
+        ).save()
+
+
+class WorkCreateView(LoginRequiredMixin,
+        PermissionRequiredMixin, CreateView):
     model = Work
     form_class = WorkForm
     success_url = reverse_lazy('work:list')
-    permission_required = ('research.add_work',)
+    permission_required = ('research.add_work', 'research.add_book')
 
     def get_success_url(self, *args, **kwargs):
         return reverse('work:detail', kwargs={'pk': self.object.pk})
 
     def form_valid(self, form):
         rtn = super().form_valid(form)
-        for book in form.cleaned_data['books']:
-            b = Book(number=book.get('num'), subtitle=book.get('title', ''), work=self.object)
-            b.save()
         for a in form.cleaned_data['antiquarians']:
             a.works.add(self.object)
+        add_new_books_to_work(self.object, form)
         return rtn
 
 
 class WorkUpdateView(CheckLockMixin, LoginRequiredMixin,
-                     PermissionRequiredMixin, UpdateView):
+        PermissionRequiredMixin, UpdateView):
     model = Work
     form_class = WorkForm
     permission_required = ('research.change_work',)
@@ -64,6 +74,7 @@ class WorkUpdateView(CheckLockMixin, LoginRequiredMixin,
             a.works.remove(work)
         for a in to_add:
             a.works.add(work)
+        add_new_books_to_work(work, form)
         return super().form_valid(form)
 
 

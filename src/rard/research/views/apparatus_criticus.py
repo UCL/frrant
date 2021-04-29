@@ -1,4 +1,5 @@
-from bs4 import BeautifulSoup
+import re
+
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import Http404, JsonResponse
 from django.template.loader import render_to_string
@@ -17,11 +18,16 @@ class ApparatusCriticusLineViewBase(View):
         'research/partials/apparatus_criticus_builder.html'
 
     def process_content(self, content_html):
-        # cannot stop quill from wrapping things with <p></p> so strip
-        # that off here
-        soup = BeautifulSoup(content_html)
-        p = soup.find('p')
-        content = ''.join([str(x) for x in p.children])
+        # Quill wraps paragraphs in <p></p>, which we do not want.
+        # remove any final </p>
+        m = re.fullmatch(r"(.*)</p>\s*", content_html)
+        content = m and m.group(1) or content_html
+        # remove all <p>s (this will leave a leading space)
+        content = content.replace("<p>", " ")
+        # turn all remaining </p>s into \n, and remove leading space
+        content = re.sub(r"\s*</p>\s*", "\n", content).strip()
+        # Quill sometimes puts <br> onto blank lines; make this always happen
+        content = re.sub(r"\n\n", "\n<br>\n", content)
         return content
 
     def render_valid_response(self, original_text):

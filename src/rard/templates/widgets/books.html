@@ -1,58 +1,64 @@
-{% block head %}
+{% load get_item %} {% block head %}
 <script>
-function noop() {}
+    function noop() {}
 
-function copyProperties(which, from, to) {
-    for (var i = 0; i !== which.length; ++i) {
-        var w = which[i];
-        if (from.hasAttribute(w)) {
-            to.setAttribute(w, from.getAttribute(w));
+    function copyProperties(which, from, to) {
+        for (var i = 0; i !== which.length; ++i) {
+            var w = which[i];
+            if (from.hasAttribute(w)) {
+                to.setAttribute(w, from.getAttribute(w));
+            }
         }
     }
-}
 
-function addBookWidget(name, n) {
-    var tbody = document.getElementById(name + '-widgets');
-    var inps = tbody.getElementsByTagName('input');
-    for (var i = 0; i !== inps.length; ++i) {
-        inps[i].oninput = noop;
+    function addBookWidget(name, n) {
+        var tbody = document.getElementById(name + '-widgets');
+        var trs = tbody.getElementsByTagName('tr');
+        var inps = trs[trs.length - 1].getElementsByTagName('input');
+        var tr = document.createElement('tr');
+        for (var i = 0; i != inps.length; i++) {
+            inps[i].oninput = noop;
+            var td = document.createElement('td');
+            var inp = document.createElement('input')
+            copyProperties(['type', 'class', 'placeholder', 'title'], inps[i], inp);
+            var name_sections = inps[i].getAttribute('name').split("_");
+            name_sections[1] = n + 1;
+            inp.setAttribute('name', name_sections.join("_"));
+            inp.oninput = addBookWidget.bind(null, name, n+1);
+            td.append(inp);
+            tr.append(td);
+        }
+        tbody.append(tr);
     }
-    console.log(inps);
-    var tr = document.createElement('tr');
-    var td0 = document.createElement('td');
-    var td1 = document.createElement('td');
-    var inp0 = document.createElement('input');
-    var inp1 = document.createElement('input');
-    td0.append(inp0);
-    td1.append(inp1);
-    tr.append(td0, td1);
-    copyProperties(['type', 'class', 'placeholder', 'title'], inps[0], inp0);
-    copyProperties(['type', 'class', 'placeholder', 'title'], inps[1], inp1);
-    ++n
-    inp0.setAttribute('name', name + '_' + n + '_num');
-    inp1.setAttribute('name', name + '_' + n + '_title');
-    inp0.oninput = addBookWidget.bind(null, name, n);
-    inp1.oninput = addBookWidget.bind(null, name, n);
-    tbody.append(tr);
-}
 </script>
 {% endblock %}
 
-<table>
-    <thead><tr>
-        <th class="book-number">Number</th>
-        <th class="book-title">Book Title</th>
-    </tr></thead>
-    <tbody id="{{widget.name}}-widgets">
-        {% for row in widget.value %}
+<table class="{{ widget.name }}-widget">
+    <thead>
         <tr>
-            <td><input type="text" name="{{widget.name}}_{{forloop.counter|add:'-1'}}_num" value="{{row.num}}" placeholder="Number" class="form-control" title="" required=""></td>
-            <td><input type="text" name="{{widget.name}}_{{forloop.counter|add:'-1'}}_title" value="{{row.title}}" placeholder="Book title" class="form-control" title="" required=""></td>
+            {% for id,name in widget.subfields.items %}
+            <th class="book-{{ id }}">{{ name }}</th>
+            {% endfor %}
         </tr>
+    </thead>
+    <tbody id="{{ widget.name }}-widgets">
+        {% for row in widget.value %}
+        {% with row_num=forloop.counter|add:'-1' %}
+        <tr>
+            {% for id,name in widget.subfields.items %}
+            <td class="book-{{ id }}">
+                <input type="text" class="form-control" name="{{ widget.name }}_{{ row_num }}_{{ id }}" value="{{ row|get_item:id }}" placeholder="{{ name }}" title="{{ name }}" required="">
+            </td>
+            {% endfor %}
+        </tr>
+        {% endwith %}
         {% endfor %}
         <tr>
-            <td><input type="text" name="{{widget.name}}_{{widget.value|length}}_num" placeholder="Number" class="form-control" title="" required="" oninput="addBookWidget('{{widget.name}}', {{widget.value|length}})"></td>
-            <td><input type="text" name="{{widget.name}}_{{widget.value|length}}_title" placeholder="Book title" class="form-control" title="" required="" oninput="addBookWidget('{{widget.name}}', {{widget.value|length}})"></td>
+            {% for id,name in widget.subfields.items %}
+            <td class="book-{{ id }}">
+                <input type="text" class="form-control" name="{{ widget.name }}_{{ widget.value|length }}_{{ id }}" placeholder="{{ name }}" title="{{ name }}" required="" oninput="addBookWidget('{{widget.name}}', {{widget.value|length}})">
+            </td>
+            {% endfor %}
         </tr>
     </tbody>
 </table>
