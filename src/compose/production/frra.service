@@ -1,0 +1,21 @@
+[Unit]
+Description=Fragments of the Roman Republican Antiquarians
+After=network.target docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+
+User=root
+WorkingDirectory=/www/rard/src/
+Environment=ENVDIR=uat
+
+ExecStart=/usr/bin/docker-compose -f production.yml up -d
+# We allow a greater timeout to ensure postgres can shutdown cleanly without data loss
+ExecStop=/usr/bin/docker-compose -f production.yml stop --timeout 90
+ExecReload=/usr/bin/docker-compose -f production.yml build
+ExecReload=/usr/bin/docker-compose -f production.yml up -d
+
+[Install]
+WantedBy=multi-user.target

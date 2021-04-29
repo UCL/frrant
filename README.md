@@ -268,6 +268,10 @@ Requirements are applied when the containers are built.
 
 # Deployment
 
+The repository is checked out at `/www/rard` on the production servers.
+
+## Configuration
+
 To deploy we need to set some variables.
 
 (example shown for development, replace with production folder on production)
@@ -337,6 +341,32 @@ Before building the nginx container we need to do the following for development 
 
 where the `.key` file is the key you generated along with the certificate request
 
+
+## Using systemctl to manage the service
+
+This will ensure the frra application is started automatically on boot, and restarted if it (or Docker) goes down.
+The repository mut be cloned to `/www/rard`, or `compose/production/frra.service` edited accordingly.
+
+For the first time setup, install our service definition and reload systemd:
+
+```sh
+sudo cp compose/production/frra.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable frra
+sudo systemctl start frra
+```
+
+To stop the service:
+```sh
+sudo systemctl stop frra
+```
+
+To rebuild the containers from the current working directory and reload:
+```sh
+sudo systemctl reload frra
+```
+
+
 # Troubleshooting
 
 If your deployment machine is light on space on `/var` then it is possible to request that Docker builds containers elsewhere by modifying the following file:
@@ -374,7 +404,7 @@ to view logs for a particular container in the above list
 the `-f` prints new lines as they are written. The `<containerid>` is the same shown in the output of `docker ps`
 
 
-# To clean up space on /var
+## To clean up space on /var
 
 Remove yum caches
 
@@ -385,7 +415,7 @@ If your containers are built to `/var` this will clean those up
 `sudo docker system prune`
 
 
-# If your server becomes unreachable 30 minutes after restarting Docker
+## If your server becomes unreachable 30 minutes after restarting Docker
 
 You need to ensure IP forwarding is enabled:
 
