@@ -2,7 +2,7 @@ import pytest
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
-from rard.research.models import Antiquarian, Work, Book
+from rard.research.models import Antiquarian, Book, Work
 from rard.research.views import (WorkCreateView, WorkDeleteView,
                                  WorkDetailView, WorkListView, WorkUpdateView)
 from rard.users.tests.factories import UserFactory
@@ -115,6 +115,8 @@ class TestWorkCreateView(TestCase):
             'name': 'another name',
             'books_0_num': 2,
             'books_0_title': 'deux',
+            'books_0_date': 'somewhen',
+            'books_0_order': -150,
             'books_1_num': 1,
             'books_1_title': 'un',
         }
@@ -135,11 +137,25 @@ class TestWorkCreateView(TestCase):
         self.assertEqual(
             w.book_set.count(), 2
         )
+        bs = w.book_set.all()
+        # Books are sorted by number
         self.assertEqual(
-            w.book_set.all()[1].number, 2
+            bs[0].number, 1
         )
         self.assertEqual(
-            w.book_set.all()[1].subtitle, 'deux'
+            bs[0].subtitle, 'un'
+        )
+        self.assertEqual(
+            bs[1].number, 2
+        )
+        self.assertEqual(
+            bs[1].subtitle, 'deux'
+        )
+        self.assertEqual(
+            bs[1].order_year, -150
+        )
+        self.assertEqual(
+            bs[1].date_range, 'somewhen'
         )
 
 
@@ -155,7 +171,10 @@ class TestWorkUpdateView(TestCase):
         a1 = Antiquarian.objects.create(name='foo', re_code=1)
         a2 = Antiquarian.objects.create(name='foo', re_code=2)
 
-        data = {'antiquarians': [a1.pk], 'name': 'first'}
+        data = {
+            'antiquarians': [a1.pk],
+            'name': 'first',
+        }
         request = RequestFactory().post(url, data=data)
         request.user = UserFactory.create()
 
@@ -198,4 +217,71 @@ class TestWorkUpdateView(TestCase):
         )
         self.assertEqual(
             Work.objects.get(pk=work.pk).name, 'other'
+        )
+
+    def test_update_with_books(self):
+
+        work = Work.objects.create(name='name2')
+        url = reverse(
+            'work:update',
+            kwargs={'pk': work.pk}
+        )
+
+        data = {
+            'antiquarians': [],
+            'name': 'second',
+        }
+        request = RequestFactory().post(url, data=data)
+        request.user = UserFactory.create()
+
+        work.lock(request.user)
+
+        WorkUpdateView.as_view()(
+            request, pk=work.pk
+        )
+
+        work = Work.objects.create(name='name')
+
+        # now transfer this work to another
+        data = {
+            'antiquarians': [],
+            'name': 'other',
+            'books_0_num': 11,
+            'books_0_title': 'alpha',
+            'books_1_num': 12,
+            'books_1_title': 'beta',
+            'books_1_date': '40-10BC',
+            'books_1_order': -25,
+
+        }
+        request = RequestFactory().post(url, data=data)
+        request.user = UserFactory.create()
+
+        work.lock(request.user)
+
+        view = WorkUpdateView.as_view()
+        # view.form.instance = work
+
+        view(
+            request, pk=work.pk
+        )
+
+        bs = work.book_set.all()
+        self.assertEqual(
+            bs[0].number, 11
+        )
+        self.assertEqual(
+            bs[0].subtitle, 'alpha'
+        )
+        self.assertEqual(
+            bs[1].number, 12
+        )
+        self.assertEqual(
+            bs[1].subtitle, 'beta'
+        )
+        self.assertEqual(
+            bs[1].order_year, -25
+        )
+        self.assertEqual(
+            bs[1].date_range, '40-10BC'
         )

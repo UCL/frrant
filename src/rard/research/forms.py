@@ -9,6 +9,23 @@ from rard.research.models.base import (AppositumFragmentLink, FragmentLink,
                                        TestimoniumLink)
 
 
+def _validate_reference_order(ro):
+    # check ref order doesn't have any section longer than 5 characters as well
+    # as non-numeric
+    for section in ro.split('.'):
+        if len(section) > 5:
+            raise forms.ValidationError(
+                'Each reference order section should not be longer than 5 '
+                'characters.',
+                code='subset-too-long'
+            )
+    if not ro.replace('.', '').isnumeric():
+        raise forms.ValidationError(
+            'Reference order must contain only numbers.',
+            code='ro-non-numeric'
+        )
+
+
 class AntiquarianIntroductionForm(forms.ModelForm):
     class Meta:
         model = Antiquarian
@@ -83,19 +100,27 @@ class AntiquarianUpdateWorksForm(forms.ModelForm):
           'works': forms.CheckboxSelectMultiple,
         }
 
+
 class BooksWidget(forms.Widget):
     template_name = 'widgets/books.html'
+
+    subfields = {
+        'num': 'Book number',
+        'title': 'Subtitle',
+        'date': 'Date range',
+        'order': 'Order year',
+    }
 
     def format_value(self, value):
         return value
 
     def value_from_datadict(self, data, files, name):
-        # find all <name>_<n>_num and <name>_<n>_title parameters
-        r = {} # dict of <n> to dict with keys 'num' and 'title'
+        # find all <name>_<n>_<subfield_id> parameters
+        r = {} # dict of <n> to dict with keys matching subfields
         prefix = name + '_'
         for k,v in data.items():
             ps = k.rsplit('_', 2)
-            if 2 < len(ps) and ps[0] == name and ps[2] in ['num', 'title'] and v:
+            if 2 < len(ps) and ps[0] == name and ps[2] in self.subfields and v:
                 i = int(ps[1])
                 if i not in r:
                     r[i] = {}
@@ -107,6 +132,11 @@ class BooksWidget(forms.Widget):
         ra = [r[k] for k in rkeys]
         return ra
 
+    def get_context(self, name, value, attrs):
+        ctx = super().get_context(name, value, attrs)
+        ctx['widget']['subfields'] = self.subfields
+        return ctx
+
 
 class BooksField(forms.Field):
     def __init__(self, **kwargs):
@@ -115,13 +145,38 @@ class BooksField(forms.Field):
     def validate(self, value):
         pass
 
+    @staticmethod
+    def get_values(value, key):
+        return [v[key].strip() for v in value if type(v) is dict and key in v]
+
+    @staticmethod
+    def is_integer(s):
+        try:
+            int(s)
+            return True
+        except:
+            return False
+
+    @staticmethod
+    def has_numberless_titleless_book(value):
+        for v in value:
+            if ('num' not in v and 'title' not in v):
+                return True
+        return False
+
     def clean(self, value):
         super().validate(value)
-        errors = []
-        vals = [v['num'].strip() for v in value if type(v) is dict and 'num' in v]
+        errors = [
+            forms.ValidationError(
+                _('Order year %(o)s is not a number'),
+                params={'o': o},
+                code='book-order-not-a-number'
+            ) for o in self.get_values(value, 'order')
+            if not self.is_integer(o)
+        ]
         nums = []
         non_nums = []
-        for v in vals:
+        for v in self.get_values(value, 'num'):
             if v:
                 if v.isnumeric() and 0 < int(v):
                     nums.append(v)
@@ -129,7 +184,7 @@ class BooksField(forms.Field):
                     non_nums.append(v)
         errors += [
             forms.ValidationError(
-                _('%(nn)s is not a positive number'),
+                _('Book number %(nn)s is not a positive number'),
                 params={'nn': nn},
                 code='book-number-not-a-number'
             ) for nn in non_nums
@@ -143,11 +198,18 @@ class BooksField(forms.Field):
                 seen[n] = True
         errors += [
             forms.ValidationError(
-                _('The book number %(n)s is duplicated.'),
+                _('Book number %(n)s is duplicated.'),
                 params={'n': dup},
                 code='book-number-duplicated'
             ) for dup in dups.keys()
         ]
+        if self.has_numberless_titleless_book(value):
+            errors.append(
+                forms.ValidationError(
+                    _("Books require either a title or a number"),
+                    code='numberless-titleless-book'
+                )
+            )
         if errors:
             raise forms.ValidationError(errors)
         return value
@@ -183,6 +245,23 @@ class WorkForm(forms.ModelForm):
         if self.instance and self.instance.pk:
             self.fields['antiquarians'].initial = \
                 self.instance.antiquarian_set.all()
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if 'books' in cleaned_data:
+            existing_book_numbers = [str(b.number) for b in self.instance.book_set.all()]
+            new_book_numbers = [b['num'] for b in cleaned_data.get('books') if 'num' in b]
+            overlaps = set(existing_book_numbers) & set(new_book_numbers)
+            if overlaps:
+                raise forms.ValidationError([
+                    forms.ValidationError(
+                        _('There is already a book with number %(n)s'),
+                        params={'n': o},
+                        code='book-number-already-exists'
+                    )
+                    for o in overlaps
+                ])
+        return cleaned_data
 
 
 class BookForm(forms.ModelForm):
@@ -268,7 +347,7 @@ class CitingWorkForm(forms.ModelForm):
             instance.save()
         return instance
 
-      
+
 class OriginalTextAuthorForm(forms.ModelForm):
     citing_author = forms.ModelChoiceField(
         queryset=CitingAuthor.objects.all().distinct(),
@@ -307,6 +386,10 @@ class OriginalTextDetailsForm(forms.ModelForm):
         label='Add apparatus criticus line',
     )
 
+    reference_order = forms.CharField(
+        validators=[_validate_reference_order]
+    )
+
     class Meta:
         model = OriginalText
         fields = (
@@ -322,15 +405,29 @@ class OriginalTextDetailsForm(forms.ModelForm):
         if original_text and original_text.pk:
             original_text.update_content_mentions()
 
+        if original_text and original_text.reference_order:
+            original_text.reference_order = (
+                original_text.remove_reference_order_padding())
+
         super().__init__(*args, **kwargs)
 
-        
+    def clean_reference_order(self):
+        # Reference order needs to be stored as a string with leading 0s such
+        # as 00001.00020.02340 for 1.20.2340
+        ro = self.cleaned_data["reference_order"]
+        return ".".join([i.zfill(5) for i in ro.split('.')])
+
+
 class OriginalTextForm(OriginalTextAuthorForm):
 
     new_apparatus_criticus_line = forms.CharField(
         widget=forms.Textarea(attrs={'rows': 2}),
         required=False,
         label='Add apparatus criticus line',
+    )
+
+    reference_order = forms.CharField(
+        validators=[_validate_reference_order]
     )
 
     class Meta:
@@ -349,6 +446,10 @@ class OriginalTextForm(OriginalTextAuthorForm):
         if original_text and original_text.pk:
             original_text.update_content_mentions()
 
+        if original_text and original_text.reference_order:
+            original_text.reference_order = (
+                original_text.remove_reference_order_padding())
+
         super().__init__(*args, **kwargs)
         # when creating an original text we also offer the option
         # of creating a new citing work. Hence we allow the selection
@@ -359,6 +460,12 @@ class OriginalTextForm(OriginalTextAuthorForm):
     def set_citing_work_required(self, required):
         # to allow set/reset required fields dynically in the view
         self.fields['citing_work'].required = required
+
+    def clean_reference_order(self):
+        # Reference order needs to be stored as a string with leading 0s such
+        # as 00001.00020.02340 for 1.20.2340
+        ro = self.cleaned_data["reference_order"]
+        return ".".join([i.zfill(5) for i in ro.split('.')])
 
 
 class CommentaryFormBase(forms.ModelForm):

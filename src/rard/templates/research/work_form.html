@@ -29,7 +29,16 @@
         {% bootstrap_field form.date_range %}
         {% bootstrap_field form.order_year %}
 
+        {% if object %}
+        <ul>
+            {% for book in object.book_set.all %}
+            <li>{{ book }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
         {{ form.errors.books }}
+        {{ form.non_field_errors }}
         {{ form.books }}
 
         <button type="submit" class="btn btn-primary">
@@ -39,5 +48,5 @@
                 {% trans 'Create' %}
             {% endif %}
         </button>
-    </form>
+</form>
 {% endblock %}

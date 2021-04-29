@@ -37,6 +37,15 @@ class TestOriginalText(TestCase):
         with self.assertRaises(IntegrityError):
             OriginalText.objects.create(**data)
 
+    def test_reference_order(self):
+        data = {
+            'content': 'content',
+            'citing_work': self.citing_work,
+            'reference_order': '00001.00010.12345',
+        }
+        text = OriginalText.objects.create(**data, owner=self.fragment)
+        self.assertEqual(text.remove_reference_order_padding(), '1.10.12345')
+
 
 class TestConcordance(TestCase):
 

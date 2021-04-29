@@ -16,7 +16,7 @@ class OriginalText(HistoryModelMixin, BaseModel):
         return self.owner
 
     class Meta:
-        ordering = ('citing_work', 'reference')
+        ordering = ('citing_work', 'reference_order')
 
     # original text can belong to either a fragment or a testimonium
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
@@ -30,8 +30,11 @@ class OriginalText(HistoryModelMixin, BaseModel):
 
     content = DynamicTextField(blank=False)
 
-    # the value 24 to be used in 'ordering by reference' taking example above
-    reference_order = models.IntegerField(blank=False, null=True, default=None)
+    # The value 24 to be used in 'ordering by reference' taking example above
+    # In some cases it will be a dot-separated list of numbers that also need
+    # to be used for ordering, like 1.3.24.
+    reference_order = models.CharField(blank=False, null=True, default=None,
+                                       max_length=100)
 
     # to be nuked eventually. not required now but hidden from view
     # to preserve previous values in case our data migration is insufficient
@@ -63,6 +66,12 @@ class OriginalText(HistoryModelMixin, BaseModel):
             index = self.index_with_respect_to_parent_object()
             ordinal = chr(ord('a')+index)
         return ordinal
+
+    def remove_reference_order_padding(self):
+        # Remove leading 0s so we display the user-friendly version
+        # e.g. 000001.000024.001230 will show as 1.24.1230
+        return ".".join(
+                    [i.lstrip('0') for i in self.reference_order.split('.')])
 
     # the ID to use in the concordance table
     @property
