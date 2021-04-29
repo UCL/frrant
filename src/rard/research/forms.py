@@ -9,6 +9,23 @@ from rard.research.models.base import (AppositumFragmentLink, FragmentLink,
                                        TestimoniumLink)
 
 
+def _validate_reference_order(ro):
+    # check ref order doesn't have any section longer than 5 characters as well
+    # as non-numeric
+    for section in ro.split('.'):
+        if len(section) > 5:
+            raise forms.ValidationError(
+                'Each reference order section should not be longer than 5 '
+                'characters.',
+                code='subset-too-long'
+            )
+    if not ro.replace('.', '').isnumeric():
+        raise forms.ValidationError(
+            'Reference order must contain only numbers.',
+            code='ro-non-numeric'
+        )
+
+
 class AntiquarianIntroductionForm(forms.ModelForm):
     class Meta:
         model = Antiquarian
@@ -369,6 +386,10 @@ class OriginalTextDetailsForm(forms.ModelForm):
         label='Add apparatus criticus line',
     )
 
+    reference_order = forms.CharField(
+        validators=[_validate_reference_order]
+    )
+
     class Meta:
         model = OriginalText
         fields = (
@@ -385,7 +406,8 @@ class OriginalTextDetailsForm(forms.ModelForm):
             original_text.update_content_mentions()
 
         if original_text and original_text.reference_order:
-            original_text.remove_reference_order_padding()
+            original_text.reference_order = (
+                original_text.remove_reference_order_padding())
 
         super().__init__(*args, **kwargs)
 
@@ -402,6 +424,10 @@ class OriginalTextForm(OriginalTextAuthorForm):
         widget=forms.Textarea(attrs={'rows': 2}),
         required=False,
         label='Add apparatus criticus line',
+    )
+
+    reference_order = forms.CharField(
+        validators=[_validate_reference_order]
     )
 
     class Meta:
@@ -421,7 +447,8 @@ class OriginalTextForm(OriginalTextAuthorForm):
             original_text.update_content_mentions()
 
         if original_text and original_text.reference_order:
-            original_text.remove_reference_order_padding()
+            original_text.reference_order = (
+                original_text.remove_reference_order_padding())
 
         super().__init__(*args, **kwargs)
         # when creating an original text we also offer the option
