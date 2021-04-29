@@ -62,7 +62,7 @@ class TestOriginalTextCreateViews(TestCase):
         data = {
             'content': 'content',
             'reference': 'Page 1',
-            'reference_order': 1,
+            'reference_order': '1',
             'citing_work': self.citing_work.pk,
             'citing_author': self.citing_work.author.pk,
             'create_object': True
@@ -216,12 +216,14 @@ class TestOriginalTextUpdateView(TestCase):
 
     def test_update_details_post(self):
         # data for both original text and fragment
+        # note at this stage reference order should be padded with 0s
         REFERENCE = 'page 10e17'
+        REFERENCE_ORDER = '00010.00017'
         NEW_CONTENT = 'Some new content'
 
         data = {
             'reference': REFERENCE,
-            'reference_order': 1,
+            'reference_order': REFERENCE_ORDER,
             'content': NEW_CONTENT,
             'create_object': True
         }
@@ -242,6 +244,7 @@ class TestOriginalTextUpdateView(TestCase):
         # refetch object
         ot = OriginalText.objects.get(pk=self.original_text.pk)
         self.assertEqual(ot.reference, REFERENCE)
+        self.assertEqual(ot.reference_order, REFERENCE_ORDER)
         self.assertEqual(ot.content, NEW_CONTENT)
 
 
