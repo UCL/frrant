@@ -593,7 +593,7 @@ $('body').on('dragend', '.drag-item', function(event) {
 
 
 function moveLinkTo(post_data) {
-  runMoveAction(post_data, g_move_link_url)
+    runMoveAction(post_data, g_move_link_url)
 }
 
 function moveTopicTo(post_data) {
