@@ -224,6 +224,14 @@
       <script src="https://afry.github.io/quill-mention/quill.mention.min.js"></script>
       <!-- place project specific Javascript in this file -->
       <script>const g_mention_url = '{% url "search:mention" %}';const g_apparatus_criticus_url = '{% url "search:apparatus_criticus" %}';</script>
+      <!-- urls provided to project.js -->
+      <script>
+        var frrant_url = {
+          'refresh_original_text_content': "{% url 'refresh_original_text_content' %}",
+          'move_link': "{% url 'move_link' %}",
+          'move_topic': "{% url 'move_topic' %}",
+        };
+      </script>
       <script src="{% static 'js/project.js' %}"></script>
       
     {% endblock javascript %}
