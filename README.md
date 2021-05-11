@@ -334,8 +334,7 @@ Before building the nginx container we need to do the following for development 
 
 `sudo openssl req -x509 -nodes -days 365 -config rardselfsigned.cnf -newkey rsa:2048 -keyout rardselfsigned.key -out rardselfsigned.crt`
 
-
-where the `.key` file is the key you generated along with the certificate request
+This will generated a certificate and corresponding key file.
 
 # Troubleshooting
 
