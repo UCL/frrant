@@ -4,6 +4,7 @@ from django.urls import reverse
 
 from rard.research.mixins import TextObjectFieldMixin
 from rard.utils.basemodel import BaseModel
+from rard.utils.decorators import disable_for_loaddata
 
 
 class Antiquarian(TextObjectFieldMixin, BaseModel):
@@ -152,6 +153,7 @@ class Antiquarian(TextObjectFieldMixin, BaseModel):
             ).strip()
 
 
+@disable_for_loaddata
 def remove_stale_antiquarian_links(sender, instance, **kwargs):
     # any fragment or testimonium links to this antiquarian
     # (and not via a work) should be deleted

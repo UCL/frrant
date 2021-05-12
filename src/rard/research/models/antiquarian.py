@@ -8,6 +8,7 @@ from simple_history.models import HistoricalRecords
 from rard.research.models.mixins import HistoryModelMixin, TextObjectFieldMixin
 from rard.utils.basemodel import (BaseModel, DatedModel, LockableModel,
                                   OrderableModel)
+from rard.utils.decorators import disable_for_loaddata
 
 
 class WorkLink(OrderableModel, models.Model):
@@ -28,6 +29,7 @@ class WorkLink(OrderableModel, models.Model):
     # order = models.IntegerField(default=None, null=True)
 
 
+@disable_for_loaddata
 def handle_deleted_work_link(sender, instance, **kwargs):
 
     if instance.work and instance.work.antiquarian_set.count() == 0:
@@ -55,6 +57,7 @@ def handle_deleted_work_link(sender, instance, **kwargs):
     instance.antiquarian.reindex_fragment_and_testimonium_links()
 
 
+@disable_for_loaddata
 def handle_reordered_works(sender, instance, created, **kwargs):
     if not created:
         # Only handle modified links here.
@@ -64,6 +67,7 @@ def handle_reordered_works(sender, instance, created, **kwargs):
         instance.antiquarian.reindex_fragment_and_testimonium_links()
 
 
+@disable_for_loaddata
 def handle_changed_works(sender, instance, action, model, pk_set, **kwargs):
     if action not in ('post_add', 'post_remove'):
         return
@@ -322,6 +326,7 @@ class Antiquarian(HistoryModelMixin, TextObjectFieldMixin, LockableModel,
             self.reindex_null_fragment_and_testimonium_links()
 
 
+@disable_for_loaddata
 def remove_stale_antiquarian_links(sender, instance, **kwargs):
     # when deleting an antiquarian,
     # any fragment or testimonium links to the antiquarian

@@ -261,7 +261,7 @@ it, set the required environment variables and load the fixture:
 docker cp dump.json 4067:/app/dump.json
 docker exec -it 4067 bash
 source /entrypoint
-LOADING=true ./manage.py dump.json
+LOADING=true ./manage.py loaddata dump.json
 exit
 ```
 
