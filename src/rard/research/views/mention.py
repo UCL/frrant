@@ -64,14 +64,27 @@ class MentionSearchView(LoginRequiredMixin, View):
         return results.distinct()
 
     @classmethod
+    def remove_keyword(cls, kw, keywords):
+        if not keywords or not keywords[0].lower().startswith(kw):
+            return None
+        k = keywords[0][len(kw):]
+        if len(k) == 0:
+            return keywords[1:]
+        keywords[0] = k
+        return keywords
+
+    @classmethod
     def anonymous_fragment_search(cls, keywords):
         qs = AnonymousFragment.objects.all()
-        results = (
-            qs.filter(
-                appositumfragmentlinks_from__antiquarian__name__icontains=keywords  # noqa
-            )
-        )
-        return results.distinct()
+        kws = keywords.split()
+        ids = cls.remove_keyword('f', kws)
+        if ids == None or 1 < len(ids):
+            return qs.none()
+        if len(ids) == 0:
+            return qs
+        if not ids[0].isnumeric():
+            return qs.none()
+        return qs.filter(order=int(ids[0])-1)
 
     @classmethod
     def testimonium_search(cls, keywords):

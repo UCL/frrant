@@ -169,8 +169,10 @@ class TestMentionsView(TestCase):
             antiquarian=a2
         )
 
-        self.assertEqual(list(view.anonymous_fragment_search('findme')), [af1])
-        self.assertEqual(list(view.anonymous_fragment_search('FIN')), [af1])
-        self.assertEqual(list(view.anonymous_fragment_search('foo')), [af2])
-        self.assertEqual(list(view.anonymous_fragment_search('fO')), [af2])
+        self.assertEqual(list(view.anonymous_fragment_search('f1')), [af1])
+        self.assertEqual(list(view.anonymous_fragment_search('F1')), [af1])
+        self.assertEqual(list(view.anonymous_fragment_search('f2')), [af2])
+        self.assertEqual(list(view.anonymous_fragment_search('F 2')), [af2])
         self.assertEqual(list(view.anonymous_fragment_search('F')), [af1, af2])
+        self.assertEqual(list(view.anonymous_fragment_search('')), [])
+        self.assertEqual(list(view.anonymous_fragment_search('1')), [])
