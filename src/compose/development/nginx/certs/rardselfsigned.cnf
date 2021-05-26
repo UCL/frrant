@@ -9,4 +9,4 @@ distinguished_name = dn
 C = GB
 L = London
 O = University College London
-CN = frra-dev.addev.ucl.ac.uk
+CN = frra-app01p.ad.ucl.ac.uk

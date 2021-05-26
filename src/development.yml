@@ -66,6 +66,7 @@ services:
     expose:
       - 80
     env_file:
+      - ./.envs/.development/.postgres
       - ./.envs/.development/.pgadmin
     depends_on:
       - postgres
@@ -81,9 +82,9 @@ services:
       - "0.0.0.0:443:443"
       - "0.0.0.0:2345:2345"
     volumes:
-      - ./compose/development/nginx/conf.d:/etc/nginx/conf.d
-      - ./compose/development/nginx/certs:/etc/nginx/certs
-      - ./compose/development/nginx/snippets:/etc/nginx/snippets
+      - ./compose/development/nginx/conf.d:/etc/nginx/conf.d:z
+      - ./compose/development/nginx/certs:/etc/nginx/certs:z
+      - ./compose/development/nginx/snippets:/etc/nginx/snippets:z
       - type: volume
         source: staticfiles
         target: /static

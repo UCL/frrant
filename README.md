@@ -253,9 +253,17 @@ Rebuild database:
 
 ```docker-compose -f local.yml up --build```
 
-Fill the database from the fixture:
+Find out which container is the correct one with `docker ps`. Suppose you
+find the container is `4067`. Then copy the file into this container, enter
+it, set the required environment variables and load the fixture:
 
-```docker-compose -f local.yml run -e LOADING=true --rm django python manage.py loaddata dump.json```
+```sh
+docker cp dump.json 4067:/app/dump.json
+docker exec -it 4067 bash
+source /entrypoint
+LOADING=true ./manage.py loaddata dump.json
+exit
+```
 
 Note that the environment variable LOADING=true is *essential* for this to work. As long as it is set to some value (e.g. LOADING=1, LOADING=foo) then it will work.
 
@@ -334,8 +342,7 @@ Before building the nginx container we need to do the following for development 
 
 `sudo openssl req -x509 -nodes -days 365 -config rardselfsigned.cnf -newkey rsa:2048 -keyout rardselfsigned.key -out rardselfsigned.crt`
 
-
-where the `.key` file is the key you generated along with the certificate request
+This will generated a certificate and corresponding key file.
 
 # Troubleshooting
 
