@@ -17,10 +17,8 @@ services:
     container_name: django
     depends_on:
       - postgres
-      - elasticsearch
     links:
       - postgres
-      - elasticsearch
     volumes:
       - type: volume
         source: uploads
@@ -70,7 +68,5 @@ services:
         target: /static
     depends_on:
       - django
-      - pgadmin
-      - elasticsearch 
     restart: always
 
