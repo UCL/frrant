@@ -1,6 +1,8 @@
 from django.db.models.signals import post_delete, post_save
 from django.urls import reverse
 
+from rard.utils.decorators import disable_for_loaddata
+
 
 class TextObjectFieldMixin(object):
 
@@ -17,6 +19,7 @@ class TextObjectFieldMixin(object):
         return fields
 
     @classmethod
+    @disable_for_loaddata
     def create_text_object_fields(cls, sender, instance, created, **kwargs):
         if created:
             from rard.research.models.text_object_field import TextObjectField
@@ -25,6 +28,7 @@ class TextObjectFieldMixin(object):
             instance.save_without_historical_record()
 
     @classmethod
+    @disable_for_loaddata
     def delete_text_object_fields(cls, sender, instance, **kwargs):
         for field in cls.get_text_object_fields():
             text_object = getattr(instance, field.name)

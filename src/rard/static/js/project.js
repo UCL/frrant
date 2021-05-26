@@ -593,11 +593,11 @@ $('body').on('dragend', '.drag-item', function(event) {
 
 
 function moveLinkTo(post_data) {
-    runMoveAction(post_data, "/ajax/move-link/")
+    runMoveAction(post_data, g_move_link_url)
 }
 
 function moveTopicTo(post_data) {
-    runMoveAction(post_data, "/ajax/move-topic/")
+    runMoveAction(post_data, g_move_topic_url)
 }
 
 function runMoveAction(post_data, post_url) {
@@ -700,7 +700,7 @@ function refreshOriginalTextApparatusCriticus() {
         // so that it appears correct to the user. It would be all handled correctly
         // on saving anyway, but this is a cosmetic update so the user doesn't become confused!
         $.ajax({
-            url: '/ajax/refresh-original-text-content/',
+            url: g_refresh_original_text_content_url,
             type: "POST",
             data: {'content': html},
             headers: headers,

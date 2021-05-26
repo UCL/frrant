@@ -3,7 +3,7 @@
     "model": "sites.site",
     "pk": 1,
     "fields": {
-        "domain": "frra-dev.addev.ucl.ac.uk",
+        "domain": "frra-app01p.ad.ucl.ac.uk",
         "name": "Republican Antiquarians Research Database"
     }
 }

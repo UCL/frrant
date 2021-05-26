@@ -167,7 +167,7 @@ class DynamicTextField(TextField):
                                     'style="cursor:pointer;" '
                                     'title="<span class=\'historical\'>{}'
                                     '</span>">'
-                                    '[App. crit. {}]</span>'.format(
+                                    '[{}]</span>'.format(
                                         linked.get_anchor_id(),
                                         mark_safe(entity_escape(linked.content)),
                                         display_str,
