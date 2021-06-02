@@ -31,6 +31,15 @@ services:
       - ./.envs/.development/.postgres
     command: /start
     restart: always
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - "-c"
+        - "import requests;exit(399<requests.get('http://localhost:5000',allow_redirects=False).status_code)"
+      timeout: 10s
+      interval: 1m
+      retries: 3
 
   postgres:
     build:
@@ -48,6 +57,11 @@ services:
     env_file:
       - ./.envs/.development/.postgres
     restart: always
+    healthcheck:
+      test: "pg_isready -q -U $$POSTGRES_USER -d $$POSTGRES_DB"
+      timeout: 45s
+      interval: 10s
+      retries: 10
 
   nginx:
     build:

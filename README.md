@@ -323,8 +323,8 @@ and enter the following
 ```
 POSTGRES_HOST=postgres
 POSTGRES_PORT=5432
-POSTGRES_DB=rard
-POSTGRES_USER=<secret username>
+POSTGRES_DB=frrant
+POSTGRES_USER=devuser
 POSTGRES_PASSWORD=<secret password>
 ```
 
