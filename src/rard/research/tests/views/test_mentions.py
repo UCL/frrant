@@ -5,10 +5,10 @@ from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
 from rard.research.models import (AnonymousFragment, Antiquarian,
-                                  BibliographyItem, CitingWork, Fragment,
-                                  Testimonium, TextObjectField, Topic, Work)
-from rard.research.models.base import (FragmentLink, TestimoniumLink,
-    AppositumFragmentLink)
+                                  BibliographyItem, Fragment, Testimonium,
+                                  Topic, Work)
+from rard.research.models.base import (AppositumFragmentLink, FragmentLink,
+                                       TestimoniumLink)
 from rard.research.views import MentionSearchView
 from rard.users.tests.factories import UserFactory
 
@@ -118,8 +118,6 @@ class TestMentionsView(TestCase):
         self.assertEqual(list(view.work_search('NothInG')), [w2])
         self.assertEqual(list(view.work_search('O')), [w2, w1])
 
-        cw = CitingWork.objects.create(title='citing_work')
-
         # fragments
         f1 = Fragment.objects.create()
         FragmentLink.objects.create(
@@ -176,3 +174,21 @@ class TestMentionsView(TestCase):
         self.assertEqual(list(view.anonymous_fragment_search('F')), [af1, af2])
         self.assertEqual(list(view.anonymous_fragment_search('')), [])
         self.assertEqual(list(view.anonymous_fragment_search('1')), [])
+
+        # bibliography items
+        bi1 = BibliographyItem.objects.create(
+            authors='fee fie foe',
+            author_surnames='Froe',
+            title='apples and pears',
+            parent=a1
+        )
+        bi2 = BibliographyItem.objects.create(
+            authors='tee tie toe',
+            author_surnames='Twoe',
+            title='peppers and carrots',
+            parent=a2
+        )
+        self.assertEqual(list(view.bibliography_search('fie')), [bi1])
+        self.assertEqual(list(view.bibliography_search('toe')), [bi2])
+        self.assertEqual(list(view.bibliography_search('apples')), [bi1])
+        self.assertEqual(list(view.bibliography_search('and')), [bi1, bi2])
