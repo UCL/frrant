@@ -13,7 +13,9 @@ from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.safestring import mark_safe
 from model_utils.models import TimeStampedModel
+
 from rard.research.templatetags.entity_escape import entity_escape
+
 
 class DynamicTextField(TextField):
 

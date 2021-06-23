@@ -7,8 +7,8 @@ from django.urls import reverse
 from rard.research.models import (AnonymousFragment, Antiquarian,
                                   BibliographyItem, CitingWork, Fragment,
                                   Testimonium, TextObjectField, Topic, Work)
-from rard.research.models.base import (FragmentLink, TestimoniumLink,
-    AppositumFragmentLink)
+from rard.research.models.base import (AppositumFragmentLink, FragmentLink,
+                                       TestimoniumLink)
 from rard.research.views import MentionSearchView
 from rard.users.tests.factories import UserFactory
 
