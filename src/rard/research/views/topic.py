@@ -1,3 +1,5 @@
+from itertools import chain
+
 from django.contrib.auth.context_processors import PermWrapper
 from django.contrib.auth.mixins import (LoginRequiredMixin,
                                         PermissionRequiredMixin)
@@ -41,26 +43,33 @@ class TopicDetailView(CanLockMixin, LoginRequiredMixin,
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        qs = self.get_object().fragment_set.all()
+        fragment_qs = self.get_object().fragment_set.all()
+        anonymousfragment_qs = self.get_object().anonymousfragment_set.all()
         order = self.request.GET.get('order', None)
         if order == 'citing_author':
-            qs = qs.order_by('original_texts__citing_author__name')
+            fragment_qs = fragment_qs.order_by(
+                'original_texts__citing_author__name'
+                )
+            anonymousfragment_qs = anonymousfragment_qs.order_by(
+                'original_texts__citing_author__name'
+                )
         else:
-            qs = qs.order_by(
+            fragment_qs = fragment_qs.order_by(
                 'antiquarian_fragmentlinks__antiquarian__order_name'
             )
+        combined_qs = chain(fragment_qs, anonymousfragment_qs)
 
         rtn = []
-        for x in qs:
+        for x in combined_qs:
             # don't add duplicates as we are ordering by a name field
             # and the duplicates will have the first name
             # first in the list and therefore look wrong
             if x not in rtn:
                 rtn.append(x)
-        qs = rtn
+        combined_qs = rtn
 
         context.update({
-            'fragments': qs,
+            'fragments': combined_qs,
             'order': order,
         })
         return context
