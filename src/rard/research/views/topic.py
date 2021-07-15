@@ -1,5 +1,3 @@
-from itertools import chain
-
 from django.contrib.auth.context_processors import PermWrapper
 from django.contrib.auth.mixins import (LoginRequiredMixin,
                                         PermissionRequiredMixin)
@@ -57,7 +55,8 @@ class TopicDetailView(CanLockMixin, LoginRequiredMixin,
             fragment_qs = fragment_qs.order_by(
                 'antiquarian_fragmentlinks__antiquarian__order_name'
             )
-        combined_qs = chain(fragment_qs, anonymousfragment_qs)
+        # combine querysets: ordered fragments before ordered anon fragments
+        combined_qs = (x for y in [fragment_qs, anonymousfragment_qs] for x in y)
 
         rtn = []
         for x in combined_qs:
