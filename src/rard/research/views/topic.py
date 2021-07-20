@@ -48,10 +48,10 @@ class TopicDetailView(CanLockMixin, LoginRequiredMixin,
         order = self.request.GET.get('order', None)
         if order == 'citing_author':
             fragment_qs = fragment_qs.order_by(
-                'original_texts__citing_author__name'
+                'original_texts__citing_work__author__name'
                 )
             anonymousfragment_qs = anonymousfragment_qs.order_by(
-                'original_texts__citing_author__name'
+                'original_texts__citing_work__author__name'
                 )
         else:
             fragment_qs = fragment_qs.order_by(

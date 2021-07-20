@@ -1,11 +1,13 @@
+from typing_extensions import ParamSpecKwargs
 import pytest
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
-from rard.research.models import Topic
+from rard.research.models import Topic, CitingWork, CitingAuthor, Fragment, AnonymousFragment
 from rard.research.views import (TopicCreateView, TopicDeleteView,
                                  TopicDetailView, TopicListView,
-                                 TopicUpdateView)
+                                 TopicUpdateView, FragmentCreateView,
+                                 AnonymousFragmentCreateView)
 from rard.users.tests.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
@@ -213,3 +215,74 @@ class TestTopicViewPermissions(TestCase):
         self.assertIn(
             'research.view_topic', TopicDetailView.permission_required
         )
+
+class TestTopicDetailView(TestCase):
+
+    def setUp(self):
+        # Create a topic
+        self.topic_name = 'test_topic'
+        self.topic = Topic.objects.create(name=self.topic_name)
+
+        # We want two authors so we can test alternate ordering
+        self.citing_author_a = CitingAuthor.objects.create(name='Alice')
+        self.citing_author_b = CitingAuthor.objects.create(name='Bob')
+        self.citing_work_1 = CitingWork.objects.create(
+            title='title_1', 
+            author=self.citing_author_b
+        )
+        self.citing_work_2 = CitingWork.objects.create(
+            title='title_2',
+            author=self.citing_author_a
+        )
+
+        # Create two fragments and two anonymous fragments 
+        # linked to this topic with different authors
+        self.user = UserFactory.create()
+        fragment_1 = {
+            'name': 'fragment 1',
+            'apparatus_criticus': 'app_criticus',
+            'content': 'content',
+            'reference': 'Page 1',
+            'reference_order': 1,
+            'topics': [self.topic.pk],
+            'citing_work': self.citing_work_1.pk,
+            'citing_author': self.citing_work_1.author.pk,
+            'create_object': True
+        }
+        fragment_2 = fragment_1.copy()
+        fragment_2['name'] = 'fragment 2'
+        fragment_2['citing_work'] = self.citing_work_2.pk
+        fragment_2['citing_author'] = self.citing_work_2.author.pk
+        self.topic_items = []
+        for fragment in [fragment_1, fragment_2]:
+            request = RequestFactory().post('/',data=fragment)
+            request.user = self.user
+            response = FragmentCreateView.as_view()(request)
+            self.topic_items.append(
+                Fragment.objects.filter(
+                    pk=response.url.split('/')[2]
+                ).first()
+            )
+            response = AnonymousFragmentCreateView.as_view()(request)
+            self.topic_items.append(
+                AnonymousFragment.objects.filter(
+                    pk=response.url.split('/')[2]
+                ).first()
+            )
+
+    def test_antiquarian_order(self):
+        request = RequestFactory().get('/')
+        request.user = self.user
+        response = TopicDetailView.as_view()(request,slug=self.topic_name)
+        antiquarian_order = [self.topic_items[i] for i in [0,2,1,3]]
+        self.assertEqual(antiquarian_order, response.context_data['fragments'])
+
+    def test_citing_author_order(self):
+        request = RequestFactory().get('/?order=citing_author')
+        request.user = self.user
+        response = TopicDetailView.as_view()(request,slug=self.topic_name)
+        correct_order = [self.topic_items[i] for i in [2,0,3,1]]
+        self.assertEqual(correct_order, response.context_data['fragments'])
+
+        
+
