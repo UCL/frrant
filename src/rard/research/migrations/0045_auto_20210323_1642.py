@@ -15,7 +15,7 @@ def init_reference_order(apps, schema_editor):
         # the reference order where not set
         for item in _class.objects.all():
             try:
-                match = re.search('(\d+)', item.reference)
+                match = re.search(r'(\d+)', item.reference)
                 if match is not None:
                     item.reference_order = match.group(1)
                     item.save()
