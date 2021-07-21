@@ -281,8 +281,8 @@ class TestTopicDetailView(TestCase):
         request = RequestFactory().get('/?order=citing_author')
         request.user = self.user
         response = TopicDetailView.as_view()(request,slug=self.topic_name)
-        correct_order = [self.topic_items[i] for i in [2,0,3,1]]
-        self.assertEqual(correct_order, response.context_data['fragments'])
+        author_order = [self.topic_items[i] for i in [2,0,3,1]]
+        self.assertEqual(author_order, response.context_data['fragments'])
 
         
 
