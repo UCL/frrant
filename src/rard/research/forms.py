@@ -540,6 +540,7 @@ class FragmentForm(HistoricalFormBase):
     class Meta:
         model = Fragment
         fields = ('topics', 'date_range', 'order_year',)
+        labels = {'date_range': 'Chronological reference'}
         widgets = {'topics': forms.CheckboxSelectMultiple}
 
 
@@ -548,6 +549,7 @@ class AnonymousFragmentForm(forms.ModelForm):
     class Meta:
         model = AnonymousFragment
         fields = ('topics', 'date_range', 'order_year',)
+        labels = {'date_range': 'Chronological reference'}
         widgets = {'topics': forms.CheckboxSelectMultiple}
 
 
