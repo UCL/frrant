@@ -5,8 +5,8 @@ from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
 from rard.research.models import (AnonymousFragment, Antiquarian,
-                                  BibliographyItem, Fragment, Testimonium,
-                                  Topic, Work)
+                                  BibliographyItem, CitingWork, Fragment,
+                                  Testimonium, TextObjectField, Topic, Work)
 from rard.research.models.base import (AppositumFragmentLink, FragmentLink,
                                        TestimoniumLink)
 from rard.research.views import MentionSearchView

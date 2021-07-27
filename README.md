@@ -253,22 +253,11 @@ Rebuild database:
 
 ```docker-compose -f local.yml up -d --build```
 
-Find out which container is the correct one with `docker ps`; you are
-looking for one with an image called something like `rard_local_django`.
-Suppose you find the container is `4067`. Then copy the file into this
-container, enter it, set the required environment variables and load the
-fixture:
+Run the `src/loaddata.sh` script to load this:
 
 ```sh
-docker cp dump.json 4067:/app/dump.json
-docker exec -it 4067 bash
-source /entrypoint
-LOADING=true ./manage.py loaddata dump.json
-exit
+./loaddata.sh dump.json
 ```
-
-Note that the environment variable LOADING=true is *essential* for this to work. As long as it is set to some value (e.g. LOADING=1, LOADING=foo) then it will work.
-
 
 ### Requirements
 

@@ -1447,3 +1447,16 @@ class TestAppositaLinkScheme(TestCase):
 
         # exclusive links should be deleted when this happens
         self.assertEqual(AppositumFragmentLink.objects.count(), 0)
+
+    def test_linked_book_deletion_adds_work_deletion(self):
+        # Remove a book-fragment link and get a work-fragment link
+        a = Antiquarian.objects.create(name='aq1', re_code='aq1')
+        w = Work.objects.create(name='w1')
+        a.works.add(w)
+        b = Book.objects.create(work=w, number=1)
+        f = Fragment.objects.create()
+        FragmentLink.objects.create(fragment=f, work=w, book=b)
+        b.delete()
+        fls = list(FragmentLink.objects.filter(fragment=f, work=w))
+        self.assertEqual(len(fls), 1)
+        self.assertEqual(fls[0].book, None)

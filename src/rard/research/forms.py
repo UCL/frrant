@@ -588,6 +588,15 @@ class BaseLinkWorkForm(forms.ModelForm):
             self.fields['book'].queryset = Book.objects.none()
             self.fields['book'].disabled = True
 
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get('book') and not cleaned_data.get('work'):
+            raise forms.ValidationError(
+                _('Work is required for book link.'),
+                code='book-without-work'
+            )
+        return cleaned_data
+
 
 class FragmentLinkWorkForm(BaseLinkWorkForm):
     class Meta(BaseLinkWorkForm.Meta):
