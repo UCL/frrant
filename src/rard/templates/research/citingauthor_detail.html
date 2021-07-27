@@ -94,12 +94,12 @@
 
         <ul>
 
-        {% for item in object.ordered_materials.testimonia %}
-        {% include 'research/partials/testimonium_list_item.html' with testimonium=item citing_author=object %}
-        {% endfor %}
-
         {% for item in object.ordered_materials.fragments %}
         {% include 'research/partials/fragment_list_item.html' with fragment=item citing_author=object %}
+        {% endfor %}
+
+        {% for item in object.ordered_materials.testimonia %}
+        {% include 'research/partials/testimonium_list_item.html' with testimonium=item citing_author=object %}
         {% endfor %}
 
         {% for item in object.ordered_materials.apposita %}
