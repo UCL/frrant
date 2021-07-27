@@ -163,13 +163,13 @@ class DynamicTextField(TextField):
                                 display_str += str(linked.order + 1)
 
                                 replacement = bs4.BeautifulSoup(
-                                    '<span id="{}" data-toggle="tooltip" '
+                                    '<sup id="{}" data-toggle="tooltip" '
                                     'data-html="true" '
                                     'data-placement="top" '
-                                    'style="cursor:pointer;" '
+                                    'style="cursor:pointer;color:blue" '
                                     'title="<span class=\'historical\'>{}'
                                     '</span>">'
-                                    '[{}]</span>'.format(
+                                    '{}</sup>'.format(
                                         linked.get_anchor_id(),
                                         mark_safe(entity_escape(linked.content)),
                                         display_str,

@@ -251,7 +251,7 @@ First, remove existing database:
 
 Rebuild database:
 
-```docker-compose -f local.yml up --build```
+```docker-compose -f local.yml up -d --build```
 
 Run the `src/loaddata.sh` script to load this:
 
@@ -314,8 +314,8 @@ and enter the following
 ```
 POSTGRES_HOST=postgres
 POSTGRES_PORT=5432
-POSTGRES_DB=rard
-POSTGRES_USER=<secret username>
+POSTGRES_DB=frrant
+POSTGRES_USER=devuser
 POSTGRES_PASSWORD=<secret password>
 ```
 

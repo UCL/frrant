@@ -3,13 +3,15 @@
 from itertools import chain
 
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import Http404, JsonResponse
+from django.db.models import Q
+from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_GET
 from django.views.generic import View
 
-from rard.research.models import (AnonymousFragment, Antiquarian, Fragment,
-                                  Testimonium, Topic, Work)
+from rard.research.models import (AnonymousFragment, Antiquarian,
+                                  BibliographyItem, Fragment, Testimonium,
+                                  Topic, Work)
 
 
 @method_decorator(require_GET, name='dispatch')
@@ -26,6 +28,7 @@ class MentionSearchView(LoginRequiredMixin, View):
             'fragments': self.fragment_search,
             'topics': self.topic_search,
             'works': self.work_search,
+            'bibliographies': self.bibliography_search,
         }
 
     # move to queryset on model managers
@@ -78,7 +81,7 @@ class MentionSearchView(LoginRequiredMixin, View):
         qs = AnonymousFragment.objects.all()
         kws = keywords.split()
         ids = cls.remove_keyword('f', kws)
-        if ids == None or 1 < len(ids):
+        if ids is None or 1 < len(ids):
             return qs.none()
         if len(ids) == 0:
             return qs
@@ -96,10 +99,14 @@ class MentionSearchView(LoginRequiredMixin, View):
         )
         return results.distinct()
 
-    def get(self, request, *args, **kwargs):
+    @classmethod
+    def bibliography_search(cls, keywords):
+        results = BibliographyItem.objects.filter(
+            Q(authors__icontains=keywords) | Q(title__icontains=keywords)
+        )
+        return results.distinct()
 
-        if not request.is_ajax():
-            raise Http404
+    def get(self, request, *args, **kwargs):
 
         ajax_data = []
 
