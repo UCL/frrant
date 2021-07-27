@@ -126,8 +126,8 @@ class HistoricalBaseCreateView(OriginalTextCitingWorkView):
 
         self.post_process_saved_object(self.saved_object)
 
-        if 'then_add_links' in self.request.POST or \
-            'then_add_apparatus_criticus' in self.request.POST:
+        if ('then_add_links' in self.request.POST or
+                'then_add_apparatus_criticus' in self.request.POST):
             # lock the object
             self.saved_object.lock(self.request.user)
 

@@ -251,11 +251,13 @@ First, remove existing database:
 
 Rebuild database:
 
-```docker-compose -f local.yml up --build```
+```docker-compose -f local.yml up -d --build```
 
-Find out which container is the correct one with `docker ps`. Suppose you
-find the container is `4067`. Then copy the file into this container, enter
-it, set the required environment variables and load the fixture:
+Find out which container is the correct one with `docker ps`; you are
+looking for one with an image called something like `rard_local_django`.
+Suppose you find the container is `4067`. Then copy the file into this
+container, enter it, set the required environment variables and load the
+fixture:
 
 ```sh
 docker cp dump.json 4067:/app/dump.json
