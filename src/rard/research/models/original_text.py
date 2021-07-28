@@ -113,7 +113,7 @@ class Concordance(HistoryModelMixin, BaseModel):
         ordering = ('source', 'identifier')
 
     def __str__(self):
-        return '%s:%s' % (self.source, self.identifier)
+        return '%s: %s' % (self.source, self.identifier)
 
 
 class Translation(HistoryModelMixin, BaseModel):

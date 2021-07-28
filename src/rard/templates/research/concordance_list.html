@@ -30,7 +30,7 @@
     <table class="table table-hover">
       <thead>
         <tr>
-          <th scope="col">Author One</th>
+          <th scope="col">FRRAnt</th>
           {% for i in column_range %}
           <th scope="col">Author {{ forloop.counter }}</th>
           {% endfor %}
@@ -40,7 +40,7 @@
         {% for object in page_obj %}
           <tr>
               <td>
-                  <a href='{{ object.fragment.get_absolute_url }}'>FRRAnt {{ object.get_display_name }}</a>
+                  <a href='{{ object.fragment.get_absolute_url }}'>{{ object.get_display_name }}</a>
               </td>
 
           {# NB the object here is a FragmentLink object #}
