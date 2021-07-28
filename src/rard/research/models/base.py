@@ -195,7 +195,7 @@ class WorkLinkBaseModel(LinkBaseModel):
         null=True,
         default=None,
         related_name='antiquarian_book_%(class)ss',
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         blank=True
     )
 

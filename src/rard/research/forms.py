@@ -116,9 +116,8 @@ class BooksWidget(forms.Widget):
 
     def value_from_datadict(self, data, files, name):
         # find all <name>_<n>_<subfield_id> parameters
-        r = {} # dict of <n> to dict with keys matching subfields
-        prefix = name + '_'
-        for k,v in data.items():
+        r = {}  # dict of <n> to dict with keys matching subfields
+        for k, v in data.items():
             ps = k.rsplit('_', 2)
             if 2 < len(ps) and ps[0] == name and ps[2] in self.subfields and v:
                 i = int(ps[1])
@@ -154,7 +153,7 @@ class BooksField(forms.Field):
         try:
             int(s)
             return True
-        except:
+        except ValueError:
             return False
 
     @staticmethod
@@ -249,8 +248,12 @@ class WorkForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         if 'books' in cleaned_data:
-            existing_book_numbers = [str(b.number) for b in self.instance.book_set.all()]
-            new_book_numbers = [b['num'] for b in cleaned_data.get('books') if 'num' in b]
+            existing_book_numbers = [
+                str(b.number) for b in self.instance.book_set.all()
+            ]
+            new_book_numbers = [
+                b['num'] for b in cleaned_data.get('books') if 'num' in b
+            ]
             overlaps = set(existing_book_numbers) & set(new_book_numbers)
             if overlaps:
                 raise forms.ValidationError([
@@ -537,6 +540,7 @@ class FragmentForm(HistoricalFormBase):
     class Meta:
         model = Fragment
         fields = ('topics', 'date_range', 'order_year',)
+        labels = {'date_range': 'Chronological reference'}
         widgets = {'topics': forms.CheckboxSelectMultiple}
 
 
@@ -545,6 +549,7 @@ class AnonymousFragmentForm(forms.ModelForm):
     class Meta:
         model = AnonymousFragment
         fields = ('topics', 'date_range', 'order_year',)
+        labels = {'date_range': 'Chronological reference'}
         widgets = {'topics': forms.CheckboxSelectMultiple}
 
 
@@ -584,6 +589,15 @@ class BaseLinkWorkForm(forms.ModelForm):
         else:
             self.fields['book'].queryset = Book.objects.none()
             self.fields['book'].disabled = True
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get('book') and not cleaned_data.get('work'):
+            raise forms.ValidationError(
+                _('Work is required for book link.'),
+                code='book-without-work'
+            )
+        return cleaned_data
 
 
 class FragmentLinkWorkForm(BaseLinkWorkForm):

@@ -251,22 +251,13 @@ First, remove existing database:
 
 Rebuild database:
 
-```docker-compose -f local.yml up --build```
+```docker-compose -f local.yml up -d --build```
 
-Find out which container is the correct one with `docker ps`. Suppose you
-find the container is `4067`. Then copy the file into this container, enter
-it, set the required environment variables and load the fixture:
+Run the `src/loaddata.sh` script to load this:
 
 ```sh
-docker cp dump.json 4067:/app/dump.json
-docker exec -it 4067 bash
-source /entrypoint
-LOADING=true ./manage.py loaddata dump.json
-exit
+./loaddata.sh dump.json
 ```
-
-Note that the environment variable LOADING=true is *essential* for this to work. As long as it is set to some value (e.g. LOADING=1, LOADING=foo) then it will work.
-
 
 ### Requirements
 
@@ -323,8 +314,8 @@ and enter the following
 ```
 POSTGRES_HOST=postgres
 POSTGRES_PORT=5432
-POSTGRES_DB=rard
-POSTGRES_USER=<secret username>
+POSTGRES_DB=frrant
+POSTGRES_USER=devuser
 POSTGRES_PASSWORD=<secret password>
 ```
 

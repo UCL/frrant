@@ -17,10 +17,8 @@ services:
     container_name: django
     depends_on:
       - postgres
-      - elasticsearch
     links:
       - postgres
-      - elasticsearch
     volumes:
       - type: volume
         source: uploads
@@ -32,6 +30,16 @@ services:
       - ./.envs/.development/.django
       - ./.envs/.development/.postgres
     command: /start
+    restart: always
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - "-c"
+        - "import requests;exit(399<requests.get('http://localhost:5000',allow_redirects=False).status_code)"
+      timeout: 10s
+      interval: 1m
+      retries: 3
 
   postgres:
     build:
@@ -48,28 +56,12 @@ services:
         target: /backups
     env_file:
       - ./.envs/.development/.postgres
-
-  elasticsearch:
-    container_name: elasticsearch
-    image: elasticsearch:7.4.0
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-    ports:
-      - 9200:9200
-
-  pgadmin:
-    build:
-      context: .
-      dockerfile: ./compose/development/pgadmin/Dockerfile
-    image: rard_development_pgadmin
-    expose:
-      - 80
-    env_file:
-      - ./.envs/.development/.postgres
-      - ./.envs/.development/.pgadmin
-    depends_on:
-      - postgres
+    restart: always
+    healthcheck:
+      test: "pg_isready -q -U $$POSTGRES_USER -d $$POSTGRES_DB"
+      timeout: 45s
+      interval: 10s
+      retries: 10
 
   nginx:
     build:
@@ -90,6 +82,5 @@ services:
         target: /static
     depends_on:
       - django
-      - pgadmin
-      - elasticsearch 
+    restart: always
 
