@@ -4,6 +4,7 @@ from django.utils.translation import gettext as _
 from simple_history.models import HistoricalRecords
 
 from rard.research.models.mixins import HistoryModelMixin
+from rard.research.models.original_text import OriginalText
 from rard.utils.basemodel import BaseModel, DatedModel, LockableModel
 
 
@@ -50,15 +51,23 @@ class CitingAuthor(HistoryModelMixin, LockableModel, DatedModel, BaseModel):
         # is probably faster than a set of individual db queries
         from rard.research.models import (AnonymousFragment, Fragment,
                                           Testimonium)
+        ordering = [
+            'original_texts__citing_work',      # Group by work
+            'original_texts__reference_order'   # Then order by reference order
+        ]
+        testimonia = Testimonium.objects.filter(
+            original_texts__citing_work__author=self
+        ).order_by(*ordering).distinct()
         fragments = Fragment.objects.filter(
             original_texts__citing_work__author=self
-        ).distinct()
+        ).order_by(*ordering).distinct()
+        apposita = AnonymousFragment.objects.filter(
+            original_texts__citing_work__author=self
+        ).order_by(*ordering).distinct()
         return {
-            'testimonia': Testimonium.objects.filter(
-                original_texts__citing_work__author=self).distinct(),
+            'testimonia': testimonia,
             'fragments': fragments,
-            'apposita': AnonymousFragment.objects.filter(
-                original_texts__citing_work__author=self).distinct()
+            'apposita': apposita
         }
 
     def save(self, *args, **kwargs):
