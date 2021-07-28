@@ -7,7 +7,8 @@ from django.views.decorators.http import require_POST
 from django.views.generic import ListView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
-from rard.research.models import Concordance, Fragment, OriginalText
+from rard.research.models import (AnonymousFragment, Concordance, Fragment,
+                                  OriginalText)
 from rard.research.models.base import FragmentLink
 from rard.research.views.mixins import CheckLockMixin
 
@@ -51,7 +52,8 @@ class ConcordanceCreateView(CheckLockMixin, LoginRequiredMixin,
         # need to ensure we have the lock object view attribute
         # initialised in dispatch
         self.top_level_object = self.get_original_text().owner
-        if not isinstance(self.get_original_text().owner, Fragment):
+        if (not isinstance(self.get_original_text().owner, Fragment) and
+            not isinstance(self.get_original_text().owner, AnonymousFragment)):
             raise Http404
 
         return super().dispatch(request, *args, **kwargs)
