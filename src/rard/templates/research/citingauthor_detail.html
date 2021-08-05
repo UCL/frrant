@@ -94,16 +94,14 @@
 
         <ul>
 
-        {% for item in object.ordered_materials.fragments %}
-        {% include 'research/partials/fragment_list_item.html' with fragment=item citing_author=object %}
-        {% endfor %}
-
-        {% for item in object.ordered_materials.testimonia %}
-        {% include 'research/partials/testimonium_list_item.html' with testimonium=item citing_author=object %}
-        {% endfor %}
-
-        {% for item in object.ordered_materials.apposita %}
-        {% include 'research/partials/anonymousfragment_list_item.html' with fragment=item citing_author=object %}
+        {% for text_type, item in ordered_materials %}
+            {% if text_type == 'fragment' %}
+                {% include 'research/partials/fragment_list_item.html' with fragment=item citing_author=object %}
+            {% elif text_type == 'testimonium' %}
+                {% include 'research/partials/testimonium_list_item.html' with testimonium=item citing_author=object %}
+            {% elif text_type == 'anonymous fragment' %}
+                {% include 'research/partials/anonymousfragment_list_item.html' with fragment=item citing_author=object %}
+            {% endif %}
         {% endfor %}
 
         </ul>

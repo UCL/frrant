@@ -9,7 +9,7 @@ from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from rard.research.forms import CitingAuthorUpdateForm, CitingWorkCreateForm
-from rard.research.models import CitingAuthor, CitingWork, OriginalText
+from rard.research.models import CitingAuthor, CitingWork, OriginalText, citing_work
 from rard.research.views.mixins import (CanLockMixin, CheckLockMixin,
                                         DateOrderMixin)
 
@@ -100,6 +100,20 @@ class CitingAuthorDetailView(CanLockMixin, LoginRequiredMixin,
                              PermissionRequiredMixin, DetailView):
     model = CitingAuthor
     permission_required = ('research.view_citingauthor',)
+
+    def get_context_data(self, **kwargs):
+        context =  super().get_context_data(**kwargs)
+        # Add in a queryset of all materials by the citing author
+        ordering = [
+            'citing_work',      # Group by work
+            'reference_order'   # Then order by reference order
+        ]
+        ordered_texts = OriginalText.objects.filter(
+            citing_work__author__id = self.kwargs['pk']
+        ).order_by(*ordering)
+        # The template needs to check content type, then include details for the owner
+        context['ordered_materials'] = [(text.content_type.name, text.owner) for text in ordered_texts]
+        return context
 
 
 @method_decorator(require_POST, name='dispatch')
