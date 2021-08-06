@@ -40,11 +40,15 @@
         {% for object in page_obj %}
           <tr>
               <td>
-                  <a href='{{ object.fragment.get_absolute_url }}'>{{ object.get_display_name }}</a>
+                {% if object.content_type.name == 'fragment' %}
+                  <a href='{{ object.owner.get_absolute_url }}'>{{ object.owner.get_first_name }}</a>
+                {% elif object.content_type.name == 'anonymous fragment' %}
+                  <a href='{{ object.owner.get_absolute_url }}'>{{ object.owner.get_display_name }}</a>
+                {% endif %}
               </td>
 
           {# NB the object here is a FragmentLink object #}
-          {% for c in object.get_concordance_identifiers %}
+          {% for c in object.concordance_set.all %}
               <td {% if forloop.last %}{% if forloop.counter < max_length %}colspan='{{ max_length }}'{% endif %}{% endif %}>
                 {{ c.source }} {{ c.identifier }}
               </td>

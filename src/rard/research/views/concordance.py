@@ -17,19 +17,19 @@ class ConcordanceListView(
         LoginRequiredMixin, PermissionRequiredMixin, ListView):
     template_name = 'research/concordance_list.html'
     paginate_by = 10
-    model = FragmentLink
+    model = OriginalText
     permission_required = ('research.view_concordance',)
 
     def get_queryset(self, *args, **kwargs):
-        # just fragments who have original texts that have concordances
-        return FragmentLink.objects.filter(
-            fragment__original_texts__concordance__isnull=False
+        # just original texts that have concordances
+        return OriginalText.objects.filter(
+            concordance__isnull=False
         ).distinct()
 
     def get_context_data(self, *args, object_list=None, **kwargs):
         queryset = self.object_list
         context = super().get_context_data(*args, **kwargs)
-        items = [len(o.get_concordance_identifiers()) for o in queryset.all()]
+        items = [len(o.concordance_set.all()) for o in queryset.all()]
         max_length = max(items) if items else 0
         # supply the max number of columms for the table (for formatting)
         context.update({
