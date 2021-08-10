@@ -7,6 +7,7 @@ from django.urls import reverse
 from rard.research.models import (AnonymousFragment, Antiquarian,
                                   BibliographyItem, CitingWork, Fragment,
                                   Testimonium, TextObjectField, Topic, Work)
+from rard.research.models.base import AppositumFragmentLink, FragmentLink
 from rard.research.views import SearchView
 from rard.users.tests.factories import UserFactory
 
@@ -138,6 +139,9 @@ class TestSearchView(TestCase):
                 'works',
                 'bibliography',
                 'apparatus criticus',
+                'apposita',
+                'citing author',
+                'citing work'
             ]
         )
 
@@ -242,3 +246,21 @@ class TestSearchView(TestCase):
         self.assertEqual(list(view.bibliography_search('aab')), [b1])
         self.assertEqual(list(view.bibliography_search('EE')), [b2])
         self.assertEqual(list(view.bibliography_search('romAN')), [b1, b2])
+
+        # anonymous fragments vs. apposita
+        data = {
+            'content': 'raddish',
+            'citing_work': cw
+        }
+        f1 = Fragment.objects.create()
+        af1 = AnonymousFragment.objects.create()
+        o1 = af1.original_texts.create(**data)
+        af2 = AnonymousFragment.objects.create()
+        o2 = af2.original_texts.create(**data)
+        # Create appositum link for one of the anonymous fragments
+        fl1 = AppositumFragmentLink.objects.create(anonymous_fragment=af1, linked_to=f1)
+
+        self.assertEqual(list(view.anonymous_fragment_search('raddish')), [af1, af2])
+        self.assertEqual(list(view.apposita_search('raddish')), [af1])
+        
+
