@@ -11,6 +11,7 @@ from django.views.generic import ListView, TemplateView
 from rard.research.models import (AnonymousFragment, Antiquarian,
                                   BibliographyItem, Fragment, Testimonium,
                                   Topic, Work)
+from rard.research.models.citing_work import CitingAuthor, CitingWork
 
 
 @method_decorator(require_GET, name='dispatch')
@@ -31,7 +32,9 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             'works': self.work_search,
             'bibliography': self.bibliography_search,
             'apparatus criticus': self.apparatus_criticus_search,
-            'apposita': self.apposita_search
+            'apposita': self.apposita_search,
+            'citing author': self.citing_author_search,
+            'citing work': self.citing_work_search
         }
 
     # move to queryset on model managers
@@ -123,6 +126,20 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     def apposita_search(cls, keywords):
         qs = AnonymousFragment.objects.exclude(appositumfragmentlinks_from=None).all()
         return cls.anonymous_fragment_search(keywords, qs=qs)
+
+    @classmethod
+    def citing_author_search(cls, keywords):
+        qs = CitingAuthor.objects.all()
+        return qs.filter(name__icontains=keywords).distinct()
+
+    @classmethod
+    def citing_work_search(cls, keywords):
+        qs = CitingWork.objects.all()
+        results = (
+            qs.filter(title__icontains=keywords) |
+            qs.filter(edition__icontains=keywords)
+        )
+        return results.distinct()
 
     def get(self, request, *args, **kwargs):
         keywords = self.request.GET.get('q', None)
