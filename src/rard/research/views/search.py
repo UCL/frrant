@@ -30,7 +30,8 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             'topics': self.topic_search,
             'works': self.work_search,
             'bibliography': self.bibliography_search,
-            'apparatus criticus': self.apparatus_criticus_search
+            'apparatus criticus': self.apparatus_criticus_search,
+            'apposita': self.apposita_search
         }
 
     # move to queryset on model managers
@@ -75,8 +76,8 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         return results.distinct()
 
     @classmethod
-    def anonymous_fragment_search(cls, keywords):
-        qs = AnonymousFragment.objects.all()
+    def anonymous_fragment_search(cls, keywords, qs=None):
+        if not qs: qs = AnonymousFragment.objects.all()
         results = (
             qs.filter(original_texts__content__icontains=keywords) |
             qs.filter(original_texts__reference__icontains=keywords) |
@@ -117,6 +118,11 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             qs.filter(title__icontains=keywords)
         )
         return results.distinct()
+
+    @classmethod
+    def apposita_search(cls, keywords):
+        qs = AnonymousFragment.objects.exclude(appositumfragmentlinks_from=None).all()
+        return cls.anonymous_fragment_search(keywords, qs=qs)
 
     def get(self, request, *args, **kwargs):
         keywords = self.request.GET.get('q', None)
