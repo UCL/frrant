@@ -6,8 +6,9 @@ from django.urls import reverse
 
 from rard.research.models import (AnonymousFragment, Antiquarian,
                                   BibliographyItem, CitingWork, Fragment,
-                                  Testimonium, TextObjectField, Topic, Work)
-from rard.research.models.base import AppositumFragmentLink, FragmentLink
+                                  Testimonium, TextObjectField, Topic, Work,
+                                  CitingAuthor)
+from rard.research.models.base import AppositumFragmentLink
 from rard.research.views import SearchView
 from rard.users.tests.factories import UserFactory
 
@@ -262,5 +263,21 @@ class TestSearchView(TestCase):
 
         self.assertEqual(list(view.anonymous_fragment_search('raddish')), [af1, af2])
         self.assertEqual(list(view.apposita_search('raddish')), [af1])
+
+        # citing authors
+        ca1 = CitingAuthor.objects.create(name='Alice')
+        ca2 = CitingAuthor.objects.create(name='Felicity')
+
+        self.assertEqual(list(view.citing_author_search('al')), [ca1])
+        self.assertEqual(list(view.citing_author_search('fe')), [ca2])
+        self.assertEqual(list(view.citing_author_search('lic')), [ca1, ca2])
+
+        # citing works
+        cw1 = CitingWork.objects.create(title='Opus',edition='Book one',author=ca1)
+        cw2 = CitingWork.objects.create(title='Book',edition='Sixth',author=ca2)
+
+        self.assertEqual(list(view.citing_work_search('opu')), [cw1])
+        self.assertEqual(list(view.citing_work_search('xth')), [cw2])
+        self.assertEqual(list(view.citing_work_search('ook')), [cw1, cw2])
         
 
