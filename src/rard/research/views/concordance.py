@@ -24,9 +24,9 @@ def concordancelistview(request):
     # Get every original text instance that has at least one associated concordance
     original_text_queryset = OriginalText.objects.filter(
             concordance__isnull=False
-        ).distinct()
+        ).distinct().prefetch_related('owner')
     concordances_table_data = []
-    
+
     # Original texts should appear once for each work link
     for ot in original_text_queryset:
         concordances = ot.concordance_set.all()
