@@ -23,13 +23,13 @@ def concordancelistview(request):
     """
     # Get every original text instance that has at least one associated concordance
     original_text_queryset = OriginalText.objects.filter(
-            concordance__isnull=False
-        ).distinct().prefetch_related('owner')
+            concordances__isnull=False
+        ).distinct().prefetch_related('owner','concordances')
     concordances_table_data = []
 
     # Original texts should appear once for each work link
     for ot in original_text_queryset:
-        concordances = ot.concordance_set.all()
+        concordances = ot.concordances.all()
         identifiers = ot.concordance_identifiers # Get list of names from work links
         owner_url = ot.owner.get_absolute_url()
         if len(identifiers) == 0: # Anonymous fragments can have concordances but no links

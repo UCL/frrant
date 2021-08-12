@@ -103,7 +103,9 @@ class Concordance(HistoryModelMixin, BaseModel):
     def related_lock_object(self):
         return self.original_text.related_lock_object()
 
-    original_text = models.ForeignKey('OriginalText', on_delete=models.CASCADE)
+    original_text = models.ForeignKey(
+        'OriginalText', on_delete=models.CASCADE, related_name='concordances'
+        )
 
     source = models.CharField(max_length=128, blank=False)
 
