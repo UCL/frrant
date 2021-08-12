@@ -1,41 +1,58 @@
+from django.core import paginator
+from django.core.paginator import Paginator
 from django.contrib.auth.mixins import (LoginRequiredMixin,
                                         PermissionRequiredMixin)
 from django.http import Http404
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
 from django.views.generic import ListView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from rard.research.models import (AnonymousFragment, Concordance, Fragment,
-                                  OriginalText)
+                                  OriginalText, original_text)
 from rard.research.models.base import FragmentLink
 from rard.research.views.mixins import CheckLockMixin
 
 
-class ConcordanceListView(
-        LoginRequiredMixin, PermissionRequiredMixin, ListView):
-    template_name = 'research/concordance_list.html'
-    paginate_by = 10
-    model = OriginalText
-    permission_required = ('research.view_concordance',)
-
-    def get_queryset(self, *args, **kwargs):
-        # just original texts that have concordances
-        return OriginalText.objects.filter(
+def concordancelistview(request):
+    """Create a complete list of concordances for display in a table. Each row requires:
+    - a display name
+    - url for the relevant fragment/anonymous fragment
+    - a set of concordances
+    """
+    # Get every original text instance that has at least one associated concordance
+    original_text_queryset = OriginalText.objects.filter(
             concordance__isnull=False
         ).distinct()
-
-    def get_context_data(self, *args, object_list=None, **kwargs):
-        queryset = self.object_list
-        context = super().get_context_data(*args, **kwargs)
-        items = [len(o.concordance_set.all()) for o in queryset.all()]
-        max_length = max(items) if items else 0
-        # supply the max number of columms for the table (for formatting)
-        context.update({
-            'column_range': range(0, max_length)
-        })
-        return context
+    concordances_table_data = []
+    
+    # Original texts should appear once for each work link
+    for ot in original_text_queryset:
+        concordances = ot.concordance_set.all()
+        identifiers = ot.concordance_identifiers # Get list of names from work links
+        owner_url = ot.owner.get_absolute_url()
+        if len(identifiers) == 0: # Anonymous fragments can have concordances but no links
+            concordances_table_data.append({
+                'frrant': {'url':owner_url,'display_name':ot.owner.get_display_name()}, # Use the anonymous fragment's display name instead
+                'concordances': concordances
+            })
+        else:
+            for frrant in identifiers:
+                concordances_table_data.append({
+                    'frrant': {'url':owner_url,'display_name':frrant},
+                    'concordances': concordances
+                })
+    items = [len(row['concordances']) for row in concordances_table_data]
+    max_length = max(items) if items else 0
+    paginator = Paginator(concordances_table_data,10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    context_data = {
+        'column_range': range(0, max_length),
+        'page_obj': page_obj
+    }
+    return render(request, 'research/concordance_list.html', context_data)
 
 
 class ConcordanceCreateView(CheckLockMixin, LoginRequiredMixin,

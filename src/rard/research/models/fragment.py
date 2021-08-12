@@ -107,9 +107,6 @@ class Fragment(HistoryModelMixin, HistoricalBaseModel, DatedModel):
             for link in self.get_all_links()
         ]
 
-    def get_first_name(self):
-        return self.get_all_names()[0]
-
     def get_all_links(self):
         return FragmentLink.objects.filter(
             fragment=self
