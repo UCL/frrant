@@ -43,8 +43,11 @@ def concordancelistview(request):
                     'frrant': {'url':owner_url,'display_name':frrant},
                     'concordances': concordances
                 })
+    # Calculate the maximum number of concordances for a single original text
+    # so we know how wide to make the table
     items = [len(row['concordances']) for row in concordances_table_data]
     max_length = max(items) if items else 0
+    # Paginate on the table data
     paginator = Paginator(concordances_table_data,10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
