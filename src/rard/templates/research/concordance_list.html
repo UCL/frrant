@@ -43,7 +43,7 @@
                   <a href='{{ object.frrant.url }}'>{{ object.frrant.display_name }}</a>
               </td>
 
-          {# NB the object here is a FragmentLink object #}
+          {# NB the object here is a dictionary created by concordance_list #}
           {% for c in object.concordances %}
               <td {% if forloop.last %}{% if forloop.counter < max_length %}colspan='{{ max_length }}'{% endif %}{% endif %}>
                 {{ c.source }} {{ c.identifier }}

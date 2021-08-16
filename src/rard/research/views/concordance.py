@@ -15,7 +15,7 @@ from rard.research.models.base import FragmentLink
 from rard.research.views.mixins import CheckLockMixin
 
 
-def concordancelistview(request):
+def concordance_list(request):
     """Create a complete list of concordances for display in a table. Each row requires:
     - a display name
     - url for the relevant fragment/anonymous fragment

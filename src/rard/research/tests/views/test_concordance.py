@@ -6,7 +6,7 @@ from django.urls import reverse
 from rard.research.models import (CitingWork, Concordance, Fragment,
                                   OriginalText, Testimonium)
 from rard.research.views import (ConcordanceCreateView, ConcordanceDeleteView,
-                                 concordancelistview, ConcordanceUpdateView)
+                                 concordance_list, ConcordanceUpdateView)
 from rard.users.tests.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
@@ -147,7 +147,7 @@ class TestConcordanceViews(TestCase):
         )
         request = RequestFactory().get(url)
         request.user = self.user
-        response = concordancelistview(request)
+        response = concordance_list(request)
         self.assertEqual(response.status_code, 200)
 
     def test_create_view_with_original_text(self):
@@ -226,5 +226,5 @@ class TestConcordanceViewPermissions(TestCase):
         )
         # self.assertIn(
         #     'research.view_concordance',
-        #     concordancelistview.permission_required
+        #     concordance_list.permission_required
         # )

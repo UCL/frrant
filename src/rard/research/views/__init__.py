@@ -22,7 +22,7 @@ from .citing_work import (CitingAuthorCreateView, CitingAuthorCreateWorkView,
                           CitingWorkUpdateView)
 from .comments import CommentDeleteView, TextObjectFieldCommentListView
 from .concordance import (ConcordanceCreateView, ConcordanceDeleteView,
-                          concordancelistview, ConcordanceUpdateView)
+                          concordance_list, ConcordanceUpdateView)
 from .fragment import (AddAppositumFragmentLinkView,
                        AddAppositumGeneralLinkView,
                        AnonymousFragmentCreateView,
@@ -97,7 +97,7 @@ __all__ = [
     'CommentDeleteView',
     'ConcordanceCreateView',
     'ConcordanceDeleteView',
-    'concordancelistview',
+    'concordance_list',
     'ConcordanceUpdateView',
     'CreateApparatusCriticusLineView',
     'DeleteApparatusCriticusLineView',
