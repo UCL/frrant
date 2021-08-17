@@ -1,4 +1,7 @@
 import pytest
+from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
+from django.core.exceptions import PermissionDenied
 from django.http.response import Http404
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
@@ -224,7 +227,41 @@ class TestConcordanceViewPermissions(TestCase):
             'research.delete_concordance',
             ConcordanceDeleteView.permission_required
         )
-        # self.assertIn(
-        #     'research.view_concordance',
-        #     concordance_list.permission_required
-        # )
+
+
+class TestConcordanceListViewPermissions(TestCase):
+
+    def setUp(self):
+        self.user1 = UserFactory()
+        self.user2 = UserFactory(is_superuser = False)
+
+    def test_login_required(self):
+        # remove this test when the site goes public
+        url = reverse('concordance:list')
+        request = RequestFactory().get(url)
+
+        # specify an unauthenticated user
+        request.user = AnonymousUser()
+
+        response = concordance_list(request,)
+
+        # should be redirected to the login page
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url,
+            '{}?next={}'.format(
+                reverse(settings.LOGIN_URL),
+                url
+            )
+        )
+
+    def test_exception_if_not_permitted(self):
+        request = RequestFactory().get('/')
+        request.user = self.user2
+        self.assertRaises(PermissionDenied, concordance_list, request)
+
+    def test_access_if_permitted(self):
+        request = RequestFactory().get('/')
+        request.user = self.user1
+        response = concordance_list(request,)
+        self.assertEqual(response.status_code, 200)
