@@ -2,6 +2,7 @@ from django.core import paginator
 from django.core.paginator import Paginator
 from django.contrib.auth.mixins import (LoginRequiredMixin,
                                         PermissionRequiredMixin)
+from django.contrib.auth.decorators import login_required, permission_required
 from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 from django.utils.decorators import method_decorator
@@ -15,19 +16,27 @@ from rard.research.models.base import FragmentLink
 from rard.research.views.mixins import CheckLockMixin
 
 
+@login_required
+@permission_required('research.view_concordance', raise_exception=True)
 def concordance_list(request):
     """Create a complete list of concordances for display in a table. Each row requires:
-    - a display name
+    - a display name derived from a fragment link
     - url for the relevant fragment/anonymous fragment
-    - a set of concordances
+    - a set of concordances related to the original text
+    The same row will be repeated once for each fragment link associated with an 
+    original text's owner, but with a different name in the frrant column.
+    If a fragment has more than one original text, concordances will be listed for each
+    original text separately with an ordinal value appended to the fragment link names;
+    e.g. "Quintus Ennius F8a" and "Quintus Ennius F8b"
     """
+
     # Get every original text instance that has at least one associated concordance
     original_text_queryset = OriginalText.objects.filter(
             concordances__isnull=False
         ).distinct().prefetch_related('owner','concordances')
-    concordances_table_data = []
 
     # Original texts should appear once for each work link
+    concordances_table_data = []
     for ot in original_text_queryset:
         concordances = ot.concordances.all()
         identifiers = ot.concordance_identifiers # Get list of names from work links
