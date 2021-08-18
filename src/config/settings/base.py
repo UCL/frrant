@@ -36,6 +36,7 @@ USE_L10N = True
 USE_TZ = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#locale-paths
 LOCALE_PATHS = [str(ROOT_DIR / "locale")]
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 
 # DATABASES
 # ------------------------------------------------------------------------------
@@ -71,7 +72,7 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     "rard.users.apps.UsersConfig",
-    "rard.research",
+    "rard.research.apps.ResearchConfig",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS

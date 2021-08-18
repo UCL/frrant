@@ -3,6 +3,8 @@
 from itertools import chain
 
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models.functions import Collate
+from django.db.models import Value
 from django.shortcuts import redirect
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_GET
@@ -66,11 +68,11 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     def fragment_search(cls, keywords):
         qs = Fragment.objects.all()
         results = (
-            qs.filter(original_texts__content__icontains=keywords) |
+            qs.filter(original_texts__content__icontains=Collate(Value(keywords), 'latin')) |
             qs.filter(original_texts__reference__icontains=keywords) |
             qs.filter(original_texts__translation__translated_text__icontains=keywords) |  # noqa
             qs.filter(original_texts__translation__translator_name__icontains=keywords) |  # noqa
-            qs.filter(commentary__content__icontains=keywords)
+            qs.filter(commentary__content__icontains=Collate(Value(keywords), 'latin'))
         )
         return results.distinct()
 
@@ -78,11 +80,11 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     def anonymous_fragment_search(cls, keywords):
         qs = AnonymousFragment.objects.all()
         results = (
-            qs.filter(original_texts__content__icontains=keywords) |
+            qs.filter(original_texts__content__icontains=Collate(Value(keywords), 'latin')) |
             qs.filter(original_texts__reference__icontains=keywords) |
             qs.filter(original_texts__translation__translated_text__icontains=keywords) |  # noqa
             qs.filter(original_texts__translation__translator_name__icontains=keywords) |  # noqa
-            qs.filter(commentary__content__icontains=keywords)
+            qs.filter(commentary__content__icontains=Collate(Value(keywords), 'latin'))
         )
         return results.distinct()
 
@@ -90,11 +92,11 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     def testimonium_search(cls, keywords):
         qs = Testimonium.objects.all()
         results = (
-            qs.filter(original_texts__content__icontains=keywords) |
+            qs.filter(original_texts__content__icontains=Collate(Value(keywords), 'latin')) |
             qs.filter(original_texts__reference__icontains=keywords) |
             qs.filter(original_texts__translation__translated_text__icontains=keywords) |  # noqa
             qs.filter(original_texts__translation__translator_name__icontains=keywords) |  # noqa
-            qs.filter(commentary__content__icontains=keywords)
+            qs.filter(commentary__content__icontains=Collate(Value(keywords), 'latin'))
         )
         return results.distinct()
 
@@ -103,10 +105,11 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         qst = Testimonium.objects.all()
         qsa = AnonymousFragment.objects.all()
         qsf = Fragment.objects.all()
+        print(qsf.filter(original_texts__apparatus_criticus_items__content__icontains=Collate(Value(keywords), 'latin')).distinct().query)
         return chain(
-            qsf.filter(original_texts__apparatus_criticus_items__content__icontains=keywords).distinct(),  # noqa
-            qsa.filter(original_texts__apparatus_criticus_items__content__icontains=keywords).distinct(),  # noqa
-            qst.filter(original_texts__apparatus_criticus_items__content__icontains=keywords).distinct()  # noqa
+            qsf.filter(original_texts__apparatus_criticus_items__content__icontains=Collate(Value(keywords), 'latin')).distinct(),  # noqa
+            qsa.filter(original_texts__apparatus_criticus_items__content__icontains=Collate(Value(keywords), 'latin')).distinct(),  # noqa
+            qst.filter(original_texts__apparatus_criticus_items__content__icontains=Collate(Value(keywords), 'latin')).distinct()  # noqa
         )
 
     @classmethod
