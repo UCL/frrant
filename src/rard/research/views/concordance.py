@@ -47,6 +47,7 @@ def concordance_list(request):
                     'frrant': {'url':owner_url,'display_name':frrant},
                     'concordances': concordances
                 })
+    concordances_table_data.sort(key=lambda i: i['frrant']['display_name'])
     # Calculate the maximum number of concordances for a single original text
     # so we know how wide to make the table
     items = [len(row['concordances']) for row in concordances_table_data]
