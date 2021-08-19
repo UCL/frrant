@@ -41,12 +41,7 @@ def concordance_list(request):
         concordances = ot.concordances.all()
         identifiers = ot.concordance_identifiers # Get list of names from work links
         owner_url = ot.owner.get_absolute_url()
-        if len(identifiers) == 0: # Anonymous fragments can have concordances but no links
-            concordances_table_data.append({
-                'frrant': {'url':owner_url,'display_name':ot.owner.get_display_name()}, # Use the anonymous fragment's display name instead
-                'concordances': concordances
-            })
-        else:
+        if len(identifiers) > 0: # Currently ignoring unlinked frags and anonfrags
             for frrant in identifiers:
                 concordances_table_data.append({
                     'frrant': {'url':owner_url,'display_name':frrant},
