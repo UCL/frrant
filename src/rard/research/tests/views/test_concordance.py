@@ -6,9 +6,10 @@ from django.http.response import Http404
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
-from rard.research.models import (Antiquarian, CitingWork, Concordance, 
-                                  Fragment, OriginalText, Testimonium)
-from rard.research.models.base import FragmentLink
+from rard.research.models import (Antiquarian, AnonymousFragment, CitingWork, 
+                                  Concordance, Fragment, OriginalText, 
+                                  Testimonium, antiquarian, original_text)
+from rard.research.models.base import FragmentLink, AppositumFragmentLink
 from rard.research.views import (ConcordanceCreateView, ConcordanceDeleteView,
                                  concordance_list, ConcordanceUpdateView)
 from rard.users.tests.factories import UserFactory
@@ -21,7 +22,7 @@ class TestConcordanceViews(TestCase):
     def setUp(self):
         citing_work = CitingWork.objects.create(title='title')
         self.fragment = Fragment.objects.create(name='name')
-        self.antiquarian = Antiquarian.objects.create(name='Romulus')
+        self.antiquarian = Antiquarian.objects.create(name='Romulus',re_code='1')
         self.user = UserFactory.create()
         self.fragment.lock(self.user)
         self.original_text = OriginalText.objects.create(
@@ -186,6 +187,73 @@ class TestConcordanceViews(TestCase):
             response.context['page_obj'][0]['concordances'][0],
             self.original_text.concordances.all()[0]
         )
+
+    def test_multiple_fragment_links_repeat_concordances(self):
+        # Create a concordance and fragment link so something will be returned
+        Concordance.objects.create(
+            original_text=self.original_text,
+            source='source',
+            identifier='123',
+        )
+        FragmentLink.objects.create(
+            fragment = self.fragment,
+            antiquarian = self.antiquarian,
+            order = 1
+        )
+
+        # Before...
+        url = reverse('concordance:list')
+        self.client.force_login(self.user)
+        response = self.client.get(url)
+        self.assertEqual(len(response.context['page_obj']),1)
+
+        # Create another fragment link
+        antiquarian2 = Antiquarian.objects.create(name='Remus',re_code='2')
+        FragmentLink.objects.create(
+            fragment = self.fragment,
+            antiquarian = antiquarian2,
+            order = 1
+        )
+
+        # And after...
+        response = self.client.get(url)
+        self.assertEqual(len(response.context['page_obj']),2)
+        # Check new link display name
+        self.assertContains(
+            response,
+            'Remus F1'
+        )
+        # Check concordances
+        self.assertEqual(
+            response.context['page_obj'][1]['concordances'][0],
+            self.original_text.concordances.all()[0]
+        )
+
+    def test_anonymous_fragment_concordances_included(self):
+        anon_frag = AnonymousFragment.objects.create(
+            name='anonymous fragment'
+        )
+        ot = OriginalText.objects.create(
+            owner=anon_frag,
+            citing_work=CitingWork.objects.create(title='work1'),
+        )
+        con = Concordance.objects.create(
+            original_text = ot,
+            source='Ketchup',
+            identifier='57'
+        )
+        link = AppositumFragmentLink.objects.create(
+            anonymous_fragment = anon_frag,
+            antiquarian = self.antiquarian,
+            order = 1
+        )
+        # Check the response
+        url = reverse('concordance:list')
+        self.client.force_login(self.user)
+        response = self.client.get(url)
+        self.assertEqual(len(response.context['page_obj']),1)
+        # Check the name
+        self.assertContains(response,'Romulus A1')
 
     def test_create_view_with_original_text(self):
         url = reverse(
