@@ -138,11 +138,11 @@ class TestSearchView(TestCase):
                 'fragments',
                 'topics',
                 'works',
-                'bibliography',
-                'apparatus criticus',
-                'appositum',
-                'citing author',
-                'citing work'
+                'bibliographies',
+                'apparatus critici',
+                'apposita',
+                'citing authors',
+                'citing works'
             ]
         )
 
@@ -262,7 +262,7 @@ class TestSearchView(TestCase):
         fl1 = AppositumFragmentLink.objects.create(anonymous_fragment=af1, linked_to=f1)
 
         self.assertEqual(list(view.anonymous_fragment_search('raddish')), [af1, af2])
-        self.assertEqual(list(view.apposita_search('raddish')), [af1])
+        self.assertEqual(list(view.appositum_search('raddish')), [af1])
 
         # citing authors
         ca1 = CitingAuthor.objects.create(name='Alice')

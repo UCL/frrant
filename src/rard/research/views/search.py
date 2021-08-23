@@ -30,11 +30,11 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             'fragments': self.fragment_search,
             'topics': self.topic_search,
             'works': self.work_search,
-            'bibliography': self.bibliography_search,
-            'apparatus criticus': self.apparatus_criticus_search,
-            'apposita': self.apposita_search,
-            'citing author': self.citing_author_search,
-            'citing work': self.citing_work_search
+            'bibliographies': self.bibliography_search,
+            'apparatus critici': self.apparatus_criticus_search,
+            'apposita': self.appositum_search,
+            'citing authors': self.citing_author_search,
+            'citing works': self.citing_work_search
         }
 
     # move to queryset on model managers
@@ -123,7 +123,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         return results.distinct()
 
     @classmethod
-    def apposita_search(cls, keywords):
+    def appositum_search(cls, keywords):
         qs = AnonymousFragment.objects.exclude(appositumfragmentlinks_from=None).all()
         return cls.anonymous_fragment_search(keywords, qs=qs)
 
