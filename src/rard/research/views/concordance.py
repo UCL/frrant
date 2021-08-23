@@ -48,14 +48,17 @@ def concordance_list(request):
                     'concordances': concordances
                 })
     concordances_table_data.sort(key=lambda i: i['frrant']['display_name'])
-    # Calculate the maximum number of concordances for a single original text
-    # so we know how wide to make the table
-    items = [len(row['concordances']) for row in concordances_table_data]
-    max_length = max(items) if items else 0
+
     # Paginate on the table data
     paginator = Paginator(concordances_table_data,10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+
+    # Calculate the maximum number of concordances for a single original text
+    # so we know how wide to make the table
+    items = [len(row['concordances']) for row in page_obj]
+    max_length = max(items) if items else 0
+    
     context_data = {
         'column_range': range(0, max_length),
         'page_obj': page_obj
