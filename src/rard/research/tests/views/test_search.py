@@ -140,7 +140,7 @@ class TestSearchView(TestCase):
                 'works',
                 'bibliography',
                 'apparatus criticus',
-                'apposita',
+                'appositum',
                 'citing author',
                 'citing work'
             ]
