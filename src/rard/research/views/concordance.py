@@ -41,12 +41,20 @@ def concordance_list(request):
         concordances = ot.concordances.all()
         identifiers = ot.concordance_identifiers # Get list of names from work links
         owner_url = ot.owner.get_absolute_url()
-        if len(identifiers) > 0: # Currently ignoring unlinked frags and anonfrags
+        if identifiers: # Where a link exists for the original text owner
             for frrant in identifiers:
                 concordances_table_data.append({
                     'frrant': {'url':owner_url,'display_name':frrant},
                     'concordances': concordances
                 })
+        else: # Use the fragment's name as the frrant display name
+            concordances_table_data.append({
+                'frrant': {
+                    'url':owner_url, 
+                    'display_name':ot.owner.get_display_name()
+                },
+                'concordances': concordances
+            })
     concordances_table_data.sort(key=lambda i: i['frrant']['display_name'])
 
     # Paginate on the table data
