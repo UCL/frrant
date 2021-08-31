@@ -1,10 +1,14 @@
-# FRRA
+# The Fragments of the Roman Republican Antiquarians
 
 Research management platform for the Fragments of the Roman Republican Antiquarians grant.
 
 # Documentation
 
 High level design: https://wiki.ucl.ac.uk/display/IA/Republican+Antiquarian+HLD
+
+# License
+
+Unless otherwise noted, everything in this repo is licensed under GPL3. Details are in [LICENSE.txt](./LICENSE.txt).
 
 # Development
 
