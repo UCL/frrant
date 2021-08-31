@@ -1,4 +1,3 @@
-from typing_extensions import ParamSpecKwargs
 import pytest
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
