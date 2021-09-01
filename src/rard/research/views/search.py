@@ -3,6 +3,8 @@
 from itertools import chain
 
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Value, F, Func
+from django.db.models.functions import Lower
 from django.shortcuts import redirect
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_GET
@@ -69,8 +71,13 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     @classmethod
     def fragment_search(cls, keywords):
         qs = Fragment.objects.all()
+        folded_content = qs.annotate(folded=Func(
+            Lower(F('original_texts__content')),
+            Value('v'), Value('u'),
+            function='replace'
+        ))
         results = (
-            qs.filter(original_texts__content__icontains=keywords) |
+            folded_content.filter(folded__icontains=keywords) |
             qs.filter(original_texts__reference__icontains=keywords) |
             qs.filter(original_texts__translation__translated_text__icontains=keywords) |  # noqa
             qs.filter(original_texts__translation__translator_name__icontains=keywords) |  # noqa
