@@ -202,7 +202,7 @@
                 <h5>{% trans 'Appositum Links' %}</h5>
             </div>
             <div>
-                {% if perms.research.change_anonymous_fragment and has_object_lock %}
+                {% if perms.research.change_anonymousfragment and has_object_lock %}
                 Link <a href='{% url "anonymous_fragment:link" object.pk %}'>{% trans 'Antiquarian/Work' %}</a> or
                 <a href='{% url "anonymous_fragment:link_fragment" object.pk %}'>{% trans 'Fragment' %}</a>
 
