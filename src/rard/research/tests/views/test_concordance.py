@@ -8,10 +8,10 @@ from django.urls import reverse
 
 from rard.research.models import (Antiquarian, AnonymousFragment, CitingWork, 
                                   Concordance, Fragment, OriginalText, 
-                                  Testimonium, antiquarian, original_text)
+                                  Testimonium)
 from rard.research.models.base import FragmentLink, AppositumFragmentLink
 from rard.research.views import (ConcordanceCreateView, ConcordanceDeleteView,
-                                 concordance_list, ConcordanceUpdateView)
+                                 ConcordanceListView, ConcordanceUpdateView)
 from rard.users.tests.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
@@ -329,6 +329,10 @@ class TestConcordanceViewPermissions(TestCase):
             'research.delete_concordance',
             ConcordanceDeleteView.permission_required
         )
+        self.assertIn(
+            'research.view_concordance',
+            ConcordanceListView.permission_required
+        )
 
 
 class TestConcordanceListViewPermissions(TestCase):
@@ -336,6 +340,7 @@ class TestConcordanceListViewPermissions(TestCase):
     def setUp(self):
         self.user1 = UserFactory()
         self.user2 = UserFactory(is_superuser = False)
+        self.view = ConcordanceListView()
 
     def test_login_required(self):
         # remove this test when the site goes public
@@ -345,7 +350,8 @@ class TestConcordanceListViewPermissions(TestCase):
         # specify an unauthenticated user
         request.user = AnonymousUser()
 
-        response = concordance_list(request,)
+        self.view.request = request
+        response = self.view.dispatch(request)
 
         # should be redirected to the login page
         self.assertEqual(response.status_code, 302)
@@ -360,10 +366,12 @@ class TestConcordanceListViewPermissions(TestCase):
     def test_exception_if_not_permitted(self):
         request = RequestFactory().get('/')
         request.user = self.user2
-        self.assertRaises(PermissionDenied, concordance_list, request)
+        self.view.request = request
+        self.assertRaises(PermissionDenied, self.view.dispatch, request)
 
     def test_access_if_permitted(self):
         request = RequestFactory().get('/')
         request.user = self.user1
-        response = concordance_list(request,)
+        self.view.request = request
+        response = self.view.dispatch(request)
         self.assertEqual(response.status_code, 200)
