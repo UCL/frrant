@@ -16,9 +16,44 @@ from rard.research.models import (AnonymousFragment, Antiquarian,
 from rard.research.models.citing_work import CitingAuthor, CitingWork
 
 rard_folds = [
-    ('v', 'u')
+['ast', 'a est'],
+['ost', 'o est'],
+['umst', 'um est'],
+['am', 'an'],
+['ausa', 'aussa'],
+['nn', 'bn'],
+['tt', 'bt'],
+['pp', 'bp'],
+['rr', 'br'],
+['ch', 'cch'],
+['clu', 'culu'],
+['claud', 'clod'],
+['has', 'hasce'],
+['his', 'hisce'],
+['hos', 'hosce'],
+['i', 'ii'],
+['i', 'j'],
+['um', 'im'],
+['lagr', 'lagl'],
+['mb', 'nb'],
+['ll', 'nl'],
+['mm', 'nm'],
+['mp', 'np'],
+['mp', 'ndup'],
+['rr', 'nr'],
+['um', 'om'],
+['u', 'v'],
+['u', 'y'],
+['uu', 'w'],
+['ulc', 'ulch'],
+['uul', 'uol'],
+['uul', 'vul'],
+['uul', 'vol'],
+['ui', 'uui'],
+['ui', 'uvi'],
+['uum', 'uom'],
+['x', 'xs'],
 ]
-
 
 
 @method_decorator(require_GET, name='dispatch')
@@ -34,10 +69,10 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             k = keywords.lower()
             for (x, y) in rard_folds:
                 if x in k:
-                    k = k.replace(x,y)
-                    self.add_fold(x, y)
+                    self.add_fold(y, x)
                 elif y in k:
-                    self.add_fold(x, y)
+                    k = k.replace(y, x)
+                    self.add_fold(y, x)
             self.folded_keywords = k
 
     paginate_by = 10
