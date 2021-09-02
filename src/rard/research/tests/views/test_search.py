@@ -153,29 +153,29 @@ class TestSearchView(TestCase):
         # basic tests for antiquarian
         a1 = Antiquarian.objects.create(name='findme', re_code='1')
         a2 = Antiquarian.objects.create(name='foo', re_code='2')
-        self.assertEqual(list(view.antiquarian_search('findme')), [a1])
-        self.assertEqual(list(view.antiquarian_search('FinDMe')), [a1])
-        self.assertEqual(list(view.antiquarian_search('foo')), [a2])
-        self.assertEqual(list(view.antiquarian_search('fOo')), [a2])
-        self.assertEqual(list(view.antiquarian_search('F')), [a1, a2])
+        self.assertEqual(list(view.antiquarian_search(SearchView.Term('findme'))), [a1])
+        self.assertEqual(list(view.antiquarian_search(SearchView.Term('FinDMe'))), [a1])
+        self.assertEqual(list(view.antiquarian_search(SearchView.Term('foo'))), [a2])
+        self.assertEqual(list(view.antiquarian_search(SearchView.Term('fOo'))), [a2])
+        self.assertEqual(list(view.antiquarian_search(SearchView.Term('F'))), [a1, a2])
 
         # topics
         t1 = Topic.objects.create(name='topic', order=1)
         t2 = Topic.objects.create(name='pictures', order=2)
-        self.assertEqual(list(view.topic_search('topic')), [t1])
-        self.assertEqual(list(view.topic_search('TOPIc')), [t1])
-        self.assertEqual(list(view.topic_search('picture')), [t2])
-        self.assertEqual(list(view.topic_search('PiCTureS')), [t2])
-        self.assertEqual(list(view.topic_search('PIC')), [t1, t2])
+        self.assertEqual(list(view.topic_search(SearchView.Term('topic'))), [t1])
+        self.assertEqual(list(view.topic_search(SearchView.Term('TOPIc'))), [t1])
+        self.assertEqual(list(view.topic_search(SearchView.Term('picture'))), [t2])
+        self.assertEqual(list(view.topic_search(SearchView.Term('PiCTureS'))), [t2])
+        self.assertEqual(list(view.topic_search(SearchView.Term('PIC'))), [t1, t2])
 
         # works
         w1 = Work.objects.create(name='work')
         w2 = Work.objects.create(name='nothing')
-        self.assertEqual(list(view.work_search('work')), [w1])
-        self.assertEqual(list(view.work_search('WORK')), [w1])
-        self.assertEqual(list(view.work_search('nothing')), [w2])
-        self.assertEqual(list(view.work_search('NothInG')), [w2])
-        self.assertEqual(list(view.work_search('O')), [w2, w1])
+        self.assertEqual(list(view.work_search(SearchView.Term('work'))), [w1])
+        self.assertEqual(list(view.work_search(SearchView.Term('WORK'))), [w1])
+        self.assertEqual(list(view.work_search(SearchView.Term('nothing'))), [w2])
+        self.assertEqual(list(view.work_search(SearchView.Term('NothInG'))), [w2])
+        self.assertEqual(list(view.work_search(SearchView.Term('O'))), [w2, w1])
 
         cw = CitingWork.objects.create(title='citing_work')
 
@@ -186,11 +186,20 @@ class TestSearchView(TestCase):
         f2 = Fragment.objects.create()
         f2.original_texts.create(content='notme', citing_work=cw)
 
-        self.assertEqual(list(view.fragment_search('findme')), [f1])
-        self.assertEqual(list(view.fragment_search('FINDME')), [f1])
-        self.assertEqual(list(view.fragment_search('notme')), [f2])
-        self.assertEqual(list(view.fragment_search('NoTMe')), [f2])
-        self.assertEqual(list(view.fragment_search('Me')), [f1, f2])
+        self.assertEqual(list(view.fragment_search(SearchView.Term('findme'))), [f1])
+        self.assertEqual(list(view.fragment_search(SearchView.Term('FINDME'))), [f1])
+        self.assertEqual(list(view.fragment_search(SearchView.Term('notme'))), [f2])
+        self.assertEqual(list(view.fragment_search(SearchView.Term('NoTMe'))), [f2])
+        self.assertEqual(list(view.fragment_search(SearchView.Term('Me'))), [f1, f2])
+
+        f3 = Fragment.objects.create()
+        f3.original_texts.create(content='de uita Uaticani', citing_work=cw)
+
+        f4 = Fragment.objects.create()
+        f4.original_texts.create(content='vita brevIS', citing_work=cw)
+
+        self.assertEqual(list(view.fragment_search(SearchView.Term('vita'))), [f3, f4])
+        self.assertEqual(list(view.fragment_search(SearchView.Term('bREUIs'))), [f4])
 
         t1 = Testimonium.objects.create()
         t1.original_texts.create(content='findme', citing_work=cw)
@@ -198,11 +207,11 @@ class TestSearchView(TestCase):
         t2 = Testimonium.objects.create()
         t2.original_texts.create(content='notme', citing_work=cw)
 
-        self.assertEqual(list(view.testimonium_search('findme')), [t1])
-        self.assertEqual(list(view.testimonium_search('FINDME')), [t1])
-        self.assertEqual(list(view.testimonium_search('notme')), [t2])
-        self.assertEqual(list(view.testimonium_search('NoTMe')), [t2])
-        self.assertEqual(list(view.testimonium_search('Me')), [t1, t2])
+        self.assertEqual(list(view.testimonium_search(SearchView.Term('findme'))), [t1])
+        self.assertEqual(list(view.testimonium_search(SearchView.Term('FINDME'))), [t1])
+        self.assertEqual(list(view.testimonium_search(SearchView.Term('notme'))), [t2])
+        self.assertEqual(list(view.testimonium_search(SearchView.Term('NoTMe'))), [t2])
+        self.assertEqual(list(view.testimonium_search(SearchView.Term('Me'))), [t1, t2])
 
         # fragments with apparatus criticus
         data = {
@@ -221,13 +230,13 @@ class TestSearchView(TestCase):
         o3 = f2.original_texts.create(**data)
         o3.apparatus_criticus_items.create(content='rubbish')
 
-        self.assertEqual(list(view.apparatus_criticus_search('TuF')), [f1])
-        self.assertEqual(list(view.apparatus_criticus_search('bBi')), [f2])
-        self.assertEqual(list(view.apparatus_criticus_search('nseN')), [t1])
+        self.assertEqual(list(view.apparatus_criticus_search(SearchView.Term('TuF'))), [f1])
+        self.assertEqual(list(view.apparatus_criticus_search(SearchView.Term('bBi'))), [f2])
+        self.assertEqual(list(view.apparatus_criticus_search(SearchView.Term('nseN'))), [t1])
         self.assertEqual(
-            list(view.apparatus_criticus_search('s')), [f1, f2, t1]
+            list(view.apparatus_criticus_search(SearchView.Term('s'))), [f1, f2, t1]
         )
-        self.assertEqual(list(view.apparatus_criticus_search('content')), [])
+        self.assertEqual(list(view.apparatus_criticus_search(SearchView.Term('content'))), [])
 
         # bibliography
         parent = TextObjectField.objects.create(content='foo')
@@ -244,9 +253,9 @@ class TestSearchView(TestCase):
         }
         b2 = BibliographyItem.objects.create(**data)
 
-        self.assertEqual(list(view.bibliography_search('aab')), [b1])
-        self.assertEqual(list(view.bibliography_search('EE')), [b2])
-        self.assertEqual(list(view.bibliography_search('romAN')), [b1, b2])
+        self.assertEqual(list(view.bibliography_search(SearchView.Term('aab'))), [b1])
+        self.assertEqual(list(view.bibliography_search(SearchView.Term('EE'))), [b2])
+        self.assertEqual(list(view.bibliography_search(SearchView.Term('romAN'))), [b1, b2])
 
         # anonymous fragments vs. apposita
         data = {
@@ -261,23 +270,23 @@ class TestSearchView(TestCase):
         # Create appositum link for one of the anonymous fragments
         fl1 = AppositumFragmentLink.objects.create(anonymous_fragment=af1, linked_to=f1)
 
-        self.assertEqual(list(view.anonymous_fragment_search('raddish')), [af1, af2])
-        self.assertEqual(list(view.appositum_search('raddish')), [af1])
+        self.assertEqual(list(view.anonymous_fragment_search(SearchView.Term('raddish'))), [af1, af2])
+        self.assertEqual(list(view.appositum_search(SearchView.Term('raddish'))), [af1])
 
         # citing authors
         ca1 = CitingAuthor.objects.create(name='Alice')
         ca2 = CitingAuthor.objects.create(name='Felicity')
 
-        self.assertEqual(list(view.citing_author_search('al')), [ca1])
-        self.assertEqual(list(view.citing_author_search('fe')), [ca2])
-        self.assertEqual(list(view.citing_author_search('lic')), [ca1, ca2])
+        self.assertEqual(list(view.citing_author_search(SearchView.Term('al'))), [ca1])
+        self.assertEqual(list(view.citing_author_search(SearchView.Term('fe'))), [ca2])
+        self.assertEqual(list(view.citing_author_search(SearchView.Term('lic'))), [ca1, ca2])
 
         # citing works
         cw1 = CitingWork.objects.create(title='Opus',edition='Book one',author=ca1)
         cw2 = CitingWork.objects.create(title='Book',edition='Sixth',author=ca2)
 
-        self.assertEqual(list(view.citing_work_search('opu')), [cw1])
-        self.assertEqual(list(view.citing_work_search('xth')), [cw2])
-        self.assertEqual(list(view.citing_work_search('ook')), [cw1, cw2])
+        self.assertEqual(list(view.citing_work_search(SearchView.Term('opu'))), [cw1])
+        self.assertEqual(list(view.citing_work_search(SearchView.Term('xth'))), [cw2])
+        self.assertEqual(list(view.citing_work_search(SearchView.Term('ook'))), [cw1, cw2])
         
 
