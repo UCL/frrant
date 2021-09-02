@@ -11,8 +11,7 @@ from django.views.generic import View
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from rard.research.models import (AnonymousFragment, Concordance, Fragment,
-                                  OriginalText, original_text)
-from rard.research.models.base import FragmentLink
+                                  OriginalText)
 from rard.research.views.mixins import CheckLockMixin
 
 
