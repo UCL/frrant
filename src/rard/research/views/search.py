@@ -15,6 +15,9 @@ from rard.research.models import (AnonymousFragment, Antiquarian,
                                   Topic, Work)
 from rard.research.models.citing_work import CitingAuthor, CitingWork
 
+# Fold [X,Y] transforms all instances of Y into X before matching
+# Folds are applied in the specified order, so we don't need
+# 'uul' <- 'vul' if we already have 'u' <- 'v'
 rard_folds = [
 ['ast', 'a est'],
 ['ost', 'o est'],
@@ -47,10 +50,7 @@ rard_folds = [
 ['uu', 'w'],
 ['ulc', 'ulch'],
 ['uul', 'uol'],
-['uul', 'vul'],
-['uul', 'vol'],
 ['ui', 'uui'],
-['ui', 'uvi'],
 ['uum', 'uom'],
 ['x', 'xs'],
 ]
@@ -77,10 +77,10 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             self.query = lambda x: Lower(x)
             k = keywords.lower()
             for (x, y) in rard_folds:
-                if x in k:
-                    self.add_fold(y, x)
-                elif y in k:
+                if y in k:
                     k = k.replace(y, x)
+                    self.add_fold(y, x)
+                elif x in k:
                     self.add_fold(y, x)
             self.folded_keywords = k
 
