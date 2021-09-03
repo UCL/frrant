@@ -60,12 +60,21 @@ rard_folds = [
 class SearchView(LoginRequiredMixin, TemplateView, ListView):
 
     class Term:
+        """
+        Initialize it with the keywords:
+        term = Term(keywords)
+        and you get three things:
+        original_keywords = term.keywords
+        folded_keywords = term.folded_keywords
+        query = term.query(F('foreign_key_1__foreign_key_2__field'))
+        """
         def add_fold(self, x, y):
-            self.folds = Func(self.folds, Value(x), Value(y), function='replace')
+            qu = self.query
+            self.query = lambda q: Func(qu(q), Value(x), Value(y), function='replace')
 
         def __init__(self, keywords):
             self.keywords = keywords
-            self.folds = Lower(F('original_texts__content'))
+            self.query = lambda x: Lower(x)
             k = keywords.lower()
             for (x, y) in rard_folds:
                 if x in k:
@@ -127,45 +136,51 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     @classmethod
     def fragment_search(cls, terms):
         qs = Fragment.objects.all()
-        folded_content = qs.annotate(folded=terms.folds)
+        folded_content = qs.annotate(folded=terms.query(F('original_texts__content')))
+        folded_commentary = qs.annotate(folded=terms.query(F('commentary__content')))
         results = (
             folded_content.filter(folded__contains=terms.folded_keywords) |
             qs.filter(original_texts__reference__icontains=terms.keywords) |
             qs.filter(original_texts__translation__translated_text__icontains=terms.keywords) |  # noqa
             qs.filter(original_texts__translation__translator_name__icontains=terms.keywords) |  # noqa
-            qs.filter(commentary__content__icontains=terms.keywords)
+            folded_commentary.filter(folded__contains=terms.folded_keywords)
         )
         return results.distinct()
 
     @classmethod
     def anonymous_fragment_search(cls, terms, qs=None):
         if not qs: qs = AnonymousFragment.objects.all()
+        folded_content = qs.annotate(folded=terms.query(F('original_texts__content')))
+        folded_commentary = qs.annotate(folded=terms.query(F('commentary__content')))
         results = (
-            qs.filter(original_texts__content__icontains=terms.keywords) |
+            folded_content.filter(folded__contains=terms.folded_keywords) |
             qs.filter(original_texts__reference__icontains=terms.keywords) |
             qs.filter(original_texts__translation__translated_text__icontains=terms.keywords) |  # noqa
             qs.filter(original_texts__translation__translator_name__icontains=terms.keywords) |  # noqa
-            qs.filter(commentary__content__icontains=terms.keywords)
+            folded_commentary.filter(folded__contains=terms.keywords)
         )
         return results.distinct()
 
     @classmethod
     def testimonium_search(cls, terms):
         qs = Testimonium.objects.all()
+        folded_content = qs.annotate(folded=terms.query(F('original_texts__content')))
+        folded_commentary = qs.annotate(folded=terms.query(F('commentary__content')))
         results = (
-            qs.filter(original_texts__content__icontains=terms.keywords) |
+            folded_content.filter(folded__contains=terms.folded_keywords) |
             qs.filter(original_texts__reference__icontains=terms.keywords) |
             qs.filter(original_texts__translation__translated_text__icontains=terms.keywords) |  # noqa
             qs.filter(original_texts__translation__translator_name__icontains=terms.keywords) |  # noqa
-            qs.filter(commentary__content__icontains=terms.keywords)
+            folded_commentary.filter(folded__contains=terms.keywords)
         )
         return results.distinct()
 
     @classmethod
     def apparatus_criticus_search(cls, terms):
-        qst = Testimonium.objects.all()
-        qsa = AnonymousFragment.objects.all()
-        qsf = Fragment.objects.all()
+        query = terms.query(F('original_texts__apparatus_criticus_items__content'))
+        qst = Testimonium.objects.all().annotate(folded=query)
+        qsa = AnonymousFragment.objects.all().annotate(folded=query)
+        qsf = Fragment.objects.all().annotate(folded=query)
         return chain(
             qsf.filter(original_texts__apparatus_criticus_items__content__icontains=terms.keywords).distinct(),  # noqa
             qsa.filter(original_texts__apparatus_criticus_items__content__icontains=terms.keywords).distinct(),  # noqa
