@@ -29,5 +29,5 @@ jobs:
       - name: Run a one-line script
         run: | 
           cd src
-          docker-compose -f local.yml run --rm django pytest
+          docker-compose -f development.yml run --rm django pytest
 
