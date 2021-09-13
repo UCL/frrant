@@ -12,27 +12,25 @@ class TestWorkForm(TestCase):
         # allow the user to skip either and insist on the backend
         # that at least one of them is filled out
         form = WorkForm()
-        self.assertFalse(form.fields['antiquarians'].required)
+        self.assertFalse(form.fields["antiquarians"].required)
 
     def test_antiquarian_queryset(self):
 
         data = {
-            'name': 'Work Name',
-            'subtitle': 'Subtitle',
+            "name": "Work Name",
+            "subtitle": "Subtitle",
         }
         work = Work.objects.create(**data)
 
         OWNER_COUNT = 5
         OTHER_COUNT = 3
         for i in range(0, OWNER_COUNT):
-            a = Antiquarian.objects.create(name='sdf', re_code='owner%d' % i)
+            a = Antiquarian.objects.create(name="sdf", re_code="owner%d" % i)
             a.works.add(work)
 
         for i in range(0, OTHER_COUNT):
-            a = Antiquarian.objects.create(name='sdf', re_code='other%d' % i)
+            a = Antiquarian.objects.create(name="sdf", re_code="other%d" % i)
 
         form = WorkForm(instance=work)
 
-        self.assertEqual(
-            form.fields['antiquarians'].initial.count(), OWNER_COUNT
-        )
+        self.assertEqual(form.fields["antiquarians"].initial.count(), OWNER_COUNT)

@@ -17,19 +17,15 @@ class TestSymbolAdmin(TestCase):
         self.admin_view = SymbolAdmin(Symbol, site)
 
     def test_name_display(self):
-        symbol = Symbol.objects.create(code='0020')
+        symbol = Symbol.objects.create(code="0020")
         self.assertEqual(
-            self.admin_view.name_display(symbol),
-            symbol.get_display_name()
+            self.admin_view.name_display(symbol), symbol.get_display_name()
         )
 
     def test_symbol_display(self):
-        symbol = Symbol.objects.create(code='0020')
+        symbol = Symbol.objects.create(code="0020")
         expected = mark_safe(
             '<span class="alphabetum" '
             'style="font-size:large;">&#x{};</span>'.format(symbol.code)
         )
-        self.assertEqual(
-            self.admin_view.symbol_display(symbol),
-            expected
-        )
+        self.assertEqual(self.admin_view.symbol_display(symbol), expected)

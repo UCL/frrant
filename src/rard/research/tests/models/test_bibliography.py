@@ -8,23 +8,22 @@ pytestmark = pytest.mark.django_db
 
 
 class TestBibliography(TestCase):
-
     def setUp(self):
-        self.parent_object = TextObjectField.objects.create(content='foo')
+        self.parent_object = TextObjectField.objects.create(content="foo")
 
     def test_creation(self):
         data = {
-            'authors': 'Hartley, J. R.',
-            'title': 'Fly Fishing',
-            'parent': self.parent_object
+            "authors": "Hartley, J. R.",
+            "title": "Fly Fishing",
+            "parent": self.parent_object,
         }
         item = BibliographyItem.objects.create(**data)
         self.assertTrue(BibliographyItem.objects.filter(pk=item.pk).exists())
 
     def test_parent_required(self):
         data = {
-            'authors': 'Hartley, J. R.',
-            'title': 'Fly Fishing',
+            "authors": "Hartley, J. R.",
+            "title": "Fly Fishing",
         }
         # cannot create a comment with no parent
         with self.assertRaises(IntegrityError):
@@ -32,9 +31,9 @@ class TestBibliography(TestCase):
 
     def test_delete_parent_deletes_item(self):
         data = {
-            'authors': 'Hartley, J. R.',
-            'title': 'Fly Fishing',
-            'parent': self.parent_object
+            "authors": "Hartley, J. R.",
+            "title": "Fly Fishing",
+            "parent": self.parent_object,
         }
         item = BibliographyItem.objects.create(**data)
         self.assertTrue(BibliographyItem.objects.filter(pk=item.pk).exists())
@@ -45,9 +44,9 @@ class TestBibliography(TestCase):
 
     def test_related_query_name_for_bib_item_fields(self):
         data = {
-            'authors': 'Hartley, J. R.',
-            'title': 'Fly Fishing',
-            'parent': self.parent_object
+            "authors": "Hartley, J. R.",
+            "title": "Fly Fishing",
+            "parent": self.parent_object,
         }
         item = BibliographyItem.objects.create(**data)
         self.assertTrue(BibliographyItem.objects.filter(pk=item.pk).exists())
@@ -57,4 +56,6 @@ class TestBibliography(TestCase):
         self.assertEqual(
             BibliographyItem.objects.filter(
                 text_fields__pk=self.parent_object.pk
-            ).count(), 1)
+            ).count(),
+            1,
+        )

@@ -15,19 +15,17 @@ class TextObjectField(HistoryModelMixin, BaseModel):
 
     # store text in a separate object to allow its own
     # audit trail to be held
-    content = DynamicTextField(default='', blank=True)
+    content = DynamicTextField(default="", blank=True)
 
-    comments = GenericRelation('Comment', related_query_name='text_fields')
+    comments = GenericRelation("Comment", related_query_name="text_fields")
 
-    references = GenericRelation(
-        'BibliographyItem', related_query_name='text_fields'
-    )
+    references = GenericRelation("BibliographyItem", related_query_name="text_fields")
 
     def get_history_title(self):
         obj = self.get_related_object()
         if isinstance(obj, Antiquarian):
-            return 'Introduction'
-        return 'Commentary'
+            return "Introduction"
+        return "Commentary"
 
     def __str__(self):
         return self.content
@@ -35,8 +33,7 @@ class TextObjectField(HistoryModelMixin, BaseModel):
     def get_related_object(self):
         # what model instance owns this text object field?
         related_fields = [
-            f for f in self._meta.get_fields() if f.auto_created
-            and not f.concrete
+            f for f in self._meta.get_fields() if f.auto_created and not f.concrete
         ]
         for field in related_fields:
             try:
@@ -48,17 +45,20 @@ class TextObjectField(HistoryModelMixin, BaseModel):
     @property
     def fragment(self):
         from rard.research.models import Fragment
+
         related = self.get_related_object()
         return related if isinstance(related, Fragment) else None
 
     @property
     def testimonium(self):
         from rard.research.models import Testimonium
+
         related = self.get_related_object()
         return related if isinstance(related, Testimonium) else None
 
     @property
     def antiquarian(self):
         from rard.research.models import Antiquarian
+
         related = self.get_related_object()
         return related if isinstance(related, Antiquarian) else None

@@ -3,20 +3,28 @@ from django.http.response import Http404
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
-from rard.research.models import (CitingWork, Concordance, Fragment,
-                                  OriginalText, Testimonium)
-from rard.research.views import (ConcordanceCreateView, ConcordanceDeleteView,
-                                 ConcordanceListView, ConcordanceUpdateView)
+from rard.research.models import (
+    CitingWork,
+    Concordance,
+    Fragment,
+    OriginalText,
+    Testimonium,
+)
+from rard.research.views import (
+    ConcordanceCreateView,
+    ConcordanceDeleteView,
+    ConcordanceListView,
+    ConcordanceUpdateView,
+)
 from rard.users.tests.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
 
 
 class TestConcordanceViews(TestCase):
-
     def setUp(self):
-        citing_work = CitingWork.objects.create(title='title')
-        fragment = Fragment.objects.create(name='name')
+        citing_work = CitingWork.objects.create(title="title")
+        fragment = Fragment.objects.create(name="name")
         self.user = UserFactory.create()
         fragment.lock(self.user)
         self.original_text = OriginalText.objects.create(
@@ -37,13 +45,12 @@ class TestConcordanceViews(TestCase):
             view.request = request
             view.object = Concordance.objects.create(
                 original_text=self.original_text,
-                source='source',
-                identifier='identifier',
+                source="source",
+                identifier="identifier",
             )
 
             self.assertEqual(
-                view.get_success_url(),
-                self.original_text.owner.get_absolute_url()
+                view.get_success_url(), self.original_text.owner.get_absolute_url()
             )
 
     def test_delete_success_url(self):
@@ -54,53 +61,40 @@ class TestConcordanceViews(TestCase):
         view.request = request
         view.object = Concordance.objects.create(
             original_text=self.original_text,
-            source='source',
-            identifier='identifier',
+            source="source",
+            identifier="identifier",
         )
 
         self.assertEqual(
-            view.get_success_url(),
-            self.original_text.owner.get_absolute_url()
+            view.get_success_url(), self.original_text.owner.get_absolute_url()
         )
 
     def test_post_delete_only(self):
 
         concordance = Concordance.objects.create(
             original_text=self.original_text,
-            source='source',
-            identifier='identifier',
+            source="source",
+            identifier="identifier",
         )
 
-        url = reverse(
-            'concordance:delete',
-            kwargs={'pk': concordance.pk}
-        )
+        url = reverse("concordance:delete", kwargs={"pk": concordance.pk})
         request = RequestFactory().get(url)
         request.user = self.user
-        response = ConcordanceDeleteView.as_view()(
-            request, pk=concordance.pk
-        )
+        response = ConcordanceDeleteView.as_view()(request, pk=concordance.pk)
         self.assertEqual(response.status_code, 405)
 
     def test_create_context_data(self):
-        url = reverse(
-            'concordance:create',
-            kwargs={'pk': self.original_text.pk}
-        )
+        url = reverse("concordance:create", kwargs={"pk": self.original_text.pk})
         request = RequestFactory().get(url)
         request.user = self.user
-        response = ConcordanceCreateView.as_view()(
-            request, pk=self.original_text.pk
-        )
+        response = ConcordanceCreateView.as_view()(request, pk=self.original_text.pk)
 
-        self.assertEqual(
-            response.context_data['original_text'], self.original_text
-        )
+        self.assertEqual(response.context_data["original_text"], self.original_text)
 
     def test_create_fails_for_testimonium(self):
         # create an original text for a testimonium
-        citing_work = CitingWork.objects.create(title='test')
-        testimonium = Testimonium.objects.create(name='name')
+        citing_work = CitingWork.objects.create(title="test")
+        testimonium = Testimonium.objects.create(name="name")
         self.user = UserFactory.create()
         testimonium.lock(self.user)
         testimonium_original_text = OriginalText.objects.create(
@@ -108,82 +102,61 @@ class TestConcordanceViews(TestCase):
             citing_work=citing_work,
         )
 
-        url = reverse(
-            'concordance:create',
-            kwargs={'pk': testimonium_original_text.pk}
-        )
+        url = reverse("concordance:create", kwargs={"pk": testimonium_original_text.pk})
         request = RequestFactory().get(url)
         request.user = self.user
 
         # this should be verboten
         with self.assertRaises(Http404):
-            ConcordanceCreateView.as_view()(
-                request, pk=testimonium_original_text.pk
-            )
+            ConcordanceCreateView.as_view()(request, pk=testimonium_original_text.pk)
 
     def test_update_context_data(self):
         concordance = Concordance.objects.create(
             original_text=self.original_text,
-            source='source',
-            identifier='identifier',
+            source="source",
+            identifier="identifier",
         )
-        url = reverse(
-            'concordance:update',
-            kwargs={'pk': concordance.pk}
-        )
+        url = reverse("concordance:update", kwargs={"pk": concordance.pk})
         request = RequestFactory().get(url)
         request.user = self.user
-        response = ConcordanceUpdateView.as_view()(
-            request, pk=concordance.pk
-        )
+        response = ConcordanceUpdateView.as_view()(request, pk=concordance.pk)
 
         self.assertEqual(
-            response.context_data['original_text'], concordance.original_text
+            response.context_data["original_text"], concordance.original_text
         )
 
     def test_empty_concordance_list_view(self):
-        url = reverse(
-            'concordance:list'
-        )
+        url = reverse("concordance:list")
         request = RequestFactory().get(url)
         request.user = self.user
         response = ConcordanceListView.as_view()(request)
         self.assertEqual(response.status_code, 200)
 
     def test_create_view_with_original_text(self):
-        url = reverse(
-            'concordance:create',
-            kwargs={'pk': self.original_text.pk}
-        )
-        data = {'source': 'source', 'identifier': 'identifier'}
+        url = reverse("concordance:create", kwargs={"pk": self.original_text.pk})
+        data = {"source": "source", "identifier": "identifier"}
 
         request = RequestFactory().post(url, data=data)
         request.user = self.user
 
         # check no concordance previously associated with the original text
-        self.assertEqual(
-            self.original_text.concordance_set.count(), 0
-        )
+        self.assertEqual(self.original_text.concordance_set.count(), 0)
 
-        ConcordanceCreateView.as_view()(
-            request, pk=self.original_text.pk
-        )
+        ConcordanceCreateView.as_view()(request, pk=self.original_text.pk)
 
         # check the new concordance is associated with the original text
-        self.assertEqual(
-            self.original_text.concordance_set.count(), 1
-        )
+        self.assertEqual(self.original_text.concordance_set.count(), 1)
 
     def test_create_view_dispatch_creates_top_level_object(self):
 
         # dispatch method creates an attribute used by the
         # locking mechanism so here we ensure it is created
-        request = RequestFactory().get('/')
+        request = RequestFactory().get("/")
         request.user = self.user
         for view_class in (ConcordanceCreateView,):
             view = view_class()
             view.request = request
-            view.kwargs = {'pk': self.original_text.pk}
+            view.kwargs = {"pk": self.original_text.pk}
             view.dispatch(request)
             self.assertEqual(view.top_level_object, self.original_text.owner)
 
@@ -194,37 +167,35 @@ class TestConcordanceViews(TestCase):
 
         concordance = Concordance.objects.create(
             original_text=self.original_text,
-            source='source',
-            identifier='identifier',
+            source="source",
+            identifier="identifier",
         )
-        request = RequestFactory().post('/')
+        request = RequestFactory().post("/")
         request.user = self.user
 
-        for view_class in (ConcordanceUpdateView, ConcordanceDeleteView,):
+        for view_class in (
+            ConcordanceUpdateView,
+            ConcordanceDeleteView,
+        ):
             view = view_class()
             view.request = request
-            view.kwargs = {'pk': concordance.pk}
+            view.kwargs = {"pk": concordance.pk}
             view.dispatch(request)
             self.assertEqual(view.top_level_object, self.original_text.owner)
 
 
 class TestConcordanceViewPermissions(TestCase):
-
     def test_permissions(self):
 
         self.assertIn(
-            'research.add_concordance',
-            ConcordanceCreateView.permission_required
+            "research.add_concordance", ConcordanceCreateView.permission_required
         )
         self.assertIn(
-            'research.change_concordance',
-            ConcordanceUpdateView.permission_required
+            "research.change_concordance", ConcordanceUpdateView.permission_required
         )
         self.assertIn(
-            'research.delete_concordance',
-            ConcordanceDeleteView.permission_required
+            "research.delete_concordance", ConcordanceDeleteView.permission_required
         )
         self.assertIn(
-            'research.view_concordance',
-            ConcordanceListView.permission_required
+            "research.view_concordance", ConcordanceListView.permission_required
         )

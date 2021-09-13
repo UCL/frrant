@@ -14,5 +14,5 @@ def symbols_context(_request):
     """Symbols available to the symbol picker on each page."""
     return {
         "all_symbols": Symbol.objects.all(),
-        "symbol_groups": SymbolGroup.objects.all()
+        "symbol_groups": SymbolGroup.objects.all(),
     }
