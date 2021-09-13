@@ -115,6 +115,11 @@ class Fragment(HistoryModelMixin, HistoricalBaseModel, DatedModel):
     def get_all_appositum_links(self):
         return self.appositumfragmentlinks_to.order_by('work', 'work_order')
 
+    @property
+    def is_unlinked(self):
+        if self.get_all_links(): return False
+        else: return True
+
 
 class AnonymousTopicLink(models.Model):
 
