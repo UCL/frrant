@@ -8,7 +8,7 @@
             <span>
                 {% with fragment.get_display_name as link_text %}
                     {% if perms.research.view_fragment %}
-                    <a href='{% url "fragment:detail" fragment.pk %}'>{{ link_text }}</a> 
+                    <a href='{% url "fragment:detail" fragment.pk %}'>{{ link_text }}</a>
                     {% else %}
                         {{ link_text }}
                     {% endif %}
@@ -29,7 +29,7 @@
                     </span>
                 </small>
             </div>
-        </div>     
+        </div>
     </div>
     <div class='rard-list-item-actions'>
     </div>

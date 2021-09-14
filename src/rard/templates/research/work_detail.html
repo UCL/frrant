@@ -54,7 +54,7 @@
         <dl class="row mb-0">
             <dt class="col-sm-3">{% trans 'Name of Work' %}</dt>
             <dd class="col-sm-9">{{ object.name }}</dd>
-        
+
             <dt class="col-sm-3">{% trans 'Subtitle' %}</dt>
             <dd class="col-sm-9">{{ object.subtitle|default:'-' }}</dd>
 
@@ -106,7 +106,7 @@
         </p>
 
     </section>
-    
+
     {% comment %}
     <hr>
     <section>
@@ -219,15 +219,15 @@
                 {% for link in alinks %}
                     {% include 'research/partials/appositum_fragment_link_list_item.html' with link=link link_text=link.get_work_display_name_full|safe can_edit=False %}
                 {% endfor %}
-            
+
                 {% if not alinks %}
                 <div class='text-muted my-3 ml-4'><em>No linked material for this work</em></div>
                 {% endif %}
-        
+
             {% endwith %}
 
     </section>
-    
+
 
     {% comment %}
         <hr>
@@ -259,23 +259,23 @@
                 {% for link in alinks %}
                     {% include 'research/partials/appositum_fragment_link_list_item.html' with link=link link_text=link.get_work_display_name_full|safe can_edit=perms.research.change_work has_object_lock=has_object_lock %}
                 {% endfor %}
-            
+
                 {% if not flinks and not tlinks and not alinks %}
                 <div class='text-muted my-3 ml-4'><em>No linked material for this work</em></div>
                 {% endif %}
-        
+
             {% endwith %}
             {% endwith %}
             {% endwith %}
             </div>
         </ul>
-        
-        
+
+
 
 
     </section>
 
     {% endcomment %}
-    
+
     {% endwith %}
 {% endblock %}
