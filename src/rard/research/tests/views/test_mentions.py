@@ -8,10 +8,8 @@ from rard.research.models import (
     AnonymousFragment,
     Antiquarian,
     BibliographyItem,
-    CitingWork,
     Fragment,
     Testimonium,
-    TextObjectField,
     Topic,
     Work,
 )

@@ -81,8 +81,8 @@ class DynamicTextField(TextField):
                                         pk=int(original_text_pk)
                                     )
                                     link_text = (
-                                        original_text.ordinal_with_respect_to_parent_object()
-                                    )  # noqa
+                                        original_text.ordinal_with_respect_to_parent_object()  # noqa: E501
+                                    )
 
                                 # in any case show the app crit link index
                                 link_text += str(linked.order + 1)
@@ -162,7 +162,7 @@ class DynamicTextField(TextField):
                                         pk=int(original_text_pk)
                                     )
                                     display_str = (
-                                        original_text.ordinal_with_respect_to_parent_object()
+                                        original_text.ordinal_with_respect_to_parent_object()  # noqa: E501
                                     )  # noqa
 
                                 # in any case show the app crit link index

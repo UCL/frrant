@@ -3,20 +3,20 @@ from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
 from rard.research.models import (
-    Topic,
-    CitingWork,
-    CitingAuthor,
-    Fragment,
     AnonymousFragment,
+    CitingAuthor,
+    CitingWork,
+    Fragment,
+    Topic,
 )
 from rard.research.views import (
+    AnonymousFragmentCreateView,
+    FragmentCreateView,
     TopicCreateView,
     TopicDeleteView,
     TopicDetailView,
     TopicListView,
     TopicUpdateView,
-    FragmentCreateView,
-    AnonymousFragmentCreateView,
 )
 from rard.users.tests.factories import UserFactory
 

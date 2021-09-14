@@ -8,13 +8,13 @@ from rard.research.models import (
     AnonymousFragment,
     Antiquarian,
     BibliographyItem,
+    CitingAuthor,
     CitingWork,
     Fragment,
     Testimonium,
     TextObjectField,
     Topic,
     Work,
-    CitingAuthor,
 )
 from rard.research.models.base import AppositumFragmentLink
 from rard.research.views import SearchView
@@ -245,7 +245,7 @@ class TestSearchView(TestCase):
         af2 = AnonymousFragment.objects.create()
         o2 = af2.original_texts.create(**data)
         # Create appositum link for one of the anonymous fragments
-        fl1 = AppositumFragmentLink.objects.create(anonymous_fragment=af1, linked_to=f1)
+        AppositumFragmentLink.objects.create(anonymous_fragment=af1, linked_to=f1)
 
         self.assertEqual(list(view.anonymous_fragment_search("raddish")), [af1, af2])
         self.assertEqual(list(view.appositum_search("raddish")), [af1])

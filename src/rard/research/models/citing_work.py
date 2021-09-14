@@ -4,7 +4,6 @@ from django.utils.translation import gettext as _
 from simple_history.models import HistoricalRecords
 
 from rard.research.models.mixins import HistoryModelMixin
-from rard.research.models.original_text import OriginalText
 from rard.utils.basemodel import BaseModel, DatedModel, LockableModel
 
 

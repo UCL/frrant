@@ -2,20 +2,19 @@ import pytest
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
-from rard.research.models import CitingWork, CitingAuthor, citing_work
-from rard.research.models.fragment import Fragment, AnonymousFragment
+from rard.research.models import CitingAuthor, CitingWork
+from rard.research.models.fragment import AnonymousFragment, Fragment
 from rard.research.models.testimonium import Testimonium
 from rard.research.views import (
-    CitingAuthorListView,
+    AnonymousFragmentCreateView,
     CitingAuthorDetailView,
+    CitingAuthorListView,
     CitingWorkDeleteView,
     CitingWorkDetailView,
     CitingWorkUpdateView,
     FragmentCreateView,
     TestimoniumCreateView,
-    AnonymousFragmentCreateView,
 )
-from rard.research.views.citing_work import CitingAuthorDetailView
 from rard.users.tests.factories import UserFactory
 
 pytestmark = pytest.mark.django_db

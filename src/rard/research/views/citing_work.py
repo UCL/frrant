@@ -8,7 +8,7 @@ from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from rard.research.forms import CitingAuthorUpdateForm, CitingWorkCreateForm
-from rard.research.models import CitingAuthor, CitingWork, OriginalText, citing_work
+from rard.research.models import CitingAuthor, CitingWork, OriginalText
 from rard.research.views.mixins import CanLockMixin, CheckLockMixin, DateOrderMixin
 
 
