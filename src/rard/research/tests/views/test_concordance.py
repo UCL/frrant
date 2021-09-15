@@ -1,10 +1,15 @@
 import pytest
+from django.conf import settings
+from django.contrib.auth.models import AnonymousUser
+from django.core.exceptions import PermissionDenied
 from django.http.response import Http404
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
-from rard.research.models import (CitingWork, Concordance, Fragment,
-                                  OriginalText, Testimonium)
+from rard.research.models import (Antiquarian, AnonymousFragment, CitingWork, 
+                                  Concordance, Fragment, OriginalText, 
+                                  Testimonium)
+from rard.research.models.base import FragmentLink, AppositumFragmentLink
 from rard.research.views import (ConcordanceCreateView, ConcordanceDeleteView,
                                  ConcordanceListView, ConcordanceUpdateView)
 from rard.users.tests.factories import UserFactory
@@ -16,11 +21,12 @@ class TestConcordanceViews(TestCase):
 
     def setUp(self):
         citing_work = CitingWork.objects.create(title='title')
-        fragment = Fragment.objects.create(name='name')
+        self.fragment = Fragment.objects.create(name='name')
+        self.antiquarian = Antiquarian.objects.create(name='Romulus',re_code='1')
         self.user = UserFactory.create()
-        fragment.lock(self.user)
+        self.fragment.lock(self.user)
         self.original_text = OriginalText.objects.create(
-            owner=fragment,
+            owner=self.fragment,
             citing_work=citing_work,
         )
 
@@ -145,10 +151,109 @@ class TestConcordanceViews(TestCase):
         url = reverse(
             'concordance:list'
         )
-        request = RequestFactory().get(url)
-        request.user = self.user
-        response = ConcordanceListView.as_view()(request)
+        self.client.force_login(self.user)
+        response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
+
+    def test_concordance_response_data(self):
+        # Create a concordance and fragment link so something will be returned
+        Concordance.objects.create(
+            original_text=self.original_text,
+            source='source',
+            identifier='123',
+        )
+        FragmentLink.objects.create(
+            fragment = self.fragment,
+            antiquarian = self.antiquarian,
+            order = 1
+        )
+        url = reverse(
+            'concordance:list'
+        )
+        self.client.force_login(self.user)
+        response = self.client.get(url)
+        # Check fragment URL
+        self.assertEqual(
+            response.context['page_obj'][0]['frrant']['url'],
+            self.fragment.get_absolute_url()
+        )
+        # Check link display name
+        self.assertEqual(
+            response.context['page_obj'][0]['frrant']['display_name'],
+            'Romulus F1'
+        )
+        # Check concordances
+        self.assertEqual(
+            response.context['page_obj'][0]['concordances'][0],
+            self.original_text.concordances.all()[0]
+        )
+
+    def test_multiple_fragment_links_repeat_concordances(self):
+        # Create a concordance and fragment link so something will be returned
+        Concordance.objects.create(
+            original_text=self.original_text,
+            source='source',
+            identifier='123',
+        )
+        FragmentLink.objects.create(
+            fragment = self.fragment,
+            antiquarian = self.antiquarian,
+            order = 1
+        )
+
+        # Before...
+        url = reverse('concordance:list')
+        self.client.force_login(self.user)
+        response = self.client.get(url)
+        self.assertEqual(len(response.context['page_obj']),1)
+
+        # Create another fragment link
+        antiquarian2 = Antiquarian.objects.create(name='Remus',re_code='2')
+        FragmentLink.objects.create(
+            fragment = self.fragment,
+            antiquarian = antiquarian2,
+            order = 1
+        )
+
+        # And after...
+        response = self.client.get(url)
+        self.assertEqual(len(response.context['page_obj']),2)
+        # Check new link display name
+        self.assertContains(
+            response,
+            'Remus F1'
+        )
+        # Check concordances
+        self.assertEqual(
+            response.context['page_obj'][1]['concordances'][0],
+            self.original_text.concordances.all()[0]
+        )
+
+    def test_anonymous_fragment_concordances_included(self):
+        anon_frag = AnonymousFragment.objects.create(
+            name='anonymous fragment'
+        )
+        ot = OriginalText.objects.create(
+            owner=anon_frag,
+            citing_work=CitingWork.objects.create(title='work1'),
+        )
+        con = Concordance.objects.create(
+            original_text = ot,
+            source='Ketchup',
+            identifier='57'
+        )
+        link = AppositumFragmentLink.objects.create(
+            anonymous_fragment = anon_frag,
+            antiquarian = self.antiquarian,
+            order = 1
+        )
+        # Check the response
+        url = reverse('concordance:list')
+        self.client.force_login(self.user)
+        response = self.client.get(url)
+        self.assertEqual(len(response.context['page_obj']),1)
+        # Check the name
+        self.assertContains(response,'Romulus A1')
 
     def test_create_view_with_original_text(self):
         url = reverse(
@@ -162,7 +267,7 @@ class TestConcordanceViews(TestCase):
 
         # check no concordance previously associated with the original text
         self.assertEqual(
-            self.original_text.concordance_set.count(), 0
+            self.original_text.concordances.count(), 0
         )
 
         ConcordanceCreateView.as_view()(
@@ -171,7 +276,7 @@ class TestConcordanceViews(TestCase):
 
         # check the new concordance is associated with the original text
         self.assertEqual(
-            self.original_text.concordance_set.count(), 1
+            self.original_text.concordances.count(), 1
         )
 
     def test_create_view_dispatch_creates_top_level_object(self):
@@ -228,3 +333,45 @@ class TestConcordanceViewPermissions(TestCase):
             'research.view_concordance',
             ConcordanceListView.permission_required
         )
+
+
+class TestConcordanceListViewPermissions(TestCase):
+
+    def setUp(self):
+        self.user1 = UserFactory()
+        self.user2 = UserFactory(is_superuser = False)
+        self.view = ConcordanceListView()
+
+    def test_login_required(self):
+        # remove this test when the site goes public
+        url = reverse('concordance:list')
+        request = RequestFactory().get(url)
+
+        # specify an unauthenticated user
+        request.user = AnonymousUser()
+
+        self.view.request = request
+        response = self.view.dispatch(request)
+
+        # should be redirected to the login page
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url,
+            '{}?next={}'.format(
+                reverse(settings.LOGIN_URL),
+                url
+            )
+        )
+
+    def test_exception_if_not_permitted(self):
+        request = RequestFactory().get('/')
+        request.user = self.user2
+        self.view.request = request
+        self.assertRaises(PermissionDenied, self.view.dispatch, request)
+
+    def test_access_if_permitted(self):
+        request = RequestFactory().get('/')
+        request.user = self.user1
+        self.view.request = request
+        response = self.view.dispatch(request)
+        self.assertEqual(response.status_code, 200)
