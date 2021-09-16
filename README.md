@@ -372,7 +372,7 @@ to view logs for a particular container in the above list
 the `-f` prints new lines as they are written. The `<containerid>` is the same shown in the output of `docker ps`
 
 
-# To clean up space on /var
+## To clean up space on /var
 
 Remove yum caches
 
@@ -383,7 +383,7 @@ If your containers are built to `/var` this will clean those up
 `sudo docker system prune`
 
 
-# If your server becomes unreachable 30 minutes after restarting Docker
+## If your server becomes unreachable 30 minutes after restarting Docker
 
 You need to ensure IP forwarding is enabled:
 
@@ -400,7 +400,7 @@ Then apply the settings with e.g.
 
 If the Javascript and css is not looking how you expect after production, ensure you have run 'collectstatic' on the target machine(s). See the description given earlier.
 
-## Project management
+# Project management
 During the software development stage, we work in sprint cycles that go from 2 to 4 weeks, depending on workload and availability. These have a planning meeting at the beginning, a meeting with the research team to demo all new changes, and a deployment to production if all changes have been approved by the research team during the meeting. We are currently using [this Zenhub workspace](https://app.zenhub.com/workspaces/frrant-public-612e33d9c2bb690015527ab6/board?repos=312338365) to plan tasks in each sprint, and we share a [GitHub priority board](https://github.com/UCL/frrant/projects/7) with the research team to better understand what tasks are essential for them, and which can wait.
 
 Plans for next steps include running retrospectives in each internal sprint cycle, as well as making the pre-production/development server ready for the researchers so they can test and approve changes as we make them instead of waiting until the next meeting when we'll demo them live. 
