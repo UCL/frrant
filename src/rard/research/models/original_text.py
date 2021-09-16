@@ -1,6 +1,7 @@
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.utils.safestring import mark_safe
 from simple_history.models import HistoricalRecords
 
 from rard.research.models.mixins import HistoryModelMixin
@@ -80,7 +81,10 @@ class OriginalText(HistoryModelMixin, BaseModel):
         #     index = self.index_with_respect_to_parent_object()
         #     ordinal = chr(ord('a')+index)
         ordinal = self.ordinal_with_respect_to_parent_object()
-        return ["{}{}".format(name, ordinal) for name in self.owner.get_all_names()]
+        return [
+            mark_safe("{}{}".format(name, ordinal))
+            for name in self.owner.get_all_names()
+        ]
 
     def __str__(self):
         # one-indexed position of this wrt all the others (or pk as fallback)
@@ -100,7 +104,9 @@ class Concordance(HistoryModelMixin, BaseModel):
     def related_lock_object(self):
         return self.original_text.related_lock_object()
 
-    original_text = models.ForeignKey("OriginalText", on_delete=models.CASCADE)
+    original_text = models.ForeignKey(
+        "OriginalText", on_delete=models.CASCADE, related_name="concordances"
+    )
 
     source = models.CharField(max_length=128, blank=False)
 

@@ -94,7 +94,7 @@ class TestConcordance(TestCase):
 
         concordances = link.get_concordance_identifiers()
         self.assertEqual(
-            [x[0] for x in self.original_text.concordance_set.all()], concordances
+            [x[0] for x in self.original_text.concordances.all()], concordances
         )
 
 
