@@ -10,8 +10,9 @@ High level design: https://wiki.ucl.ac.uk/display/IA/Republican+Antiquarian+HLD
 
 ## Branches
 
-`master` holds production code installed in the production server.
-Feature branches are named `feature/<branch_name>`, and contain work in progress that will be merged onto the `development` branch via approved pull requests.
+* `production` holds production code installed in the production server.
+* Feature branches are named `feature/<branch_name>`, and contain work in progress that will be merged onto the `development` branch via approved pull requests.
+* Bug fix branches are named `fix/<branch_name>`
 
 ## Running locally
 
@@ -29,7 +30,7 @@ This project uses containers. Below are set up instructions and useful commands.
 - Select 'SSH and GPG keys' from the left menu
 - Follow the [instructions in their guide](https://docs.github.com/articles/generating-an-ssh-key/)
 
-### 3. Checkout the RARD source code
+### 3. Setup a virtual environment and checkout the RARD source code
 
 - Create a working folder, e.g. `~/projects/` and `cd` into it
 
@@ -40,6 +41,14 @@ This project uses containers. Below are set up instructions and useful commands.
 - Checkout the development branch:
 
 ```git checkout development```
+
+- Create a virtual environment; e.g. with virtualenvwrapper:
+
+```mkvirtualenv -a ~/projects/frrant frrant```
+
+- Install the requirements for local development (including pre-commit, flake8, black etc.):
+
+```pip install -r src/requirements/local.txt```
 
 ### 4. Tell Docker about your folder
 
