@@ -184,7 +184,7 @@ The command below will correct the order of your python imports to meet the stan
 
 (import order errors when running the flake8 command should be fixed automatically by running the above command)
 
-### Django Migrations
+### 9. Django Migrations
 
 If you make changes to model definitions (i.e. in the `models.py` files) then these need to be reflected in a migration file.
 
@@ -232,7 +232,7 @@ If your static files (css, js, fonts etc) have changed then on the production en
 
 Answer 'yes' to the 'are you sure question'. It might say something like '0 files updated' but this message is notoriously misleading. Check to see whether the static files (js etc) being used are the ones you expect.
 
-### Loading data fixtures
+### 10. Loading data fixtures
 
 To take a snapshot of e.g. the production database and install it locally we do the following:
 
@@ -259,11 +259,21 @@ Run the `src/loaddata.sh` script to load this:
 ./loaddata.sh dump.json
 ```
 
-### Requirements
+### 11. Requirements
 
 Requirements are applied when the containers are built.
 
-## Continuous Integration
+### 12. Pre-commit
+
+The requirements file for local development includes pre-commit. To set this up on your machine, make sure you're in the frrant directory and run:
+
+```pre-commit install```
+
+This will ensure the hooks specified in `.pre-commit-config.yaml` are run prior to every commit. Black should automatically correct most formatting errors, so you can just try the commit again in most cases.
+
+You can turn pre-commit off any time with `pre-commit uninstall` if you need to.
+
+# Continuous Integration
 
 # Deployment
 
@@ -325,7 +335,7 @@ for the username/password to use for postgres database.
 If your static files have changed in a deployment (css, js, fonts etc) then you need to run the 'collectstatic' command described earlier.
 
 
-## SSL Certificates
+### SSL Certificates
 
 Before building the nginx container we need to do the following for development (and production)
 
