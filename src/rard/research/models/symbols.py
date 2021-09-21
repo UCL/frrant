@@ -4,10 +4,9 @@ from rard.utils.basemodel import BaseModel
 
 
 class SymbolGroup(BaseModel):
-
     class Meta:
         # alphabetical
-        ordering = ['name']
+        ordering = ["name"]
 
     name = models.CharField(max_length=64, blank=False, unique=True)
 
@@ -16,14 +15,13 @@ class SymbolGroup(BaseModel):
 
 
 class Symbol(BaseModel):
-
     class Meta:
         # alphabetical
-        ordering = ['code']
+        ordering = ["code"]
 
     # each individual symbol can belong to a group
     group = models.ForeignKey(
-        'SymbolGroup', default=None, null=True, on_delete=models.SET_NULL
+        "SymbolGroup", default=None, null=True, on_delete=models.SET_NULL
     )
 
     name = models.CharField(max_length=64, blank=True)
@@ -35,7 +33,7 @@ class Symbol(BaseModel):
     # custom characters we need to add manually
 
     def get_display_name(self):
-        return self.name or 'Code: %s' % self.code
+        return self.name or "Code: %s" % self.code
 
     def __str__(self):
         return self.get_display_name()

@@ -36,7 +36,7 @@
 {% endblock %}
 
 {% block inner %}
-    
+
     {% with editing as disable_link_controls %}
     {% with request.user|has_lock:object as has_object_lock %}
 
@@ -62,13 +62,13 @@
         <dl class="row mb-0">
             <dt class="col-sm-3">{% trans 'Name' %}</dt>
             <dd class="col-sm-9">{{ object.name }}</dd>
-        
+
             <dt class="col-sm-3">{% trans 'Name for Alphabetisation' %}</dt>
             <dd class="col-sm-9">{{ object.order_name }}</dd>
 
             <dt class="col-sm-3">{% trans 'RE Number' %}</dt>
             <dd class="col-sm-9">{{ object.re_code|default:'-' }}</dd>
-            
+
             <dt class="col-sm-3">{% trans 'Relevant Dates' %}</dt>
             <dd class="col-sm-9">
                 {{ object.display_date_range|default:'-' }}
@@ -188,9 +188,9 @@
         </div>
 
         {% for work in object.ordered_works.all %}
-        
+
         {% include 'research/partials/work_list_item.html' with work=work %}
-        
+
         {% endfor %}
     </section>
 
@@ -283,4 +283,3 @@
     {% endwith %}
 
 {% endblock %}
-

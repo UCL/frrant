@@ -12,34 +12,27 @@ from rard.users.tests.factories import UserFactory
 pytestmark = pytest.mark.django_db
 
 
-@skip('Indexing scheme has changed')
+@skip("Indexing scheme has changed")
 class TestLinkSchemeViews(TestCase):
-
     def test_post_up_down(self):
 
-        a = Antiquarian.objects.create(name='name', re_code='name')
-        fragment = Fragment.objects.create(name='name')
+        a = Antiquarian.objects.create(name="name", re_code="name")
+        fragment = Fragment.objects.create(name="name")
         link1 = FragmentLink.objects.create(fragment=fragment, antiquarian=a)
         link2 = FragmentLink.objects.create(fragment=fragment, antiquarian=a)
 
         self.assertEqual(0, link1.order)
         self.assertEqual(1, link2.order)
 
-        data = {
-            'link_id': link1.pk,
-            'object_type': 'fragment',
-            'down': 'down'
-        }
+        data = {"link_id": link1.pk, "object_type": "fragment", "down": "down"}
 
-        url = reverse('antiquarian:detail', kwargs={'pk': a.pk})
+        url = reverse("antiquarian:detail", kwargs={"pk": a.pk})
 
         user = UserFactory.create()
         request = RequestFactory().post(url, data=data)
         request.user = user
 
-        response = AntiquarianDetailView.as_view()(
-            request, pk=a.pk
-        )
+        response = AntiquarianDetailView.as_view()(request, pk=a.pk)
         self.assertEqual(response.status_code, 302)
 
         # refetch from db
@@ -51,18 +44,12 @@ class TestLinkSchemeViews(TestCase):
         self.assertEqual(0, link2.order)
 
         # now move it back up
-        data = {
-            'link_id': link1.pk,
-            'object_type': 'fragment',
-            'up': 'up'
-        }
+        data = {"link_id": link1.pk, "object_type": "fragment", "up": "up"}
 
         request = RequestFactory().post(url, data=data)
         request.user = user
 
-        response = AntiquarianDetailView.as_view()(
-            request, pk=a.pk
-        )
+        response = AntiquarianDetailView.as_view()(request, pk=a.pk)
         self.assertEqual(response.status_code, 302)
 
         # refetch from db
@@ -74,13 +61,11 @@ class TestLinkSchemeViews(TestCase):
         self.assertEqual(1, link2.order)
 
         # handle bad link ID gracefully
-        data['link_id'] = '12345'
+        data["link_id"] = "12345"
         request = RequestFactory().post(url, data=data)
         request.user = user
 
-        response = AntiquarianDetailView.as_view()(
-            request, pk=a.pk
-        )
+        response = AntiquarianDetailView.as_view()(request, pk=a.pk)
         self.assertEqual(response.status_code, 302)
 
         # refetch from db

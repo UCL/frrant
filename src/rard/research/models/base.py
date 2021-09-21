@@ -11,7 +11,7 @@ from rard.utils.decorators import disable_for_loaddata
 
 class LinkBaseModel(BaseModel):
     class Meta:
-        ordering = ['order']
+        ordering = ["order"]
         abstract = True
 
     @property
@@ -19,8 +19,9 @@ class LinkBaseModel(BaseModel):
         return getattr(self, self.linked_field)
 
     def related_queryset(self):
-        return self.__class__.objects.filter(
-            antiquarian=self.antiquarian).order_by('work__worklink__order')
+        return self.__class__.objects.filter(antiquarian=self.antiquarian).order_by(
+            "work__worklink__order"
+        )
 
     # keep these in case ever required again
     # def prev(self):
@@ -52,10 +53,10 @@ class LinkBaseModel(BaseModel):
         super().save(*args, **kwargs)
 
     def get_display_name(self):
-        return '{} {}{}'.format(
-            self.antiquarian or 'Anonymous',
+        return "{} {}{}".format(
+            self.antiquarian or "Anonymous",
             self.get_display_stub(),
-            self.display_order_one_indexed()
+            self.display_order_one_indexed(),
         )
 
     def get_display_stub(self):
@@ -66,18 +67,16 @@ class LinkBaseModel(BaseModel):
         try:
             return self.order + 1
         except TypeError:
-            return 'ERR'
+            return "ERR"
 
     # the order wrt the antiquarian
-    order = models.PositiveIntegerField(
-        default=None, null=True, blank=True
-    )
+    order = models.PositiveIntegerField(default=None, null=True, blank=True)
     antiquarian = models.ForeignKey(
-        'Antiquarian',
+        "Antiquarian",
         null=True,
         default=None,
-        related_name='%(class)ss',
-        on_delete=models.SET_NULL
+        related_name="%(class)ss",
+        on_delete=models.SET_NULL,
     )
 
     definite = models.BooleanField(default=False)
@@ -88,53 +87,47 @@ class WorkLinkBaseModel(LinkBaseModel):
         abstract = True
 
     # the order wrt the work
-    work_order = models.PositiveIntegerField(
-        default=None, null=True, blank=True
-     )
+    work_order = models.PositiveIntegerField(default=None, null=True, blank=True)
 
     def get_work_display_name(self):
         if not self.work:
-            return ''
+            return ""
 
-        return '{} {}{}'.format(
-            self.work,
-            self.get_display_stub(),
-            self.display_work_order_one_indexed()
+        return "{} {}{}".format(
+            self.work, self.get_display_stub(), self.display_work_order_one_indexed()
         )
 
     def get_work_display_name_full(self):
         # to also show the antiquarian link as well as the work link
-        return '%s [= %s]' % (
-            self.get_work_display_name(), self.get_display_name()
-        )
+        return "%s [= %s]" % (self.get_work_display_name(), self.get_display_name())
 
     def display_work_order_one_indexed(self):
         try:
             return self.work_order + 1
         except TypeError:
-            return 'ERR'
+            return "ERR"
 
     def related_work_queryset(self):
         try:
-            return self.__class__.objects.filter(
-                work=self.work
-            ).order_by('work_order')
+            return self.__class__.objects.filter(work=self.work).order_by("work_order")
         except ObjectDoesNotExist:
             return self.__class__.objects.none()
 
     def prev_by_work(self):
-        return self.related_work_queryset().filter(
-            work_order__lt=self.work_order
-        ).last()
+        return (
+            self.related_work_queryset().filter(work_order__lt=self.work_order).last()
+        )
 
     def next_by_work(self):
-        return self.related_work_queryset().filter(
-            work_order__gt=self.work_order
-        ).first()
+        return (
+            self.related_work_queryset().filter(work_order__gt=self.work_order).first()
+        )
 
     def swap_by_work(self, replacement):
-        self.work_order, replacement.work_order = \
-            replacement.work_order, self.work_order
+        self.work_order, replacement.work_order = (
+            replacement.work_order,
+            self.work_order,
+        )
         self.save()
         replacement.save()
         if self.antiquarian:
@@ -150,14 +143,18 @@ class WorkLinkBaseModel(LinkBaseModel):
         pos = min(pos, self.related_work_queryset().count())
 
         if pos < old_pos:
-            to_reorder = self.related_work_queryset().exclude(
-                pk=self.pk
-            ).filter(work_order__gte=pos)
+            to_reorder = (
+                self.related_work_queryset()
+                .exclude(pk=self.pk)
+                .filter(work_order__gte=pos)
+            )
             reindex_start_pos = pos + 1
         else:
-            to_reorder = self.related_work_queryset().exclude(
-                pk=self.pk
-            ).filter(work_order__lte=pos)
+            to_reorder = (
+                self.related_work_queryset()
+                .exclude(pk=self.pk)
+                .filter(work_order__lte=pos)
+            )
             reindex_start_pos = 0
 
         with transaction.atomic():
@@ -183,20 +180,20 @@ class WorkLinkBaseModel(LinkBaseModel):
             self.swap_by_work(next_)
 
     work = models.ForeignKey(
-        'Work',
+        "Work",
         null=True,
         default=None,
-        related_name='antiquarian_work_%(class)ss',
-        on_delete=models.CASCADE
+        related_name="antiquarian_work_%(class)ss",
+        on_delete=models.CASCADE,
     )
     # optional additional book information
     book = models.ForeignKey(
-        'Book',
+        "Book",
         null=True,
         default=None,
-        related_name='antiquarian_book_%(class)ss',
+        related_name="antiquarian_book_%(class)ss",
         on_delete=models.SET_NULL,
-        blank=True
+        blank=True,
     )
 
     def save(self, *args, **kwargs):
@@ -208,29 +205,29 @@ class WorkLinkBaseModel(LinkBaseModel):
 
 class TestimoniumLink(WorkLinkBaseModel):
 
-    linked_field = 'testimonium'
-    display_stub = 'T'
+    linked_field = "testimonium"
+    display_stub = "T"
 
     testimonium = models.ForeignKey(
-        'Testimonium',
+        "Testimonium",
         null=True,
         default=None,
-        related_name='antiquarian_%(class)ss',
-        on_delete=models.CASCADE
+        related_name="antiquarian_%(class)ss",
+        on_delete=models.CASCADE,
     )
 
 
 class FragmentLink(WorkLinkBaseModel):
 
-    linked_field = 'fragment'
-    display_stub = 'F'
+    linked_field = "fragment"
+    display_stub = "F"
 
     fragment = models.ForeignKey(
-        'Fragment',
+        "Fragment",
         null=True,
         default=None,
-        related_name='antiquarian_%(class)ss',
-        on_delete=models.CASCADE
+        related_name="antiquarian_%(class)ss",
+        on_delete=models.CASCADE,
     )
 
     def get_concordance_identifiers(self):
@@ -239,31 +236,31 @@ class FragmentLink(WorkLinkBaseModel):
         # name of the fragment link
         rtn = []
         for o in self.fragment.original_texts.all():
-            rtn.extend([c for c in o.concordance_set.all()])
+            rtn.extend([c for c in o.concordances.all()])
         return rtn
 
 
 class AppositumFragmentLink(WorkLinkBaseModel):
 
-    linked_field = 'anonymous_fragment'
-    display_stub = 'A'
+    linked_field = "anonymous_fragment"
+    display_stub = "A"
 
     # the anonymous fragment that is being linked:
     anonymous_fragment = models.ForeignKey(
-        'AnonymousFragment',
+        "AnonymousFragment",
         null=True,
         default=None,
-        related_name='%(class)ss_from',
-        on_delete=models.CASCADE
+        related_name="%(class)ss_from",
+        on_delete=models.CASCADE,
     )
 
     # the optional fragment that the above anon fragment is being linked TO:
     linked_to = models.ForeignKey(
-        'Fragment',
+        "Fragment",
         null=True,
         default=None,
-        related_name='%(class)ss_to',
-        on_delete=models.CASCADE
+        related_name="%(class)ss_to",
+        on_delete=models.CASCADE,
     )
 
     # whether links to works are to be stored just for this work/antiquarian
@@ -277,34 +274,31 @@ class AppositumFragmentLink(WorkLinkBaseModel):
     # store the optional fragment link that generated this apposita link
     # and cascade on its deletion so we are auto-deleted
     link_object = models.ForeignKey(
-        'FragmentLink',
-        null=True,
-        default=None,
-        on_delete=models.CASCADE
+        "FragmentLink", null=True, default=None, on_delete=models.CASCADE
     )
 
     def get_display_name(self):
         val = super().get_display_name()
         if self.exclusive:
-            val = val + '*'
+            val = val + "*"
         if self.link_object:
             # if self.work is not None:
             #     sup = self.link_object.display_work_order_one_indexed()
             # else:
             sup = self.link_object.display_order_one_indexed()
-            val = mark_safe('%s<sup>%s</sup>' % (val, sup))
+            val = mark_safe("%s<sup>%s</sup>" % (val, sup))
         return val
 
     def get_work_display_name(self):
         val = super().get_work_display_name()
         if self.exclusive:
-            val = val + '*'
+            val = val + "*"
         if self.link_object:
             # if self.work is not None:
             sup = self.link_object.display_work_order_one_indexed()
             # else:
             # sup = self.link_object.display_order_one_indexed()
-            val = mark_safe('%s<sup>%s</sup>' % (val, sup))
+            val = mark_safe("%s<sup>%s</sup>" % (val, sup))
         return val
 
     @classmethod
@@ -320,7 +314,7 @@ class AppositumFragmentLink(WorkLinkBaseModel):
                     book=instance.book,
                     linked_to=instance.fragment,
                     anonymous_fragment=apposita,
-                    link_object=instance
+                    link_object=instance,
                 )
 
 
@@ -329,7 +323,7 @@ def check_order_info(sender, instance, action, model, pk_set, **kwargs):
 
     from rard.research.models import Antiquarian, Fragment, Testimonium
 
-    if action not in ['post_add', 'post_remove']:
+    if action not in ["post_add", "post_remove"]:
         return
 
     with transaction.atomic():
@@ -392,7 +386,7 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
     # abstract base class for shared properties of fragments and testimonia
     class Meta:
         abstract = True
-        ordering = ['pk']
+        ordering = ["pk"]
 
     # a placeholder 'entire collection' ID for this item. Current thinking
     # is that all fragments and anonymous fragments will be ordered by this
@@ -400,9 +394,7 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
     # be decided towards the project end and the entire collection will be
     # scanned and this ID set accordingly and then can be used as a
     # master index / order for the collection
-    collection_id = models.PositiveIntegerField(
-        default=None, null=True, blank=True
-    )
+    collection_id = models.PositiveIntegerField(default=None, null=True, blank=True)
 
     # Below is an example of how collection_id might be set by calling this
     # method at the end of the project. Beware when using order_by that if you
@@ -427,11 +419,12 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
 
     @classmethod
     def reindex_collection(cls):
-        from rard.research.models import (AnonymousFragment, Fragment,
-                                          Testimonium)
+        from rard.research.models import AnonymousFragment, Fragment, Testimonium
+
         with transaction.atomic():
             for count, testimonium in enumerate(
-                    Testimonium.objects.order_by('created')):
+                Testimonium.objects.order_by("created")
+            ):
                 testimonium.collection_id = count
                 testimonium.save()
 
@@ -447,7 +440,7 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
             # querysets where you need a related field value for both
             # e.g. original text name
             items = list(chain(qs1, qs2))
-            items.sort(key=operator.attrgetter('created'))
+            items.sort(key=operator.attrgetter("created"))
             for count, item in enumerate(items):
                 item.collection_id = count
                 item.save()
@@ -455,12 +448,14 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
     name = models.CharField(max_length=128, blank=False)
 
     commentary = models.OneToOneField(
-        'TextObjectField', on_delete=models.SET_NULL, null=True,
+        "TextObjectField",
+        on_delete=models.SET_NULL,
+        null=True,
         related_name="commentary_for_%(class)s",
         blank=True,
     )
 
-    images = models.ManyToManyField('Image', blank=True)
+    images = models.ManyToManyField("Image", blank=True)
 
     def __str__(self):
         return self.get_display_name()
@@ -468,7 +463,7 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
     def get_absolute_url(self):  # pragma: no cover
         class_name = self.__class__.__name__
         raise NotImplementedError(
-            '%s must provide a get_absolute_url() method' % class_name
+            "%s must provide a get_absolute_url() method" % class_name
         )
 
     def get_display_name(self):
@@ -478,15 +473,15 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
         # render the output in the format required
         first_line = None
         if len(names) == 0:
-            first_line = 'Unlinked {}'.format(self.pk)
+            first_line = "Unlinked {}".format(self.pk)
         else:
             first_line = names[0]
             if len(names) > 1:
-                also = ', '.join([name for name in names[1:]])
+                also = ", ".join([name for name in names[1:]])
                 if also:
-                    first_line = (
-                        '%s <span class="also">'
-                        '(also = %s)</span>' % (first_line, also)
+                    first_line = '%s <span class="also">' "(also = %s)</span>" % (
+                        first_line,
+                        also,
                     )
         return mark_safe(first_line)
 
@@ -503,35 +498,37 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
         else:
             all_texts = [x for x in self.original_texts.all()]
         if len(all_texts) == 0:
-            return '[]'
+            return "[]"
 
         first_text = all_texts[0]
         citing_work_str = first_text.citing_work_reference_display()
         if len(all_texts) > 1:
-            also = ', '.join(
+            also = ", ".join(
                 [txt.citing_work_reference_display() for txt in all_texts[1:]]
             )
             if also:
-                citing_work_str = '%s (also = %s)' % (citing_work_str, also)
+                citing_work_str = "%s (also = %s)" % (citing_work_str, also)
         return citing_work_str
 
     def get_display_name_option_a(self):
         # show list of antiquarian links only
-        links = self.get_all_links().order_by('antiquarian', 'order')
+        links = self.get_all_links().order_by("antiquarian", "order")
         names = [link.get_display_name() for link in links]
         return self._render_display_name(names)
 
     def get_link_names(self, show_certainty=True):
-        links = self.get_all_links().order_by('work', 'antiquarian', 'order')
+        links = self.get_all_links().order_by("work", "antiquarian", "order")
         names = []
         for link in links:
             if link.work:
-                name = '%s [= %s]' % (
-                    link.get_work_display_name(), link.get_display_name())
+                name = "%s [= %s]" % (
+                    link.get_work_display_name(),
+                    link.get_display_name(),
+                )
             else:
-                name = '%s' % link.get_display_name()
+                name = "%s" % link.get_display_name()
             if show_certainty and not link.definite:
-                name += ' (possible)'
+                name += " (possible)"
             names.append(name)
         return names
 

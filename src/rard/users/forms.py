@@ -22,18 +22,18 @@ class UserCreationForm(forms.UserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super(UserCreationForm, self).__init__(*args, **kwargs)
-        self.fields['password1'].required = False
-        self.fields['password2'].required = False
+        self.fields["password1"].required = False
+        self.fields["password2"].required = False
 
     class Meta(forms.UserCreationForm.Meta):
         model = User
         fields = (
-            'username',
-            'first_name',
-            'last_name',
-            'email',
-            'is_staff',
-            'groups',
+            "username",
+            "first_name",
+            "last_name",
+            "email",
+            "is_staff",
+            "groups",
         )
 
     def clean_username(self):

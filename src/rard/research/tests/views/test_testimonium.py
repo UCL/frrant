@@ -3,36 +3,39 @@ from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
 from rard.research.models import CitingWork, Testimonium
-from rard.research.views import (TestimoniumCreateView, TestimoniumDeleteView,
-                                 TestimoniumDetailView, TestimoniumListView,
-                                 TestimoniumUpdateView)
+from rard.research.views import (
+    TestimoniumCreateView,
+    TestimoniumDeleteView,
+    TestimoniumDetailView,
+    TestimoniumListView,
+    TestimoniumUpdateView,
+)
 from rard.users.tests.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
 
 
 class TestTestimoniumSuccessUrls(TestCase):
-
     def setUp(self):
         self.user = UserFactory.create()
-        self.citing_work = CitingWork.objects.create(title='title')
+        self.citing_work = CitingWork.objects.create(title="title")
 
     def test_redirect_on_create(self):
         # data for both original text and testimonia
         data = {
-            'name': 'name',
-            'apparatus_criticus': 'app_criticus',
-            'content': 'content',
-            'reference': 'Page 1',
-            'reference_order': 1,
-            'citing_work': self.citing_work.pk,
-            'citing_author': self.citing_work.author.pk,
-            'create_object': True
+            "name": "name",
+            "apparatus_criticus": "app_criticus",
+            "content": "content",
+            "reference": "Page 1",
+            "reference_order": 1,
+            "citing_work": self.citing_work.pk,
+            "citing_author": self.citing_work.author.pk,
+            "create_object": True,
         }
         # assert no testimonia initially
         self.assertEqual(0, Testimonium.objects.count())
 
-        request = RequestFactory().post('/', data=data)
+        request = RequestFactory().post("/", data=data)
         request.user = UserFactory.create()
 
         response = TestimoniumCreateView.as_view()(
@@ -43,8 +46,7 @@ class TestTestimoniumSuccessUrls(TestCase):
         created = Testimonium.objects.first()
         # check we were redirected to the detail view of that object
         self.assertEqual(
-            response.url,
-            reverse('testimonium:detail', kwargs={'pk': created.pk})
+            response.url, reverse("testimonium:detail", kwargs={"pk": created.pk})
         )
 
     def test_delete_success_url(self):
@@ -53,12 +55,9 @@ class TestTestimoniumSuccessUrls(TestCase):
         request.user = UserFactory.create()
 
         view.request = request
-        view.object = Testimonium.objects.create(name='some name')
+        view.object = Testimonium.objects.create(name="some name")
 
-        self.assertEqual(
-            view.get_success_url(),
-            reverse('testimonium:list')
-        )
+        self.assertEqual(view.get_success_url(), reverse("testimonium:list"))
 
     def test_update_success_url(self):
         view = TestimoniumUpdateView()
@@ -66,51 +65,40 @@ class TestTestimoniumSuccessUrls(TestCase):
         request.user = UserFactory.create()
 
         view.request = request
-        view.object = Testimonium.objects.create(name='some name')
+        view.object = Testimonium.objects.create(name="some name")
 
         self.assertEqual(
             view.get_success_url(),
-            reverse('testimonium:detail', kwargs={'pk': view.object.pk})
+            reverse("testimonium:detail", kwargs={"pk": view.object.pk}),
         )
 
 
 class TestTestimoniumDeleteView(TestCase):
     def test_post_only(self):
 
-        testimonium = Testimonium.objects.create(name='name')
-        url = reverse(
-            'testimonium:delete',
-            kwargs={'pk': testimonium.pk}
-        )
+        testimonium = Testimonium.objects.create(name="name")
+        url = reverse("testimonium:delete", kwargs={"pk": testimonium.pk})
         request = RequestFactory().get(url)
         request.user = UserFactory.create()
-        response = TestimoniumDeleteView.as_view()(
-            request, pk=testimonium.pk
-        )
+        response = TestimoniumDeleteView.as_view()(request, pk=testimonium.pk)
         self.assertEqual(response.status_code, 405)
 
 
 class TestTestimoniumViewPermissions(TestCase):
-
     def test_permissions(self):
 
         self.assertIn(
-            'research.add_testimonium',
-            TestimoniumCreateView.permission_required
+            "research.add_testimonium", TestimoniumCreateView.permission_required
         )
         self.assertIn(
-            'research.change_testimonium',
-            TestimoniumUpdateView.permission_required
+            "research.change_testimonium", TestimoniumUpdateView.permission_required
         )
         self.assertIn(
-            'research.delete_testimonium',
-            TestimoniumDeleteView.permission_required
+            "research.delete_testimonium", TestimoniumDeleteView.permission_required
         )
         self.assertIn(
-            'research.view_testimonium',
-            TestimoniumListView.permission_required
+            "research.view_testimonium", TestimoniumListView.permission_required
         )
         self.assertIn(
-            'research.view_testimonium',
-            TestimoniumDetailView.permission_required
+            "research.view_testimonium", TestimoniumDetailView.permission_required
         )

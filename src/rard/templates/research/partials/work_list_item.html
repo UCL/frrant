@@ -5,11 +5,11 @@
 <div class='rard-list-item d-flex justify-content-between'>
     <div>
         <li>
-            <a href='{% url "work:detail" work.pk %}'>{{ work }}</a> 
+            <a href='{% url "work:detail" work.pk %}'>{{ work }}</a>
 
             {% if book %}
                 book {{ book }}
-                
+
                 {% if book.display_date_range %}
                     <span class='text-muted date-range-element'><small>[{{ book.display_date_range }}]</small></span>
                 {% endif %}

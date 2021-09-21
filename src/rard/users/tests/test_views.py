@@ -23,6 +23,7 @@ class TestUserUpdateView(TestCase):
         fixture db access -- this is a work-in-progress for now:
         https://github.com/pytest-dev/pytest-django/pull/258
     """
+
     def setUp(self):
         self.user = UserFactory.create()
         self.rf = RequestFactory()
@@ -34,10 +35,7 @@ class TestUserUpdateView(TestCase):
 
         view.request = request
 
-        self.assertEqual(
-            view.get_success_url(),
-            f"/users/{self.user.username}/"
-        )
+        self.assertEqual(view.get_success_url(), f"/users/{self.user.username}/")
 
     def test_get_object(self):
         view = UserUpdateView()
@@ -49,14 +47,12 @@ class TestUserUpdateView(TestCase):
         self.assertEqual(view.get_object(), self.user)
 
     def test_success_message(self):
-        data = {'first_name': 'New First Name', 'last_name': 'New Last Name'}
-        url = reverse('users:detail', kwargs={'username': self.user.username})
+        data = {"first_name": "New First Name", "last_name": "New Last Name"}
+        url = reverse("users:detail", kwargs={"username": self.user.username})
         request = self.rf.post(url)
         request.user = self.user
-        setattr(request, 'data', data)
-        setattr(
-            request, '_messages', messages.storage.default_storage(request)
-        )
+        setattr(request, "data", data)
+        setattr(request, "_messages", messages.storage.default_storage(request))
         UserUpdateView.as_view()(request)
 
         # should have single success message
@@ -104,20 +100,17 @@ class TestUserAdminCreateView(TestCase):
     def test_admin_create_user(self):
         request = RequestFactory().get("/admin/")
         request.user = UserFactory()
-        Group.objects.create(name='test')
+        Group.objects.create(name="test")
 
         site = AdminSite()
         admin = UserAdmin(User, site)
 
         data = {
-            'username': 'jsmith',
-            'email': 'jsmith@example.com',
-            'groups': Group.objects.all(),
+            "username": "jsmith",
+            "email": "jsmith@example.com",
+            "groups": Group.objects.all(),
         }
-        new_user = User(
-            username=data['username'],
-            email=data['email']
-        )
+        new_user = User(username=data["username"], email=data["email"])
 
         form = UserCreationForm(data=data)
         self.assertTrue(form.is_valid())  # create cleaned_data

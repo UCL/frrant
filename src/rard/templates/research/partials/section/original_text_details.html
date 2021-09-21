@@ -6,7 +6,7 @@
     <dt class="col-sm-3">{% trans 'Citing Work' %}</dt>
     <dd class="col-sm-9">
         {% if original_text.citing_work %}
-        
+
             {% if original_text.citing_work.author %}
                 <a href='{% url "citingauthor:detail" original_text.citing_work.author.pk %}'>{{ original_text.citing_work.author }}</a>,
             {% else %}
@@ -21,10 +21,10 @@
     <dt class="col-sm-3">{% trans 'Reference' %}</dt>
     <dd class="col-sm-9">{{ original_text.reference|default:'-' }}</dd>
 
-{% comment %}     
+{% comment %}
     {# to restore the legacy apparatus criticus entry uncommment this block #}
     <dt class="col-sm-3">{% trans 'Apparatus Criticus' %}</dt>
-    <dd class="col-sm-9">{{ original_text.apparatus_criticus|safe|default:'-'|linebreaks }}</dd> 
+    <dd class="col-sm-9">{{ original_text.apparatus_criticus|safe|default:'-'|linebreaks }}</dd>
 {% endcomment %}
 
     <dt class="col-sm-3">{% trans 'Reference Order' %}</dt>
@@ -49,10 +49,10 @@
     <dl class="row mb-0">
         <dt class="col-sm-3">{% trans 'Concordances' %}</dt>
         <dd class="col-sm-7">
-            {% if original_text.concordance_set.count == 0 %}
+            {% if original_text.concordances.count == 0 %}
                 None
             {% endif %}
-            {% for concordance in original_text.concordance_set.all %}
+            {% for concordance in original_text.concordances.all %}
                 <div class='d-flex justify-content-between mb-3'>
                 <div>{{ concordance }}</div>
                 <div>
@@ -92,4 +92,3 @@
     </dl>
 
     {% endif %}
-

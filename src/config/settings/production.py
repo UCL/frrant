@@ -7,7 +7,11 @@ from .base import env
 SECRET_KEY = env("DJANGO_SECRET_KEY")
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["frra-app01.ad.ucl.ac.uk"])
-ADMINS = [("""UCL""", "p.bispham@ucl.ac.uk"), ("""UCL""", "r.alegre@ucl.ac.uk"), ("""UCL""", "a.georgoulas@ucl.ac.uk")]
+ADMINS = [
+    ("""UCL""", "p.bispham@ucl.ac.uk"),
+    ("""UCL""", "r.alegre@ucl.ac.uk"),
+    ("""UCL""", "a.georgoulas@ucl.ac.uk"),
+]
 
 # DATABASES
 # ------------------------------------------------------------------------------
@@ -19,7 +23,7 @@ DATABASES["default"]["CONN_MAX_AGE"] = env.int("CONN_MAX_AGE", default=60)  # no
 # ------------------------------------------------------------------------------
 CACHES = {
     "default": {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        "BACKEND": "django.core.cache.backends.locmem.LocMemCache",
     }
 }
 
@@ -34,7 +38,7 @@ SESSION_COOKIE_SECURE = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#csrf-cookie-secure
 CSRF_COOKIE_SECURE = True
 
-CSRF_TRUSTED_ORIGINS = ['www.ucl.ac.uk']
+CSRF_TRUSTED_ORIGINS = ["www.ucl.ac.uk"]
 
 # https://docs.djangoproject.com/en/dev/topics/security/#ssl-https
 # https://docs.djangoproject.com/en/dev/ref/settings/#secure-hsts-seconds
@@ -77,7 +81,8 @@ TEMPLATES[-1]["OPTIONS"]["loaders"] = [  # type: ignore[index] # noqa F405
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#default-from-email
 DEFAULT_FROM_EMAIL = env(
-    "DJANGO_DEFAULT_FROM_EMAIL", default="Republican Antiquarians Research Database <noreply@ucl.ac.uk>"
+    "DJANGO_DEFAULT_FROM_EMAIL",
+    default="Republican Antiquarians Research Database <noreply@ucl.ac.uk>",
 )
 # https://docs.djangoproject.com/en/dev/ref/settings/#server-email
 SERVER_EMAIL = env("DJANGO_SERVER_EMAIL", default=DEFAULT_FROM_EMAIL)
@@ -102,8 +107,8 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 ANYMAIL = {}
 
 EMAIL_HOST = "isd-smtp.ucl.ac.uk"
-EMAIL_HOST_USER = ''
-EMAIL_HOST_PASSWORD = ''
+EMAIL_HOST_USER = ""
+EMAIL_HOST_PASSWORD = ""
 EMAIL_PORT = 25
 EMAIL_USE_TLS = False
 EMAIL_FROM = DEFAULT_FROM_EMAIL

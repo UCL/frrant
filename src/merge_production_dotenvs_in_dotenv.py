@@ -14,9 +14,7 @@ DOTENV_FILE_PATH = ROOT_DIR_PATH / ".env"
 
 
 def merge(
-    output_file_path: str,
-    merged_file_paths: Sequence[str],
-    append_linesep: bool = True
+    output_file_path: str, merged_file_paths: Sequence[str], append_linesep: bool = True
 ) -> None:
     with open(output_file_path, "w") as output_file:
         for merged_file_path in merged_file_paths:

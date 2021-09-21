@@ -13,15 +13,15 @@ class TestUserCreationForm(TestCase):
     def test_clean_username(self):
         # A user with proto_user params does not exist yet.
         proto_user = UserFactory.build()
-        Group.objects.create(name='test')
+        Group.objects.create(name="test")
 
         form = UserCreationForm(
             {
                 "username": proto_user.username,
-                "email": 'email@example.com',
+                "email": "email@example.com",
                 "password1": proto_user._password,
                 "password2": proto_user._password,
-                'groups': Group.objects.all(),
+                "groups": Group.objects.all(),
             }
         )
 
@@ -36,10 +36,10 @@ class TestUserCreationForm(TestCase):
         form = UserCreationForm(
             {
                 "username": proto_user.username,
-                "email": 'different_email@example.com',
+                "email": "different_email@example.com",
                 "password1": proto_user._password,
                 "password2": proto_user._password,
-                'groups': Group.objects.all(),
+                "groups": Group.objects.all(),
             }
         )
 
@@ -50,15 +50,15 @@ class TestUserCreationForm(TestCase):
     def test_reserved_username(self):
         # A user with proto_user params does not exist yet.
         proto_user = UserFactory.build()
-        Group.objects.create(name='test')
+        Group.objects.create(name="test")
 
         form = UserCreationForm(
             {
                 "username": User.SENTINEL_USERNAME,
-                "email": 'email@example.com',
+                "email": "email@example.com",
                 "password1": proto_user._password,
                 "password2": proto_user._password,
-                'groups': Group.objects.all(),
+                "groups": Group.objects.all(),
             }
         )
 
@@ -69,15 +69,15 @@ class TestUserCreationForm(TestCase):
     def test_unique_email(self):
         # A user with proto_user params does not exist yet.
         proto_user = UserFactory.build()
-        Group.objects.create(name='test')
+        Group.objects.create(name="test")
 
         form = UserCreationForm(
             {
-                "username": 'username',
+                "username": "username",
                 "email": proto_user.email,
                 "password1": proto_user._password,
                 "password2": proto_user._password,
-                'groups': Group.objects.all(),
+                "groups": Group.objects.all(),
             }
         )
 
@@ -90,11 +90,11 @@ class TestUserCreationForm(TestCase):
         # hence cannot be created.
         form = UserCreationForm(
             {
-                "username": 'different_username',
+                "username": "different_username",
                 "email": proto_user.email,  # NB same email
                 "password1": proto_user._password,
                 "password2": proto_user._password,
-                'groups': Group.objects.all(),
+                "groups": Group.objects.all(),
             }
         )
 
@@ -110,7 +110,7 @@ class TestUserCreationForm(TestCase):
         # raise an error.
         form = UserCreationForm(
             {
-                "username": 'different_username',
+                "username": "different_username",
                 "email": proto_user.email,  # NB same email
                 "password1": proto_user._password,
                 "password2": proto_user._password,

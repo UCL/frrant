@@ -14,8 +14,9 @@ Unless otherwise noted, everything in this repo is licensed under GPL3. Details 
 
 ## Branches
 
-`master` holds production code installed in the production server.
-Feature branches are named `feature/<branch_name>`, and contain work in progress that will be merged onto the `development` branch via approved pull requests.
+* `production` holds production code installed in the production server.
+* Feature branches are named `feature/<branch_name>`, and contain work in progress that will be merged onto the `development` branch via approved pull requests.
+* Bug fix branches are named `fix/<branch_name>`
 
 ## Running locally
 
@@ -33,7 +34,7 @@ This project uses containers. Below are set up instructions and useful commands.
 - Select 'SSH and GPG keys' from the left menu
 - Follow the [instructions in their guide](https://docs.github.com/articles/generating-an-ssh-key/)
 
-### 3. Checkout the RARD source code
+### 3. Setup a virtual environment and checkout the RARD source code
 
 - Create a working folder, e.g. `~/projects/` and `cd` into it
 
@@ -44,6 +45,14 @@ This project uses containers. Below are set up instructions and useful commands.
 - Checkout the development branch:
 
 ```git checkout development```
+
+- Create a virtual environment; e.g. with virtualenvwrapper:
+
+```mkvirtualenv -a ~/projects/frrant frrant```
+
+- Install the requirements for local development (including pre-commit, flake8, black etc.):
+
+```pip install -r src/requirements/local.txt```
 
 ### 4. Tell Docker about your folder
 
@@ -188,7 +197,7 @@ The command below will correct the order of your python imports to meet the stan
 
 (import order errors when running the flake8 command should be fixed automatically by running the above command)
 
-### Django Migrations
+### 9. Django Migrations
 
 If you make changes to model definitions (i.e. in the `models.py` files) then these need to be reflected in a migration file.
 
@@ -236,7 +245,7 @@ If your static files (css, js, fonts etc) have changed then on the production en
 
 Answer 'yes' to the 'are you sure question'. It might say something like '0 files updated' but this message is notoriously misleading. Check to see whether the static files (js etc) being used are the ones you expect.
 
-### Loading data fixtures
+### 10. Loading data fixtures
 
 To take a snapshot of e.g. the production database and install it locally we do the following:
 
@@ -263,11 +272,22 @@ Run the `src/loaddata.sh` script to load this:
 ./loaddata.sh dump.json
 ```
 
-### Requirements
+### 11. Requirements
 
 Requirements are applied when the containers are built.
 
-## Continuous Integration
+### 12. Pre-commit
+
+The requirements file for local development includes pre-commit. To set this up on your machine, make sure you're in the frrant directory and run:
+
+```pre-commit install```
+
+This will ensure the hooks specified in `.pre-commit-config.yaml` are run prior to every commit. Black should automatically correct most formatting errors, so you can just try the commit again in most cases.
+
+You can turn pre-commit off any time with `pre-commit uninstall` if you need to.
+
+# Continuous Integration
+GitHub Actions are currently setup to run linter and pytest jobs on pull-requests and pushes to the development branch. For the linter tests we run the pre-commit hooks, and for pytest we build the docker stack and run the full set of pytest tests.
 
 # Deployment
 
@@ -329,7 +349,7 @@ for the username/password to use for postgres database.
 If your static files have changed in a deployment (css, js, fonts etc) then you need to run the 'collectstatic' command described earlier.
 
 
-## SSL Certificates
+### SSL Certificates
 
 Before building the nginx container we need to do the following for development (and production)
 
@@ -376,7 +396,7 @@ to view logs for a particular container in the above list
 the `-f` prints new lines as they are written. The `<containerid>` is the same shown in the output of `docker ps`
 
 
-# To clean up space on /var
+## To clean up space on /var
 
 Remove yum caches
 
@@ -387,7 +407,7 @@ If your containers are built to `/var` this will clean those up
 `sudo docker system prune`
 
 
-# If your server becomes unreachable 30 minutes after restarting Docker
+## If your server becomes unreachable 30 minutes after restarting Docker
 
 You need to ensure IP forwarding is enabled:
 
@@ -403,3 +423,8 @@ Then apply the settings with e.g.
 
 
 If the Javascript and css is not looking how you expect after production, ensure you have run 'collectstatic' on the target machine(s). See the description given earlier.
+
+# Project management
+During the software development stage, we work in sprint cycles that go from 2 to 4 weeks, depending on workload and availability. These have a planning meeting at the beginning, a meeting with the research team to demo all new changes, and a deployment to production if all changes have been approved by the research team during the meeting. We are currently using [this Zenhub workspace](https://app.zenhub.com/workspaces/frrant-public-612e33d9c2bb690015527ab6/board?repos=312338365) to plan tasks in each sprint, and we share a [GitHub priority board](https://github.com/UCL/frrant/projects/7) with the research team to better understand what tasks are essential for them, and which can wait.
+
+Plans for next steps include running retrospectives in each internal sprint cycle, as well as making the pre-production/development server ready for the researchers so they can test and approve changes as we make them instead of waiting until the next meeting when we'll demo them live.
