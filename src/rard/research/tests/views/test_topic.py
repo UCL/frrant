@@ -233,11 +233,19 @@ class TestTopicDetailView(TestCase):
         request.user = self.user
         response = TopicDetailView.as_view()(request, slug=self.topic_name)
         antiquarian_order = [self.topic_items[i] for i in [0, 2, 1, 3]]
-        self.assertEqual(antiquarian_order, response.context_data["fragments"])
+        combined_context_list = (
+            response.context_data["fragments"]
+            + response.context_data["anonymous_fragments"]
+        )
+        self.assertEqual(antiquarian_order, combined_context_list)
 
     def test_citing_author_order(self):
         request = RequestFactory().get("/?order=citing_author")
         request.user = self.user
         response = TopicDetailView.as_view()(request, slug=self.topic_name)
         author_order = [self.topic_items[i] for i in [2, 0, 3, 1]]
-        self.assertEqual(author_order, response.context_data["fragments"])
+        combined_context_list = (
+            response.context_data["fragments"]
+            + response.context_data["anonymous_fragments"]
+        )
+        self.assertEqual(author_order, combined_context_list)

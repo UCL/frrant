@@ -76,6 +76,12 @@
         {% include 'research/partials/fragment_list_item.html' with fragment=fragment %}
 
         {% endfor %}
+
+        {% for anonymousfragment in anonymous_fragments %}
+
+        {% include 'research/partials/anonymousfragment_list_item.html' with fragment=anonymousfragment %}
+
+        {% endfor %}
     </section>
 
     {% endwith %}

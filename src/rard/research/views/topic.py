@@ -1,5 +1,3 @@
-import itertools
-
 from django.contrib.auth.context_processors import PermWrapper
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.http import Http404, HttpResponseRedirect, JsonResponse
@@ -57,21 +55,14 @@ class TopicDetailView(
             fragment_qs = fragment_qs.order_by(
                 "antiquarian_fragmentlinks__antiquarian__order_name"
             )
-        # combine querysets: ordered fragments before ordered anon fragments
-        combined_qs = itertools.chain(fragment_qs, anonymousfragment_qs)
-
-        rtn = []
-        for x in combined_qs:
-            # don't add duplicates as we are ordering by a name field
-            # and the duplicates will have the first name
-            # first in the list and therefore look wrong
-            if x not in rtn:
-                rtn.append(x)
-        combined_qs = rtn
+        # Remove duplicates, but preserve order for both querysets
+        fragment_qs = list(dict.fromkeys(fragment_qs))
+        anonymousfragment_qs = list(dict.fromkeys(anonymousfragment_qs))
 
         context.update(
             {
-                "fragments": combined_qs,
+                "fragments": fragment_qs,
+                "anonymous_fragments": anonymousfragment_qs,
                 "order": order,
             }
         )
