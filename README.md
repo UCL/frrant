@@ -287,6 +287,7 @@ This will ensure the hooks specified in `.pre-commit-config.yaml` are run prior 
 You can turn pre-commit off any time with `pre-commit uninstall` if you need to.
 
 # Continuous Integration
+GitHub Actions are currently setup to run linter and pytest jobs on pull-requests and pushes to the development branch. For the linter tests we run the pre-commit hooks, and for pytest we build the docker stack and run the full set of pytest tests.
 
 # Deployment
 
@@ -426,4 +427,4 @@ If the Javascript and css is not looking how you expect after production, ensure
 # Project management
 During the software development stage, we work in sprint cycles that go from 2 to 4 weeks, depending on workload and availability. These have a planning meeting at the beginning, a meeting with the research team to demo all new changes, and a deployment to production if all changes have been approved by the research team during the meeting. We are currently using [this Zenhub workspace](https://app.zenhub.com/workspaces/frrant-public-612e33d9c2bb690015527ab6/board?repos=312338365) to plan tasks in each sprint, and we share a [GitHub priority board](https://github.com/UCL/frrant/projects/7) with the research team to better understand what tasks are essential for them, and which can wait.
 
-Plans for next steps include running retrospectives in each internal sprint cycle, as well as making the pre-production/development server ready for the researchers so they can test and approve changes as we make them instead of waiting until the next meeting when we'll demo them live. 
+Plans for next steps include running retrospectives in each internal sprint cycle, as well as making the pre-production/development server ready for the researchers so they can test and approve changes as we make them instead of waiting until the next meeting when we'll demo them live.

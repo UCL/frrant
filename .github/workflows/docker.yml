@@ -1,0 +1,57 @@
+# This is a basic workflow to help you get started with Actions
+
+name: FRRAnt-docker-tests
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the development branch
+  push:
+    branches: [ development ]
+  pull_request:
+    branches: [ development ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  linter:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install and Run Pre-commit
+        uses: pre-commit/action@v2.0.0
+
+  pytest:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v2
+
+      - name: Build the Stack
+        run:  |
+          cd src
+          docker-compose -f local.yml build
+
+      - name: Run DB Migrations
+        run:  |
+          cd src
+          docker-compose -f local.yml run --rm django python manage.py migrate
+
+      - name: Run Django Tests
+        run:  |
+          cd src
+          docker-compose -f local.yml run django pytest
+
+      - name: Tear down the stack
+        run:  |
+          cd src
+          docker-compose -f local.yml down

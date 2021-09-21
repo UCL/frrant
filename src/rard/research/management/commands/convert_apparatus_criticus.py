@@ -6,17 +6,17 @@ from rard.research.models import ApparatusCriticusItem, OriginalText
 
 class Command(BaseCommand):
 
-    help = 'converts old format app crit into new version'
+    help = "converts old format app crit into new version"
 
     def handle(self, *args, **options):
-        Y = 'Y'
+        Y = "Y"
 
         resp = input(
-            'This will delete all new app crit items and replace '
-            'them with values derived from legacy entries. Continue? %s/n ' % Y
+            "This will delete all new app crit items and replace "
+            "them with values derived from legacy entries. Continue? %s/n " % Y
         )
         if resp != Y:
-            print('Operation cancelled')
+            print("Operation cancelled")
             return
 
         try:
@@ -29,28 +29,24 @@ class Command(BaseCommand):
                 # get the html entered which will be
                 # wrapped in <p> for existing records
                 # as a 'feature' of Quill
-                soup = BeautifulSoup(
-                    o.apparatus_criticus, features="html.parser"
-                )
+                soup = BeautifulSoup(o.apparatus_criticus, features="html.parser")
                 # get the <p> element and extract its content
-                p = soup.find('p')
+                p = soup.find("p")
                 if not p:
                     continue
 
-                content = ''.join([str(x) for x in p.children])
+                content = "".join([str(x) for x in p.children])
                 # the content will be of the form
                 # 1 text1 | 2 text2 | 3 text3
                 # and if not, preserve what is there in a single entry
                 # as they would would have needed to reformat it anyway
-                for order, item in enumerate(content.split('|')):
+                for order, item in enumerate(content.split("|")):
                     # remove the preceding number and any spaces around
-                    text = item.lstrip(' 0123456789').strip()
+                    text = item.lstrip(" 0123456789").strip()
                     ApparatusCriticusItem.objects.create(
-                        parent=o,
-                        order=order,
-                        content=text.strip()
+                        parent=o, order=order, content=text.strip()
                     )
-            print('%d apparatus criticus records converted' % count)
+            print("%d apparatus criticus records converted" % count)
 
         except Exception as err:
             raise CommandError(str(err))

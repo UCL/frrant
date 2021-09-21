@@ -20,7 +20,7 @@
             {{ page }}
           {% else %}
             <a href="{{ request|get_full_path_with_page:page }}">{{ page }}</a>{% endif %}{% endfor %})
-      
+
       ({% if page_obj.has_previous %}<a href='{{ request|get_full_path_with_page:page_obj.previous_page_number }}'>prev</a>{% else %}prev{% endif %}
       |
       {% if page_obj.has_next %}<a href='{{ request|get_full_path_with_page:page_obj.next_page_number }}'>next</a>{% else %}next{% endif %})

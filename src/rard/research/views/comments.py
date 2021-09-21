@@ -1,6 +1,5 @@
 from django.contrib.auth.decorators import permission_required
-from django.contrib.auth.mixins import (LoginRequiredMixin,
-                                        PermissionRequiredMixin)
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -12,16 +11,15 @@ from rard.research.forms import CommentForm
 from rard.research.models import Comment, TextObjectField
 
 
-@method_decorator(require_POST, name='dispatch')
-class CommentDeleteView(
-        LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
+@method_decorator(require_POST, name="dispatch")
+class CommentDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     model = Comment
-    permission_required = ('research.delete_comment',)
+    permission_required = ("research.delete_comment",)
 
     def get_success_url(self, *args, **kwargs):
         # send to the refering page. Should have one as
         # delete must be done using post
-        return self.request.META.get('HTTP_REFERER', reverse('home'))
+        return self.request.META.get("HTTP_REFERER", reverse("home"))
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -30,21 +28,20 @@ class CommentDeleteView(
 
 
 @method_decorator(
-    permission_required('research.add_comment', raise_exception=True),
-    name='post'
+    permission_required("research.add_comment", raise_exception=True), name="post"
 )
 class CommentListViewBase(
-        LoginRequiredMixin, PermissionRequiredMixin, FormMixin, ListView):
+    LoginRequiredMixin, PermissionRequiredMixin, FormMixin, ListView
+):
     paginate_by = 10
     model = Comment
     form_class = CommentForm
-    permission_required = ('research.view_comment',)
+    permission_required = ("research.view_comment",)
 
     def get_parent_object(self):
-        if not getattr(self, 'parent_object', False):
+        if not getattr(self, "parent_object", False):
             self.parent_object = get_object_or_404(
-                self.parent_object_class,
-                pk=self.kwargs.get('pk')
+                self.parent_object_class, pk=self.kwargs.get("pk")
             )
         return self.parent_object
 
@@ -59,14 +56,16 @@ class CommentListViewBase(
         return self.request.path
 
     def get_context_data(self, *args, **kwargs):
-        queryset = kwargs.pop('object_list', None)
+        queryset = kwargs.pop("object_list", None)
         if queryset is None:
             self.object_list = self.get_queryset()
 
         context = super().get_context_data(*args, **kwargs)
-        context.update({
-            'parent_object': self.get_parent_object(),
-        })
+        context.update(
+            {
+                "parent_object": self.get_parent_object(),
+            }
+        )
         return context
 
     def get_queryset(self):
@@ -84,4 +83,4 @@ class CommentListViewBase(
 
 class TextObjectFieldCommentListView(CommentListViewBase):
     parent_object_class = TextObjectField
-    template_name = 'research/text_object_comment_list.html'
+    template_name = "research/text_object_comment_list.html"

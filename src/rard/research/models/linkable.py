@@ -8,7 +8,6 @@ from rard.utils.decorators import disable_for_loaddata
 
 
 class LinkableContentBase(OrderableModel, BaseModel):
-
     class Meta:
         abstract = True
 
@@ -40,11 +39,11 @@ class ApparatusCriticusItem(LinkableContentBase):
 
     def __str__(self):
         # display one-indexed list item
-        return '%d %s' % (self.order+1, self.content)
+        return "%d %s" % (self.order + 1, self.content)
 
     def get_anchor_id(self):
         # a string to use in creating anchor links
-        return 'ap%s' % self.pk
+        return "ap%s" % self.pk
 
 
 @disable_for_loaddata

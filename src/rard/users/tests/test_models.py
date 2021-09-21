@@ -9,18 +9,14 @@ pytestmark = pytest.mark.django_db
 class TestUser(TestCase):
     def test_user_display_name(self):
         # fully specified then full_name should be shown
-        data = {
-            'first_name': 'John',
-            'last_name': 'Smith',
-            'username': 'jsmith'
-        }
+        data = {"first_name": "John", "last_name": "Smith", "username": "jsmith"}
         user = User(**data)
         self.assertEqual(user.display_name(), user.get_full_name())
 
         # fall back to username where get_full_name returns nothing
-        data = {'username': 'jsmith'}
+        data = {"username": "jsmith"}
         user = User(**data)
-        self.assertEqual(user.display_name(), data['username'])
+        self.assertEqual(user.display_name(), data["username"])
 
     def test_sentinel_user(self):
 

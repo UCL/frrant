@@ -6,7 +6,7 @@
     <dt class="col-sm-3">{% trans 'Citing Work' %}</dt>
     <dd class="col-sm-9">
         {% if original_text.citing_work %}
-        
+
             {% if original_text.citing_work.author %}
                 <a href='{% url "citingauthor:detail" original_text.citing_work.author.pk %}'>{{ original_text.citing_work.author }}</a>,
             {% else %}
@@ -21,10 +21,10 @@
     <dt class="col-sm-3">{% trans 'Reference' %}</dt>
     <dd class="col-sm-9">{{ original_text.reference|default:'-' }}</dd>
 
-{% comment %}     
+{% comment %}
     {# to restore the legacy apparatus criticus entry uncommment this block #}
     <dt class="col-sm-3">{% trans 'Apparatus Criticus' %}</dt>
-    <dd class="col-sm-9">{{ original_text.apparatus_criticus|safe|default:'-'|linebreaks }}</dd> 
+    <dd class="col-sm-9">{{ original_text.apparatus_criticus|safe|default:'-'|linebreaks }}</dd>
 {% endcomment %}
 
     <dt class="col-sm-3">{% trans 'Reference Order' %}</dt>
@@ -92,4 +92,3 @@
     </dl>
 
     {% endif %}
-

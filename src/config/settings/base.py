@@ -36,7 +36,7 @@ USE_L10N = True
 USE_TZ = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#locale-paths
 LOCALE_PATHS = [str(ROOT_DIR / "locale")]
-DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 
 # DATABASES
 # ------------------------------------------------------------------------------
@@ -110,7 +110,7 @@ PASSWORD_HASHERS = [
 # https://docs.djangoproject.com/en/dev/ref/settings/#auth-password-validators
 AUTH_PASSWORD_VALIDATORS = [
     {
-        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"
+        "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"  # noqa: E501
     },
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
     {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
@@ -138,7 +138,7 @@ MIDDLEWARE = [
 # in the form folder/path/etc/ with trailing slash
 # e.g. 'history/frrant/'
 # ------------------------------------------------------------------------------
-URL_PREFIX = env("URL_PREFIX", default='')
+URL_PREFIX = env("URL_PREFIX", default="")
 
 # STATIC
 # ------------------------------------------------------------------------------
@@ -231,7 +231,11 @@ EMAIL_TIMEOUT = 5
 # Django Admin URL.
 ADMIN_URL = "admin/"
 # https://docs.djangoproject.com/en/dev/ref/settings/#admins
-ADMINS = [("""UCL""", "j.p.cooper@ucl.ac.uk"), ("""UCL""", "r.alegre@ucl.ac.uk"), ("""UCL""", "a.georgoulas@ucl.ac.uk")]
+ADMINS = [
+    ("""UCL""", "j.p.cooper@ucl.ac.uk"),
+    ("""UCL""", "r.alegre@ucl.ac.uk"),
+    ("""UCL""", "a.georgoulas@ucl.ac.uk"),
+]
 
 # https://docs.djangoproject.com/en/dev/ref/settings/#managers
 MANAGERS = ADMINS
@@ -264,9 +268,9 @@ LOGGING = {
 # Other Settings
 # ------------------------------------------------------------------------------
 BOOTSTRAP4 = {
-    'success_css_class': 'success',
-    'required_css_class': 'required',
+    "success_css_class": "success",
+    "required_css_class": "required",
 }
 
-UPLOAD_FOLDER = 'uploads'
+UPLOAD_FOLDER = "uploads"
 UPLOAD_ROOT = str(ROOT_DIR / UPLOAD_FOLDER)

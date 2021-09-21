@@ -1,8 +1,5 @@
-from django.core import paginator
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.core.paginator import Paginator
-from django.contrib.auth.mixins import (LoginRequiredMixin,
-                                        PermissionRequiredMixin)
-from django.contrib.auth.decorators import login_required, permission_required
 from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 from django.utils.decorators import method_decorator
@@ -10,87 +7,94 @@ from django.views.decorators.http import require_POST
 from django.views.generic import View
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
-from rard.research.models import (AnonymousFragment, Concordance, Fragment,
-                                  OriginalText)
+from rard.research.models import AnonymousFragment, Concordance, Fragment, OriginalText
 from rard.research.views.mixins import CheckLockMixin
 
 
 class ConcordanceListView(LoginRequiredMixin, PermissionRequiredMixin, View):
 
-    permission_required = ('research.view_concordance')
+    permission_required = "research.view_concordance"
 
     def get(self, request, *args, **kwargs):
-        """Create a complete list of concordances for display in a table. Each row requires:
+        """Create a complete list of concordances for display in a table. Each row
+        requires:
         - a display name derived from a fragment link
         - url for the relevant fragment/anonymous fragment
         - a set of concordances related to the original text
-        The same row will be repeated once for each fragment link associated with an 
+        The same row will be repeated once for each fragment link associated with an
         original text's owner, but with a different name in the frrant column.
-        If a fragment has more than one original text, concordances will be listed for each
-        original text separately with an ordinal value appended to the fragment link names;
-        e.g. "Quintus Ennius F8a" and "Quintus Ennius F8b"
+        If a fragment has more than one original text, concordances will be listed for
+        each original text separately with an ordinal value appended to the fragment
+        link names; e.g. "Quintus Ennius F8a" and "Quintus Ennius F8b"
         """
 
         # Get every original text instance that has at least one associated concordance
-        original_text_queryset = OriginalText.objects.filter(
-                concordances__isnull=False
-            ).distinct().prefetch_related('owner','concordances')
+        original_text_queryset = (
+            OriginalText.objects.filter(concordances__isnull=False)
+            .distinct()
+            .prefetch_related("owner", "concordances")
+        )
 
         # Original texts should appear once for each work link
         concordances_table_data = []
         for ot in original_text_queryset:
             concordances = ot.concordances.all()
-            identifiers = ot.concordance_identifiers # Get list of names from work links
+            identifiers = (
+                ot.concordance_identifiers
+            )  # Get list of names from work links
             owner_url = ot.owner.get_absolute_url()
-            if identifiers: # Where a link exists for the original text owner
+            if identifiers:  # Where a link exists for the original text owner
                 for frrant in identifiers:
-                    concordances_table_data.append({
-                        'frrant': {'url':owner_url,'display_name':frrant},
-                        'concordances': concordances
-                    })
-            else: # Use the fragment's name as the frrant display name
-                concordances_table_data.append({
-                    'frrant': {
-                        'url':owner_url, 
-                        'display_name':ot.owner.get_display_name()
-                    },
-                    'concordances': concordances
-                })
-        concordances_table_data.sort(key=lambda i: i['frrant']['display_name'])
+                    concordances_table_data.append(
+                        {
+                            "frrant": {"url": owner_url, "display_name": frrant},
+                            "concordances": concordances,
+                        }
+                    )
+            else:  # Use the fragment's name as the frrant display name
+                concordances_table_data.append(
+                    {
+                        "frrant": {
+                            "url": owner_url,
+                            "display_name": ot.owner.get_display_name(),
+                        },
+                        "concordances": concordances,
+                    }
+                )
+        concordances_table_data.sort(key=lambda i: i["frrant"]["display_name"])
 
         # Paginate on the table data
-        paginator = Paginator(concordances_table_data,10)
-        page_number = request.GET.get('page')
+        paginator = Paginator(concordances_table_data, 10)
+        page_number = request.GET.get("page")
         page_obj = paginator.get_page(page_number)
 
         # Calculate the maximum number of concordances for a single original text
         # so we know how wide to make the table
-        items = [len(row['concordances']) for row in page_obj]
+        items = [len(row["concordances"]) for row in page_obj]
         max_length = max(items) if items else 0
-        
-        context_data = {
-            'column_range': range(0, max_length),
-            'page_obj': page_obj
-        }
-        return render(request, 'research/concordance_list.html', context_data)
+
+        context_data = {"column_range": range(0, max_length), "page_obj": page_obj}
+        return render(request, "research/concordance_list.html", context_data)
 
 
-class ConcordanceCreateView(CheckLockMixin, LoginRequiredMixin,
-                            PermissionRequiredMixin, CreateView):
+class ConcordanceCreateView(
+    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, CreateView
+):
 
-    check_lock_object = 'top_level_object'
+    check_lock_object = "top_level_object"
 
     # create a concordance for an original text
     model = Concordance
-    permission_required = ('research.add_concordance',)
-    fields = ('source', 'identifier')
+    permission_required = ("research.add_concordance",)
+    fields = ("source", "identifier")
 
     def dispatch(self, request, *args, **kwargs):
         # need to ensure we have the lock object view attribute
         # initialised in dispatch
         self.top_level_object = self.get_original_text().owner
-        if (not isinstance(self.get_original_text().owner, Fragment) and
-            not isinstance(self.get_original_text().owner, AnonymousFragment)):
+        if not isinstance(self.get_original_text().owner, Fragment) and not isinstance(
+            self.get_original_text().owner, AnonymousFragment
+        ):
             raise Http404
 
         return super().dispatch(request, *args, **kwargs)
@@ -105,29 +109,31 @@ class ConcordanceCreateView(CheckLockMixin, LoginRequiredMixin,
         return super().form_valid(form)
 
     def get_original_text(self, *args, **kwargs):
-        if not getattr(self, 'original_text', False):
+        if not getattr(self, "original_text", False):
             self.original_text = get_object_or_404(
-                OriginalText,
-                pk=self.kwargs.get('pk')
+                OriginalText, pk=self.kwargs.get("pk")
             )
         return self.original_text
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        context.update({
-            'original_text': self.get_original_text(),
-        })
+        context.update(
+            {
+                "original_text": self.get_original_text(),
+            }
+        )
         return context
 
 
-class ConcordanceUpdateView(CheckLockMixin, LoginRequiredMixin,
-                            PermissionRequiredMixin, UpdateView):
+class ConcordanceUpdateView(
+    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
+):
 
-    check_lock_object = 'top_level_object'
+    check_lock_object = "top_level_object"
 
     model = Concordance
-    permission_required = ('research.change_concordance',)
-    fields = ('source', 'identifier')
+    permission_required = ("research.change_concordance",)
+    fields = ("source", "identifier")
 
     def dispatch(self, request, *args, **kwargs):
         # need to ensure we have the lock object view attribute
@@ -137,9 +143,11 @@ class ConcordanceUpdateView(CheckLockMixin, LoginRequiredMixin,
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        context.update({
-            'original_text': self.object.original_text,
-        })
+        context.update(
+            {
+                "original_text": self.object.original_text,
+            }
+        )
         return context
 
     def get_success_url(self, *args, **kwargs):
@@ -148,13 +156,14 @@ class ConcordanceUpdateView(CheckLockMixin, LoginRequiredMixin,
         # return reverse('original_text:detail', kwargs={'pk': self.object.pk})
 
 
-@method_decorator(require_POST, name='dispatch')
-class ConcordanceDeleteView(CheckLockMixin, LoginRequiredMixin,
-                            PermissionRequiredMixin, DeleteView):
-    check_lock_object = 'top_level_object'
+@method_decorator(require_POST, name="dispatch")
+class ConcordanceDeleteView(
+    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
+):
+    check_lock_object = "top_level_object"
 
     model = Concordance
-    permission_required = ('research.delete_concordance',)
+    permission_required = ("research.delete_concordance",)
 
     def dispatch(self, request, *args, **kwargs):
         # need to ensure we have the lock object view attribute
