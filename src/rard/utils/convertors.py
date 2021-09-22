@@ -3,8 +3,7 @@ from rard.research.models import AnonymousFragment, Fragment
 
 class FragmentIsNotConvertible(Exception):
     """
-    Conversion is only possible between unlinked fragments and anonymous
-    fragments
+    Conversion is only possible between unlinked fragments and anonymous fragments
     """
 
     pass
