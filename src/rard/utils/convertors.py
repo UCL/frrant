@@ -18,6 +18,7 @@ def convert_unlinked_to_anonymous(fragment):
     anonymous_fragment = AnonymousFragment.objects.create()
 
     # Directly assigned fields
+    anonymous_fragment.name = fragment.name
     anonymous_fragment.date_range = fragment.date_range
     anonymous_fragment.collection_id = fragment.collection_id
     anonymous_fragment.order_year = fragment.order_year
@@ -50,6 +51,7 @@ def convert_anonymous_to_unlinked(anonymous_fragment):
     fragment = Fragment.objects.create()
 
     # Directly assigned fields
+    fragment.name = anonymous_fragment.name
     fragment.date_range = anonymous_fragment.date_range
     fragment.collection_id = anonymous_fragment.collection_id
     fragment.order_year = anonymous_fragment.order_year
