@@ -1,9 +1,10 @@
 from rard.research.models import AnonymousFragment, Fragment
+from rard.research.models.base import FragmentLink
 
 
 class FragmentIsNotConvertible(Exception):
     """
-    Conversion is only possible between unlinked fragments and anonymous fragments
+    Only unlinked fragments and anonymous fragments can be converted
     """
 
     pass
@@ -29,7 +30,26 @@ def transfer_data_between_fragments(source, destination):
     destination.commentary = commentary
 
 
-def convert_unlinked_to_anonymous(fragment):
+def convert_appositum_link_to_fragment_link(appositum_link, fragment):
+    """
+    Creates a new FragmentLink based on the AppositumFragmentLink data and
+    links it to the fragment provided.
+    Ignores the following AppositumFragmentLink fields:
+    - linked_to
+    - exclusive
+    - link_object
+    """
+    fragment_link = FragmentLink.objects.create(fragment=fragment)
+    fragment_link.antiquarian = appositum_link.antiquarian
+    fragment_link.order = appositum_link.order
+    fragment_link.definite = appositum_link.definite
+    fragment_link.work = appositum_link.work
+    fragment_link.work_order = appositum_link.work_order
+    fragment_link.book = appositum_link.book
+    return fragment_link
+
+
+def convert_unlinked_fragment_to_anonymous_fragment(fragment):
 
     # Only allow for unlinked fragments
     if not fragment.is_unlinked:
@@ -43,7 +63,7 @@ def convert_unlinked_to_anonymous(fragment):
     return anonymous_fragment
 
 
-def convert_anonymous_to_unlinked(anonymous_fragment):
+def convert_anonymous_fragment_to_fragment(anonymous_fragment):
 
     # Only allow for anonymous fragments
     if not isinstance(anonymous_fragment, AnonymousFragment):
@@ -51,6 +71,11 @@ def convert_anonymous_to_unlinked(anonymous_fragment):
 
     fragment = Fragment.objects.create()
     transfer_data_between_fragments(anonymous_fragment, fragment)
+
+    # If there are AppositumFragmentLinks convert them to FragmentLinks
+    for link in anonymous_fragment.appositumfragmentlinks_from.all():
+        convert_appositum_link_to_fragment_link(link, fragment)
+
     fragment.save()
     anonymous_fragment.delete()
 
