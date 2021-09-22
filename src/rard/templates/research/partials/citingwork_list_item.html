@@ -7,9 +7,9 @@
         <li>
             {% with citingwork.title as link_text %}
                 {% if perms.research.view_citingwork %}
-                <a href='{% url "citingauthor:work_detail" citingwork.pk %}'>{{ link_text }}</a> 
+                <a href='{% url "citingauthor:work_detail" citingwork.pk %}'>{{ link_text }}</a>
                 {% else %}
-                    {{ link_text }} 
+                    {{ link_text }}
                 {% endif %}
                 {% if citingwork.display_date_range %}
                 <span class='date-range-element text-muted'><small>[{{ citingwork.display_date_range }}]</small></span>

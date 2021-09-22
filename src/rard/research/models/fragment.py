@@ -4,8 +4,11 @@ from django.db.models.signals import m2m_changed, post_delete, post_save
 from django.urls import reverse
 from simple_history.models import HistoricalRecords
 
-from rard.research.models.base import (AppositumFragmentLink, FragmentLink,
-                                       HistoricalBaseModel)
+from rard.research.models.base import (
+    AppositumFragmentLink,
+    FragmentLink,
+    HistoricalBaseModel,
+)
 from rard.research.models.mixins import HistoryModelMixin
 from rard.research.models.topic import Topic
 from rard.utils.basemodel import DatedModel, OrderableModel
@@ -13,14 +16,12 @@ from rard.utils.decorators import disable_for_loaddata
 
 
 class TopicLink(models.Model):
-
     class Meta:
-        ordering = ['order']
+        ordering = ["order"]
 
-    topic = models.ForeignKey('Topic', null=False, on_delete=models.CASCADE)
+    topic = models.ForeignKey("Topic", null=False, on_delete=models.CASCADE)
 
-    fragment = models.ForeignKey(
-        'Fragment', null=False, on_delete=models.CASCADE)
+    fragment = models.ForeignKey("Fragment", null=False, on_delete=models.CASCADE)
 
     # with respect to topic
     order = models.IntegerField(default=None, null=True)
@@ -33,7 +34,7 @@ def handle_deleted_topic_link(sender, instance, **kwargs):
 
 @disable_for_loaddata
 def handle_changed_topics(sender, instance, action, model, pk_set, **kwargs):
-    if action not in ('post_add', 'post_remove'):
+    if action not in ("post_add", "post_remove"):
         return
 
     from rard.research.models import Topic
@@ -56,7 +57,7 @@ class Fragment(HistoryModelMixin, HistoricalBaseModel, DatedModel):
 
     history = HistoricalRecords(
         excluded_fields=[
-            'topics',
+            "topics",
         ]
     )
 
@@ -65,38 +66,38 @@ class Fragment(HistoryModelMixin, HistoricalBaseModel, DatedModel):
         return self
 
     # fragments can also have topics
-    topics = models.ManyToManyField('Topic', blank=True, through='TopicLink')
+    topics = models.ManyToManyField("Topic", blank=True, through="TopicLink")
 
-    original_texts = GenericRelation(
-        'OriginalText', related_query_name='fragments'
-    )
+    original_texts = GenericRelation("OriginalText", related_query_name="fragments")
 
     def definite_work_and_book_links(self):
-        return self.antiquarian_fragmentlinks.filter(
-            definite=True,
-            work__isnull=False,
-        ).order_by('work', '-book').distinct()
+        return (
+            self.antiquarian_fragmentlinks.filter(
+                definite=True,
+                work__isnull=False,
+            )
+            .order_by("work", "-book")
+            .distinct()
+        )
 
     def possible_work_and_book_links(self):
-        return self.antiquarian_fragmentlinks.filter(
-            definite=False,
-            work__isnull=False,
-        ).order_by('work', '-book').distinct()
+        return (
+            self.antiquarian_fragmentlinks.filter(
+                definite=False,
+                work__isnull=False,
+            )
+            .order_by("work", "-book")
+            .distinct()
+        )
 
     def definite_antiquarian_links(self):
-        return self.antiquarian_fragmentlinks.filter(
-            definite=True,
-            work__isnull=True
-        )
+        return self.antiquarian_fragmentlinks.filter(definite=True, work__isnull=True)
 
     def possible_antiquarian_links(self):
-        return self.antiquarian_fragmentlinks.filter(
-            definite=False,
-            work__isnull=True
-        )
+        return self.antiquarian_fragmentlinks.filter(definite=False, work__isnull=True)
 
     def get_absolute_url(self):
-        return reverse('fragment:detail', kwargs={'pk': self.pk})
+        return reverse("fragment:detail", kwargs={"pk": self.pk})
 
     def get_all_names(self):
         return [
@@ -108,12 +109,14 @@ class Fragment(HistoryModelMixin, HistoricalBaseModel, DatedModel):
         ]
 
     def get_all_links(self):
-        return FragmentLink.objects.filter(
-            fragment=self
-        ).order_by('antiquarian', 'order').distinct()
+        return (
+            FragmentLink.objects.filter(fragment=self)
+            .order_by("antiquarian", "order")
+            .distinct()
+        )
 
     def get_all_appositum_links(self):
-        return self.appositumfragmentlinks_to.order_by('work', 'work_order')
+        return self.appositumfragmentlinks_to.order_by("work", "work_order")
 
     @property
     def is_unlinked(self):
@@ -127,23 +130,27 @@ class AnonymousTopicLink(models.Model):
     # vary independently
 
     class Meta:
-        ordering = ['order']
+        ordering = ["order"]
 
-    topic = models.ForeignKey('Topic', null=False, on_delete=models.CASCADE)
+    topic = models.ForeignKey("Topic", null=False, on_delete=models.CASCADE)
 
     fragment = models.ForeignKey(
-        'AnonymousFragment', null=False, on_delete=models.CASCADE)
+        "AnonymousFragment", null=False, on_delete=models.CASCADE
+    )
 
     # with respect to topic
     order = models.IntegerField(default=None, null=True)
 
 
-class AnonymousFragment(HistoryModelMixin, OrderableModel, HistoricalBaseModel,
-                        DatedModel):
+class AnonymousFragment(
+    HistoryModelMixin, OrderableModel, HistoricalBaseModel, DatedModel
+):
 
     history = HistoricalRecords(
         excluded_fields=[
-            'topics', 'original_texts', 'fragments',
+            "topics",
+            "original_texts",
+            "fragments",
         ]
     )
 
@@ -151,48 +158,40 @@ class AnonymousFragment(HistoryModelMixin, OrderableModel, HistoricalBaseModel,
         return self
 
     class Meta(HistoricalBaseModel.Meta):
-        ordering = ['order']
+        ordering = ["order"]
 
     def related_queryset(self):
         return self.__class__.objects.all()
 
     # these can also have topics but ordering not yet clear
-    topics = models.ManyToManyField(
-        'Topic', blank=True, through='AnonymousTopicLink'
-    )
+    topics = models.ManyToManyField("Topic", blank=True, through="AnonymousTopicLink")
 
     original_texts = GenericRelation(
-        'OriginalText', related_query_name='anonymous_fragments'
+        "OriginalText", related_query_name="anonymous_fragments"
     )
 
     # the fragments that we are apposita for...
-    fragments = models.ManyToManyField(
-        'Fragment', blank=True, related_name='apposita'
-    )
+    fragments = models.ManyToManyField("Fragment", blank=True, related_name="apposita")
 
     def get_absolute_url(self):
-        return reverse('anonymous_fragment:detail', kwargs={'pk': self.pk})
+        return reverse("anonymous_fragment:detail", kwargs={"pk": self.pk})
 
     def get_all_names(self):
-        return [
-            link.get_display_name()
-            for link in self.get_all_links()
-        ]
+        return [link.get_display_name() for link in self.get_all_links()]
 
     def get_all_work_names(self):
         # all the names wrt works
-        return [
-            link.get_work_display_name()
-            for link in self.get_all_links()
-        ]
+        return [link.get_work_display_name() for link in self.get_all_links()]
 
     def get_all_links(self):
-        return AppositumFragmentLink.objects.filter(
-            anonymous_fragment=self
-        ).order_by('antiquarian', 'order').distinct()
+        return (
+            AppositumFragmentLink.objects.filter(anonymous_fragment=self)
+            .order_by("antiquarian", "order")
+            .distinct()
+        )
 
     def get_display_name(self):
-        return 'Anonymous F%s' % (self.order + 1)
+        return "Anonymous F%s" % (self.order + 1)
 
     def save(self, *args, **kwargs):
         if self.order is None:
@@ -210,6 +209,7 @@ class AnonymousFragment(HistoryModelMixin, OrderableModel, HistoricalBaseModel,
 
 # handle changes in topic order and re-order anonymous fragments
 
+
 @disable_for_loaddata
 def reindex_anonymous_fragments():
     # where there has been a change, ensure the
@@ -218,9 +218,7 @@ def reindex_anonymous_fragments():
     # single db update
     with transaction.atomic():
 
-        anon_fragments = AnonymousFragment.objects.order_by(
-            'topics__order', 'order'
-        )
+        anon_fragments = AnonymousFragment.objects.order_by("topics__order", "order")
         # because we are ordering on an m2m field value we may have
         # duplicates in there. We want to remove these dupes but keep
         # the ordering of the list. Fast way is via a set of dict keys
@@ -235,16 +233,16 @@ def reindex_anonymous_fragments():
 
 @disable_for_loaddata
 def handle_apposita_change(sender, instance, action, model, pk_set, **kwargs):
-    if action not in ('post_add', 'post_remove', 'post_clear'):
+    if action not in ("post_add", "post_remove", "post_clear"):
         return
-    if action in ('post_remove', 'post_clear'):
+    if action in ("post_remove", "post_clear"):
         prune_apposita_links(instance)
-    elif action in ('post_add'):
+    elif action in ("post_add"):
         # need to add apposita links
         if isinstance(instance, AnonymousFragment):
             raise Exception(
-                'Add apposita to fragments via fragment.apposita '
-                'not the reverse accessor'
+                "Add apposita to fragments via fragment.apposita "
+                "not the reverse accessor"
             )
         with transaction.atomic():
             for link in instance.antiquarian_fragmentlinks.all():
@@ -256,9 +254,9 @@ def prune_apposita_links(fragment):
     # any apposita links for anon fragments NOT in the fragment
     # set, we need to delete them
     with transaction.atomic():
-        stale = AppositumFragmentLink.objects.filter(
-            linked_to=fragment
-        ).exclude(anonymous_fragment__in=fragment.apposita.all())
+        stale = AppositumFragmentLink.objects.filter(linked_to=fragment).exclude(
+            anonymous_fragment__in=fragment.apposita.all()
+        )
         stale.delete()
 
 
@@ -268,9 +266,8 @@ def handle_changed_anon_topics(sender, instance, **kwargs):
 
 
 @disable_for_loaddata
-def handle_changed_anon_topic_links(
-        sender, instance, action, model, pk_set, **kwargs):
-    if action not in ('post_add', 'post_remove'):
+def handle_changed_anon_topic_links(sender, instance, action, model, pk_set, **kwargs):
+    if action not in ("post_add", "post_remove"):
         return
 
     reindex_anonymous_fragments()

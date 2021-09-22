@@ -13,7 +13,7 @@
                 <div class='d-flex justify-content-between w-100'>
                     <div>
                         <b class='my-3 mr-3'><a href='{% url "work:detail" work.pk %}'>{{ work.name }}</a></b>
-            
+
                         {% if can_edit and has_object_lock %}
                         <button type='button' class='drag-handle btn btn-light btn-sm' style='cursor: move;' data-pos='{{ forloop.counter0 }}'><i class='fas fa-bars'></i></button>
 
@@ -22,7 +22,7 @@
                         <button data-work='{{ work.pk }}' data-antiquarian='{{ object.pk }}' data-objecttype='work'
                             data-pos='{{ forloop.counter0 }}' type='button' class='btn btn-light btn-sm' {% if forloop.last or disable_link_controls %}disabled{% endif %} name='work_down'><i class='fas fa-caret-down'></i></button>
                         {% endif %}
-            
+
                     </div>
                     <div>
                         {% if can_edit and has_object_lock %}
@@ -48,11 +48,11 @@
                         {% for link in alinks %}
                             {% include 'research/partials/appositum_fragment_link_list_item.html' with link=link link_text=link.get_work_display_name_full|safe can_edit=can_edit has_object_lock=has_object_lock %}
                         {% endfor %}
-                    
+
                         {% if not flinks and not tlinks and not alinks %}
                         <div class='text-muted my-3 ml-4'><em>No linked material for this work</em></div>
                         {% endif %}
-                
+
                     {% endwith %}
                     {% endwith %}
                     {% endwith %}

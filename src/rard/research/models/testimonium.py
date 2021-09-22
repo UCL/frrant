@@ -11,7 +11,7 @@ class Testimonium(HistoryModelMixin, HistoricalBaseModel):
 
     history = HistoricalRecords(
         excluded_fields=[
-            'original_texts',
+            "original_texts",
         ]
     )
 
@@ -20,36 +20,40 @@ class Testimonium(HistoryModelMixin, HistoricalBaseModel):
 
     LINK_TYPE = TestimoniumLink
 
-    original_texts = GenericRelation(
-        'OriginalText', related_query_name='testimonia'
-    )
+    original_texts = GenericRelation("OriginalText", related_query_name="testimonia")
 
     def definite_work_and_book_links(self):
-        return self.antiquarian_testimoniumlinks.filter(
-            definite=True,
-            work__isnull=False,
-        ).order_by('work', '-book').distinct()
+        return (
+            self.antiquarian_testimoniumlinks.filter(
+                definite=True,
+                work__isnull=False,
+            )
+            .order_by("work", "-book")
+            .distinct()
+        )
 
     def possible_work_and_book_links(self):
-        return self.antiquarian_testimoniumlinks.filter(
-            definite=False,
-            work__isnull=False,
-        ).order_by('work', '-book').distinct()
+        return (
+            self.antiquarian_testimoniumlinks.filter(
+                definite=False,
+                work__isnull=False,
+            )
+            .order_by("work", "-book")
+            .distinct()
+        )
 
     def definite_antiquarian_links(self):
         return self.antiquarian_testimoniumlinks.filter(
-            definite=True,
-            work__isnull=True
+            definite=True, work__isnull=True
         )
 
     def possible_antiquarian_links(self):
         return self.antiquarian_testimoniumlinks.filter(
-            definite=False,
-            work__isnull=True
+            definite=False, work__isnull=True
         )
 
     def get_absolute_url(self):
-        return reverse('testimonium:detail', kwargs={'pk': self.pk})
+        return reverse("testimonium:detail", kwargs={"pk": self.pk})
 
     def get_all_names(self):
         return [
@@ -71,9 +75,11 @@ class Testimonium(HistoryModelMixin, HistoricalBaseModel):
         ]
 
     def get_all_links(self):
-        return TestimoniumLink.objects.filter(
-            testimonium=self
-        ).order_by('antiquarian', 'order').distinct()
+        return (
+            TestimoniumLink.objects.filter(testimonium=self)
+            .order_by("antiquarian", "order")
+            .distinct()
+        )
 
 
 Testimonium.init_text_object_fields()

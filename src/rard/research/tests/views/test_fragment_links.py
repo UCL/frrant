@@ -12,103 +12,74 @@ pytestmark = pytest.mark.django_db
 
 
 class TestFragmentAddWorkLinkView(TestCase):
-
     def test_success_url(self):
         view = FragmentAddWorkLinkView()
         request = RequestFactory().get("/")
         request.user = UserFactory.create()
 
         view.request = request
-        view.fragment = Fragment.objects.create(name='name')
+        view.fragment = Fragment.objects.create(name="name")
 
         self.assertEqual(
             view.get_success_url(),
-            reverse('fragment:detail', kwargs={'pk': view.fragment.pk})
+            reverse("fragment:detail", kwargs={"pk": view.fragment.pk}),
         )
 
     def test_create_link_post(self):
 
-        fragment = Fragment.objects.create(name='name')
-        antiquarian = Antiquarian.objects.create(name='name', re_code=1)
-        work = Work.objects.create(name='name')
+        fragment = Fragment.objects.create(name="name")
+        antiquarian = Antiquarian.objects.create(name="name", re_code=1)
+        work = Work.objects.create(name="name")
         antiquarian.works.add(work)
-        url = reverse(
-            'fragment:add_work_link',
-            kwargs={'pk': fragment.pk}
-        )
-        data = {
-            'antiquarian': antiquarian.pk,
-            'work': work.pk
-        }
+        url = reverse("fragment:add_work_link", kwargs={"pk": fragment.pk})
+        data = {"antiquarian": antiquarian.pk, "work": work.pk}
         request = RequestFactory().post(url, data=data)
         request.user = UserFactory.create()
         fragment.lock(request.user)
 
         self.assertEqual(FragmentLink.objects.count(), 0)
-        FragmentAddWorkLinkView.as_view()(
-            request, pk=fragment.pk
-        )
+        FragmentAddWorkLinkView.as_view()(request, pk=fragment.pk)
         self.assertEqual(FragmentLink.objects.count(), 1)
         link = FragmentLink.objects.first()
         self.assertEqual(link.fragment, fragment)
         self.assertEqual(link.work, work)
 
     def test_context_data(self):
-        fragment = Fragment.objects.create(name='name')
-        work = Work.objects.create(name='name')
-        url = reverse(
-            'fragment:add_work_link',
-            kwargs={'pk': fragment.pk}
-        )
-        data = {
-            'work': work.pk
-        }
+        fragment = Fragment.objects.create(name="name")
+        work = Work.objects.create(name="name")
+        url = reverse("fragment:add_work_link", kwargs={"pk": fragment.pk})
+        data = {"work": work.pk}
         request = RequestFactory().get(url, data=data)
         request.user = UserFactory.create()
         fragment.lock(request.user)
 
-        response = FragmentAddWorkLinkView.as_view()(
-            request, pk=fragment.pk
-        )
-        self.assertEqual(
-            response.context_data['work'], work
-        )
-        self.assertEqual(
-            response.context_data['fragment'], fragment
-        )
+        response = FragmentAddWorkLinkView.as_view()(request, pk=fragment.pk)
+        self.assertEqual(response.context_data["work"], work)
+        self.assertEqual(response.context_data["fragment"], fragment)
 
     def test_bad_data(self):
 
-        fragment = Fragment.objects.create(name='name')
-        work = Work.objects.create(name='name')
-        url = reverse(
-            'fragment:add_work_link',
-            kwargs={'pk': fragment.pk}
-        )
-        data = {
-            'work': work.pk + 100  # bad value
-        }
+        fragment = Fragment.objects.create(name="name")
+        work = Work.objects.create(name="name")
+        url = reverse("fragment:add_work_link", kwargs={"pk": fragment.pk})
+        data = {"work": work.pk + 100}  # bad value
         request = RequestFactory().get(url, data=data)
         request.user = UserFactory.create()
         fragment.lock(request.user)
 
         with self.assertRaises(Http404):
-            FragmentAddWorkLinkView.as_view()(
-                request, pk=fragment.pk
-            )
+            FragmentAddWorkLinkView.as_view()(request, pk=fragment.pk)
 
     def test_permission_required(self):
         self.assertIn(
-            'research.change_fragment',
-            FragmentAddWorkLinkView.permission_required
+            "research.change_fragment", FragmentAddWorkLinkView.permission_required
         )
 
 
 class TestFragmentRemoveWorkLinkView(TestCase):
-
     def test_success_url(self):
-        fragment = Fragment.objects.create(name='name')
-        work = Work.objects.create(name='name')
+        fragment = Fragment.objects.create(name="name")
+        work = Work.objects.create(name="name")
         FragmentLink.objects.create(work=work, fragment=fragment)
 
         view = RemoveFragmentLinkView()
@@ -121,27 +92,24 @@ class TestFragmentRemoveWorkLinkView(TestCase):
 
         self.assertEqual(
             view.get_success_url(),
-            reverse('fragment:detail', kwargs={'pk': fragment.pk})
+            reverse("fragment:detail", kwargs={"pk": fragment.pk}),
         )
 
     def test_delete_link_post(self):
 
-        fragment = Fragment.objects.create(name='name')
-        work = Work.objects.create(name='name')
+        fragment = Fragment.objects.create(name="name")
+        work = Work.objects.create(name="name")
         link = FragmentLink.objects.create(work=work, fragment=fragment)
 
-        request = RequestFactory().post('/')
+        request = RequestFactory().post("/")
         request.user = UserFactory.create()
         fragment.lock(request.user)
 
         self.assertEqual(FragmentLink.objects.count(), 1)
-        RemoveFragmentLinkView.as_view()(
-            request, pk=link.pk
-        )
+        RemoveFragmentLinkView.as_view()(request, pk=link.pk)
         self.assertEqual(FragmentLink.objects.count(), 0)
 
     def test_permission_required(self):
         self.assertIn(
-            'research.change_fragment',
-            RemoveFragmentLinkView.permission_required
+            "research.change_fragment", RemoveFragmentLinkView.permission_required
         )

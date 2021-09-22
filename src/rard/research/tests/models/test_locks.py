@@ -12,12 +12,8 @@ pytestmark = pytest.mark.django_db
 
 
 class TestLocks(TestCase):
-
     def setUp(self):
-        data = {
-            'name': 'John Smith',
-            're_code': 'smitre001'
-        }
+        data = {"name": "John Smith", "re_code": "smitre001"}
         self.antiquarian = Antiquarian.objects.create(**data)
         self.user = UserFactory.create()
 
@@ -48,8 +44,7 @@ class TestLocks(TestCase):
         self.assertEqual(len(mail.outbox), 2)
         self.assertEqual(mail.outbox[1].to, [other_user.email])
         self.assertEqual(
-            mail.outbox[1].subject,
-            'The item you requested has become available'
+            mail.outbox[1].subject, "The item you requested has become available"
         )
 
     def test_long_lock_email(self):
@@ -58,8 +53,7 @@ class TestLocks(TestCase):
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].to, [self.user.email])
         self.assertEqual(
-            mail.outbox[0].subject,
-            'You have had an item locked for a while'
+            mail.outbox[0].subject, "You have had an item locked for a while"
         )
 
     def test_locked_at(self):
@@ -110,7 +104,7 @@ class TestLocks(TestCase):
         # check email sent
         self.assertEqual(len(mail.outbox), 1)
         self.assertEqual(mail.outbox[0].to, [self.user.email])
-        self.assertEqual(mail.outbox[0].subject, 'Request to edit record')
+        self.assertEqual(mail.outbox[0].subject, "Request to edit record")
 
     def test_break_lock(self):
         self.antiquarian.lock(self.user)

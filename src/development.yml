@@ -83,4 +83,3 @@ services:
     depends_on:
       - django
     restart: always
-

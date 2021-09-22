@@ -9,3 +9,7 @@ Collectfast==2.2.0  # https://github.com/antonagestam/collectfast
 # Django
 # ------------------------------------------------------------------------------
 django-anymail==7.2.1  # https://github.com/anymail/django-anymail
+
+# Formatting
+pre-commit
+black

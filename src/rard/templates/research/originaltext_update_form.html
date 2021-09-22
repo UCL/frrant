@@ -14,7 +14,7 @@
 
         {% bootstrap_field form.reference %}
         {% bootstrap_field form.reference_order %}
-    
+
         {% bootstrap_field form.content field_class='d-none' %}
 
         {% with enable_apparatus_criticus=object %}
@@ -25,10 +25,10 @@
         <button type="submit" class="btn btn-primary">
                 {% trans 'Save' %}
         </button>
-        
+
 
     </form>
-    
+
     <hr>
    {% if object %}
     {% include 'research/partials/apparatus_criticus_builder.html' with form=form original_text=object %}

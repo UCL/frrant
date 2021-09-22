@@ -14,9 +14,12 @@ base_urlpatterns = [
     # Django Admin, use {% url 'admin:index' %}
     path(settings.ADMIN_URL, admin.site.urls),
     # User management
-    path('accounts/password_reset/', auth_views.PasswordResetView.as_view(
-        html_email_template_name='registration/password_reset_email.html'
-    )),
+    path(
+        "accounts/password_reset/",
+        auth_views.PasswordResetView.as_view(
+            html_email_template_name="registration/password_reset_email.html"
+        ),
+    ),
     path("accounts/", include("django.contrib.auth.urls")),
     # research urls
     path("", include("rard.research.urls")),
@@ -51,9 +54,7 @@ if settings.DEBUG:
             path("__debug__/", include(debug_toolbar.urls))
         ] + base_urlpatterns
 
-prefix = getattr(settings, 'URL_PREFIX', None)
+prefix = getattr(settings, "URL_PREFIX", None)
 
 
-urlpatterns = [
-    path('{}'.format(prefix), include((base_urlpatterns)))
-]
+urlpatterns = [path("{}".format(prefix), include((base_urlpatterns)))]
