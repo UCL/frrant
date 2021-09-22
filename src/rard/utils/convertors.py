@@ -9,6 +9,26 @@ class FragmentIsNotConvertible(Exception):
     pass
 
 
+def transfer_data_between_fragments(source, destination):
+    # Directly assigned fields
+    destination.name = source.name
+    destination.date_range = source.date_range
+    destination.collection_id = source.collection_id
+    destination.order_year = source.order_year
+
+    # Fields requiring set method
+    destination.topics.set(source.topics.all())
+    destination.images.set(source.images.all())
+    # source is no longer the owner after this:
+    destination.original_texts.set(source.original_texts.all())
+
+    # Need to remove commentary's original relationship with source or
+    # it will be deleted when we delete the source
+    commentary = source.commentary
+    source.commentary = None
+    destination.commentary = commentary
+
+
 def convert_unlinked_to_anonymous(fragment):
 
     # Only allow for unlinked fragments
@@ -16,26 +36,7 @@ def convert_unlinked_to_anonymous(fragment):
         raise FragmentIsNotConvertible
 
     anonymous_fragment = AnonymousFragment.objects.create()
-
-    # Directly assigned fields
-    anonymous_fragment.name = fragment.name
-    anonymous_fragment.date_range = fragment.date_range
-    anonymous_fragment.collection_id = fragment.collection_id
-    anonymous_fragment.order_year = fragment.order_year
-
-    # Fields requiring set method
-    anonymous_fragment.topics.set(fragment.topics.all())
-    anonymous_fragment.images.set(fragment.images.all())
-    # fragment is no longer the owner after this:
-    anonymous_fragment.original_texts.set(fragment.original_texts.all())
-
-    # Need to remove commentary's original relationship with fragment or
-    # it will be deleted when we delete the fragment
-    commentary = fragment.commentary
-    fragment.commentary = None
-    anonymous_fragment.commentary = commentary
-
-    # Save changes and delete the fragment
+    transfer_data_between_fragments(fragment, anonymous_fragment)
     anonymous_fragment.save()
     fragment.delete()
 
@@ -49,27 +50,7 @@ def convert_anonymous_to_unlinked(anonymous_fragment):
         raise FragmentIsNotConvertible
 
     fragment = Fragment.objects.create()
-
-    # Directly assigned fields
-    fragment.name = anonymous_fragment.name
-    fragment.date_range = anonymous_fragment.date_range
-    fragment.collection_id = anonymous_fragment.collection_id
-    fragment.order_year = anonymous_fragment.order_year
-
-    # Fields requiring set method
-    fragment.topics.set(anonymous_fragment.topics.all())
-    fragment.images.set(anonymous_fragment.images.all())
-
-    # anonymous_fragment is no longer the owner after this:
-    fragment.original_texts.set(anonymous_fragment.original_texts.all())
-
-    # Need to remove commentary's original relationship with fragment or
-    # it will be deleted when we delete the fragment
-    commentary = anonymous_fragment.commentary
-    anonymous_fragment.commentary = None
-    fragment.commentary = commentary
-
-    # Save changes and delete the anonymous fragment
+    transfer_data_between_fragments(anonymous_fragment, fragment)
     fragment.save()
     anonymous_fragment.delete()
 
