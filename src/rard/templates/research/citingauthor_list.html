@@ -31,9 +31,9 @@
                     <div>
                             {% with citingauthor as link_text %}
                                 {% if perms.research.view_citingauthor %}
-                                <a href='{% url "citingauthor:detail" citingauthor.pk %}'>{{ link_text }}</a> 
+                                <a href='{% url "citingauthor:detail" citingauthor.pk %}'>{{ link_text }}</a>
                                 {% else %}
-                                    {{ link_text }} 
+                                    {{ link_text }}
                                 {% endif %}
 
                                 {% if citingauthor.display_date_range %}
@@ -55,7 +55,7 @@
                 <li>
                     <span>
                         {% with item.get_display_name as link_text %}
-                            <a href='{{ item.get_absolute_url }}'>{{ link_text }}</a> 
+                            <a href='{{ item.get_absolute_url }}'>{{ link_text }}</a>
                         {% endwith %}
                         {% include 'research/partials/render_inline_lock_icon.html' with object=item %}
 
@@ -73,7 +73,7 @@
                             </span>
                         </small>
                     </div>
-                </div>     
+                </div>
             </div>
             <div class='rard-list-item-actions'>
             </div>

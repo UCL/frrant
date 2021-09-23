@@ -17,7 +17,8 @@ def disable_for_loaddata(signal_handler):
         if os.environ.get("LOADING", None):
             return
         # check the raw flag (not there for m2m signals)
-        if kwargs.get('raw'):
+        if kwargs.get("raw"):
             return
         signal_handler(*args, **kwargs)
+
     return wrapper

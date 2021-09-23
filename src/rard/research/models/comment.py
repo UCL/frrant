@@ -7,10 +7,9 @@ from rard.utils.basemodel import BaseModel
 
 
 class Comment(BaseModel):
-
     class Meta:
         # most recent first
-        ordering = ['-created']
+        ordering = ["-created"]
 
     # comments can be left on various object types
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
@@ -19,8 +18,6 @@ class Comment(BaseModel):
 
     parent = GenericForeignKey()
 
-    user = models.ForeignKey(
-        User, on_delete=models.SET(User.get_sentinel_user)
-    )
+    user = models.ForeignKey(User, on_delete=models.SET(User.get_sentinel_user))
 
     content = models.TextField(blank=False)

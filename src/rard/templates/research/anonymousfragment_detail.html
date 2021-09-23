@@ -59,7 +59,7 @@
         <dl class="row mb-0">
             <dt class="col-sm-3">{% trans 'Name' %}</dt>
             <dd class="col-sm-9">{{ object.get_display_name }}</dd>
-                
+
             {% if object.topics is not None %}
             <dt class="col-sm-3">{% trans 'Topics' %}</dt>
             <dd class="col-sm-7">
@@ -78,7 +78,7 @@
                 {% endif %}
             </dd>
             {% endif %}
-            
+
             <dt class="col-sm-3">{% trans 'Chronological reference' %}</dt>
             <dd class="col-sm-7">
                 {{ object.display_date_range|default:'-' }}
@@ -119,10 +119,10 @@
                         <a href='{% url "anonymous_fragment:update_author_original_text" original_text.pk %}'>Citing Work</a>
                         &nbsp;/&nbsp;
                         <a href='{% url "anonymous_fragment:update_original_text" original_text.pk %}'>Details</a>
-                        {% endif %}  
+                        {% endif %}
                         {% if perms.research.delete_originaltext %}
                         <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2' data-what='original text'>{% trans 'Delete' %}</button>
-                        {% endif %}  
+                        {% endif %}
                     </div>
                 </form>
                 {% endif %}
@@ -202,7 +202,7 @@
                 <h5>{% trans 'Appositum Links' %}</h5>
             </div>
             <div>
-                {% if perms.research.change_anonymous_fragment and has_object_lock %}
+                {% if perms.research.change_anonymousfragment and has_object_lock %}
                 Link <a href='{% url "anonymous_fragment:link" object.pk %}'>{% trans 'Antiquarian/Work' %}</a> or
                 <a href='{% url "anonymous_fragment:link_fragment" object.pk %}'>{% trans 'Fragment' %}</a>
 
@@ -226,7 +226,7 @@
                                     <span>
                                         {% with fragment.get_display_name as link_text %}
                                             {% if perms.research.view_fragment %}
-                                            <a href='{% url "fragment:detail" fragment.pk %}'>{{ link_text }}</a> 
+                                            <a href='{% url "fragment:detail" fragment.pk %}'>{{ link_text }}</a>
                                             {% else %}
                                                 {{ link_text }}
                                             {% endif %}
@@ -243,7 +243,7 @@
 
                                     {% if book %}
                                         book {{ book }}
-                                        
+
                                         {% if book.display_date_range %}
                                             <span class='text-muted'><small>[{{ book.display_date_range }}]</small></span>
                                         {% endif %}
@@ -264,7 +264,7 @@
                                     {% with antiquarian=link.antiquarian %}
                                         {% with antiquarian.name as link_text %}
                                             {% if perms.research.view_antiquarian %}
-                                            <a href='{% url "antiquarian:detail" antiquarian.pk %}'>{{ link_text }}</a> 
+                                            <a href='{% url "antiquarian:detail" antiquarian.pk %}'>{{ link_text }}</a>
                                             {% else %}
                                                 {{ link_text }}
                                             {% endif %}
@@ -281,7 +281,7 @@
                             </li>
                             {% if link.linked_to %}
                                 {% with fragment=link.linked_to %}
-                                    
+
                                 <div>
                                     <div class="card border-0 pt-1 pb-0 bg-transparent card-body">
                                     <small>
@@ -307,7 +307,7 @@
                                         </span>
                                     </small>
                                     </div>
-                                </div>     
+                                </div>
                                 {% endwith %}
                             {% endif %}
                         </div>
