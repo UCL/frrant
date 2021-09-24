@@ -13,46 +13,39 @@ pytestmark = pytest.mark.django_db
 
 @skip("Functionality to be deleted")
 class TestComments(TestCase):
-
     def setUp(self):
         self.user = UserFactory.create()
-        self.commentable = TextObjectField.objects.create(content='foo')
+        self.commentable = TextObjectField.objects.create(content="foo")
 
     def test_creation(self):
         data = {
-            'user': self.user,
-            'parent': self.commentable,
-            'content': 'This is the comment'
+            "user": self.user,
+            "parent": self.commentable,
+            "content": "This is the comment",
         }
         comment = Comment.objects.create(**data)
         self.assertTrue(Comment.objects.filter(pk=comment.pk).exists())
 
     def test_required_fields(self):
-        self.assertFalse(Comment._meta.get_field('content').blank)
+        self.assertFalse(Comment._meta.get_field("content").blank)
 
     def test_user_required(self):
-        data = {
-            'parent': self.commentable,
-            'content': 'This is the comment'
-        }
+        data = {"parent": self.commentable, "content": "This is the comment"}
         # cannot create a comment with no user
         with self.assertRaises(IntegrityError):
             Comment.objects.create(**data)
 
     def test_parent_required(self):
-        data = {
-            'user': self.user,
-            'content': 'This is the comment'
-        }
+        data = {"user": self.user, "content": "This is the comment"}
         # cannot create a comment with no parent
         with self.assertRaises(IntegrityError):
             Comment.objects.create(**data)
 
     def test_related_query_name_for_text_object_fields(self):
         data = {
-            'user': self.user,
-            'parent': self.commentable,
-            'content': 'This is the comment'
+            "user": self.user,
+            "parent": self.commentable,
+            "content": "This is the comment",
         }
         comment = Comment.objects.create(**data)
         self.assertTrue(Comment.objects.filter(pk=comment.pk).exists())
@@ -60,15 +53,14 @@ class TestComments(TestCase):
         # text objects have a related query name to filter comments by
         # the fact they point to text fields
         self.assertEqual(
-            Comment.objects.filter(
-                text_fields__pk=self.commentable.pk
-            ).count(), 1)
+            Comment.objects.filter(text_fields__pk=self.commentable.pk).count(), 1
+        )
 
     def test_delete_parent_deletes_comment(self):
         data = {
-            'user': self.user,
-            'parent': self.commentable,
-            'content': 'This is the comment'
+            "user": self.user,
+            "parent": self.commentable,
+            "content": "This is the comment",
         }
         comment = Comment.objects.create(**data)
         self.assertTrue(Comment.objects.filter(pk=comment.pk).exists())
@@ -79,11 +71,11 @@ class TestComments(TestCase):
 
     def test_other_parent_type(self):
         # comment on a different object type
-        antiquarian = Antiquarian.objects.create(name='name')
+        antiquarian = Antiquarian.objects.create(name="name")
         data = {
-            'user': self.user,
-            'parent': antiquarian,
-            'content': 'This is the comment'
+            "user": self.user,
+            "parent": antiquarian,
+            "content": "This is the comment",
         }
         comment = Comment.objects.create(**data)
         self.assertTrue(Comment.objects.filter(pk=comment.pk).exists())
@@ -92,9 +84,9 @@ class TestComments(TestCase):
         # deleting comment author does not delete the comment instead
         # reset the comment auhor to sentinel 'deleted user'
         data = {
-            'user': self.user,
-            'parent': self.commentable,
-            'content': 'This is the comment'
+            "user": self.user,
+            "parent": self.commentable,
+            "content": "This is the comment",
         }
         comment = Comment.objects.create(**data)
         comment_pk = comment.pk

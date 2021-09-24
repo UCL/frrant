@@ -21,7 +21,7 @@
 
 {% block inner %}
     {% for object in page_obj %}
-    
+
         {% include 'research/partials/work_list_item.html' with work=object %}
 
     {% endfor %}

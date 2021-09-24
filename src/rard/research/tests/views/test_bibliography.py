@@ -3,48 +3,51 @@ from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
 from rard.research.models import Antiquarian, BibliographyItem
-from rard.research.views import (AntiquarianBibliographyCreateView,
-                                 BibliographyDeleteView,
-                                 BibliographyUpdateView)
+from rard.research.views import (
+    AntiquarianBibliographyCreateView,
+    BibliographyDeleteView,
+    BibliographyUpdateView,
+)
 from rard.users.tests.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
 
 
 class TestBibliographyViews(TestCase):
-
     def test_update_delete_create_top_level_object(self):
 
         # dispatch method creates an attribute used by the
         # locking mechanism so here we ensure it is created
-        antiquarian = Antiquarian.objects.create(name='bob')
+        antiquarian = Antiquarian.objects.create(name="bob")
         bibitem = BibliographyItem.objects.create(
-            authors='author name',
-            author_surnames='author',
-            title='foo',
-            parent=antiquarian
+            authors="author name",
+            author_surnames="author",
+            title="foo",
+            parent=antiquarian,
         )
-        request = RequestFactory().post('/')
+        request = RequestFactory().post("/")
         request.user = UserFactory.create()
 
-        for view_class in (BibliographyDeleteView, BibliographyUpdateView,):
+        for view_class in (
+            BibliographyDeleteView,
+            BibliographyUpdateView,
+        ):
             view = view_class()
             view.request = request
-            view.kwargs = {'pk': bibitem.pk}
+            view.kwargs = {"pk": bibitem.pk}
             view.dispatch(request)
             self.assertEqual(view.parent, antiquarian)
 
 
 class TestBibliographyUpdateView(TestCase):
-
     def test_success_url(self):
 
-        antiquarian = Antiquarian.objects.create(name='bob')
+        antiquarian = Antiquarian.objects.create(name="bob")
         bibitem = BibliographyItem.objects.create(
-            authors='author name',
-            author_surnames='author',
-            title='foo',
-            parent=antiquarian
+            authors="author name",
+            author_surnames="author",
+            title="foo",
+            parent=antiquarian,
         )
 
         view = BibliographyUpdateView()
@@ -55,41 +58,33 @@ class TestBibliographyUpdateView(TestCase):
         view.object = bibitem
         view.parent = antiquarian
 
-        self.assertEqual(
-            view.get_success_url(),
-            antiquarian.get_absolute_url()
-        )
+        self.assertEqual(view.get_success_url(), antiquarian.get_absolute_url())
 
 
 class TestBibliographyDeleteView(TestCase):
     def test_post_only(self):
 
-        antiquarian = Antiquarian.objects.create(name='bob')
+        antiquarian = Antiquarian.objects.create(name="bob")
         bibitem = BibliographyItem.objects.create(
-            authors='author name',
-            author_surnames='author',
-            title='foo',
-            parent=antiquarian
+            authors="author name",
+            author_surnames="author",
+            title="foo",
+            parent=antiquarian,
         )
-        url = reverse(
-            'bibliography:delete',
-            kwargs={'pk': bibitem.pk}
-        )
+        url = reverse("bibliography:delete", kwargs={"pk": bibitem.pk})
         request = RequestFactory().get(url)
         request.user = UserFactory.create()
-        response = BibliographyDeleteView.as_view()(
-            request, pk=bibitem.pk
-        )
+        response = BibliographyDeleteView.as_view()(request, pk=bibitem.pk)
         self.assertEqual(response.status_code, 405)
 
     def test_delete_success_url(self):
 
-        antiquarian = Antiquarian.objects.create(name='bob')
+        antiquarian = Antiquarian.objects.create(name="bob")
         bibitem = BibliographyItem.objects.create(
-            authors='author name',
-            author_surnames='author',
-            title='foo',
-            parent=antiquarian
+            authors="author name",
+            author_surnames="author",
+            title="foo",
+            parent=antiquarian,
         )
 
         view = BibliographyDeleteView()
@@ -100,34 +95,26 @@ class TestBibliographyDeleteView(TestCase):
         view.object = bibitem
         view.parent = antiquarian
 
-        self.assertEqual(
-            view.get_success_url(),
-            antiquarian.get_absolute_url()
-        )
+        self.assertEqual(view.get_success_url(), antiquarian.get_absolute_url())
 
 
 class TestBibliographyViewPermissions(TestCase):
-
     def test_permissions(self):
         self.assertIn(
-            'research.delete_bibliographyitem',
-            BibliographyDeleteView.permission_required
+            "research.delete_bibliographyitem",
+            BibliographyDeleteView.permission_required,
         )
         self.assertIn(
-            'research.change_bibliographyitem',
-            BibliographyUpdateView.permission_required
+            "research.change_bibliographyitem",
+            BibliographyUpdateView.permission_required,
         )
 
 
 class TestAntiquarianBibliographyCreateView(TestCase):
-
     def test_context_data(self):
 
         antiquarian = Antiquarian.objects.create()
-        url = reverse(
-            'antiquarian:create_bibliography',
-            kwargs={'pk': antiquarian.pk}
-        )
+        url = reverse("antiquarian:create_bibliography", kwargs={"pk": antiquarian.pk})
         request = RequestFactory().get(url)
         request.user = UserFactory.create()
         antiquarian.lock(request.user)
@@ -135,9 +122,7 @@ class TestAntiquarianBibliographyCreateView(TestCase):
             request, pk=antiquarian.pk
         )
 
-        self.assertEqual(
-            response.context_data['antiquarian'], antiquarian
-        )
+        self.assertEqual(response.context_data["antiquarian"], antiquarian)
 
     def test_success_url(self):
 
@@ -148,140 +133,108 @@ class TestAntiquarianBibliographyCreateView(TestCase):
         view.request = request
         view.antiquarian = Antiquarian.objects.create()
 
-        self.assertEqual(
-            view.get_success_url(),
-            view.antiquarian.get_absolute_url()
-        )
+        self.assertEqual(view.get_success_url(), view.antiquarian.get_absolute_url())
 
     def test_create(self):
 
         antiquarian = Antiquarian.objects.create()
-        data = {
-            'authors': 'name',
-            'author_surnames': 'name',
-            'title': 'bib title'
-        }
-        url = reverse(
-            'antiquarian:create_bibliography',
-            kwargs={'pk': antiquarian.pk}
-        )
+        data = {"authors": "name", "author_surnames": "name", "title": "bib title"}
+        url = reverse("antiquarian:create_bibliography", kwargs={"pk": antiquarian.pk})
 
         request = RequestFactory().post(url, data=data)
         request.user = UserFactory.create()
         antiquarian.lock(request.user)
 
-        self.assertEqual(
-            antiquarian.bibliography_items.count(), 0
-        )
+        self.assertEqual(antiquarian.bibliography_items.count(), 0)
 
-        AntiquarianBibliographyCreateView.as_view()(
-            request, pk=antiquarian.pk
-        )
+        AntiquarianBibliographyCreateView.as_view()(request, pk=antiquarian.pk)
 
-        self.assertEqual(
-            antiquarian.bibliography_items.count(), 1
-        )
+        self.assertEqual(antiquarian.bibliography_items.count(), 1)
         for key, val in data.items():
-            self.assertEqual(
-                getattr(antiquarian.bibliography_items.first(), key), val
-            )
+            self.assertEqual(getattr(antiquarian.bibliography_items.first(), key), val)
 
     def test_bad_data(self):
         antiquarian = Antiquarian.objects.create()
-        data = {'bad': 'data'}
-        url = reverse(
-            'antiquarian:create_bibliography',
-            kwargs={'pk': antiquarian.pk}
-        )
+        data = {"bad": "data"}
+        url = reverse("antiquarian:create_bibliography", kwargs={"pk": antiquarian.pk})
 
         request = RequestFactory().post(url, data=data)
         request.user = UserFactory.create()
         antiquarian.lock(request.user)
 
-        AntiquarianBibliographyCreateView.as_view()(
-            request, pk=antiquarian.pk
-        )
+        AntiquarianBibliographyCreateView.as_view()(request, pk=antiquarian.pk)
         # no bibitem created
-        self.assertEqual(
-            antiquarian.bibliography_items.count(), 0
-        )
+        self.assertEqual(antiquarian.bibliography_items.count(), 0)
 
     def test_surname_ordering(self):
         antiquarian = Antiquarian.objects.create()
         data = [
             {
-                'pk': 1,
-                'title': 'foo',
-                'authors': 'aaa This should be Last',
-                'author_surnames': 'zzz'
+                "pk": 1,
+                "title": "foo",
+                "authors": "aaa This should be Last",
+                "author_surnames": "zzz",
             },
             {
-                'pk': 2,
-                'title': 'bar',
-                'authors': 'zzz This should be First',
-                'author_surnames': 'aaa'
+                "pk": 2,
+                "title": "bar",
+                "authors": "zzz This should be First",
+                "author_surnames": "aaa",
             },
             {
-                'pk': 3,
-                'title': 'bar',
-                'authors': 'zzz This should be in the middle',
-                'author_surnames': 'ggg'
-            }
+                "pk": 3,
+                "title": "bar",
+                "authors": "zzz This should be in the middle",
+                "author_surnames": "ggg",
+            },
         ]
         for d in data:
             BibliographyItem.objects.create(**d, parent=antiquarian)
 
-        self.assertEqual(
-            [2, 3, 1],
-            [x.pk for x in BibliographyItem.objects.all()]
-        )
+        self.assertEqual([2, 3, 1], [x.pk for x in BibliographyItem.objects.all()])
 
     def test_year_ordering(self):
         antiquarian = Antiquarian.objects.create()
         year_data = [
             {
-                'pk': 1,
-                'year': '1440a',
+                "pk": 1,
+                "year": "1440a",
             },
             {
-                'pk': 2,
-                'year': '1430',
+                "pk": 2,
+                "year": "1430",
             },
             {
-                'pk': 3,
-                'year': '1440b',
+                "pk": 3,
+                "year": "1440b",
             },
             {
-                'pk': 4,
-                'year': '1155',
-
+                "pk": 4,
+                "year": "1155",
             },
             {
-                'pk': 5,
-                'year': '1440e',
+                "pk": 5,
+                "year": "1440e",
             },
             {
-                'pk': 6,
-                'year': '1440c',
+                "pk": 6,
+                "year": "1440c",
             },
             {
-                'pk': 7,
-                'year': '1440d',
+                "pk": 7,
+                "year": "1440d",
             },
         ]
         # keep other fields the same so we can be sure we order by year
         # if everything else the same
         common_data = {
-            'title': 'hello',
-            'authors': 'author name',
-            'author_surnames': 'author'
+            "title": "hello",
+            "authors": "author name",
+            "author_surnames": "author",
         }
         for d in year_data:
-            BibliographyItem.objects.create(
-                **d, **common_data, parent=antiquarian
-            )
+            BibliographyItem.objects.create(**d, **common_data, parent=antiquarian)
 
         self.assertEqual(
-            [4, 2, 1, 3, 6, 7, 5],
-            [x.pk for x in BibliographyItem.objects.all()]
+            [4, 2, 1, 3, 6, 7, 5], [x.pk for x in BibliographyItem.objects.all()]
         )

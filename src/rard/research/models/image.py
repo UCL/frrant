@@ -18,9 +18,7 @@ class Image(BaseModel):
 
     public_release = models.BooleanField(default=False)
 
-    upload = models.ImageField(
-        upload_to=settings.UPLOAD_FOLDER, blank=False
-    )
+    upload = models.ImageField(upload_to=settings.UPLOAD_FOLDER, blank=False)
 
     def __str__(self):
         return self.title

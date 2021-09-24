@@ -3,36 +3,39 @@ from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
 from rard.research.models import CitingWork, Fragment
-from rard.research.views import (FragmentCreateView, FragmentDeleteView,
-                                 FragmentDetailView, FragmentListView,
-                                 FragmentUpdateView)
+from rard.research.views import (
+    FragmentCreateView,
+    FragmentDeleteView,
+    FragmentDetailView,
+    FragmentListView,
+    FragmentUpdateView,
+)
 from rard.users.tests.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
 
 
 class TestFragmentSuccessUrls(TestCase):
-
     def setUp(self):
         self.user = UserFactory.create()
-        self.citing_work = CitingWork.objects.create(title='title')
+        self.citing_work = CitingWork.objects.create(title="title")
 
     def test_redirect_on_create(self):
         # data for both original text and fragment
         data = {
-            'name': 'name',
-            'apparatus_criticus': 'app_criticus',
-            'content': 'content',
-            'reference': 'Page 1',
-            'reference_order': 1,
-            'citing_work': self.citing_work.pk,
-            'citing_author': self.citing_work.author.pk,
-            'create_object': True
+            "name": "name",
+            "apparatus_criticus": "app_criticus",
+            "content": "content",
+            "reference": "Page 1",
+            "reference_order": 1,
+            "citing_work": self.citing_work.pk,
+            "citing_author": self.citing_work.author.pk,
+            "create_object": True,
         }
         # assert no fragments initially
         self.assertEqual(0, Fragment.objects.count())
 
-        request = RequestFactory().post('/', data=data)
+        request = RequestFactory().post("/", data=data)
         request.user = UserFactory.create()
 
         response = FragmentCreateView.as_view()(
@@ -43,28 +46,27 @@ class TestFragmentSuccessUrls(TestCase):
         created = Fragment.objects.first()
         # check we were redirected to the detail view of that fragment
         self.assertEqual(
-            response.url,
-            reverse('fragment:detail', kwargs={'pk': created.pk})
+            response.url, reverse("fragment:detail", kwargs={"pk": created.pk})
         )
 
     def test_create_citing_work(self):
         # data for both original text and fragment
         data = {
-            'name': 'name',
-            'apparatus_criticus': 'app_criticus',
-            'content': 'content',
-            'reference': 'Page 1',
-            'reference_order': 1,
-            'title': 'citing work title',
-            'citing_work': self.citing_work.pk,
-            'citing_author': self.citing_work.author.pk,
-            'create_object': True
+            "name": "name",
+            "apparatus_criticus": "app_criticus",
+            "content": "content",
+            "reference": "Page 1",
+            "reference_order": 1,
+            "title": "citing work title",
+            "citing_work": self.citing_work.pk,
+            "citing_author": self.citing_work.author.pk,
+            "create_object": True,
         }
         # assert no fragments initially
         self.assertEqual(0, Fragment.objects.count())
         citing_works_before = CitingWork.objects.count()
 
-        request = RequestFactory().post('/', data=data)
+        request = RequestFactory().post("/", data=data)
         request.user = UserFactory.create()
 
         # call the view
@@ -78,18 +80,18 @@ class TestFragmentSuccessUrls(TestCase):
     def test_create_bad_data(self):
         # bad data should reset the forms to both be not required
         data = {
-            'name': 'name',
-            'apparatus_criticus': 'app_criticus',
-            'content': 'content',
-            'reference': 'Page 1',
-            'reference_order': 1,
+            "name": "name",
+            "apparatus_criticus": "app_criticus",
+            "content": "content",
+            "reference": "Page 1",
+            "reference_order": 1,
             # we have missing data here
         }
         # assert no fragments initially
         self.assertEqual(0, Fragment.objects.count())
         citing_works_before = CitingWork.objects.count()
 
-        request = RequestFactory().post('/', data=data)
+        request = RequestFactory().post("/", data=data)
         request.user = UserFactory.create()
 
         response = FragmentCreateView.as_view()(
@@ -101,10 +103,10 @@ class TestFragmentSuccessUrls(TestCase):
         self.assertEqual(citing_works_before, CitingWork.objects.count())
 
         # check the forms here are both not required for the user
-        forms = response.context_data['forms']
-        original_text_form = forms['original_text']
+        forms = response.context_data["forms"]
+        original_text_form = forms["original_text"]
 
-        self.assertTrue(original_text_form.fields['citing_work'].required)
+        self.assertTrue(original_text_form.fields["citing_work"].required)
 
     def test_delete_success_url(self):
         view = FragmentDeleteView()
@@ -112,12 +114,9 @@ class TestFragmentSuccessUrls(TestCase):
         request.user = UserFactory.create()
 
         view.request = request
-        view.object = Fragment.objects.create(name='some name')
+        view.object = Fragment.objects.create(name="some name")
 
-        self.assertEqual(
-            view.get_success_url(),
-            reverse('fragment:list')
-        )
+        self.assertEqual(view.get_success_url(), reverse("fragment:list"))
 
     def test_update_success_url(self):
         view = FragmentUpdateView()
@@ -125,51 +124,34 @@ class TestFragmentSuccessUrls(TestCase):
         request.user = UserFactory.create()
 
         view.request = request
-        view.object = Fragment.objects.create(name='some name')
+        view.object = Fragment.objects.create(name="some name")
 
         self.assertEqual(
             view.get_success_url(),
-            reverse('fragment:detail', kwargs={'pk': view.object.pk})
+            reverse("fragment:detail", kwargs={"pk": view.object.pk}),
         )
 
 
 class TestFragmentDeleteView(TestCase):
     def test_post_only(self):
 
-        fragment = Fragment.objects.create(name='name')
-        url = reverse(
-            'fragment:delete',
-            kwargs={'pk': fragment.pk}
-        )
+        fragment = Fragment.objects.create(name="name")
+        url = reverse("fragment:delete", kwargs={"pk": fragment.pk})
         request = RequestFactory().get(url)
         request.user = UserFactory.create()
-        response = FragmentDeleteView.as_view()(
-            request, pk=fragment.pk
-        )
+        response = FragmentDeleteView.as_view()(request, pk=fragment.pk)
         self.assertEqual(response.status_code, 405)
 
 
 class TestFragmentViewPermissions(TestCase):
-
     def test_permissions(self):
 
+        self.assertIn("research.add_fragment", FragmentCreateView.permission_required)
         self.assertIn(
-            'research.add_fragment',
-            FragmentCreateView.permission_required
+            "research.change_fragment", FragmentUpdateView.permission_required
         )
         self.assertIn(
-            'research.change_fragment',
-            FragmentUpdateView.permission_required
+            "research.delete_fragment", FragmentDeleteView.permission_required
         )
-        self.assertIn(
-            'research.delete_fragment',
-            FragmentDeleteView.permission_required
-        )
-        self.assertIn(
-            'research.view_fragment',
-            FragmentListView.permission_required
-        )
-        self.assertIn(
-            'research.view_fragment',
-            FragmentDetailView.permission_required
-        )
+        self.assertIn("research.view_fragment", FragmentListView.permission_required)
+        self.assertIn("research.view_fragment", FragmentDetailView.permission_required)

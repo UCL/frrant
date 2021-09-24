@@ -8,15 +8,14 @@ from rard.utils.basemodel import ObjectLock
 
 class Command(BaseCommand):
 
-    help = 'Checks for indefinite locks that have been held for a long time'
+    help = "Checks for indefinite locks that have been held for a long time"
 
     def handle(self, *args, **options):
         warn_after_days = 5
         limit = timezone.now() - timedelta(days=warn_after_days)
         try:
             indefinite = ObjectLock.objects.filter(
-                locked_until__isnull=True,
-                locked_at__lt=limit
+                locked_until__isnull=True, locked_at__lt=limit
             )
             for lock in indefinite:
                 # send appropriate email

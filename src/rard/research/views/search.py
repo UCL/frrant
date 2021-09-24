@@ -10,9 +10,15 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_GET
 from django.views.generic import ListView, TemplateView
 
-from rard.research.models import (AnonymousFragment, Antiquarian,
-                                  BibliographyItem, Fragment, Testimonium,
-                                  Topic, Work)
+from rard.research.models import (
+    AnonymousFragment,
+    Antiquarian,
+    BibliographyItem,
+    Fragment,
+    Testimonium,
+    Topic,
+    Work,
+)
 from rard.research.models.citing_work import CitingAuthor, CitingWork
 
 # Fold [X,Y] transforms all instances of Y into X before matching
@@ -56,7 +62,7 @@ rard_folds = [
 ]
 
 
-@method_decorator(require_GET, name='dispatch')
+@method_decorator(require_GET, name="dispatch")
 class SearchView(LoginRequiredMixin, TemplateView, ListView):
 
     class Term:
@@ -117,23 +123,23 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
 
 
     paginate_by = 10
-    template_name = 'research/search_results.html'
-    context_object_name = 'results'
+    template_name = "research/search_results.html"
+    context_object_name = "results"
 
     @property
     def SEARCH_METHODS(self):
         return {
-            'antiquarians': self.antiquarian_search,
-            'testimonia': self.testimonium_search,
-            'anonymous fragments': self.anonymous_fragment_search,
-            'fragments': self.fragment_search,
-            'topics': self.topic_search,
-            'works': self.work_search,
-            'bibliographies': self.bibliography_search,
-            'apparatus critici': self.apparatus_criticus_search,
-            'apposita': self.appositum_search,
-            'citing authors': self.citing_author_search,
-            'citing works': self.citing_work_search
+            "antiquarians": self.antiquarian_search,
+            "testimonia": self.testimonium_search,
+            "anonymous fragments": self.anonymous_fragment_search,
+            "fragments": self.fragment_search,
+            "topics": self.topic_search,
+            "works": self.work_search,
+            "bibliographies": self.bibliography_search,
+            "apparatus critici": self.apparatus_criticus_search,
+            "apposita": self.appositum_search,
+            "citing authors": self.citing_author_search,
+            "citing works": self.citing_work_search,
         }
 
     # move to queryset on model managers
@@ -141,9 +147,9 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     def antiquarian_search(cls, terms):
         qs = Antiquarian.objects.all()
         results = (
-            qs.filter(terms.matches_keywords('name__icontains')) |
-            qs.filter(terms.matches_keywords('introduction__content__icontains')) |
-            qs.filter(terms.matches_keywords('re_code__icontains'))
+            qs.filter(terms.matches_keywords('name__icontains'))
+            | qs.filter(terms.matches_keywords('introduction__content__icontains'))
+            | qs.filter(terms.matches_keywords('re_code__icontains'))
         )
         return results.distinct()
 
@@ -159,72 +165,122 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     def work_search(cls, terms):
         qs = Work.objects.all()
         results = (
-            qs.filter(terms.matches_keywords('name__icontains')) |
-            qs.filter(terms.matches_keywords('subtitle__icontains')) |
-            qs.filter(terms.matches_keywords('antiquarian__name__icontains'))
+            qs.filter(terms.matches_keywords('name__icontains'))
+            | qs.filter(terms.matches_keywords('subtitle__icontains'))
+            | qs.filter(terms.matches_keywords('antiquarian__name__icontains'))
         )
         return results.distinct()
 
     @classmethod
     def fragment_search(cls, terms):
         qs = Fragment.objects.all()
-        folded_content = qs.annotate(folded=terms.query(F('original_texts__content')))
-        folded_commentary = qs.annotate(folded=terms.query(F('commentary__content')))
+        folded_content = qs.annotate(
+            folded=terms.query(F('original_texts__content'))
+        )
+        folded_commentary = qs.annotate(folded=terms.query(
+            F('commentary__content')
+        ))
         results = (
-            folded_content.filter(terms.matches_folded_keywords('folded__contains')) |
-            qs.filter(terms.matches_keywords('original_texts__reference__icontains')) |
-            qs.filter(terms.matches_keywords('original_texts__translation__translated_text__icontains')) |  # noqa
-            qs.filter(terms.matches_keywords('original_texts__translation__translator_name__icontains')) |  # noqa
-            folded_commentary.filter(terms.matches_folded_keywords('folded__contains'))
+            folded_content.filter(terms.matches_folded_keywords(
+                'folded__contains'
+            ))
+            | qs.filter(terms.matches_keywords(
+                'original_texts__reference__icontains'
+            ))
+            | qs.filter(terms.matches_keywords(
+                'original_texts__translation__translated_text__icontains'
+            ))  # noqa
+            | qs.filter(terms.matches_keywords(
+                'original_texts__translation__translator_name__icontains'
+            ))  # noqa
+            | folded_commentary.filter(terms.matches_folded_keywords(
+                'folded__contains'
+            ))
         )
         return results.distinct()
 
     @classmethod
     def anonymous_fragment_search(cls, terms, qs=None):
         if not qs: qs = AnonymousFragment.objects.all()
-        folded_content = qs.annotate(folded=terms.query(F('original_texts__content')))
-        folded_commentary = qs.annotate(folded=terms.query(F('commentary__content')))
+        folded_content = qs.annotate(folded=terms.query(
+            F('original_texts__content')
+        ))
+        folded_commentary = qs.annotate(folded=terms.query(
+            F('commentary__content')
+        ))
         results = (
-            folded_content.filter(terms.matches_folded_keywords('folded__contains')) |
-            qs.filter(terms.matches_keywords('original_texts__reference__icontains')) |
-            qs.filter(terms.matches_keywords('original_texts__translation__translated_text__icontains')) |  # noqa
-            qs.filter(terms.matches_keywords('original_texts__translation__translator_name__icontains')) |  # noqa
-            folded_commentary.filter(terms.matches_folded_keywords('folded__contains'))
+            folded_content.filter(terms.matches_folded_keywords(
+                'folded__contains'
+            ))
+            | qs.filter(terms.matches_keywords(
+                'original_texts__reference__icontains'
+            ))
+            | qs.filter(terms.matches_keywords(
+                'original_texts__translation__translated_text__icontains'
+            ))  # noqa
+            | qs.filter(terms.matches_keywords(
+                'original_texts__translation__translator_name__icontains'
+            ))  # noqa
+            | folded_commentary.filter(terms.matches_folded_keywords(
+                'folded__contains'
+            ))
         )
         return results.distinct()
 
     @classmethod
     def testimonium_search(cls, terms):
         qs = Testimonium.objects.all()
-        folded_content = qs.annotate(folded=terms.query(F('original_texts__content')))
-        folded_commentary = qs.annotate(folded=terms.query(F('commentary__content')))
+        folded_content = qs.annotate(folded=terms.query(
+            F('original_texts__content')
+        ))
+        folded_commentary = qs.annotate(folded=terms.query(
+            F('commentary__content')
+        ))
         results = (
-            folded_content.filter(terms.matches_folded_keywords('folded__contains')) |
-            qs.filter(terms.matches_keywords('original_texts__reference__icontains')) |
-            qs.filter(terms.matches_keywords('original_texts__translation__translated_text__icontains')) |  # noqa
-            qs.filter(terms.matches_keywords('original_texts__translation__translator_name__icontains')) |  # noqa
-            folded_commentary.filter(terms.matches_folded_keywords('folded__contains'))
+            folded_content.filter(terms.matches_folded_keywords(
+                'folded__contains'
+            ))
+            | qs.filter(terms.matches_keywords(
+                'original_texts__reference__icontains'
+            ))
+            | qs.filter(terms.matches_keywords(
+                'original_texts__translation__translated_text__icontains'
+            ))  # noqa
+            | qs.filter(terms.matches_keywords(
+                'original_texts__translation__translator_name__icontains'
+            ))  # noqa
+            | folded_commentary.filter(terms.matches_folded_keywords(
+                'folded__contains'
+            ))
         )
         return results.distinct()
 
     @classmethod
     def apparatus_criticus_search(cls, terms):
-        query = terms.query(F('original_texts__apparatus_criticus_items__content'))
+        query = terms.query(
+            F('original_texts__apparatus_criticus_items__content')
+        )
         qst = Testimonium.objects.all().annotate(folded=query)
         qsa = AnonymousFragment.objects.all().annotate(folded=query)
         qsf = Fragment.objects.all().annotate(folded=query)
         return chain(
-            qsf.filter(terms.matches_folded_keywords('folded__icontains')).distinct(),  # noqa
-            qsa.filter(terms.matches_folded_keywords('folded__icontains')).distinct(),  # noqa
-            qst.filter(terms.matches_folded_keywords('folded__icontains')).distinct()  # noqa
+            qsf.filter(terms.matches_folded_keywords(
+                'folded__icontains'
+            )).distinct(),  # noqa
+            qsa.filter(terms.matches_folded_keywords(
+                'folded__icontains'
+            )).distinct(),  # noqa
+            qst.filter(terms.matches_folded_keywords(
+                'folded__icontains'
+            )).distinct()  # noqa
         )
 
     @classmethod
     def bibliography_search(cls, terms):
         qs = BibliographyItem.objects.all()
         results = (
-            qs.filter(terms.matches_keywords('authors__icontains')) |
-            qs.filter(terms.matches_keywords('title__icontains'))
+            qs.filter(terms.matches_keywords('authors__icontains'))
+            | qs.filter(terms.matches_keywords('title__icontains'))
         )
         return results.distinct()
 
@@ -242,14 +298,14 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     def citing_work_search(cls, terms):
         qs = CitingWork.objects.all()
         results = (
-            qs.filter(terms.matches_keywords('title__icontains')) |
-            qs.filter(terms.matches_keywords('edition__icontains'))
+            qs.filter(terms.matches_keywords('title__icontains'))
+            | qs.filter(terms.matches_keywords('edition__icontains'))
         )
         return results.distinct()
 
     def get(self, request, *args, **kwargs):
-        keywords = self.request.GET.get('q', None)
-        if keywords is not None and keywords.strip() == '':
+        keywords = self.request.GET.get("q", None)
+        if keywords is not None and keywords.strip() == "":
             # empty search field. Redirect to cleared page
             ret = redirect(self.request.path)
         else:
@@ -258,20 +314,20 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         return ret
 
     def get_context_data(self, *args, **kwargs):
-        queryset = kwargs.pop('object_list', None)
+        queryset = kwargs.pop("object_list", None)
         if queryset is None:
             self.object_list = self.get_queryset()
         context = super().get_context_data(*args, **kwargs)
-        keywords = self.request.GET.get('q')
-        to_search = self.request.GET.getlist('what')
-        context['search_term'] = keywords
-        context['to_search'] = to_search
-        context['search_classes'] = self.SEARCH_METHODS.keys()
+        keywords = self.request.GET.get("q")
+        to_search = self.request.GET.getlist("what")
+        context["search_term"] = keywords
+        context["to_search"] = to_search
+        context["search_classes"] = self.SEARCH_METHODS.keys()
 
         return context
 
     def get_queryset(self):
-        keywords = self.request.GET.get('q')
+        keywords = self.request.GET.get("q")
         if not keywords:
             return []
 
@@ -279,8 +335,8 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
 
         result_set = []
 
-        to_search = self.request.GET.getlist('what', ['all'])
-        if to_search == ['all']:
+        to_search = self.request.GET.getlist("what", ["all"])
+        if to_search == ["all"]:
             to_search = self.SEARCH_METHODS.keys()
 
         for what in to_search:
@@ -289,8 +345,4 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         queryset_chain = chain(*result_set)
 
         # return a list...
-        return sorted(
-            queryset_chain,
-            key=lambda instance: instance.pk,
-            reverse=True
-        )
+        return sorted(queryset_chain, key=lambda instance: instance.pk, reverse=True)

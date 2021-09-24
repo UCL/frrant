@@ -19,15 +19,15 @@ class BibliographyItem(HistoryModelMixin, BaseModel):
     def __str__(self):
         r = self.author_surnames
         if self.year:
-            r += ' [' + self.year + ']'
-        title = re.sub(r'<[^>]*>', ' ', self.title)
-        return r + ': ' + re.sub(r'\s+', ' ', title).strip()
+            r += " [" + self.year + "]"
+        title = re.sub(r"<[^>]*>", " ", self.title)
+        return r + ": " + re.sub(r"\s+", " ", title).strip()
 
     def get_absolute_url(self):
         return self.parent.get_absolute_url()
 
     class Meta:
-        ordering = ['author_surnames', 'year']
+        ordering = ["author_surnames", "year"]
 
     # allow these to point at different object types
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
@@ -44,14 +44,17 @@ class BibliographyItem(HistoryModelMixin, BaseModel):
     # comma-separated list of surnames of the authors, to be used for
     # ordering the entries in the list
     author_surnames = models.CharField(
-        max_length=512, default='', blank=False,
-        help_text='Comma-separated list of surnames to be used for ordering'
+        max_length=512,
+        default="",
+        blank=False,
+        help_text="Comma-separated list of surnames to be used for ordering",
     )
 
     year = models.CharField(
-        max_length=512, default='', blank=True,
-        help_text='Optional date info to use for second-order '
-        'sorting e.g. 1500a'
+        max_length=512,
+        default="",
+        blank=True,
+        help_text="Optional date info to use for second-order " "sorting e.g. 1500a",
     )
 
-    title = models.TextField(default='', blank=False)
+    title = models.TextField(default="", blank=False)

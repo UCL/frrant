@@ -25,7 +25,7 @@ class Topic(HistoryModelMixin, OrderableModel, LockableModel, BaseModel):
         return self.name
 
     def get_absolute_url(self):
-        return reverse('topic:detail', kwargs={'slug': self.slug})
+        return reverse("topic:detail", kwargs={"slug": self.slug})
 
     def save(self, *args, **kwargs):
         self.slug = slugify(self.name) or self.slug
@@ -37,7 +37,7 @@ class Topic(HistoryModelMixin, OrderableModel, LockableModel, BaseModel):
     @property
     def fragments(self):
         # ordered
-        return self.fragment_set.all().order_by('topiclink__order')
+        return self.fragment_set.all().order_by("topiclink__order")
 
     def reindex_fragment_links(self):
         # where there has been a change, ensure the
@@ -48,9 +48,9 @@ class Topic(HistoryModelMixin, OrderableModel, LockableModel, BaseModel):
 
         # single db update
         with transaction.atomic():
-            links = TopicLink.objects.filter(
-                topic=self).order_by(
-                    models.F(('order')).asc(nulls_first=False))
+            links = TopicLink.objects.filter(topic=self).order_by(
+                models.F(("order")).asc(nulls_first=False)
+            )
             for count, link in enumerate(links):
                 link.order = count
                 link.save()

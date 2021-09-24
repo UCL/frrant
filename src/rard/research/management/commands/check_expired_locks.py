@@ -6,13 +6,12 @@ from rard.utils.basemodel import ObjectLock
 
 class Command(BaseCommand):
 
-    help = 'Checks for locks that have expired'
+    help = "Checks for locks that have expired"
 
     def handle(self, *args, **options):
         try:
             stale = ObjectLock.objects.filter(
-                locked_until__isnull=False,
-                locked_until__lt=timezone.now()
+                locked_until__isnull=False, locked_until__lt=timezone.now()
             )
             for lock in stale:
                 # the following will send appropriate emails

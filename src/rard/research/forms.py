@@ -2,55 +2,66 @@ from django import forms
 from django.core.exceptions import FieldDoesNotExist
 from django.utils.translation import gettext_lazy as _
 
-from rard.research.models import (AnonymousFragment, Antiquarian, Book,
-                                  CitingAuthor, CitingWork, Comment, Fragment,
-                                  OriginalText, Testimonium, Work)
-from rard.research.models.base import (AppositumFragmentLink, FragmentLink,
-                                       TestimoniumLink)
+from rard.research.models import (
+    AnonymousFragment,
+    Antiquarian,
+    Book,
+    CitingAuthor,
+    CitingWork,
+    Comment,
+    Fragment,
+    OriginalText,
+    Testimonium,
+    Work,
+)
+from rard.research.models.base import (
+    AppositumFragmentLink,
+    FragmentLink,
+    TestimoniumLink,
+)
 
 
 def _validate_reference_order(ro):
     # check ref order doesn't have any section longer than 5 characters as well
     # as non-numeric
-    for section in ro.split('.'):
+    for section in ro.split("."):
         if len(section) > 5:
             raise forms.ValidationError(
-                'Each reference order section should not be longer than 5 '
-                'characters.',
-                code='subset-too-long'
+                "Each reference order section should not be longer than 5 "
+                "characters.",
+                code="subset-too-long",
             )
-    if not ro.replace('.', '').isnumeric():
+    if not ro.replace(".", "").isnumeric():
         raise forms.ValidationError(
-            'Reference order must contain only numbers.',
-            code='ro-non-numeric'
+            "Reference order must contain only numbers.", code="ro-non-numeric"
         )
 
 
 class AntiquarianIntroductionForm(forms.ModelForm):
     class Meta:
         model = Antiquarian
-        fields = ('name',)  # need to specify at least one field
+        fields = ("name",)  # need to specify at least one field
 
     introduction_text = forms.CharField(
         widget=forms.Textarea,
         required=False,
-        label='Introduction',
+        label="Introduction",
     )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance and self.instance.introduction:
             self.instance.introduction.update_content_mentions()
-            self.fields['introduction_text'].initial = \
-                self.instance.introduction.content
-        self.fields['name'].required = False
+            self.fields[
+                "introduction_text"
+            ].initial = self.instance.introduction.content
+        self.fields["name"].required = False
 
     def save(self, commit=True):
         if commit:
             instance = super().save(commit=False)  # no need to save owner
             # introduction will have been created at this point
-            instance.introduction.content = \
-                self.cleaned_data['introduction_text']
+            instance.introduction.content = self.cleaned_data["introduction_text"]
             instance.introduction.save()
         return instance
 
@@ -58,57 +69,68 @@ class AntiquarianIntroductionForm(forms.ModelForm):
 class AntiquarianDetailsForm(forms.ModelForm):
     class Meta:
         model = Antiquarian
-        fields = ('name', 'order_name', 're_code', 'date_range', 'order_year',)
-        labels = {'order_name': 'Name for alphabetisation'}
+        fields = (
+            "name",
+            "order_name",
+            "re_code",
+            "date_range",
+            "order_year",
+        )
+        labels = {"order_name": "Name for alphabetisation"}
 
 
 class AntiquarianCreateForm(forms.ModelForm):
     class Meta:
         model = Antiquarian
-        fields = ('name', 'order_name', 're_code', 'date_range', 'order_year',)
-        labels = {'order_name': 'Name for alphabetisation'}
+        fields = (
+            "name",
+            "order_name",
+            "re_code",
+            "date_range",
+            "order_year",
+        )
+        labels = {"order_name": "Name for alphabetisation"}
 
     introduction_text = forms.CharField(
         widget=forms.Textarea,
         required=False,
-        label='Introduction',
+        label="Introduction",
     )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance.introduction:
-            self.fields['introduction_text'].initial = \
-                self.instance.introduction.content
+            self.fields[
+                "introduction_text"
+            ].initial = self.instance.introduction.content
 
     def save(self, commit=True):
         instance = super().save(commit)
         if commit:
             instance.save_without_historical_record()
             # introduction will have been created at this point
-            instance.introduction.content = \
-                self.cleaned_data['introduction_text']
+            instance.introduction.content = self.cleaned_data["introduction_text"]
             instance.introduction.save_without_historical_record()
         return instance
 
 
 class AntiquarianUpdateWorksForm(forms.ModelForm):
-
     class Meta:
         model = Antiquarian
-        fields = ('works',)
+        fields = ("works",)
         widgets = {
-          'works': forms.CheckboxSelectMultiple,
+            "works": forms.CheckboxSelectMultiple,
         }
 
 
 class BooksWidget(forms.Widget):
-    template_name = 'widgets/books.html'
+    template_name = "widgets/books.html"
 
     subfields = {
-        'num': 'Book number',
-        'title': 'Subtitle',
-        'date': 'Date range',
-        'order': 'Order year',
+        "num": "Book number",
+        "title": "Subtitle",
+        "date": "Date range",
+        "order": "Order year",
     }
 
     def format_value(self, value):
@@ -118,7 +140,7 @@ class BooksWidget(forms.Widget):
         # find all <name>_<n>_<subfield_id> parameters
         r = {}  # dict of <n> to dict with keys matching subfields
         for k, v in data.items():
-            ps = k.rsplit('_', 2)
+            ps = k.rsplit("_", 2)
             if 2 < len(ps) and ps[0] == name and ps[2] in self.subfields and v:
                 i = int(ps[1])
                 if i not in r:
@@ -133,7 +155,7 @@ class BooksWidget(forms.Widget):
 
     def get_context(self, name, value, attrs):
         ctx = super().get_context(name, value, attrs)
-        ctx['widget']['subfields'] = self.subfields
+        ctx["widget"]["subfields"] = self.subfields
         return ctx
 
 
@@ -159,7 +181,7 @@ class BooksField(forms.Field):
     @staticmethod
     def has_numberless_titleless_book(value):
         for v in value:
-            if ('num' not in v and 'title' not in v):
+            if "num" not in v and "title" not in v:
                 return True
         return False
 
@@ -167,15 +189,16 @@ class BooksField(forms.Field):
         super().validate(value)
         errors = [
             forms.ValidationError(
-                _('Order year %(o)s is not a number'),
-                params={'o': o},
-                code='book-order-not-a-number'
-            ) for o in self.get_values(value, 'order')
+                _("Order year %(o)s is not a number"),
+                params={"o": o},
+                code="book-order-not-a-number",
+            )
+            for o in self.get_values(value, "order")
             if not self.is_integer(o)
         ]
         nums = []
         non_nums = []
-        for v in self.get_values(value, 'num'):
+        for v in self.get_values(value, "num"):
             if v:
                 if v.isnumeric() and 0 < int(v):
                     nums.append(v)
@@ -183,10 +206,11 @@ class BooksField(forms.Field):
                     non_nums.append(v)
         errors += [
             forms.ValidationError(
-                _('Book number %(nn)s is not a positive number'),
-                params={'nn': nn},
-                code='book-number-not-a-number'
-            ) for nn in non_nums
+                _("Book number %(nn)s is not a positive number"),
+                params={"nn": nn},
+                code="book-number-not-a-number",
+            )
+            for nn in non_nums
         ]
         seen = {}
         dups = {}
@@ -197,16 +221,17 @@ class BooksField(forms.Field):
                 seen[n] = True
         errors += [
             forms.ValidationError(
-                _('Book number %(n)s is duplicated.'),
-                params={'n': dup},
-                code='book-number-duplicated'
-            ) for dup in dups.keys()
+                _("Book number %(n)s is duplicated."),
+                params={"n": dup},
+                code="book-number-duplicated",
+            )
+            for dup in dups.keys()
         ]
         if self.has_numberless_titleless_book(value):
             errors.append(
                 forms.ValidationError(
                     _("Books require either a title or a number"),
-                    code='numberless-titleless-book'
+                    code="numberless-titleless-book",
                 )
             )
         if errors:
@@ -227,69 +252,70 @@ class WorkForm(forms.ModelForm):
     class Meta:
         model = Work
         fields = (
-            'name',
-            'subtitle',
-            'antiquarians',
-            'number_of_books',
-            'date_range',
-            'order_year',
-            'books',
+            "name",
+            "subtitle",
+            "antiquarians",
+            "number_of_books",
+            "date_range",
+            "order_year",
+            "books",
         )
-        labels = {'name': 'Name of Work'}
+        labels = {"name": "Name of Work"}
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # if we are editing an existing work then init the antiquarian set
         # on the form
         if self.instance and self.instance.pk:
-            self.fields['antiquarians'].initial = \
-                self.instance.antiquarian_set.all()
+            self.fields["antiquarians"].initial = self.instance.antiquarian_set.all()
 
     def clean(self):
         cleaned_data = super().clean()
-        if 'books' in cleaned_data:
+        if "books" in cleaned_data:
             existing_book_numbers = [
                 str(b.number) for b in self.instance.book_set.all()
             ]
             new_book_numbers = [
-                b['num'] for b in cleaned_data.get('books') if 'num' in b
+                b["num"] for b in cleaned_data.get("books") if "num" in b
             ]
             overlaps = set(existing_book_numbers) & set(new_book_numbers)
             if overlaps:
-                raise forms.ValidationError([
-                    forms.ValidationError(
-                        _('There is already a book with number %(n)s'),
-                        params={'n': o},
-                        code='book-number-already-exists'
-                    )
-                    for o in overlaps
-                ])
+                raise forms.ValidationError(
+                    [
+                        forms.ValidationError(
+                            _("There is already a book with number %(n)s"),
+                            params={"n": o},
+                            code="book-number-already-exists",
+                        )
+                        for o in overlaps
+                    ]
+                )
         return cleaned_data
 
 
 class BookForm(forms.ModelForm):
     class Meta:
         model = Book
-        exclude = ('work',)
+        exclude = ("work",)
 
     def clean(self):
         cleaned_data = super().clean()
-        number = self.cleaned_data.get('number', None)
-        subtitle = self.cleaned_data.get('subtitle', None)
+        number = self.cleaned_data.get("number", None)
+        subtitle = self.cleaned_data.get("subtitle", None)
         if not (number or subtitle):
-            ERR = _('Please give a number or a subtitle.')
-            self.add_error('number', ERR)
-            self.add_error('subtitle', ERR)
+            ERR = _("Please give a number or a subtitle.")
+            self.add_error("number", ERR)
+            self.add_error("subtitle", ERR)
         return cleaned_data
 
 
 class CommentForm(forms.ModelForm):
     class Meta:
         model = Comment
-        fields = ('content',)
-        labels = {'content': _('Add Comment')}
+        fields = ("content",)
+        labels = {"content": _("Add Comment")}
         widgets = {
-          'content': forms.Textarea(attrs={'rows': 3}),
+            "content": forms.Textarea(attrs={"rows": 3}),
         }
 
 
@@ -299,21 +325,21 @@ class CitingWorkForm(forms.ModelForm):
     new_author = forms.BooleanField(required=False)
     new_author_name = forms.CharField(
         required=False,
-        label='New Author Name',
+        label="New Author Name",
     )
 
     class Meta:
         model = CitingWork
         fields = (
-            'new_citing_work',
-            'author',
-            'new_author',
-            'new_author_name',
-            'title',
-            'edition'
+            "new_citing_work",
+            "author",
+            "new_author",
+            "new_author_name",
+            "title",
+            "edition",
         )
         labels = {
-            'author': _('Choose Existing Author'),
+            "author": _("Choose Existing Author"),
         }
 
     def __init__(self, *args, **kwargs):
@@ -337,14 +363,14 @@ class CitingWorkForm(forms.ModelForm):
                     self.fields[field_name].required = not model_field.blank
                 except FieldDoesNotExist:
                     # not a field in the model so set it to required
-                    if field_name == 'new_citing_work':
+                    if field_name == "new_citing_work":
                         self.fields[field_name].required = True
 
     def save(self, commit=True):
         instance = super().save(commit=False)
         if commit:
-            if self.cleaned_data['new_author']:
-                new_author_name = self.cleaned_data['new_author_name']
+            if self.cleaned_data["new_author"]:
+                new_author_name = self.cleaned_data["new_author_name"]
                 author = CitingAuthor.objects.create(name=new_author_name)
                 instance.author = author
             instance.save()
@@ -359,58 +385,59 @@ class OriginalTextAuthorForm(forms.ModelForm):
 
     class Meta:
         model = OriginalText
-        fields = ('citing_work',)
+        fields = ("citing_work",)
 
     def __init__(self, *args, **kwargs):
         # if we have a citing author selected then populate the works
         # field accordingly. NB this pop needs to be done before calling
         # the super class
-        author = kwargs.pop('citing_author')
-        work = kwargs.pop('citing_work')
+        author = kwargs.pop("citing_author")
+        work = kwargs.pop("citing_work")
 
         super().__init__(*args, **kwargs)
 
-        self.fields['citing_work'].required = True
+        self.fields["citing_work"].required = True
         if author:
-            self.fields['citing_author'].initial = author
-            self.fields['citing_work'].queryset = author.citingwork_set.all()
+            self.fields["citing_author"].initial = author
+            self.fields["citing_work"].queryset = author.citingwork_set.all()
             if work:
-                self.fields['citing_work'].initial = work
+                self.fields["citing_work"].initial = work
         else:
-            self.fields['citing_work'].queryset = CitingWork.objects.none()
-            self.fields['citing_work'].disabled = True
+            self.fields["citing_work"].queryset = CitingWork.objects.none()
+            self.fields["citing_work"].disabled = True
 
 
 class OriginalTextDetailsForm(forms.ModelForm):
 
     new_apparatus_criticus_line = forms.CharField(
-        widget=forms.Textarea(attrs={'rows': 2}),
+        widget=forms.Textarea(attrs={"rows": 2}),
         required=False,
-        label='Add apparatus criticus line',
+        label="Add apparatus criticus line",
     )
 
-    reference_order = forms.CharField(
-        validators=[_validate_reference_order]
-    )
+    reference_order = forms.CharField(validators=[_validate_reference_order])
 
     class Meta:
         model = OriginalText
         fields = (
-            'reference', 'reference_order', 'content',
+            "reference",
+            "reference_order",
+            "content",
         )
         labels = {
-            'content': _('Original Text'),
+            "content": _("Original Text"),
         }
 
     def __init__(self, *args, **kwargs):
 
-        original_text = kwargs.get('instance', None)
+        original_text = kwargs.get("instance", None)
         if original_text and original_text.pk:
             original_text.update_content_mentions()
 
         if original_text and original_text.reference_order:
             original_text.reference_order = (
-                original_text.remove_reference_order_padding())
+                original_text.remove_reference_order_padding()
+            )
 
         super().__init__(*args, **kwargs)
 
@@ -418,40 +445,41 @@ class OriginalTextDetailsForm(forms.ModelForm):
         # Reference order needs to be stored as a string with leading 0s such
         # as 00001.00020.02340 for 1.20.2340
         ro = self.cleaned_data["reference_order"]
-        return ".".join([i.zfill(5) for i in ro.split('.')])
+        return ".".join([i.zfill(5) for i in ro.split(".")])
 
 
 class OriginalTextForm(OriginalTextAuthorForm):
 
     new_apparatus_criticus_line = forms.CharField(
-        widget=forms.Textarea(attrs={'rows': 2}),
+        widget=forms.Textarea(attrs={"rows": 2}),
         required=False,
-        label='Add apparatus criticus line',
+        label="Add apparatus criticus line",
     )
 
-    reference_order = forms.CharField(
-        validators=[_validate_reference_order]
-    )
+    reference_order = forms.CharField(validators=[_validate_reference_order])
 
     class Meta:
         model = OriginalText
         fields = (
-            'citing_work', 'reference', 'reference_order',
-            'content',
+            "citing_work",
+            "reference",
+            "reference_order",
+            "content",
         )
         labels = {
-            'content': _('Original Text'),
+            "content": _("Original Text"),
         }
 
     def __init__(self, *args, **kwargs):
 
-        original_text = kwargs.get('instance', None)
+        original_text = kwargs.get("instance", None)
         if original_text and original_text.pk:
             original_text.update_content_mentions()
 
         if original_text and original_text.reference_order:
             original_text.reference_order = (
-                original_text.remove_reference_order_padding())
+                original_text.remove_reference_order_padding()
+            )
 
         super().__init__(*args, **kwargs)
         # when creating an original text we also offer the option
@@ -462,34 +490,33 @@ class OriginalTextForm(OriginalTextAuthorForm):
 
     def set_citing_work_required(self, required):
         # to allow set/reset required fields dynically in the view
-        self.fields['citing_work'].required = required
+        self.fields["citing_work"].required = required
 
     def clean_reference_order(self):
         # Reference order needs to be stored as a string with leading 0s such
         # as 00001.00020.02340 for 1.20.2340
         ro = self.cleaned_data["reference_order"]
-        return ".".join([i.zfill(5) for i in ro.split('.')])
+        return ".".join([i.zfill(5) for i in ro.split(".")])
 
 
 class CommentaryFormBase(forms.ModelForm):
     commentary_text = forms.CharField(
         widget=forms.Textarea,
         required=False,
-        label='Commentary',
+        label="Commentary",
     )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance and self.instance.commentary:
             self.instance.commentary.update_content_mentions()
-            self.fields['commentary_text'].initial = \
-                self.instance.commentary.content
+            self.fields["commentary_text"].initial = self.instance.commentary.content
 
     def save(self, commit=True):
         instance = super().save(commit=False)
         if commit:
             # commentary will have been created at this point via post_save
-            instance.commentary.content = self.cleaned_data['commentary_text']
+            instance.commentary.content = self.cleaned_data["commentary_text"]
             instance.commentary.save()
         return instance
 
@@ -513,7 +540,6 @@ class AnonymousFragmentCommentaryForm(CommentaryFormBase):
 
 
 class HistoricalFormBase(forms.ModelForm):
-
     def save(self, commit=True):
         instance = super().save(commit=False)
         if commit:
@@ -536,25 +562,30 @@ class TestimoniumAntiquariansForm(HistoricalFormBase):
 
 
 class FragmentForm(HistoricalFormBase):
-
     class Meta:
         model = Fragment
-        fields = ('topics', 'date_range', 'order_year',)
-        labels = {'date_range': 'Chronological reference'}
-        widgets = {'topics': forms.CheckboxSelectMultiple}
+        fields = (
+            "topics",
+            "date_range",
+            "order_year",
+        )
+        labels = {"date_range": "Chronological reference"}
+        widgets = {"topics": forms.CheckboxSelectMultiple}
 
 
 class AnonymousFragmentForm(forms.ModelForm):
-
     class Meta:
         model = AnonymousFragment
-        fields = ('topics', 'date_range', 'order_year',)
-        labels = {'date_range': 'Chronological reference'}
-        widgets = {'topics': forms.CheckboxSelectMultiple}
+        fields = (
+            "topics",
+            "date_range",
+            "order_year",
+        )
+        labels = {"date_range": "Chronological reference"}
+        widgets = {"topics": forms.CheckboxSelectMultiple}
 
 
 class TestimoniumForm(HistoricalFormBase):
-
     class Meta:
         model = Testimonium
         fields = ()
@@ -562,40 +593,44 @@ class TestimoniumForm(HistoricalFormBase):
 
 class BaseLinkWorkForm(forms.ModelForm):
     class Meta:
-        fields = ('antiquarian', 'work', 'book', 'definite',)
-        labels = {'definite': _('Definite Link')}
+        fields = (
+            "antiquarian",
+            "work",
+            "book",
+            "definite",
+        )
+        labels = {"definite": _("Definite Link")}
 
     def __init__(self, *args, **kwargs):
-        antiquarian = kwargs.pop('antiquarian')
-        work = kwargs.pop('work')
+        antiquarian = kwargs.pop("antiquarian")
+        work = kwargs.pop("work")
 
         super().__init__(*args, **kwargs)
-        self.fields['book'].required = False
-        self.fields['work'].required = False
+        self.fields["book"].required = False
+        self.fields["work"].required = False
         if antiquarian:
-            self.fields['antiquarian'].initial = antiquarian
-            self.fields['work'].queryset = antiquarian.works.all()
+            self.fields["antiquarian"].initial = antiquarian
+            self.fields["work"].queryset = antiquarian.works.all()
         else:
-            self.fields['work'].queryset = Work.objects.none()
-            self.fields['work'].disabled = True
+            self.fields["work"].queryset = Work.objects.none()
+            self.fields["work"].disabled = True
 
         if work:
             if antiquarian:
-                self.fields['work'].initial = work
+                self.fields["work"].initial = work
             else:
-                self.fields['work'].initial = None
+                self.fields["work"].initial = None
 
-            self.fields['book'].queryset = work.book_set.all()
+            self.fields["book"].queryset = work.book_set.all()
         else:
-            self.fields['book'].queryset = Book.objects.none()
-            self.fields['book'].disabled = True
+            self.fields["book"].queryset = Book.objects.none()
+            self.fields["book"].disabled = True
 
     def clean(self):
         cleaned_data = super().clean()
-        if cleaned_data.get('book') and not cleaned_data.get('work'):
+        if cleaned_data.get("book") and not cleaned_data.get("work"):
             raise forms.ValidationError(
-                _('Work is required for book link.'),
-                code='book-without-work'
+                _("Work is required for book link."), code="book-without-work"
             )
         return cleaned_data
 
@@ -617,34 +652,39 @@ class AppositumGeneralLinkForm(forms.ModelForm):
 
     class Meta:
         model = AppositumFragmentLink
-        fields = ('antiquarian', 'work', 'exclusive', 'book',)
+        fields = (
+            "antiquarian",
+            "work",
+            "exclusive",
+            "book",
+        )
 
     def __init__(self, *args, **kwargs):
 
-        antiquarian = kwargs.pop('antiquarian')
-        work = kwargs.pop('work')
+        antiquarian = kwargs.pop("antiquarian")
+        work = kwargs.pop("work")
 
         super().__init__(*args, **kwargs)
 
-        self.fields['work'].required = False
-        self.fields['book'].required = False
-        self.fields['exclusive'].disabled = True
+        self.fields["work"].required = False
+        self.fields["book"].required = False
+        self.fields["exclusive"].disabled = True
 
         if antiquarian:
-            self.fields['antiquarian'].initial = antiquarian
-            self.fields['work'].queryset = antiquarian.works.all()
-            self.fields['work'].disabled = False
+            self.fields["antiquarian"].initial = antiquarian
+            self.fields["work"].queryset = antiquarian.works.all()
+            self.fields["work"].disabled = False
         else:
-            self.fields['work'].queryset = Work.objects.none()
-            self.fields['work'].disabled = True
+            self.fields["work"].queryset = Work.objects.none()
+            self.fields["work"].disabled = True
 
         if work:
-            self.fields['work'].initial = work
-            self.fields['book'].queryset = work.book_set.all()
-            self.fields['exclusive'].disabled = False
+            self.fields["work"].initial = work
+            self.fields["book"].queryset = work.book_set.all()
+            self.fields["exclusive"].disabled = False
         else:
-            self.fields['book'].queryset = Book.objects.none()
-            self.fields['book'].disabled = True
+            self.fields["book"].queryset = Book.objects.none()
+            self.fields["book"].disabled = True
 
 
 class AppositumFragmentLinkForm(forms.ModelForm):
@@ -654,23 +694,29 @@ class AppositumFragmentLinkForm(forms.ModelForm):
 
     class Meta:
         model = AppositumFragmentLink
-        fields = ('linked_to',)
+        fields = ("linked_to",)
 
     def __init__(self, *args, **kwargs):
 
         super().__init__(*args, **kwargs)
 
-        self.fields['linked_to'].initial = Fragment.objects.all()
+        self.fields["linked_to"].initial = Fragment.objects.all()
 
 
 class CitingWorkCreateForm(forms.ModelForm):
     class Meta:
         model = CitingWork
-        fields = ('author', 'title', 'edition', 'order_year', 'date_range',)
+        fields = (
+            "author",
+            "title",
+            "edition",
+            "order_year",
+            "date_range",
+        )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['author'].queryset = CitingAuthor.objects.exclude(
+        self.fields["author"].queryset = CitingAuthor.objects.exclude(
             order_name=CitingAuthor.ANONYMOUS_ORDERNAME
         )
 
@@ -678,9 +724,14 @@ class CitingWorkCreateForm(forms.ModelForm):
 class CitingAuthorUpdateForm(forms.ModelForm):
     class Meta:
         model = CitingAuthor
-        fields = ('name', 'order_name', 'order_year', 'date_range',)
+        fields = (
+            "name",
+            "order_name",
+            "order_year",
+            "date_range",
+        )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance and self.instance.is_anonymous_citing_author():
-            self.fields['order_name'].disabled = True
+            self.fields["order_name"].disabled = True

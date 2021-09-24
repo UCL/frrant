@@ -254,7 +254,7 @@ function initRichTextEditor($item) {
                     console.log('lines:')
                     console.dir(lines)
                     renderList(lines);
-                    
+
                 }
             },
             renderItem(item, searchTerm) {
@@ -267,7 +267,7 @@ function initRichTextEditor($item) {
             }
         }
     }
-    
+
     new Quill('#'+$item.attr('id'), config);
 
     var for_id = $item.data('for');
@@ -312,17 +312,17 @@ window.addEventListener("beforeunload", function (e) {
 if (!String.prototype.HTMLDecode) {
     String.prototype.HTMLDecode = function () {
         var str = this.toString(),
-            //Create an element for decoding            
+            //Create an element for decoding
             decoderEl = document.createElement('p');
 
-        //Bail if empty, otherwise IE7 will return undefined when 
+        //Bail if empty, otherwise IE7 will return undefined when
         //OR-ing the 2 empty strings from innerText and textContent
         if (str.length == 0) {
             return str;
         }
 
         //convert newlines to <br's> to save them
-        str = str.replace(/((\r\n)|(\r)|(\n))/gi, " <br/>");            
+        str = str.replace(/((\r\n)|(\r)|(\n))/gi, " <br/>");
 
         decoderEl.innerHTML = str;
         /*
@@ -433,12 +433,12 @@ function drag(ev) {
     let src_pos = $(ev.target).data('pos');
     let object_type = $(ev.target).data('objecttype');
     let pos = parseInt(src_pos);
-    ev.dataTransfer.setData("Text", ev.target.id); 
+    ev.dataTransfer.setData("Text", ev.target.id);
     // Only show drop targets belonging to the same work
     let work_div = $(ev.target).parent().closest('.parent-ordering-group');
     // if we manipulate the DOM on drag start we need
     // to do it within a setTimeout. Apparently
-  setTimeout(function(){ 
+  setTimeout(function(){
         work_div.find('.drop-target').filter('[data-objecttype="'+object_type+'"]').show();
         let not_allowed = [pos, pos+1];
         for (let i=0; i < not_allowed.length; i++) {
@@ -586,7 +586,7 @@ $('body').on('dragover', '.drop-target', function(event) {
 $('body').on('dragstart', '.drag-item', function(event) {
     drag(event);
 });
- 
+
 $('body').on('dragend', '.drag-item', function(event) {
     dragend(event)
 });
@@ -604,7 +604,7 @@ function runMoveAction(post_data, post_url) {
 
     let sel = '.ordered-list'
     let $list_area = $(sel).first();
-    
+
     let data = post_data;
 
     let csrf = document.querySelector("meta[name='token']").getAttribute('content');
@@ -657,7 +657,7 @@ $('body').on('click', '.show-apparatus-criticus-form', function() {
     $('#update-apparatus-criticus-line').hide();
     $('#submit-new-apparatus-criticus-line').show();
     $('#submit-new-apparatus-criticus-line').attr('data-index', inserting_at);
-    
+
     $('.line-action').hide();
     $new_area.show();
 });
@@ -676,7 +676,7 @@ $('body').on('click', '.edit-apparatus-criticus-line', function() {
     $('#submit-new-apparatus-criticus-line').hide();
     $('#update-apparatus-criticus-line').show();
     $('#update-apparatus-criticus-line').attr('data-id', item_id);
-    
+
     $('.line-action').hide();
     $new_area.show();
 });
@@ -780,7 +780,7 @@ $('body').on('click', '#cancel-new-apparatus-criticus-line', function() {
 
 $('body').on('click', '.delete-apparatus-criticus-line', function() {
 
-    
+
     if (!confirm("Are you sure you want to delete this line? This cannot be undone.")) {
         return;
     }
@@ -834,7 +834,7 @@ $('body').on('click', '.delete-apparatus-criticus-line', function() {
 
 $('body').on('click', '#update-apparatus-criticus-line', function() {
 
-    
+
     let line_id = $(this).data('id');
     let action_url = $(this).data('action');
     let html = $('#id_new_apparatus_criticus_line_editor').find('.ql-editor').html();

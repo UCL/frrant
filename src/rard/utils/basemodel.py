@@ -1,8 +1,7 @@
 import bs4
 from django.apps import apps
 from django.conf import settings
-from django.contrib.contenttypes.fields import (GenericForeignKey,
-                                                GenericRelation)
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.shortcuts import get_current_site
 from django.core.exceptions import ObjectDoesNotExist
@@ -37,29 +36,27 @@ class DynamicTextField(TextField):
                 links = soup.find_all("span", class_="mention")
 
                 for link in links:
-                    print('got link %s' % link)
-                    item_to_replace = link.find(
-                        'span', contenteditable='false'
-                    )
+                    print("got link %s" % link)
+                    item_to_replace = link.find("span", contenteditable="false")
                     if not item_to_replace:
                         # format of the link is not as we expect so
                         # ignore it for now
                         continue
 
-                    model_name = link.attrs.get('data-target', None)
-                    pkstr = link.attrs.get('data-id', None)
-                    char = link.attrs.get('data-denotation-char', None)
+                    model_name = link.attrs.get("data-target", None)
+                    pkstr = link.attrs.get("data-id", None)
+                    char = link.attrs.get("data-denotation-char", None)
 
                     replacement = None
 
                     if model_name and pkstr and char:
                         try:
                             model = apps.get_model(
-                                app_label='research', model_name=model_name
+                                app_label="research", model_name=model_name
                             )
                             linked = model.objects.get(pk=int(pkstr))
 
-                            if char == '@':
+                            if char == "@":
                                 link_text = str(linked)
                             else:
                                 # it's an apparatus criticus so we need
@@ -68,22 +65,24 @@ class DynamicTextField(TextField):
                                 # in a fragment's commentary we need to include
                                 # any ordinal value
 
-                                parent_pk = link.attrs.get('data-parent', None)
+                                parent_pk = link.attrs.get("data-parent", None)
                                 original_text_pk = link.attrs.get(
-                                    'data-original-text', None
+                                    "data-original-text", None
                                 )
                                 # if we are viewing the object in
                                 # a parent's commentary
                                 # then we need to potentially
                                 # (if >1 original text) show its ordinal
 
-                                link_text = ''
+                                link_text = ""
 
                                 if parent_pk:
                                     original_text = OriginalText.objects.get(
                                         pk=int(original_text_pk)
                                     )
-                                    link_text = original_text.ordinal_with_respect_to_parent_object()  # noqa
+                                    link_text = (
+                                        original_text.ordinal_with_respect_to_parent_object()  # noqa: E501
+                                    )
 
                                 # in any case show the app crit link index
                                 link_text += str(linked.order + 1)
@@ -91,21 +90,26 @@ class DynamicTextField(TextField):
                             replacement = bs4.BeautifulSoup(
                                 '<span contenteditable="false">'
                                 '<span class="ql-mention-denotation-char">'
-                                '{}</span>{}</span>'.format(
+                                "{}</span>{}</span>".format(
                                     # char, linked.order + 1
-                                    char, link_text
+                                    char,
+                                    link_text,
                                 ),
-                                features="html.parser"
+                                features="html.parser",
                             )
                             # we do need to replace the item as its index
                             # might have changed
                             item_to_replace.replace_with(replacement)
 
-                        except (AttributeError, KeyError, ValueError,
-                                ObjectDoesNotExist):
+                        except (
+                            AttributeError,
+                            KeyError,
+                            ValueError,
+                            ObjectDoesNotExist,
+                        ):
                             # the user has a bad link and needs to
                             # replace it, so mark it in error
-                            link['class'].extend(['error'])
+                            link["class"].extend(["error"])
 
                 setattr(self, field_name, str(soup))
                 if save:
@@ -115,49 +119,51 @@ class DynamicTextField(TextField):
                 # render the mentions as links or as app crit when viewing
                 # the object on a web page
                 from rard.research.models import OriginalText
+
                 value = getattr(self, field_name)
                 soup = bs4.BeautifulSoup(value, features="html.parser")
                 links = soup.find_all("span", class_="mention")
 
                 for link in links:
-                    model_name = link.attrs.get('data-target', None)
-                    pkstr = link.attrs.get('data-id', None)
+                    model_name = link.attrs.get("data-target", None)
+                    pkstr = link.attrs.get("data-id", None)
 
                     replacement = None
 
                     if model_name and pkstr:
                         try:
                             model = apps.get_model(
-                                app_label='research', model_name=model_name
+                                app_label="research", model_name=model_name
                             )
                             linked = model.objects.get(pk=int(pkstr))
                             # is it something we can link to?
-                            if getattr(linked, 'get_absolute_url', False):
+                            if getattr(linked, "get_absolute_url", False):
                                 replacement = bs4.BeautifulSoup(
                                     '<a href="{}">{}</a>'.format(
-                                        linked.get_absolute_url(),
-                                        str(linked)
+                                        linked.get_absolute_url(), str(linked)
                                     ),
-                                    features="html.parser"
+                                    features="html.parser",
                                 )
                             else:
                                 # else currently that means it's an
                                 # apparatus criticus item
-                                parent_pk = link.attrs.get('data-parent', None)
+                                parent_pk = link.attrs.get("data-parent", None)
                                 original_text_pk = link.attrs.get(
-                                    'data-original-text', None
+                                    "data-original-text", None
                                 )
                                 # if we are viewing the object in a parent's
                                 # commentary then we need to potentially
                                 # (if >1 original text) show its ordinal
 
-                                display_str = ''
+                                display_str = ""
 
                                 if parent_pk:
                                     original_text = OriginalText.objects.get(
                                         pk=int(original_text_pk)
                                     )
-                                    display_str = original_text.ordinal_with_respect_to_parent_object()  # noqa
+                                    display_str = (
+                                        original_text.ordinal_with_respect_to_parent_object()  # noqa: E501
+                                    )  # noqa
 
                                 # in any case show the app crit link index
                                 display_str += str(linked.order + 1)
@@ -167,18 +173,22 @@ class DynamicTextField(TextField):
                                     'data-html="true" '
                                     'data-placement="top" '
                                     'style="cursor:pointer;color:blue" '
-                                    'title="<span class=\'historical\'>{}'
+                                    "title=\"<span class='historical'>{}"
                                     '</span>">'
-                                    '{}</sup>'.format(
+                                    "{}</sup>".format(
                                         linked.get_anchor_id(),
                                         mark_safe(entity_escape(linked.content)),
                                         display_str,
                                     ),
-                                    features="html.parser"
+                                    features="html.parser",
                                 )
 
-                        except (AttributeError, KeyError, ValueError,
-                                ObjectDoesNotExist):
+                        except (
+                            AttributeError,
+                            KeyError,
+                            ValueError,
+                            ObjectDoesNotExist,
+                        ):
                             # indicate a bad link. Alternative we could use
                             # the content of the definition as a fall-back
                             # and render that? If so, just remove the
@@ -189,13 +199,11 @@ class DynamicTextField(TextField):
                             # the content
                             # but fallback to the full link text if need be
                             linktext = str(link.text)
-                            linktext = linktext.replace('@', '')
+                            linktext = linktext.replace("@", "")
 
                             replacement = bs4.BeautifulSoup(
-                                '<span class="bad-link">{}</span>'.format(
-                                    linktext
-                                ),
-                                features="html.parser"
+                                '<span class="bad-link">{}</span>'.format(linktext),
+                                features="html.parser",
                             )
 
                         # replace with the new link in the rendered output
@@ -207,27 +215,17 @@ class DynamicTextField(TextField):
             # here we add a method to the class. So if the dynamic field of
             # our class is called 'content' then the method will be
             # 'render_content' etc
-            setattr(
-                cls, 'render_%s' % self.name,
-                render_dynamic_content
-            )
-            setattr(
-                cls, 'update_%s_mentions' % self.name,
-                update_editable_mentions
-            )
+            setattr(cls, "render_%s" % self.name, render_dynamic_content)
+            setattr(cls, "update_%s_mentions" % self.name, update_editable_mentions)
 
 
 class ObjectLock(models.Model):
-
     class Meta:
-        app_label = 'research'
+        app_label = "research"
 
     locked_at = models.DateTimeField(null=True, editable=False)
     locked_by = models.ForeignKey(
-        'users.User',
-        null=True,
-        editable=False,
-        on_delete=models.SET_NULL
+        "users.User", null=True, editable=False, on_delete=models.SET_NULL
     )
 
     # optional end datetime for the lock
@@ -242,12 +240,12 @@ class ObjectLock(models.Model):
 
 class ObjectLockRequest(TimeStampedModel, models.Model):
     class Meta:
-        app_label = 'research'
+        app_label = "research"
 
     # a request to break the lock. All deleted when the lock is deleted
     object_lock = models.ForeignKey(ObjectLock, on_delete=models.CASCADE)
 
-    from_user = models.ForeignKey('users.User', on_delete=models.CASCADE)
+    from_user = models.ForeignKey("users.User", on_delete=models.CASCADE)
 
 
 class BaseModel(TimeStampedModel, models.Model):
@@ -259,7 +257,6 @@ class BaseModel(TimeStampedModel, models.Model):
 
 
 class LockableModel(models.Model):
-
     class Meta:
         abstract = True
 
@@ -273,7 +270,7 @@ class LockableModel(models.Model):
             locked_at=timezone.now(),
             locked_by=user,
             content_object=self,
-            locked_until=lock_until
+            locked_until=lock_until,
         )
 
     def break_lock(self, broken_by_user):
@@ -285,27 +282,24 @@ class LockableModel(models.Model):
         object_lock = self.get_object_lock()
 
         # prepare email to lock owner
-        html_email_template = 'research/emails/item_lock_broken.html'
+        html_email_template = "research/emails/item_lock_broken.html"
         current_site = get_current_site(None)
         context = {
-            'user': object_lock.locked_by,
-            'broken_by_user': broken_by_user,
-            'lock': object_lock,
-            'site_name': current_site.name,
-            'domain': current_site.domain,
+            "user": object_lock.locked_by,
+            "broken_by_user": broken_by_user,
+            "lock": object_lock,
+            "site_name": current_site.name,
+            "domain": current_site.domain,
         }
         content = render_to_string(html_email_template, context)
         email_data = [
             (
-                'The item you were editing has been made available',
-                '',
+                "The item you were editing has been made available",
+                "",
                 settings.DEFAULT_FROM_EMAIL,
                 [object_lock.locked_by.email],
             ),
-            {
-                'html_message': content,
-                'fail_silently': False
-            }
+            {"html_message": content, "fail_silently": False},
         ]
 
         # break lock
@@ -320,23 +314,23 @@ class LockableModel(models.Model):
         object_lock = self.get_object_lock()
 
         # prepare email to lock owner
-        html_email_template = 'research/emails/long_lock_warning.html'
+        html_email_template = "research/emails/long_lock_warning.html"
         current_site = get_current_site(None)
         context = {
-            'user': object_lock.locked_by,
-            'lock': object_lock,
-            'site_name': current_site.name,
-            'domain': current_site.domain,
+            "user": object_lock.locked_by,
+            "lock": object_lock,
+            "site_name": current_site.name,
+            "domain": current_site.domain,
         }
         content = render_to_string(html_email_template, context)
 
         send_mail(
-            'You have had an item locked for a while',
-            '',
+            "You have had an item locked for a while",
+            "",
             settings.DEFAULT_FROM_EMAIL,
             [object_lock.locked_by.email],
             html_message=content,
-            fail_silently=False
+            fail_silently=False,
         )
 
     def unlock(self):
@@ -354,27 +348,24 @@ class LockableModel(models.Model):
         # notify anyone with a lock request of the event
         for lock_request in object_lock.objectlockrequest_set.all():
 
-            html_email_template = 'research/emails/item_unlocked.html'
+            html_email_template = "research/emails/item_unlocked.html"
             current_site = get_current_site(None)
             context = {
-                'user': object_lock.locked_by,
-                'from_user': lock_request.from_user,
-                'lock': object_lock,
-                'site_name': current_site.name,
-                'domain': current_site.domain,
+                "user": object_lock.locked_by,
+                "from_user": lock_request.from_user,
+                "lock": object_lock,
+                "site_name": current_site.name,
+                "domain": current_site.domain,
             }
             content = render_to_string(html_email_template, context)
             email_data = [
                 (
-                    'The item you requested has become available',
-                    '',
+                    "The item you requested has become available",
+                    "",
                     settings.DEFAULT_FROM_EMAIL,
                     [lock_request.from_user.email],
                 ),
-                {
-                    'html_message': content,
-                    'fail_silently': False
-                }
+                {"html_message": content, "fail_silently": False},
             ]
             email_data_list.append(email_data)
 
@@ -391,8 +382,7 @@ class LockableModel(models.Model):
         if not object_lock:
             return
 
-        if object_lock.locked_until and \
-                object_lock.locked_until < timezone.now():
+        if object_lock.locked_until and object_lock.locked_until < timezone.now():
             # unlock silently
             # self.object_locks.all().delete()
 
@@ -426,25 +416,23 @@ class LockableModel(models.Model):
             return None
 
     def request_lock(self, from_user):
-        self.get_object_lock().objectlockrequest_set.create(
-            from_user=from_user
-        )
+        self.get_object_lock().objectlockrequest_set.create(from_user=from_user)
         object_lock = self.get_object_lock()
 
         # notify lock owner of the request
-        html_email_template = 'research/emails/request_lock.html'
+        html_email_template = "research/emails/request_lock.html"
         current_site = get_current_site(None)
         context = {
-            'user': object_lock.locked_by,
-            'from_user': from_user,
-            'lock': object_lock,
-            'site_name': current_site.name,
-            'domain': current_site.domain,
+            "user": object_lock.locked_by,
+            "from_user": from_user,
+            "lock": object_lock,
+            "site_name": current_site.name,
+            "domain": current_site.domain,
         }
         content = render_to_string(html_email_template, context)
         send_mail(
-            'Request to edit record',
-            '',
+            "Request to edit record",
+            "",
             settings.DEFAULT_FROM_EMAIL,
             [self.get_object_lock().locked_by.email],
             html_message=content,
@@ -461,25 +449,24 @@ class DatedModel(models.Model):
 
     # Store as integer. Negative means BC, positive is AD
     order_year = models.IntegerField(
-        default=None, null=True, blank=True,
-        help_text='Enter a negative integer value for BC, positive for AD'
+        default=None,
+        null=True,
+        blank=True,
+        help_text="Enter a negative integer value for BC, positive for AD",
     )
 
-    date_range = models.CharField(max_length=256, default='', blank=True)
+    date_range = models.CharField(max_length=256, default="", blank=True)
 
     def display_date_range(self):
         return self.date_range
 
 
 class OrderableModel(models.Model):
-
     class Meta:
-        ordering = ['order']
+        ordering = ["order"]
         abstract = True
 
-    order = models.PositiveIntegerField(
-        default=None, null=True, blank=True
-    )
+    order = models.PositiveIntegerField(default=None, null=True, blank=True)
 
     def related_queryset(self):
         # by default sort according to all objects of this class
@@ -509,14 +496,14 @@ class OrderableModel(models.Model):
             return
 
         if pos < old_pos:
-            to_reorder = self.related_queryset().exclude(
-                pk=self.pk
-            ).filter(order__gte=pos)
+            to_reorder = (
+                self.related_queryset().exclude(pk=self.pk).filter(order__gte=pos)
+            )
             reindex_start_pos = pos + 1
         else:
-            to_reorder = self.related_queryset().exclude(
-                pk=self.pk
-            ).filter(order__lte=pos)
+            to_reorder = (
+                self.related_queryset().exclude(pk=self.pk).filter(order__lte=pos)
+            )
             reindex_start_pos = 0
 
         with transaction.atomic():

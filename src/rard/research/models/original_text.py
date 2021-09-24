@@ -1,7 +1,7 @@
-from django.contrib.contenttypes.fields import (GenericForeignKey,
-                                                GenericRelation)
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.utils.safestring import mark_safe
 from simple_history.models import HistoricalRecords
 
 from rard.research.models.mixins import HistoryModelMixin
@@ -16,14 +16,14 @@ class OriginalText(HistoryModelMixin, BaseModel):
         return self.owner
 
     class Meta:
-        ordering = ('citing_work', 'reference_order')
+        ordering = ("citing_work", "reference_order")
 
     # original text can belong to either a fragment or a testimonium
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     owner = GenericForeignKey()
 
-    citing_work = models.ForeignKey('CitingWork', on_delete=models.CASCADE)
+    citing_work = models.ForeignKey("CitingWork", on_delete=models.CASCADE)
 
     # e.g. page 24
     reference = models.CharField(max_length=128, blank=False)
@@ -33,26 +33,27 @@ class OriginalText(HistoryModelMixin, BaseModel):
     # The value 24 to be used in 'ordering by reference' taking example above
     # In some cases it will be a dot-separated list of numbers that also need
     # to be used for ordering, like 1.3.24.
-    reference_order = models.CharField(blank=False, null=True, default=None,
-                                       max_length=100)
+    reference_order = models.CharField(
+        blank=False, null=True, default=None, max_length=100
+    )
 
     # to be nuked eventually. not required now but hidden from view
     # to preserve previous values in case our data migration is insufficient
-    apparatus_criticus = DynamicTextField(default='', blank=True)
+    apparatus_criticus = DynamicTextField(default="", blank=True)
 
     apparatus_criticus_items = GenericRelation(
-        'ApparatusCriticusItem', related_query_name='original_text'
+        "ApparatusCriticusItem", related_query_name="original_text"
     )
 
     def apparatus_criticus_lines(self):
         # use this rather than the above as that doesn't automatically
         # sort the results :/
-        return self.apparatus_criticus_items.all().order_by('order')
+        return self.apparatus_criticus_items.all().order_by("order")
 
     def citing_work_reference_display(self):
         citing_work_str = str(self.citing_work)
         if self.reference:
-            citing_work_str = ' '.join([citing_work_str, self.reference])
+            citing_work_str = " ".join([citing_work_str, self.reference])
         return citing_work_str
 
     def index_with_respect_to_parent_object(self):
@@ -61,17 +62,16 @@ class OriginalText(HistoryModelMixin, BaseModel):
     def ordinal_with_respect_to_parent_object(self):
         # if there are any sibling original texts then display
         # an ordinal a, b, c for this original text
-        ordinal = ''
+        ordinal = ""
         if self.owner.original_texts.count() > 1:
             index = self.index_with_respect_to_parent_object()
-            ordinal = chr(ord('a')+index)
+            ordinal = chr(ord("a") + index)
         return ordinal
 
     def remove_reference_order_padding(self):
         # Remove leading 0s so we display the user-friendly version
         # e.g. 000001.000024.001230 will show as 1.24.1230
-        return ".".join(
-                    [i.lstrip('0') for i in self.reference_order.split('.')])
+        return ".".join([i.lstrip("0") for i in self.reference_order.split(".")])
 
     # the ID to use in the concordance table
     @property
@@ -82,18 +82,19 @@ class OriginalText(HistoryModelMixin, BaseModel):
         #     ordinal = chr(ord('a')+index)
         ordinal = self.ordinal_with_respect_to_parent_object()
         return [
-            '{}{}'.format(name, ordinal) for name in self.owner.get_all_names()
+            mark_safe("{}{}".format(name, ordinal))
+            for name in self.owner.get_all_names()
         ]
 
     def __str__(self):
         # one-indexed position of this wrt all the others (or pk as fallback)
         try:
             display_value = 1 + list(
-                self.owner.original_texts.values_list('pk', flat=True)
+                self.owner.original_texts.values_list("pk", flat=True)
             ).index(self.pk)
         except ValueError:
             display_value = self.pk
-        return 'Original Text %d' % display_value
+        return "Original Text %d" % display_value
 
 
 class Concordance(HistoryModelMixin, BaseModel):
@@ -103,17 +104,19 @@ class Concordance(HistoryModelMixin, BaseModel):
     def related_lock_object(self):
         return self.original_text.related_lock_object()
 
-    original_text = models.ForeignKey('OriginalText', on_delete=models.CASCADE)
+    original_text = models.ForeignKey(
+        "OriginalText", on_delete=models.CASCADE, related_name="concordances"
+    )
 
     source = models.CharField(max_length=128, blank=False)
 
     identifier = models.CharField(max_length=128, blank=False)
 
     class Meta:
-        ordering = ('source', 'identifier')
+        ordering = ("source", "identifier")
 
     def __str__(self):
-        return '%s: %s' % (self.source, self.identifier)
+        return "%s: %s" % (self.source, self.identifier)
 
 
 class Translation(HistoryModelMixin, BaseModel):
@@ -123,7 +126,7 @@ class Translation(HistoryModelMixin, BaseModel):
     def related_lock_object(self):
         return self.original_text.related_lock_object()
 
-    original_text = models.ForeignKey('OriginalText', on_delete=models.CASCADE)
+    original_text = models.ForeignKey("OriginalText", on_delete=models.CASCADE)
 
     translator_name = models.CharField(max_length=128, blank=False)
 
@@ -134,17 +137,17 @@ class Translation(HistoryModelMixin, BaseModel):
     def save(self, *args, **kwargs):
         # if we are approved then all others are marked unapproved
         if self.approved:
-            self.original_text.translation_set.exclude(
-                pk=self.pk
-            ).update(approved=False)
+            self.original_text.translation_set.exclude(pk=self.pk).update(
+                approved=False
+            )
         super().save(*args, **kwargs)
 
     def __str__(self):
         # one-indexed position of this or pk
         try:
             display_value = 1 + list(
-                self.original_text.translation_set.values_list('pk', flat=True)
+                self.original_text.translation_set.values_list("pk", flat=True)
             ).index(self.pk)
         except ValueError:
             display_value = self.pk
-        return 'Translation %d' % display_value
+        return "Translation %d" % display_value

@@ -1,5 +1,4 @@
-from django.contrib.auth.mixins import (LoginRequiredMixin,
-                                        PermissionRequiredMixin)
+from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
@@ -13,60 +12,60 @@ from rard.research.models import Book, Work
 from rard.research.views.mixins import CanLockMixin, CheckLockMixin
 
 
-class WorkListView(LoginRequiredMixin, PermissionRequiredMixin,
-                   ListView):
+class WorkListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     paginate_by = 10
     model = Work
-    permission_required = ('research.view_work',)
+    permission_required = ("research.view_work",)
 
 
-class WorkDetailView(CanLockMixin, LoginRequiredMixin,
-                     PermissionRequiredMixin, DetailView):
+class WorkDetailView(
+    CanLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DetailView
+):
     model = Work
-    permission_required = ('research.view_work',)
+    permission_required = ("research.view_work",)
 
 
 def add_new_books_to_work(work, form):
-    for book in form.cleaned_data['books']:
+    for book in form.cleaned_data["books"]:
         Book(
-            number=book.get('num'),
-            subtitle=book.get('title', ''),
-            date_range=book.get('date', ''),
-            order_year=book.get('order'),
-            work=work
+            number=book.get("num"),
+            subtitle=book.get("title", ""),
+            date_range=book.get("date", ""),
+            order_year=book.get("order"),
+            work=work,
         ).save()
 
 
-class WorkCreateView(LoginRequiredMixin,
-        PermissionRequiredMixin, CreateView):
+class WorkCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = Work
     form_class = WorkForm
-    success_url = reverse_lazy('work:list')
-    permission_required = ('research.add_work', 'research.add_book')
+    success_url = reverse_lazy("work:list")
+    permission_required = ("research.add_work", "research.add_book")
 
     def get_success_url(self, *args, **kwargs):
-        return reverse('work:detail', kwargs={'pk': self.object.pk})
+        return reverse("work:detail", kwargs={"pk": self.object.pk})
 
     def form_valid(self, form):
         rtn = super().form_valid(form)
-        for a in form.cleaned_data['antiquarians']:
+        for a in form.cleaned_data["antiquarians"]:
             a.works.add(self.object)
         add_new_books_to_work(self.object, form)
         return rtn
 
 
-class WorkUpdateView(CheckLockMixin, LoginRequiredMixin,
-        PermissionRequiredMixin, UpdateView):
+class WorkUpdateView(
+    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
+):
     model = Work
     form_class = WorkForm
-    permission_required = ('research.change_work',)
+    permission_required = ("research.change_work",)
 
     def get_success_url(self, *args, **kwargs):
-        return reverse('work:detail', kwargs={'pk': self.object.pk})
+        return reverse("work:detail", kwargs={"pk": self.object.pk})
 
     def form_valid(self, form):
         work = form.save(commit=False)
-        updated = form.cleaned_data['antiquarians']
+        updated = form.cleaned_data["antiquarians"]
         existing = work.antiquarian_set.all()
         to_remove = [a for a in existing if a not in updated]
         to_add = [a for a in updated if a not in existing]
@@ -78,23 +77,26 @@ class WorkUpdateView(CheckLockMixin, LoginRequiredMixin,
         return super().form_valid(form)
 
 
-@method_decorator(require_POST, name='dispatch')
-class WorkDeleteView(CheckLockMixin, LoginRequiredMixin,
-                     PermissionRequiredMixin, DeleteView):
+@method_decorator(require_POST, name="dispatch")
+class WorkDeleteView(
+    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
+):
     model = Work
-    success_url = reverse_lazy('work:list')
-    permission_required = ('research.delete_work',)
+    success_url = reverse_lazy("work:list")
+    permission_required = ("research.delete_work",)
 
 
-class BookCreateView(CheckLockMixin, LoginRequiredMixin,
-                     PermissionRequiredMixin, CreateView):
+class BookCreateView(
+    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, CreateView
+):
     # the view attribute that needs to be checked for a lock
-    check_lock_object = 'work'
+    check_lock_object = "work"
 
     model = Book
     form_class = BookForm
     permission_required = (
-        'research.change_work', 'research.add_book',
+        "research.change_work",
+        "research.add_book",
     )
 
     def dispatch(self, request, *args, **kwargs):
@@ -104,14 +106,11 @@ class BookCreateView(CheckLockMixin, LoginRequiredMixin,
         return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self, *args, **kwargs):
-        return reverse('work:detail', kwargs={'pk': self.work.pk})
+        return reverse("work:detail", kwargs={"pk": self.work.pk})
 
     def get_work(self, *args, **kwargs):
-        if not getattr(self, 'work', False):
-            self.work = get_object_or_404(
-                Work,
-                pk=self.kwargs.get('pk')
-            )
+        if not getattr(self, "work", False):
+            self.work = get_object_or_404(Work, pk=self.kwargs.get("pk"))
         return self.work
 
     def form_valid(self, form):
@@ -121,17 +120,20 @@ class BookCreateView(CheckLockMixin, LoginRequiredMixin,
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        context.update({
-            'work': self.get_work(),
-        })
+        context.update(
+            {
+                "work": self.get_work(),
+            }
+        )
         return context
 
 
-class BookUpdateView(CheckLockMixin, LoginRequiredMixin,
-                     PermissionRequiredMixin, UpdateView):
+class BookUpdateView(
+    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
+):
 
     # the view attribute that needs to be checked for a lock
-    check_lock_object = 'work'
+    check_lock_object = "work"
 
     def dispatch(self, request, *args, **kwargs):
         # need to ensure we have the lock object view attribute
@@ -140,33 +142,37 @@ class BookUpdateView(CheckLockMixin, LoginRequiredMixin,
         return super().dispatch(request, *args, **kwargs)
 
     def get_work(self, *args, **kwargs):
-        if not getattr(self, 'work', False):
+        if not getattr(self, "work", False):
             self.work = self.get_object().work
         return self.work
 
     model = Book
     form_class = BookForm
     permission_required = (
-        'research.change_work', 'research.change_book',
+        "research.change_work",
+        "research.change_book",
     )
 
     def get_success_url(self, *args, **kwargs):
-        return reverse('work:detail', kwargs={'pk': self.object.work.pk})
+        return reverse("work:detail", kwargs={"pk": self.object.work.pk})
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
-        context.update({
-            'work': self.get_work(),
-        })
+        context.update(
+            {
+                "work": self.get_work(),
+            }
+        )
         return context
 
 
-@method_decorator(require_POST, name='dispatch')
+@method_decorator(require_POST, name="dispatch")
 class BookDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     model = Book
     permission_required = (
-        'research.change_work', 'research.delete_book',
+        "research.change_work",
+        "research.delete_book",
     )
 
     def get_success_url(self, *args, **kwargs):
-        return reverse('work:detail', kwargs={'pk': self.object.work.pk})
+        return reverse("work:detail", kwargs={"pk": self.object.work.pk})

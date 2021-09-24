@@ -9,7 +9,6 @@ pytestmark = pytest.mark.django_db
 
 
 class TestHomeView(TestCase):
-
     def test_get_home_template_authenticated(self):
         view = HomeView()
         request = RequestFactory().get("/")
@@ -18,7 +17,7 @@ class TestHomeView(TestCase):
         view.request = request
 
         self.assertIn(
-            'research/home.html',
+            "research/home.html",
             view.get_template_names(),
         )
 
@@ -30,6 +29,6 @@ class TestHomeView(TestCase):
         view.request = request
 
         self.assertIn(
-            'pages/front.html',
+            "pages/front.html",
             view.get_template_names(),
         )

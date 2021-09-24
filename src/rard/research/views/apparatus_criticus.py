@@ -8,14 +8,18 @@ from django.views.decorators.http import require_GET, require_POST
 from django.views.generic import View
 
 from rard.research.forms import OriginalTextDetailsForm
-from rard.research.models import (AnonymousFragment, ApparatusCriticusItem,
-                                  Fragment, OriginalText, Testimonium)
+from rard.research.models import (
+    AnonymousFragment,
+    ApparatusCriticusItem,
+    Fragment,
+    OriginalText,
+    Testimonium,
+)
 
 
 class ApparatusCriticusLineViewBase(View):
 
-    render_partial_template = \
-        'research/partials/apparatus_criticus_builder.html'
+    render_partial_template = "research/partials/apparatus_criticus_builder.html"
 
     def process_content(self, content_html):
         # Quill wraps paragraphs in <p></p>, which we do not want.
@@ -31,27 +35,24 @@ class ApparatusCriticusLineViewBase(View):
         return content
 
     def render_valid_response(self, original_text):
-        context = {
-            'original_text': original_text,
-            'form': OriginalTextDetailsForm()
-        }
+        context = {"original_text": original_text, "form": OriginalTextDetailsForm()}
         html = render_to_string(self.render_partial_template, context)
-        ajax_data = {'status': 200, 'html': html}
+        ajax_data = {"status": 200, "html": html}
         return JsonResponse(data=ajax_data, safe=False)
 
 
-@method_decorator(require_POST, name='dispatch')
-class CreateApparatusCriticusLineView(LoginRequiredMixin,
-                                      ApparatusCriticusLineViewBase):
-
+@method_decorator(require_POST, name="dispatch")
+class CreateApparatusCriticusLineView(
+    LoginRequiredMixin, ApparatusCriticusLineViewBase
+):
     def post(self, *args, **kwargs):
 
         if not self.request.is_ajax():
             raise Http404
 
-        parent_id = self.request.POST.get('parent_id', None)
-        insert_at = self.request.POST.get('insert_at', None)
-        content_html = self.request.POST.get('content', None)
+        parent_id = self.request.POST.get("parent_id", None)
+        insert_at = self.request.POST.get("insert_at", None)
+        content_html = self.request.POST.get("content", None)
         content = self.process_content(content_html)
 
         if not all((parent_id, insert_at, content)):
@@ -72,15 +73,15 @@ class CreateApparatusCriticusLineView(LoginRequiredMixin,
         raise Http404
 
 
-class DeleteApparatusCriticusLineView(LoginRequiredMixin,
-                                      ApparatusCriticusLineViewBase):
-
+class DeleteApparatusCriticusLineView(
+    LoginRequiredMixin, ApparatusCriticusLineViewBase
+):
     def post(self, *args, **kwargs):
 
         if not self.request.is_ajax():
             raise Http404
 
-        line_id = self.request.POST.get('line_id', None)
+        line_id = self.request.POST.get("line_id", None)
 
         if not line_id:
             raise Http404
@@ -98,16 +99,16 @@ class DeleteApparatusCriticusLineView(LoginRequiredMixin,
         raise Http404
 
 
-class UpdateApparatusCriticusLineView(LoginRequiredMixin,
-                                      ApparatusCriticusLineViewBase):
-
+class UpdateApparatusCriticusLineView(
+    LoginRequiredMixin, ApparatusCriticusLineViewBase
+):
     def post(self, *args, **kwargs):
 
         if not self.request.is_ajax():
             raise Http404
 
-        line_id = self.request.POST.get('line_id', None)
-        content_html = self.request.POST.get('content', None)
+        line_id = self.request.POST.get("line_id", None)
+        content_html = self.request.POST.get("content", None)
 
         content = self.process_content(content_html)
 
@@ -127,10 +128,10 @@ class UpdateApparatusCriticusLineView(LoginRequiredMixin,
         raise Http404
 
 
-@method_decorator(require_GET, name='dispatch')
+@method_decorator(require_GET, name="dispatch")
 class ApparatusCriticusSearchView(LoginRequiredMixin, View):
 
-    context_object_name = 'results'
+    context_object_name = "results"
 
     def get(self, request, *args, **kwargs):
 
@@ -147,8 +148,10 @@ class ApparatusCriticusSearchView(LoginRequiredMixin, View):
             if self.parent_object:
                 # need to include the ordinal of the original text, if relevant
                 # (this is decided in the method called below)
-                ordinal = self.original_text.ordinal_with_respect_to_parent_object()  # noqa
-                return '%s%s' % (ordinal, str(item.order + 1))
+                ordinal = (
+                    self.original_text.ordinal_with_respect_to_parent_object()
+                )  # noqa
+                return "%s%s" % (ordinal, str(item.order + 1))
             else:
                 return str(item.order + 1)
 
@@ -157,24 +160,26 @@ class ApparatusCriticusSearchView(LoginRequiredMixin, View):
         for item in self.get_queryset():
             ajax_data.append(
                 {
-                    'id': item.pk,
-                    'target': model_name,
-                    'parent': self.parent_object.pk if self.parent_object else '',  # noqa
-                    'originalText': self.original_text.pk,
+                    "id": item.pk,
+                    "target": model_name,
+                    "parent": self.parent_object.pk
+                    if self.parent_object
+                    else "",  # noqa
+                    "originalText": self.original_text.pk,
                     # 'value': str(o),  # to have full name in the text mention
                     # 'value': str(o.order + 1),  # or to just have the number
-                    'value': get_index_display(item),
-                    'list_display': str(item),  # what to show in the list
+                    "value": get_index_display(item),
+                    "list_display": str(item),  # what to show in the list
                 }
             )
 
         return JsonResponse(data=ajax_data, safe=False)
 
     def get_queryset(self):
-
         def search_original_text_ordinal(s):
             # check whether they entered a letter in the search field
             import string
+
             if len(s) == 0:
                 return None
 
@@ -193,10 +198,10 @@ class ApparatusCriticusSearchView(LoginRequiredMixin, View):
             except ValueError:
                 return None
 
-        search_term = self.request.GET.get('q', '')
+        search_term = self.request.GET.get("q", "")
 
-        pk = self.request.GET.get('object_id', None)
-        object_class = self.request.GET.get('object_class', None)
+        pk = self.request.GET.get("object_id", None)
+        object_class = self.request.GET.get("object_class", None)
 
         self.original_text = None
 
@@ -209,7 +214,7 @@ class ApparatusCriticusSearchView(LoginRequiredMixin, View):
         # object or is it a parent e.g. a fragment
         self.parent_object = None
 
-        if object_class != 'originaltext':
+        if object_class != "originaltext":
 
             self.is_parent_model = True
 
@@ -223,21 +228,19 @@ class ApparatusCriticusSearchView(LoginRequiredMixin, View):
 
             # get the class of the parent object
             cls_ = {
-                'fragment': Fragment,
-                'testimonium': Testimonium,
-                'anonymousfragment': AnonymousFragment,
+                "fragment": Fragment,
+                "testimonium": Testimonium,
+                "anonymousfragment": AnonymousFragment,
             }.get(object_class, None)
 
             try:
                 self.parent_object = cls_.objects.get(pk=pk)
                 # get all the original texts for this parent object
-                original_texts = [
-                    o for o in self.parent_object.original_texts.all()
-                ]
+                original_texts = [o for o in self.parent_object.original_texts.all()]
                 if len(original_texts) == 1:
                     self.original_text = original_texts[0]
                 elif ordinal:
-                    original_text_index = ord(ordinal) - ord('a')
+                    original_text_index = ord(ordinal) - ord("a")
                     self.original_text = original_texts[original_text_index]
 
             except (AttributeError, IndexError, cls_.DoesNotExist):
@@ -255,15 +258,15 @@ class ApparatusCriticusSearchView(LoginRequiredMixin, View):
 
         qs = ApparatusCriticusItem.objects.none()
         if self.original_text:
-            qs = self.original_text.apparatus_criticus_items.order_by('order')
+            qs = self.original_text.apparatus_criticus_items.order_by("order")
             if app_crit_one_index is not None:
                 # they will have entered 1-indexed so subtract
-                qs = qs.filter(order=app_crit_one_index-1)
+                qs = qs.filter(order=app_crit_one_index - 1)
 
         return qs
 
 
-@method_decorator(require_POST, name='dispatch')
+@method_decorator(require_POST, name="dispatch")
 class RefreshOriginalTextContentView(LoginRequiredMixin, View):
     # take a chunk of text and refresh any apparatus criticus
     # links within it and return to the client
@@ -273,7 +276,7 @@ class RefreshOriginalTextContentView(LoginRequiredMixin, View):
         if not self.request.is_ajax():
             raise Http404
 
-        existing_content = self.request.POST.get('content')
+        existing_content = self.request.POST.get("content")
 
         # NB we do not _save_ an original text here, we are
         # just hijacking its formatting methods
@@ -282,5 +285,5 @@ class RefreshOriginalTextContentView(LoginRequiredMixin, View):
 
         # any changes will have been made to the content of that object
         # so return amended version to the client
-        ajax_data = {'status': 200, 'html': o.content}
+        ajax_data = {"status": 200, "html": o.content}
         return JsonResponse(data=ajax_data, safe=False)
