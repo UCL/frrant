@@ -181,10 +181,18 @@ class TestSearchView(TestCase):
 
         # fragments
         f1 = Fragment.objects.create()
-        f1.original_texts.create(content='findme with your search powers', citing_work=cw)
+        f1.original_texts.create(
+            content='findme with your search powers',
+            reference='louisa may alcott',
+            citing_work=cw
+        )
 
         f2 = Fragment.objects.create()
-        f2.original_texts.create(content='notme', citing_work=cw)
+        f2.original_texts.create(
+            content='notme',
+            reference='daisy may cooper',
+            citing_work=cw
+        )
 
         self.assertEqual(list(view.fragment_search(SearchView.Term('findme yovr'))), [f1])
         self.assertEqual(list(view.fragment_search(SearchView.Term('findme not'))), [])
@@ -194,6 +202,10 @@ class TestSearchView(TestCase):
         self.assertEqual(list(view.fragment_search(SearchView.Term('notme'))), [f2])
         self.assertEqual(list(view.fragment_search(SearchView.Term('NoTMe'))), [f2])
         self.assertEqual(list(view.fragment_search(SearchView.Term('Me'))), [f1, f2])
+        self.assertEqual(list(view.fragment_search(SearchView.Term('may'))), [f1, f2])
+        self.assertEqual(list(view.fragment_search(SearchView.Term('mav'))), [])
+        self.assertEqual(list(view.fragment_search(SearchView.Term('alcott "louisa may"'))), [f1])
+        self.assertEqual(list(view.fragment_search(SearchView.Term('may "louisa alcott"'))), [])
 
         f3 = Fragment.objects.create()
         f3.original_texts.create(content='de uita Uaticani', citing_work=cw)

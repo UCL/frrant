@@ -71,6 +71,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
 
         def __init__(self, keywords):
             self.keywords = keywords
+            self.matches_keywords = self.get_matcher(keywords)
             self.query = Lower
             k = keywords.lower()
             for (fold_to, fold_from) in rard_folds:
@@ -79,16 +80,23 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                     self.add_fold(fold_from, fold_to)
                 elif fold_to in k:
                     self.add_fold(fold_from, fold_to)
-            keyword_list = self.get_keywords(k)
+            self.matches_folded_keywords = self.get_matcher(k)
+
+        def get_matcher(self, keywords):
+            keyword_list = self.get_keywords(keywords)
             if len(keyword_list) == 0:
                 # want a keyword that will always succeed
                 first_keyword = ''
             else:
                 first_keyword = keyword_list[0]
                 keyword_list = keyword_list[1:]
-            self.matches_keywords = lambda f: Q(**{f: first_keyword})
+            matcher = lambda f: Q(**{f: first_keyword})
             for keyword in keyword_list:
-                self.add_keyword(keyword)
+                matcher = self.add_keyword(matcher, keyword)
+            return matcher
+
+        def add_keyword(self, old, keyword):
+            return lambda f: Q(**{f:keyword}) & old(f)
 
         def add_fold(self, fold_from, fold_to):
             old = self.query
@@ -96,10 +104,6 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                 old(q),
                 Value(fold_from), Value(fold_to),
                 function='replace')
-
-        def add_keyword(self, keyword):
-            old = self.matches_keywords
-            self.matches_keywords = lambda f: Q(**{f:keyword}) & old(f)
 
         def get_keywords(self, search_string):
             """
@@ -137,9 +141,9 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     def antiquarian_search(cls, terms):
         qs = Antiquarian.objects.all()
         results = (
-            qs.filter(name__icontains=terms.keywords) |
-            qs.filter(introduction__content__icontains=terms.keywords) |
-            qs.filter(re_code__icontains=terms.keywords)
+            qs.filter(terms.matches_keywords('name__icontains')) |
+            qs.filter(terms.matches_keywords('introduction__content__icontains')) |
+            qs.filter(terms.matches_keywords('re_code__icontains'))
         )
         return results.distinct()
 
@@ -147,7 +151,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     def topic_search(cls, terms):
         qs = Topic.objects.all()
         results = (
-            qs.filter(name__icontains=terms.keywords)
+            qs.filter(terms.matches_keywords('name__icontains'))
         )
         return results.distinct()
 
@@ -155,9 +159,9 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     def work_search(cls, terms):
         qs = Work.objects.all()
         results = (
-            qs.filter(name__icontains=terms.keywords) |
-            qs.filter(subtitle__icontains=terms.keywords) |
-            qs.filter(antiquarian__name__icontains=terms.keywords)
+            qs.filter(terms.matches_keywords('name__icontains')) |
+            qs.filter(terms.matches_keywords('subtitle__icontains')) |
+            qs.filter(terms.matches_keywords('antiquarian__name__icontains'))
         )
         return results.distinct()
 
@@ -167,11 +171,11 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         folded_content = qs.annotate(folded=terms.query(F('original_texts__content')))
         folded_commentary = qs.annotate(folded=terms.query(F('commentary__content')))
         results = (
-            folded_content.filter(terms.matches_keywords('folded__contains')) |
-            qs.filter(original_texts__reference__icontains=terms.keywords) |
-            qs.filter(original_texts__translation__translated_text__icontains=terms.keywords) |  # noqa
-            qs.filter(original_texts__translation__translator_name__icontains=terms.keywords) |  # noqa
-            folded_commentary.filter(terms.matches_keywords('folded__contains'))
+            folded_content.filter(terms.matches_folded_keywords('folded__contains')) |
+            qs.filter(terms.matches_keywords('original_texts__reference__icontains')) |
+            qs.filter(terms.matches_keywords('original_texts__translation__translated_text__icontains')) |  # noqa
+            qs.filter(terms.matches_keywords('original_texts__translation__translator_name__icontains')) |  # noqa
+            folded_commentary.filter(terms.matches_folded_keywords('folded__contains'))
         )
         return results.distinct()
 
@@ -181,11 +185,11 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         folded_content = qs.annotate(folded=terms.query(F('original_texts__content')))
         folded_commentary = qs.annotate(folded=terms.query(F('commentary__content')))
         results = (
-            folded_content.filter(terms.matches_keywords('folded__contains')) |
-            qs.filter(original_texts__reference__icontains=terms.keywords) |
-            qs.filter(original_texts__translation__translated_text__icontains=terms.keywords) |  # noqa
-            qs.filter(original_texts__translation__translator_name__icontains=terms.keywords) |  # noqa
-            folded_commentary.filter(terms.matches_keywords('folded__contains'))
+            folded_content.filter(terms.matches_folded_keywords('folded__contains')) |
+            qs.filter(terms.matches_keywords('original_texts__reference__icontains')) |
+            qs.filter(terms.matches_keywords('original_texts__translation__translated_text__icontains')) |  # noqa
+            qs.filter(terms.matches_keywords('original_texts__translation__translator_name__icontains')) |  # noqa
+            folded_commentary.filter(terms.matches_folded_keywords('folded__contains'))
         )
         return results.distinct()
 
@@ -195,11 +199,11 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         folded_content = qs.annotate(folded=terms.query(F('original_texts__content')))
         folded_commentary = qs.annotate(folded=terms.query(F('commentary__content')))
         results = (
-            folded_content.filter(terms.matches_keywords('folded__contains')) |
-            qs.filter(original_texts__reference__icontains=terms.keywords) |
-            qs.filter(original_texts__translation__translated_text__icontains=terms.keywords) |  # noqa
-            qs.filter(original_texts__translation__translator_name__icontains=terms.keywords) |  # noqa
-            folded_commentary.filter(terms.matches_keywords('folded__contains'))
+            folded_content.filter(terms.matches_folded_keywords('folded__contains')) |
+            qs.filter(terms.matches_keywords('original_texts__reference__icontains')) |
+            qs.filter(terms.matches_keywords('original_texts__translation__translated_text__icontains')) |  # noqa
+            qs.filter(terms.matches_keywords('original_texts__translation__translator_name__icontains')) |  # noqa
+            folded_commentary.filter(terms.matches_folded_keywords('folded__contains'))
         )
         return results.distinct()
 
@@ -210,17 +214,17 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         qsa = AnonymousFragment.objects.all().annotate(folded=query)
         qsf = Fragment.objects.all().annotate(folded=query)
         return chain(
-            qsf.filter(terms.matches_keywords('folded__icontains')).distinct(),  # noqa
-            qsa.filter(terms.matches_keywords('folded__icontains')).distinct(),  # noqa
-            qst.filter(terms.matches_keywords('folded__icontains')).distinct()  # noqa
+            qsf.filter(terms.matches_folded_keywords('folded__icontains')).distinct(),  # noqa
+            qsa.filter(terms.matches_folded_keywords('folded__icontains')).distinct(),  # noqa
+            qst.filter(terms.matches_folded_keywords('folded__icontains')).distinct()  # noqa
         )
 
     @classmethod
     def bibliography_search(cls, terms):
         qs = BibliographyItem.objects.all()
         results = (
-            qs.filter(authors__icontains=terms.keywords) |
-            qs.filter(title__icontains=terms.keywords)
+            qs.filter(terms.matches_keywords('authors__icontains')) |
+            qs.filter(terms.matches_keywords('title__icontains'))
         )
         return results.distinct()
 
@@ -232,14 +236,14 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     @classmethod
     def citing_author_search(cls, terms):
         qs = CitingAuthor.objects.all()
-        return qs.filter(name__icontains=terms.keywords).distinct()
+        return qs.filter(terms.matches_keywords('name__icontains')).distinct()
 
     @classmethod
     def citing_work_search(cls, terms):
         qs = CitingWork.objects.all()
         results = (
-            qs.filter(title__icontains=terms.keywords) |
-            qs.filter(edition__icontains=terms.keywords)
+            qs.filter(terms.matches_keywords('title__icontains')) |
+            qs.filter(terms.matches_keywords('edition__icontains'))
         )
         return results.distinct()
 
