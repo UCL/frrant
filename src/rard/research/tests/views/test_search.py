@@ -181,12 +181,15 @@ class TestSearchView(TestCase):
 
         # fragments
         f1 = Fragment.objects.create()
-        f1.original_texts.create(content='findme', citing_work=cw)
+        f1.original_texts.create(content='findme with your search powers', citing_work=cw)
 
         f2 = Fragment.objects.create()
         f2.original_texts.create(content='notme', citing_work=cw)
 
-        self.assertEqual(list(view.fragment_search(SearchView.Term('findme'))), [f1])
+        self.assertEqual(list(view.fragment_search(SearchView.Term('findme yovr'))), [f1])
+        self.assertEqual(list(view.fragment_search(SearchView.Term('findme not'))), [])
+        self.assertEqual(list(view.fragment_search(SearchView.Term('findme "with yovr" powers'))), [f1])
+        self.assertEqual(list(view.fragment_search(SearchView.Term('findme "with yovr powers"'))), [])
         self.assertEqual(list(view.fragment_search(SearchView.Term('FINDME'))), [f1])
         self.assertEqual(list(view.fragment_search(SearchView.Term('notme'))), [f2])
         self.assertEqual(list(view.fragment_search(SearchView.Term('NoTMe'))), [f2])
@@ -231,6 +234,7 @@ class TestSearchView(TestCase):
         o3.apparatus_criticus_items.create(content='rubbish')
 
         self.assertEqual(list(view.apparatus_criticus_search(SearchView.Term('TuF'))), [f1])
+        self.assertEqual(list(view.apparatus_criticus_search(SearchView.Term('TVF'))), [f1])
         self.assertEqual(list(view.apparatus_criticus_search(SearchView.Term('bBi'))), [f2])
         self.assertEqual(list(view.apparatus_criticus_search(SearchView.Term('nseN'))), [t1])
         self.assertEqual(

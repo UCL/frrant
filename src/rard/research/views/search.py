@@ -3,7 +3,7 @@
 from itertools import chain
 
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Value, F, Func
+from django.db.models import Value, F, Func, Q
 from django.db.models.functions import Lower
 from django.shortcuts import redirect
 from django.utils.decorators import method_decorator
@@ -68,21 +68,49 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         folded_keywords = term.folded_keywords
         query = term.query(F('foreign_key_1__foreign_key_2__field'))
         """
-        def add_fold(self, x, y):
-            qu = self.query
-            self.query = lambda q: Func(qu(q), Value(x), Value(y), function='replace')
 
         def __init__(self, keywords):
             self.keywords = keywords
-            self.query = lambda x: Lower(x)
+            self.query = Lower
             k = keywords.lower()
-            for (x, y) in rard_folds:
-                if y in k:
-                    k = k.replace(y, x)
-                    self.add_fold(y, x)
-                elif x in k:
-                    self.add_fold(y, x)
-            self.folded_keywords = k
+            for (fold_to, fold_from) in rard_folds:
+                if fold_from in k:
+                    k = k.replace(fold_from, fold_to)
+                    self.add_fold(fold_from, fold_to)
+                elif fold_to in k:
+                    self.add_fold(fold_from, fold_to)
+            keyword_list = self.get_keywords(k)
+            if len(keyword_list) == 0:
+                # want a keyword that will always succeed
+                first_keyword = ''
+            else:
+                first_keyword = keyword_list[0]
+                keyword_list = keyword_list[1:]
+            self.matches_keywords = lambda f: Q(**{f: first_keyword})
+            for keyword in keyword_list:
+                self.add_keyword(keyword)
+
+        def add_fold(self, fold_from, fold_to):
+            old = self.query
+            self.query = lambda q: Func(
+                old(q),
+                Value(fold_from), Value(fold_to),
+                function='replace')
+
+        def add_keyword(self, keyword):
+            old = self.matches_keywords
+            self.matches_keywords = lambda f: Q(**{f:keyword}) & old(f)
+
+        def get_keywords(self, search_string):
+            """
+            Turns a string into a series of keywords. This is mostly splittling
+            by whitespace, but strings surrounded by double quotes are
+            returned verbatim.
+            """
+            segments = search_string.split('"')
+            single_keywords = ' '.join(segments[::2]).split()
+            return segments[1::2] + single_keywords
+
 
     paginate_by = 10
     template_name = 'research/search_results.html'
@@ -139,11 +167,11 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         folded_content = qs.annotate(folded=terms.query(F('original_texts__content')))
         folded_commentary = qs.annotate(folded=terms.query(F('commentary__content')))
         results = (
-            folded_content.filter(folded__contains=terms.folded_keywords) |
+            folded_content.filter(terms.matches_keywords('folded__contains')) |
             qs.filter(original_texts__reference__icontains=terms.keywords) |
             qs.filter(original_texts__translation__translated_text__icontains=terms.keywords) |  # noqa
             qs.filter(original_texts__translation__translator_name__icontains=terms.keywords) |  # noqa
-            folded_commentary.filter(folded__contains=terms.folded_keywords)
+            folded_commentary.filter(terms.matches_keywords('folded__contains'))
         )
         return results.distinct()
 
@@ -153,11 +181,11 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         folded_content = qs.annotate(folded=terms.query(F('original_texts__content')))
         folded_commentary = qs.annotate(folded=terms.query(F('commentary__content')))
         results = (
-            folded_content.filter(folded__contains=terms.folded_keywords) |
+            folded_content.filter(terms.matches_keywords('folded__contains')) |
             qs.filter(original_texts__reference__icontains=terms.keywords) |
             qs.filter(original_texts__translation__translated_text__icontains=terms.keywords) |  # noqa
             qs.filter(original_texts__translation__translator_name__icontains=terms.keywords) |  # noqa
-            folded_commentary.filter(folded__contains=terms.keywords)
+            folded_commentary.filter(terms.matches_keywords('folded__contains'))
         )
         return results.distinct()
 
@@ -167,11 +195,11 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         folded_content = qs.annotate(folded=terms.query(F('original_texts__content')))
         folded_commentary = qs.annotate(folded=terms.query(F('commentary__content')))
         results = (
-            folded_content.filter(folded__contains=terms.folded_keywords) |
+            folded_content.filter(terms.matches_keywords('folded__contains')) |
             qs.filter(original_texts__reference__icontains=terms.keywords) |
             qs.filter(original_texts__translation__translated_text__icontains=terms.keywords) |  # noqa
             qs.filter(original_texts__translation__translator_name__icontains=terms.keywords) |  # noqa
-            folded_commentary.filter(folded__contains=terms.keywords)
+            folded_commentary.filter(terms.matches_keywords('folded__contains'))
         )
         return results.distinct()
 
@@ -182,9 +210,9 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         qsa = AnonymousFragment.objects.all().annotate(folded=query)
         qsf = Fragment.objects.all().annotate(folded=query)
         return chain(
-            qsf.filter(original_texts__apparatus_criticus_items__content__icontains=terms.keywords).distinct(),  # noqa
-            qsa.filter(original_texts__apparatus_criticus_items__content__icontains=terms.keywords).distinct(),  # noqa
-            qst.filter(original_texts__apparatus_criticus_items__content__icontains=terms.keywords).distinct()  # noqa
+            qsf.filter(terms.matches_keywords('folded__icontains')).distinct(),  # noqa
+            qsa.filter(terms.matches_keywords('folded__icontains')).distinct(),  # noqa
+            qst.filter(terms.matches_keywords('folded__icontains')).distinct()  # noqa
         )
 
     @classmethod
