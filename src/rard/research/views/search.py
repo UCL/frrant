@@ -1,10 +1,8 @@
-# from django.contrib.postgres.search import SearchQuery, SearchRank, \
-#     SearchVector
-from itertools import chain
 import re
+from itertools import chain
 
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Value, F, Func, Q
+from django.db.models import Func, Q, Value
 from django.db.models.functions import Lower
 from django.shortcuts import redirect
 from django.utils.decorators import method_decorator
@@ -26,45 +24,46 @@ from rard.research.models.citing_work import CitingAuthor, CitingWork
 # Folds are applied in the specified order, so we don't need
 # 'uul' <- 'vul' if we already have 'u' <- 'v'
 rard_folds = [
-['ast', 'a est'],
-['ost', 'o est'],
-['umst', 'um est'],
-['am', 'an'],
-['ausa', 'aussa'],
-['nn', 'bn'],
-['tt', 'bt'],
-['pp', 'bp'],
-['rr', 'br'],
-['ch', 'cch'],
-['clu', 'culu'],
-['claud', 'clod'],
-['has', 'hasce'],
-['his', 'hisce'],
-['hos', 'hosce'],
-['i', 'ii'],
-['i', 'j'],
-['um', 'im'],
-['lagr', 'lagl'],
-['mb', 'nb'],
-['ll', 'nl'],
-['mm', 'nm'],
-['mp', 'np'],
-['mp', 'ndup'],
-['rr', 'nr'],
-['um', 'om'],
-['u', 'v'],
-['u', 'y'],
-['uu', 'w'],
-['ulc', 'ulch'],
-['uul', 'uol'],
-['ui', 'uui'],
-['uum', 'uom'],
-['x', 'xs'],
+    ['ast', 'a est'],
+    ['ost', 'o est'],
+    ['umst', 'um est'],
+    ['am', 'an'],
+    ['ausa', 'aussa'],
+    ['nn', 'bn'],
+    ['tt', 'bt'],
+    ['pp', 'bp'],
+    ['rr', 'br'],
+    ['ch', 'cch'],
+    ['clu', 'culu'],
+    ['claud', 'clod'],
+    ['has', 'hasce'],
+    ['his', 'hisce'],
+    ['hos', 'hosce'],
+    ['i', 'ii'],
+    ['i', 'j'],
+    ['um', 'im'],
+    ['lagr', 'lagl'],
+    ['mb', 'nb'],
+    ['ll', 'nl'],
+    ['mm', 'nm'],
+    ['mp', 'np'],
+    ['mp', 'ndup'],
+    ['rr', 'nr'],
+    ['um', 'om'],
+    ['u', 'v'],
+    ['u', 'y'],
+    ['uu', 'w'],
+    ['ulc', 'ulch'],
+    ['uul', 'uol'],
+    ['ui', 'uui'],
+    ['uum', 'uom'],
+    ['x', 'xs'],
 ]
 
-punctuation_base = r'!£$%^&*()_+-={}:@~;\'#|\\<>?,./`¬'
-punctuation_re = re.compile(r'[\[\]{0}]'.format(punctuation_base))
-punctuation = punctuation_base + r'[]"'
+PUNCTUATION_BASE = r'!£$%^&*()_+-={}:@~;\'#|\\<>?,./`¬'
+PUNCTUATION_RE = re.compile(r'[\[\]{0}]'.format(PUNCTUATION_BASE))
+PUNCTUATION = PUNCTUATION_BASE + r'[]"'
+
 
 @method_decorator(require_GET, name="dispatch")
 class SearchView(LoginRequiredMixin, TemplateView, ListView):
@@ -82,12 +81,12 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         def __init__(self, keywords):
             self.cleaned_number = 1
             self.folded_number = 1
-            self.keywords = punctuation_re.sub('', keywords).lower()
+            self.keywords = PUNCTUATION_RE.sub('', keywords).lower()
             # The basic function query function will eliminate puntuation
             # and lowercase the 'haystack' strings to be searched.
             self.basic_query = lambda q: Lower(Func(
                 q,
-                Value(punctuation),
+                Value(PUNCTUATION),
                 Value(''),
                 function='translate'
             ))
@@ -112,13 +111,16 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             else:
                 first_keyword = keyword_list[0]
                 keyword_list = keyword_list[1:]
-            matcher = lambda f: Q(**{f: first_keyword})
+
+            def matcher(field):
+                return Q(**{field: first_keyword})
+
             for keyword in keyword_list:
                 matcher = self.add_keyword(matcher, keyword)
             return matcher
 
         def add_keyword(self, old, keyword):
-            return lambda f: Q(**{f:keyword}) & old(f)
+            return lambda f: Q(**{f: keyword}) & old(f)
 
         def add_fold(self, fold_from, fold_to):
             old = self.query
@@ -164,7 +166,6 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                 self.query,
                 self.folded_matcher
             )
-
 
     paginate_by = 10
     template_name = "research/search_results.html"
@@ -219,10 +220,12 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         results = (
             terms.match_folded(qs, 'original_texts__content')
             | terms.match(qs, 'original_texts__reference')
-            | terms.match(qs,
+            | terms.match(
+                qs,
                 'original_texts__translation__translated_text'
             ) # noqa
-            | terms.match(qs,
+            | terms.match(
+                qs,
                 'original_texts__translation__translator_name'
             )  # noqa
             | terms.match_folded(qs, 'commentary__content')
@@ -231,7 +234,8 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
 
     @classmethod
     def anonymous_fragment_search(cls, terms, qs=None):
-        if not qs: qs = AnonymousFragment.objects.all()
+        if not qs:
+            qs = AnonymousFragment.objects.all()
         results = (
             terms.match_folded(qs, 'original_texts__content')
             | terms.match(qs, 'original_texts__reference')
