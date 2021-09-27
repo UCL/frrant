@@ -157,89 +157,78 @@ class TestSearchView(TestCase):
         view = SearchView()
 
         # basic tests for antiquarian
-        a1 = Antiquarian.objects.create(name='findme', re_code='1')
-        a2 = Antiquarian.objects.create(name='foo', re_code='2')
-        self.assertEqual(do_search(view.antiquarian_search, 'findme'), [a1])
-        self.assertEqual(do_search(view.antiquarian_search, 'FinDMe'), [a1])
-        self.assertEqual(do_search(view.antiquarian_search, 'foo'), [a2])
-        self.assertEqual(do_search(view.antiquarian_search, 'fOo'), [a2])
-        self.assertEqual(do_search(view.antiquarian_search, 'F'), [a1, a2])
+        a1 = Antiquarian.objects.create(name="findme", re_code="1")
+        a2 = Antiquarian.objects.create(name="foo", re_code="2")
+        self.assertEqual(do_search(view.antiquarian_search, "findme"), [a1])
+        self.assertEqual(do_search(view.antiquarian_search, "FinDMe"), [a1])
+        self.assertEqual(do_search(view.antiquarian_search, "foo"), [a2])
+        self.assertEqual(do_search(view.antiquarian_search, "fOo"), [a2])
+        self.assertEqual(do_search(view.antiquarian_search, "F"), [a1, a2])
 
         # topics
-        t1 = Topic.objects.create(name='topic', order=1)
-        t2 = Topic.objects.create(name='pictures', order=2)
-        self.assertEqual(do_search(view.topic_search, 'topic'), [t1])
-        self.assertEqual(do_search(view.topic_search, 'TOPIc'), [t1])
-        self.assertEqual(do_search(view.topic_search, 'picture'), [t2])
-        self.assertEqual(do_search(view.topic_search, 'PiCTureS'), [t2])
-        self.assertEqual(do_search(view.topic_search, 'PIC'), [t1, t2])
+        t1 = Topic.objects.create(name="topic", order=1)
+        t2 = Topic.objects.create(name="pictures", order=2)
+        self.assertEqual(do_search(view.topic_search, "topic"), [t1])
+        self.assertEqual(do_search(view.topic_search, "TOPIc"), [t1])
+        self.assertEqual(do_search(view.topic_search, "picture"), [t2])
+        self.assertEqual(do_search(view.topic_search, "PiCTureS"), [t2])
+        self.assertEqual(do_search(view.topic_search, "PIC"), [t1, t2])
 
         # works
-        w1 = Work.objects.create(name='work')
-        w2 = Work.objects.create(name='nothing')
-        self.assertEqual(do_search(view.work_search, 'work'), [w1])
-        self.assertEqual(do_search(view.work_search, 'WORK'), [w1])
-        self.assertEqual(do_search(view.work_search, 'nothing'), [w2])
-        self.assertEqual(do_search(view.work_search, 'NothInG'), [w2])
-        self.assertEqual(do_search(view.work_search, 'O'), [w2, w1])
+        w1 = Work.objects.create(name="work")
+        w2 = Work.objects.create(name="nothing")
+        self.assertEqual(do_search(view.work_search, "work"), [w1])
+        self.assertEqual(do_search(view.work_search, "WORK"), [w1])
+        self.assertEqual(do_search(view.work_search, "nothing"), [w2])
+        self.assertEqual(do_search(view.work_search, "NothInG"), [w2])
+        self.assertEqual(do_search(view.work_search, "O"), [w2, w1])
 
         cw = CitingWork.objects.create(title="citing_work")
 
         # fragments
         f1 = Fragment.objects.create()
         f1.original_texts.create(
-            content='findme with your search powers',
-            reference='louisa may alcott',
-            citing_work=cw
+            content="findme with your search powers",
+            reference="louisa may alcott",
+            citing_work=cw,
         )
 
         f2 = Fragment.objects.create()
         f2.original_texts.create(
-            content='not$me',
-            reference='daisy ma<>,./?;\'#:@~[]{}-=_+!"£$%^&*()\\|y cooper',
-            citing_work=cw
+            content="not$me",
+            reference="daisy ma<>,./?;'#:@~[]{}-=_+!\"£$%^&*()\\|y cooper",
+            citing_work=cw,
         )
 
-        self.assertEqual(do_search(view.fragment_search, 'findme yovr'), [f1])
-        self.assertEqual(do_search(view.fragment_search, 'findme not'), [])
+        self.assertEqual(do_search(view.fragment_search, "findme yovr"), [f1])
+        self.assertEqual(do_search(view.fragment_search, "findme not"), [])
         self.assertEqual(
-            do_search(view.fragment_search, 'findme "with yovr" powers'),
-            [f1]
+            do_search(view.fragment_search, 'findme "with yovr" powers'), [f1]
         )
         self.assertEqual(
-            do_search(view.fragment_search, 'findme "with yovr powers"'),
-            []
+            do_search(view.fragment_search, 'findme "with yovr powers"'), []
         )
-        self.assertEqual(do_search(view.fragment_search, 'FINDME'), [f1])
-        self.assertEqual(do_search(view.fragment_search, 'notme'), [f2])
-        self.assertEqual(do_search(view.fragment_search, 'No!TMe'), [f2])
-        self.assertEqual(do_search(view.fragment_search, 'Me'), [f1, f2])
-        self.assertEqual(do_search(view.fragment_search, 'may'), [f1, f2])
+        self.assertEqual(do_search(view.fragment_search, "FINDME"), [f1])
+        self.assertEqual(do_search(view.fragment_search, "notme"), [f2])
+        self.assertEqual(do_search(view.fragment_search, "No!TMe"), [f2])
+        self.assertEqual(do_search(view.fragment_search, "Me"), [f1, f2])
+        self.assertEqual(do_search(view.fragment_search, "may"), [f1, f2])
         self.assertEqual(
-            do_search(
-                view.fragment_search,
-                'm!£$%^&*()_+-=|\\{[}]:;@\'~#<,>.?/ay'
-            ),
-            [f1, f2]
+            do_search(view.fragment_search, "m!£$%^&*()_+-=|\\{[}]:;@'~#<,>.?/ay"),
+            [f1, f2],
         )
-        self.assertEqual(do_search(view.fragment_search, 'mav'), [])
-        self.assertEqual(
-            do_search(view.fragment_search, 'alcott "louisa may"'),
-            [f1]
-        )
-        self.assertEqual(
-            do_search(view.fragment_search, 'may "louisa alcott"'),
-            []
-        )
+        self.assertEqual(do_search(view.fragment_search, "mav"), [])
+        self.assertEqual(do_search(view.fragment_search, 'alcott "louisa may"'), [f1])
+        self.assertEqual(do_search(view.fragment_search, 'may "louisa alcott"'), [])
 
         f3 = Fragment.objects.create()
-        f3.original_texts.create(content='de uita Uaticani', citing_work=cw)
+        f3.original_texts.create(content="de uita Uaticani", citing_work=cw)
 
         f4 = Fragment.objects.create()
-        f4.original_texts.create(content='vita brevIS', citing_work=cw)
+        f4.original_texts.create(content="vita brevIS", citing_work=cw)
 
-        self.assertEqual(do_search(view.fragment_search, 'vita'), [f3, f4])
-        self.assertEqual(do_search(view.fragment_search, 'bREUIs'), [f4])
+        self.assertEqual(do_search(view.fragment_search, "vita"), [f3, f4])
+        self.assertEqual(do_search(view.fragment_search, "bREUIs"), [f4])
 
         t1 = Testimonium.objects.create()
         t1.original_texts.create(content="findme", citing_work=cw)
@@ -247,11 +236,11 @@ class TestSearchView(TestCase):
         t2 = Testimonium.objects.create()
         t2.original_texts.create(content="notme", citing_work=cw)
 
-        self.assertEqual(do_search(view.testimonium_search, 'findme'), [t1])
-        self.assertEqual(do_search(view.testimonium_search, 'FINDME'), [t1])
-        self.assertEqual(do_search(view.testimonium_search, 'notme'), [t2])
-        self.assertEqual(do_search(view.testimonium_search, 'NoTMe'), [t2])
-        self.assertEqual(do_search(view.testimonium_search, 'Me'), [t1, t2])
+        self.assertEqual(do_search(view.testimonium_search, "findme"), [t1])
+        self.assertEqual(do_search(view.testimonium_search, "FINDME"), [t1])
+        self.assertEqual(do_search(view.testimonium_search, "notme"), [t2])
+        self.assertEqual(do_search(view.testimonium_search, "NoTMe"), [t2])
+        self.assertEqual(do_search(view.testimonium_search, "Me"), [t1, t2])
 
         # fragments with apparatus criticus
         data = {"content": "content", "citing_work": cw}
@@ -267,14 +256,12 @@ class TestSearchView(TestCase):
         o3 = f2.original_texts.create(**data)
         o3.apparatus_criticus_items.create(content="rubbish")
 
-        self.assertEqual(do_search(view.apparatus_criticus_search, 'TuF'), [f1])
-        self.assertEqual(do_search(view.apparatus_criticus_search, 'TVF'), [f1])
-        self.assertEqual(do_search(view.apparatus_criticus_search, 'bBi'), [f2])
-        self.assertEqual(do_search(view.apparatus_criticus_search, 'nseN'), [t1])
-        self.assertEqual(
-            do_search(view.apparatus_criticus_search, 's'), [f1, f2, t1]
-        )
-        self.assertEqual(do_search(view.apparatus_criticus_search, 'content'), [])
+        self.assertEqual(do_search(view.apparatus_criticus_search, "TuF"), [f1])
+        self.assertEqual(do_search(view.apparatus_criticus_search, "TVF"), [f1])
+        self.assertEqual(do_search(view.apparatus_criticus_search, "bBi"), [f2])
+        self.assertEqual(do_search(view.apparatus_criticus_search, "nseN"), [t1])
+        self.assertEqual(do_search(view.apparatus_criticus_search, "s"), [f1, f2, t1])
+        self.assertEqual(do_search(view.apparatus_criticus_search, "content"), [])
 
         # bibliography
         parent = TextObjectField.objects.create(content="foo")
@@ -283,9 +270,9 @@ class TestSearchView(TestCase):
         data = {"authors": "Beeb, Z", "title": "The Roman Era", "parent": parent}
         b2 = BibliographyItem.objects.create(**data)
 
-        self.assertEqual(do_search(view.bibliography_search, 'aab'), [b1])
-        self.assertEqual(do_search(view.bibliography_search, 'EE'), [b2])
-        self.assertEqual(do_search(view.bibliography_search, 'romAN'), [b1, b2])
+        self.assertEqual(do_search(view.bibliography_search, "aab"), [b1])
+        self.assertEqual(do_search(view.bibliography_search, "EE"), [b2])
+        self.assertEqual(do_search(view.bibliography_search, "romAN"), [b1, b2])
 
         # anonymous fragments vs. apposita
         data = {"content": "raddish", "citing_work": cw}
@@ -298,27 +285,26 @@ class TestSearchView(TestCase):
         AppositumFragmentLink.objects.create(anonymous_fragment=af1, linked_to=f1)
 
         self.assertEqual(
-            do_search(view.anonymous_fragment_search, 'raddish'),
-            [af1, af2]
+            do_search(view.anonymous_fragment_search, "raddish"), [af1, af2]
         )
-        self.assertEqual(do_search(view.appositum_search, 'raddish'), [af1])
+        self.assertEqual(do_search(view.appositum_search, "raddish"), [af1])
 
         # citing authors
         ca1 = CitingAuthor.objects.create(name="Alice")
         ca2 = CitingAuthor.objects.create(name="Felicity")
 
-        self.assertEqual(do_search(view.citing_author_search, 'al'), [ca1])
-        self.assertEqual(do_search(view.citing_author_search, 'fe'), [ca2])
-        self.assertEqual(do_search(view.citing_author_search, 'lic'), [ca1, ca2])
+        self.assertEqual(do_search(view.citing_author_search, "al"), [ca1])
+        self.assertEqual(do_search(view.citing_author_search, "fe"), [ca2])
+        self.assertEqual(do_search(view.citing_author_search, "lic"), [ca1, ca2])
 
         # citing works
-        cw1 = CitingWork.objects.create(title='Opus', edition='Book one', author=ca1)
-        cw2 = CitingWork.objects.create(title='Book', edition='Sixth', author=ca2)
+        cw1 = CitingWork.objects.create(title="Opus", edition="Book one", author=ca1)
+        cw2 = CitingWork.objects.create(title="Book", edition="Sixth", author=ca2)
 
-        self.assertEqual(do_search(view.citing_work_search, 'opu'), [cw1])
-        self.assertEqual(do_search(view.citing_work_search, 'xth'), [cw2])
-        self.assertEqual(do_search(view.citing_work_search, 'ook'), [cw1, cw2])
+        self.assertEqual(do_search(view.citing_work_search, "opu"), [cw1])
+        self.assertEqual(do_search(view.citing_work_search, "xth"), [cw2])
+        self.assertEqual(do_search(view.citing_work_search, "ook"), [cw1, cw2])
 
-        self.assertEqual(do_search(view.citing_work_search, 'opu'), [cw1])
-        self.assertEqual(do_search(view.citing_work_search, 'xth'), [cw2])
-        self.assertEqual(do_search(view.citing_work_search, 'ook'), [cw1, cw2])
+        self.assertEqual(do_search(view.citing_work_search, "opu"), [cw1])
+        self.assertEqual(do_search(view.citing_work_search, "xth"), [cw2])
+        self.assertEqual(do_search(view.citing_work_search, "ook"), [cw1, cw2])

@@ -24,50 +24,49 @@ from rard.research.models.citing_work import CitingAuthor, CitingWork
 # Folds are applied in the specified order, so we don't need
 # 'uul' <- 'vul' if we already have 'u' <- 'v'
 rard_folds = [
-    ['ast', 'a est'],
-    ['ost', 'o est'],
-    ['umst', 'um est'],
-    ['am', 'an'],
-    ['ausa', 'aussa'],
-    ['nn', 'bn'],
-    ['tt', 'bt'],
-    ['pp', 'bp'],
-    ['rr', 'br'],
-    ['ch', 'cch'],
-    ['clu', 'culu'],
-    ['claud', 'clod'],
-    ['has', 'hasce'],
-    ['his', 'hisce'],
-    ['hos', 'hosce'],
-    ['i', 'ii'],
-    ['i', 'j'],
-    ['um', 'im'],
-    ['lagr', 'lagl'],
-    ['mb', 'nb'],
-    ['ll', 'nl'],
-    ['mm', 'nm'],
-    ['mp', 'np'],
-    ['mp', 'ndup'],
-    ['rr', 'nr'],
-    ['um', 'om'],
-    ['u', 'v'],
-    ['u', 'y'],
-    ['uu', 'w'],
-    ['ulc', 'ulch'],
-    ['uul', 'uol'],
-    ['ui', 'uui'],
-    ['uum', 'uom'],
-    ['x', 'xs'],
+    ["ast", "a est"],
+    ["ost", "o est"],
+    ["umst", "um est"],
+    ["am", "an"],
+    ["ausa", "aussa"],
+    ["nn", "bn"],
+    ["tt", "bt"],
+    ["pp", "bp"],
+    ["rr", "br"],
+    ["ch", "cch"],
+    ["clu", "culu"],
+    ["claud", "clod"],
+    ["has", "hasce"],
+    ["his", "hisce"],
+    ["hos", "hosce"],
+    ["i", "ii"],
+    ["i", "j"],
+    ["um", "im"],
+    ["lagr", "lagl"],
+    ["mb", "nb"],
+    ["ll", "nl"],
+    ["mm", "nm"],
+    ["mp", "np"],
+    ["mp", "ndup"],
+    ["rr", "nr"],
+    ["um", "om"],
+    ["u", "v"],
+    ["u", "y"],
+    ["uu", "w"],
+    ["ulc", "ulch"],
+    ["uul", "uol"],
+    ["ui", "uui"],
+    ["uum", "uom"],
+    ["x", "xs"],
 ]
 
-PUNCTUATION_BASE = r'!£$%^&*()_+-={}:@~;\'#|\\<>?,./`¬'
-PUNCTUATION_RE = re.compile(r'[\[\]{0}]'.format(PUNCTUATION_BASE))
+PUNCTUATION_BASE = r"!£$%^&*()_+-={}:@~;\'#|\\<>?,./`¬"
+PUNCTUATION_RE = re.compile(r"[\[\]{0}]".format(PUNCTUATION_BASE))
 PUNCTUATION = PUNCTUATION_BASE + r'[]"'
 
 
 @method_decorator(require_GET, name="dispatch")
 class SearchView(LoginRequiredMixin, TemplateView, ListView):
-
     class Term:
         """
         Initialize it with the keywords:
@@ -81,15 +80,12 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         def __init__(self, keywords):
             self.cleaned_number = 1
             self.folded_number = 1
-            self.keywords = PUNCTUATION_RE.sub('', keywords).lower()
+            self.keywords = PUNCTUATION_RE.sub("", keywords).lower()
             # The basic function query function will eliminate puntuation
             # and lowercase the 'haystack' strings to be searched.
-            self.basic_query = lambda q: Lower(Func(
-                q,
-                Value(PUNCTUATION),
-                Value(''),
-                function='translate'
-            ))
+            self.basic_query = lambda q: Lower(
+                Func(q, Value(PUNCTUATION), Value(""), function="translate")
+            )
             self.query = self.basic_query
             # Now we call add_fold repeatedly to add more
             # folds to self.query
@@ -107,7 +103,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             keyword_list = self.get_keywords(keywords)
             if len(keyword_list) == 0:
                 # want a keyword that will always succeed
-                first_keyword = ''
+                first_keyword = ""
             else:
                 first_keyword = keyword_list[0]
                 keyword_list = keyword_list[1:]
@@ -125,9 +121,8 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         def add_fold(self, fold_from, fold_to):
             old = self.query
             self.query = lambda q: Func(
-                old(q),
-                Value(fold_from), Value(fold_to),
-                function='replace')
+                old(q), Value(fold_from), Value(fold_to), function="replace"
+            )
 
         def get_keywords(self, search_string):
             """
@@ -136,35 +131,33 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             returned verbatim.
             """
             segments = search_string.split('"')
-            single_keywords = ' '.join(segments[::2]).split()
+            single_keywords = " ".join(segments[::2]).split()
             return segments[1::2] + single_keywords
 
         def do_match(self, query_set, query_string, annotation_name, query, matcher):
-            annotated = query_set.annotate(**{
-                annotation_name: query(query_string)
-            })
-            return annotated.filter(matcher(annotation_name + '__contains'))
+            annotated = query_set.annotate(**{annotation_name: query(query_string)})
+            return annotated.filter(matcher(annotation_name + "__contains"))
 
         def match(self, query_set, query_string):
-            annotation_name = 'cleaned{0}'.format(self.cleaned_number)
+            annotation_name = "cleaned{0}".format(self.cleaned_number)
             self.cleaned_number += 1
             return self.do_match(
                 query_set,
                 query_string,
                 annotation_name,
                 self.basic_query,
-                self.nonfolded_matcher
+                self.nonfolded_matcher,
             )
 
         def match_folded(self, query_set, query_string):
-            annotation_name = 'folded{0}'.format(self.folded_number)
+            annotation_name = "folded{0}".format(self.folded_number)
             self.folded_number += 1
             return self.do_match(
                 query_set,
                 query_string,
                 annotation_name,
                 self.query,
-                self.folded_matcher
+                self.folded_matcher,
             )
 
     paginate_by = 10
@@ -192,25 +185,25 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     def antiquarian_search(cls, terms):
         qs = Antiquarian.objects.all()
         results = (
-            terms.match(qs, 'name')
-            | terms.match(qs, 'introduction__content')
-            | terms.match(qs, 're_code')
+            terms.match(qs, "name")
+            | terms.match(qs, "introduction__content")
+            | terms.match(qs, "re_code")
         )
         return results.distinct()
 
     @classmethod
     def topic_search(cls, terms):
         qs = Topic.objects.all()
-        results = terms.match(qs, 'name')
+        results = terms.match(qs, "name")
         return results.distinct()
 
     @classmethod
     def work_search(cls, terms):
         qs = Work.objects.all()
         results = (
-            terms.match(qs, 'name')
-            | terms.match(qs, 'subtitle')
-            | terms.match(qs, 'antiquarian__name')
+            terms.match(qs, "name")
+            | terms.match(qs, "subtitle")
+            | terms.match(qs, "antiquarian__name")
         )
         return results.distinct()
 
@@ -218,17 +211,11 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     def fragment_search(cls, terms):
         qs = Fragment.objects.all()
         results = (
-            terms.match_folded(qs, 'original_texts__content')
-            | terms.match(qs, 'original_texts__reference')
-            | terms.match(
-                qs,
-                'original_texts__translation__translated_text'
-            ) # noqa
-            | terms.match(
-                qs,
-                'original_texts__translation__translator_name'
-            )  # noqa
-            | terms.match_folded(qs, 'commentary__content')
+            terms.match_folded(qs, "original_texts__content")
+            | terms.match(qs, "original_texts__reference")
+            | terms.match(qs, "original_texts__translation__translated_text")  # noqa
+            | terms.match(qs, "original_texts__translation__translator_name")  # noqa
+            | terms.match_folded(qs, "commentary__content")
         )
         return results.distinct()
 
@@ -237,11 +224,11 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         if not qs:
             qs = AnonymousFragment.objects.all()
         results = (
-            terms.match_folded(qs, 'original_texts__content')
-            | terms.match(qs, 'original_texts__reference')
-            | terms.match(qs, 'original_texts__translation__translated_text')  # noqa
-            | terms.match(qs, 'original_texts__translation__translator_name')  # noqa
-            | terms.match_folded(qs, 'commentary__content')
+            terms.match_folded(qs, "original_texts__content")
+            | terms.match(qs, "original_texts__reference")
+            | terms.match(qs, "original_texts__translation__translated_text")  # noqa
+            | terms.match(qs, "original_texts__translation__translator_name")  # noqa
+            | terms.match_folded(qs, "commentary__content")
         )
         return results.distinct()
 
@@ -249,33 +236,30 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     def testimonium_search(cls, terms):
         qs = Testimonium.objects.all()
         results = (
-            terms.match_folded(qs, 'original_texts__content')
-            | terms.match(qs, 'original_texts__reference')
-            | terms.match(qs, 'original_texts__translation__translated_text')  # noqa
-            | terms.match(qs, 'original_texts__translation__translator_name')  # noqa
-            | terms.match_folded(qs, 'commentary__content')
+            terms.match_folded(qs, "original_texts__content")
+            | terms.match(qs, "original_texts__reference")
+            | terms.match(qs, "original_texts__translation__translated_text")  # noqa
+            | terms.match(qs, "original_texts__translation__translator_name")  # noqa
+            | terms.match_folded(qs, "commentary__content")
         )
         return results.distinct()
 
     @classmethod
     def apparatus_criticus_search(cls, terms):
-        query_string = 'original_texts__apparatus_criticus_items__content'
+        query_string = "original_texts__apparatus_criticus_items__content"
         qst = Testimonium.objects.all()
         qsa = AnonymousFragment.objects.all()
         qsf = Fragment.objects.all()
         return chain(
             terms.match_folded(qsf, query_string).distinct(),
             terms.match_folded(qsa, query_string).distinct(),
-            terms.match_folded(qst, query_string).distinct()
+            terms.match_folded(qst, query_string).distinct(),
         )
 
     @classmethod
     def bibliography_search(cls, terms):
         qs = BibliographyItem.objects.all()
-        results = (
-            terms.match(qs, 'authors')
-            | terms.match(qs, 'title')
-        )
+        results = terms.match(qs, "authors") | terms.match(qs, "title")
         return results.distinct()
 
     @classmethod
@@ -286,15 +270,12 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     @classmethod
     def citing_author_search(cls, terms):
         qs = CitingAuthor.objects.all()
-        return terms.match(qs, 'name').distinct()
+        return terms.match(qs, "name").distinct()
 
     @classmethod
     def citing_work_search(cls, terms):
         qs = CitingWork.objects.all()
-        results = (
-            terms.match(qs, 'title')
-            | terms.match(qs, 'edition')
-        )
+        results = terms.match(qs, "title") | terms.match(qs, "edition")
         return results.distinct()
 
     def get(self, request, *args, **kwargs):
