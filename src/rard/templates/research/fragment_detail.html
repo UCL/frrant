@@ -15,19 +15,28 @@
 
         {% include 'research/partials/render_locked_info.html' %}
 
-        <div class='d-flex justify-content-end'>
         {% if has_object_lock %}
-            {% if perms.research.delete_fragment %}
-            <form novalidate class='form-inline' action='{% url "fragment:delete" fragment.pk %}' method='POST'>
+        <div class='d-flex flex-column justify-content-end'>
+          {% if perms.research.delete_fragment %}
+            <form novalidate style='margin-left:auto' class='form-inline' action='{% url "fragment:delete" fragment.pk %}' method='POST'>
                 {% csrf_token %}
                 <div class='form-group'>
                     <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
                         data-what='fragment'>{% trans 'Delete' %}</button>
                 </div>
             </form>
+          {% endif %}
+          {% if perms.research.change_fragment %}
+            <form novalidate style='margin-left:auto' class='form-inline' action='{% url "fragment:convert_to_anonymous" fragment.pk %}' method='POST'>
+                {% csrf_token %}
+                <div class='form-group'>
+                    <button type='submit' class='btn btn-link text-danger confirm-convert p-0 ml-2'
+                        data-what='fragment'>{% trans 'Convert to Anonymous Fragment' %}</button>
+                </div>
+            </form>
             {% endif %}
-        {% endif %}
         </div>
+      {% endif %}
     {% endwith %}
 {% endblock %}
 

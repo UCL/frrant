@@ -46,6 +46,7 @@ def convert_appositum_link_to_fragment_link(appositum_link, fragment):
     fragment_link.work = appositum_link.work
     fragment_link.work_order = appositum_link.work_order
     fragment_link.book = appositum_link.book
+    fragment_link.save()
     return fragment_link
 
 
@@ -64,7 +65,6 @@ def convert_unlinked_fragment_to_anonymous_fragment(fragment):
 
 
 def convert_anonymous_fragment_to_fragment(anonymous_fragment):
-
     # Only allow for anonymous fragments
     if not isinstance(anonymous_fragment, AnonymousFragment):
         raise FragmentIsNotConvertible

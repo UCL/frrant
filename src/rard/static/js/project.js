@@ -94,12 +94,16 @@ $('form').click(function(event) {
   $(this).data('clicked',$(event.target))
 });
 
-// confirm delete of objects when forms submitted
+// confirm delete/convert of objects when forms submitted
 $('body').on("submit", "form", function (e) {
     var $clicked= $(this).data('clicked');
     if ($clicked.hasClass('confirm-delete')) {
         let what = $clicked.data('what') || 'object';
         return confirm("Are you sure you want to delete this " + what + '? This cannot be undone.');
+    }
+    if ($clicked.hasClass('confirm-convert')) {
+        let what = $clicked.data('what') || 'object';
+        return confirm("Are you sure you want to convert this " + what + '? This cannot be undone.');
     }
     return true; // proceed as normal
 })
