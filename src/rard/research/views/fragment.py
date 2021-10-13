@@ -1,6 +1,6 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
-from django.http.response import Http404, HttpResponseRedirect
+from django.http.response import Http404, HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import resolve, reverse, reverse_lazy
 from django.utils.decorators import method_decorator
@@ -570,13 +570,17 @@ class UnlinkedFragmentConvertToAnonymousView(AnonymousFragmentConvertToFragmentV
     permission_required = "research.change_fragment"
 
     def post(self, request, *args, **kwargs):
-        anonymous_fragment = convert_unlinked_fragment_to_anonymous_fragment(
-            self.get_object()
-        )
-        success_url = reverse(
-            "anonymous_fragment:detail", kwargs={"pk": anonymous_fragment.pk}
-        )
-        return HttpResponseRedirect(success_url)
+        fragment = self.get_object()
+        if fragment.is_unlinked:
+            anonymous_fragment = convert_unlinked_fragment_to_anonymous_fragment(
+                self.get_object()
+            )
+            success_url = reverse(
+                "anonymous_fragment:detail", kwargs={"pk": anonymous_fragment.pk}
+            )
+            return HttpResponseRedirect(success_url)
+        else:
+            return HttpResponseBadRequest()
 
 
 class FragmentUpdateAntiquariansView(FragmentUpdateView):
