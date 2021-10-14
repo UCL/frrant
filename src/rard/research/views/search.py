@@ -30,17 +30,17 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     @property
     def SEARCH_METHODS(self):
         return {
-            "antiquarians": self.antiquarian_search,
-            "testimonia": self.testimonium_search,
             "anonymous fragments": self.anonymous_fragment_search,
-            "fragments": self.fragment_search,
-            "topics": self.topic_search,
-            "works": self.work_search,
-            "bibliographies": self.bibliography_search,
+            "antiquarians": self.antiquarian_search,
             "apparatus critici": self.apparatus_criticus_search,
             "apposita": self.appositum_search,
+            "bibliographies": self.bibliography_search,
             "citing authors": self.citing_author_search,
             "citing works": self.citing_work_search,
+            "fragments": self.fragment_search,
+            "testimonia": self.testimonium_search,
+            "topics": self.topic_search,
+            "works": self.work_search,
         }
 
     # move to queryset on model managers
