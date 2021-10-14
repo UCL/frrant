@@ -1,6 +1,21 @@
 from .base import *  # noqa
 from .base import env
 
+
+def monkey_patch():
+    """
+    Django doesn't allow underscores in hostnames. This should overwrite that.
+    """
+    import django.http.request
+    from django.utils.regex_helper import _lazy_re_compile
+
+    django.http.request.host_validation_re = _lazy_re_compile(
+        r"^([a-z0-9._-]+|\[[a-f0-9]*:[a-f0-9\.:]+\])(:\d+)?$"
+    )
+
+
+monkey_patch()
+
 # GENERAL
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#secret-key
