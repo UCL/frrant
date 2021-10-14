@@ -134,17 +134,17 @@ class TestSearchView(TestCase):
         self.assertEqual(
             [x for x in SearchView().SEARCH_METHODS.keys()],
             [
-                "antiquarians",
-                "testimonia",
                 "anonymous fragments",
-                "fragments",
-                "topics",
-                "works",
-                "bibliographies",
+                "antiquarians",
                 "apparatus critici",
                 "apposita",
+                "bibliographies",
                 "citing authors",
                 "citing works",
+                "fragments",
+                "testimonia",
+                "topics",
+                "works",
             ],
         )
 
