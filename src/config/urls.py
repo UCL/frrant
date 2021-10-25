@@ -54,7 +54,7 @@ if settings.DEBUG:
             path("__debug__/", include(debug_toolbar.urls))
         ] + base_urlpatterns
 
-prefix = getattr(settings, "URL_PREFIX", None)
+prefix = getattr(settings, "URL_PREFIX", "")
 
 
 urlpatterns = [path("{}".format(prefix), include((base_urlpatterns)))]
