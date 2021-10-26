@@ -15,6 +15,11 @@ if READ_DOT_ENV_FILE:
     # OS environment variables take precedence over variables from .env
     env.read_env(str(ROOT_DIR / ".env"))
 
+# CUSTOM SETTINGS
+# ------------------------------------------------------------------------------
+# Indicate if production so we can warn users
+NON_PRODUCTION_INSTANCE = env.bool("DJANGO_NON_PRODUCTION", False)
+
 # GENERAL
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#debug

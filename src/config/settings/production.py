@@ -1,9 +1,6 @@
 from .base import *  # noqa
 from .base import env
 
-# Indicate server instance: production, development, local, test
-NON_PRODUCTION_INSTANCE = False
-
 # GENERAL
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#secret-key
