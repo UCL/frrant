@@ -7,7 +7,10 @@ def settings_context(_request):
     """Settings available by default to the templates context."""
     # Note: we intentionally do NOT expose the entire settings
     # to prevent accidental leaking of sensitive information
-    return {"DEBUG": settings.DEBUG, "INSTANCE": settings.INSTANCE}
+    return {
+        "DEBUG": settings.DEBUG,
+        "NON_PRODUCTION_INSTANCE": settings.NON_PRODUCTION_INSTANCE,
+    }
 
 
 def symbols_context(_request):

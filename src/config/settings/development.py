@@ -2,7 +2,7 @@ from .base import *  # noqa
 from .base import env
 
 # Indicate server instance: production, development, local, test
-INSTANCE = "development"
+NON_PRODUCTION_INSTANCE = True
 
 # GENERAL
 # ------------------------------------------------------------------------------
