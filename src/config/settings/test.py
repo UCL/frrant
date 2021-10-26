@@ -5,6 +5,9 @@ With these settings, tests run faster.
 from .base import *  # noqa
 from .base import env
 
+# Indicate server instance: production, development, local, test
+INSTANCE = "test"
+
 # GENERAL
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#secret-key

@@ -1,6 +1,9 @@
 from .base import *  # noqa
 from .base import env
 
+# Indicate server instance: production, development, local, test
+INSTANCE = "local"
+
 # GENERAL
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#debug
