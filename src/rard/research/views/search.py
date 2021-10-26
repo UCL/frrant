@@ -2,7 +2,7 @@ import re
 from itertools import chain
 
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Func, Q, Value
+from django.db.models import Func, Q, Value, CharField, ExpressionWrapper
 from django.db.models.functions import Lower
 from django.shortcuts import redirect
 from django.utils.decorators import method_decorator
@@ -116,7 +116,10 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             return matcher
 
         def add_keyword(self, old, keyword):
-            return lambda f: Q(**{f: keyword}) & old(f)
+            return lambda f: ExpressionWrapper(
+                Q(**{f: keyword}) & old(f),
+                output_field=CharField()
+            )
 
         def add_fold(self, fold_from, fold_to):
             old = self.query
@@ -135,7 +138,8 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             return segments[1::2] + single_keywords
 
         def do_match(self, query_set, query_string, annotation_name, query, matcher):
-            annotated = query_set.annotate(**{annotation_name: query(query_string)})
+            expression = ExpressionWrapper(query(query_string), output_field=CharField())
+            annotated = query_set.annotate(**{annotation_name: expression})
             return annotated.filter(matcher(annotation_name + "__contains"))
 
         def match(self, query_set, query_string):
