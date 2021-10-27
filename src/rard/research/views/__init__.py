@@ -48,6 +48,7 @@ from .concordance import (
 from .fragment import (
     AddAppositumFragmentLinkView,
     AddAppositumGeneralLinkView,
+    AnonymousFragmentConvertToFragmentView,
     AnonymousFragmentCreateView,
     AnonymousFragmentDeleteView,
     AnonymousFragmentDetailView,
@@ -65,6 +66,7 @@ from .fragment import (
     FragmentUpdateView,
     RemoveAppositumLinkView,
     RemoveFragmentLinkView,
+    UnlinkedFragmentConvertToAnonymousView,
 )
 from .history import HistoryListView
 from .home import HomeView
@@ -158,6 +160,7 @@ __all__ = [
     "UpdateApparatusCriticusLineView",
     "AnonymousFragmentCreateView",
     "AnonymousFragmentDeleteView",
+    "AnonymousFragmentConvertToFragmentView",
     "AnonymousFragmentDetailView",
     "AnonymousFragmentListView",
     "AnonymousFragmentOriginalTextCreateView",
@@ -169,6 +172,7 @@ __all__ = [
     "FragmentUpdateCommentaryView",
     "FragmentCreateView",
     "FragmentDeleteView",
+    "UnlinkedFragmentConvertToAnonymousView",
     "FragmentDetailView",
     "FragmentListView",
     "FragmentOriginalTextCreateView",

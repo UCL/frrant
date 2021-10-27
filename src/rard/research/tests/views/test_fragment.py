@@ -1,16 +1,33 @@
 import pytest
+from django.core.exceptions import ObjectDoesNotExist
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
-from rard.research.models import CitingWork, Fragment
+from rard.research.models import (
+    AnonymousFragment,
+    Antiquarian,
+    CitingWork,
+    Fragment,
+    OriginalText,
+    Topic,
+)
+from rard.research.models.base import AppositumFragmentLink, FragmentLink
+from rard.research.models.text_object_field import TextObjectField
 from rard.research.views import (
+    AnonymousFragmentConvertToFragmentView,
     FragmentCreateView,
     FragmentDeleteView,
     FragmentDetailView,
     FragmentListView,
     FragmentUpdateView,
+    UnlinkedFragmentConvertToAnonymousView,
 )
 from rard.users.tests.factories import UserFactory
+from rard.utils.convertors import (
+    FragmentIsNotConvertible,
+    convert_anonymous_fragment_to_fragment,
+    convert_unlinked_fragment_to_anonymous_fragment,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -155,3 +172,93 @@ class TestFragmentViewPermissions(TestCase):
         )
         self.assertIn("research.view_fragment", FragmentListView.permission_required)
         self.assertIn("research.view_fragment", FragmentDetailView.permission_required)
+
+
+class TestFragmentConvertViews(TestCase):
+    def setUp(self):
+        self.user = UserFactory.create()
+        self.unlinked_anonymous_fragment = self.create_fragment(
+            AnonymousFragment, "uaf"
+        )
+        self.linked_anonymous_fragment = self.create_fragment(
+            AnonymousFragment, "laf", linked=True
+        )
+        self.unlinked_fragment = self.create_fragment(Fragment, "ufr")
+        self.linked_fragment = self.create_fragment(Fragment, "lfr", linked=True)
+
+    def create_fragment(self, model, name, linked=False):
+        fragment = model.objects.create(name=name)
+        citing_work = CitingWork.objects.create(title="title")
+        OriginalText.objects.create(
+            owner=fragment, citing_work=citing_work, content="sic semper tyrannis"
+        )
+        fragment.date_range = "509 BCE - 31 BCE"
+        fragment.order_year = -509
+        fragment.collection_id = 1
+        topic = Topic.objects.create(name=name + " topic")
+        fragment.topics.set([topic])
+        fragment.commentary = TextObjectField.objects.create(content="hello")
+        fragment.save()
+        if linked:
+            self.add_fragment_link(fragment)
+        return fragment
+
+    def add_fragment_link(self, fragment):
+        antiquarian = Antiquarian.objects.create(
+            name=fragment.name + " antiquarian", re_code=fragment.name
+        )
+        if isinstance(fragment, Fragment):
+            FragmentLink.objects.create(fragment=fragment, antiquarian=antiquarian)
+        elif isinstance(fragment, AnonymousFragment):
+            AppositumFragmentLink.objects.create(
+                anonymous_fragment=fragment, antiquarian=antiquarian
+            )
+
+    def test_permissions(self):
+        self.assertIn(
+            "research.change_anonymousfragment",
+            AnonymousFragmentConvertToFragmentView.permission_required,
+        )
+        self.assertIn(
+            "research.change_fragment",
+            UnlinkedFragmentConvertToAnonymousView.permission_required,
+        )
+
+    def test_raise_error_if_source_is_linked_fragment(self):
+        with self.assertRaises(FragmentIsNotConvertible):
+            convert_unlinked_fragment_to_anonymous_fragment(self.linked_fragment)
+
+    def test_convert_unlinked_anonymous_fragment_to_fragment(self):
+        source_pk = self.unlinked_anonymous_fragment.pk
+        new_fragment = convert_anonymous_fragment_to_fragment(
+            self.unlinked_anonymous_fragment
+        )
+        with self.assertRaises(ObjectDoesNotExist):
+            AnonymousFragment.objects.get(pk=source_pk)
+        self.assertEqual(new_fragment.topics.all()[0].name, "uaf topic")
+        self.assertEqual(
+            new_fragment.original_texts.all()[0].content, "sic semper tyrannis"
+        )
+        self.assertEqual(new_fragment.date_range, "509 BCE - 31 BCE")
+        self.assertEqual(new_fragment.commentary.content, "hello")
+
+    def test_convert_linked_anonymous_fragment_to_fragment(self):
+        new_fragment = convert_anonymous_fragment_to_fragment(
+            self.linked_anonymous_fragment
+        )
+        new_fragment_link = new_fragment.antiquarian_fragmentlinks.all()[0]
+        self.assertEqual(new_fragment_link.antiquarian.name, "laf antiquarian")
+
+    def test_convert_unlinked_fragment_to_anonymous_fragment(self):
+        source_pk = self.unlinked_fragment.pk
+        new_fragment = convert_unlinked_fragment_to_anonymous_fragment(
+            self.unlinked_fragment
+        )
+        with self.assertRaises(ObjectDoesNotExist):
+            Fragment.objects.get(pk=source_pk)
+        self.assertEqual(new_fragment.topics.all()[0].name, "ufr topic")
+        self.assertEqual(
+            new_fragment.original_texts.all()[0].content, "sic semper tyrannis"
+        )
+        self.assertEqual(new_fragment.date_range, "509 BCE - 31 BCE")
+        self.assertEqual(new_fragment.commentary.content, "hello")

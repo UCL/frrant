@@ -1,11 +1,11 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
-from django.http.response import Http404
+from django.http.response import Http404, HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import resolve, reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
-from django.views.generic import FormView, ListView, TemplateView
+from django.views.generic import FormView, ListView, TemplateView, View
 from django.views.generic.base import RedirectView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import DeleteView, UpdateView
@@ -31,6 +31,10 @@ from rard.research.models import (
 )
 from rard.research.models.base import AppositumFragmentLink, FragmentLink
 from rard.research.views.mixins import CanLockMixin, CheckLockMixin
+from rard.utils.convertors import (
+    convert_anonymous_fragment_to_fragment,
+    convert_unlinked_fragment_to_anonymous_fragment,
+)
 
 
 class OriginalTextCitingWorkView(LoginRequiredMixin, TemplateView):
@@ -523,6 +527,60 @@ class AnonymousFragmentUpdateView(FragmentUpdateView):
 
     def get_success_url(self, *args, **kwargs):
         return reverse("anonymous_fragment:detail", kwargs={"pk": self.object.pk})
+
+
+@method_decorator(require_POST, name="dispatch")
+class AnonymousFragmentConvertToFragmentView(
+    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, View
+):
+    model = AnonymousFragment
+    permission_required = "research.change_anonymousfragment"
+
+    def get_queryset(self):
+        return self.model._default_manager.all()
+
+    def get_object(self):
+        pk = self.kwargs.get("pk")
+        queryset = self.get_queryset()
+        if pk is None:
+            raise AttributeError(
+                f"{self.__class__.__name__} must be called with a pk in the URLconf."
+            )
+        else:
+            queryset = queryset.filter(pk=pk)
+        try:
+            # Get the single item from the filtered queryset
+            obj = queryset.get()
+        except queryset.model.DoesNotExist:
+            raise Http404(
+                f"No {queryset.model._meta.verbose_name}s found matching the query"
+            )
+        return obj
+
+    def post(self, request, *args, **kwargs):
+        print("running post")
+        fragment = convert_anonymous_fragment_to_fragment(self.get_object())
+        success_url = reverse("fragment:detail", kwargs={"pk": fragment.pk})
+        return HttpResponseRedirect(success_url)
+
+
+@method_decorator(require_POST, name="dispatch")
+class UnlinkedFragmentConvertToAnonymousView(AnonymousFragmentConvertToFragmentView):
+    model = Fragment
+    permission_required = "research.change_fragment"
+
+    def post(self, request, *args, **kwargs):
+        fragment = self.get_object()
+        if fragment.is_unlinked:
+            anonymous_fragment = convert_unlinked_fragment_to_anonymous_fragment(
+                self.get_object()
+            )
+            success_url = reverse(
+                "anonymous_fragment:detail", kwargs={"pk": anonymous_fragment.pk}
+            )
+            return HttpResponseRedirect(success_url)
+        else:
+            return HttpResponseBadRequest()
 
 
 class FragmentUpdateAntiquariansView(FragmentUpdateView):

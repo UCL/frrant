@@ -215,6 +215,11 @@ urlpatterns = [
                         views.FragmentDeleteView.as_view(),
                         name="delete",
                     ),
+                    path(
+                        "<pk>/convert-to-anonymous/",
+                        views.UnlinkedFragmentConvertToAnonymousView.as_view(),
+                        name="convert_to_anonymous",
+                    ),
                     path("<pk>/", views.FragmentDetailView.as_view(), name="detail"),
                     path(
                         "<pk>/create-original-text/",
@@ -276,6 +281,11 @@ urlpatterns = [
                         "<pk>/delete/",
                         views.AnonymousFragmentDeleteView.as_view(),
                         name="delete",
+                    ),
+                    path(
+                        "<pk>/convert-to-fragment/",
+                        views.AnonymousFragmentConvertToFragmentView.as_view(),
+                        name="convert_to_fragment",
                     ),
                     path(
                         "<pk>/",

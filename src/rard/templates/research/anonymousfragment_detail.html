@@ -16,19 +16,34 @@
 
         {% include 'research/partials/render_locked_info.html' %}
 
-        <div class='d-flex justify-content-end'>
         {% if has_object_lock %}
-            {% if perms.research.delete_fragment %}
-            <form novalidate class='form-inline' action='{% url "anonymous_fragment:delete" object.pk %}' method='POST'>
+        <div class='d-flex flex-column justify-content-end'>
+            {% if perms.research.delete_anonymousfragment %}
+            <form novalidate style='margin-left:auto' class='form-inline' action='{% url "anonymous_fragment:delete" object.pk %}' method='POST'>
                 {% csrf_token %}
                 <div class='form-group'>
                     <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
-                        data-what='fragment'>{% trans 'Delete' %}</button>
+                        data-what='anonymous fragment'>{% trans 'Delete' %}</button>
                 </div>
             </form>
             {% endif %}
-        {% endif %}
+            {% if perms.research.change_anonymousfragment %}
+            <form novalidate style='margin-left:auto' class='form-inline' action='{% url "anonymous_fragment:convert_to_fragment" object.pk %}' method='POST'>
+                {% csrf_token %}
+                <div class='form-group'>
+                    <button
+                      type='submit'
+                      class='
+                      {% if object.get_all_links %}has-links{% endif %}
+                      btn btn-link text-danger confirm-convert p-0 ml-2
+                      '
+                      data-what='anonymous fragment'
+                    >{% trans 'Make non-anonymous' %}</button>
+                </div>
+            </form>
+            {% endif %}
         </div>
+        {% endif %}
     {% endwith %}
 {% endblock %}
 
