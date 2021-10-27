@@ -103,7 +103,12 @@ $('body').on("submit", "form", function (e) {
     }
     if ($clicked.hasClass('confirm-convert')) {
         let what = $clicked.data('what') || 'object';
-        return confirm("Are you sure you want to convert this " + what + '? This cannot be undone.');
+        let confirmMsg = "Are you sure you want to convert this " + what + "?"
+        if ($clicked.hasClass('has-links')) {
+            confirmMsg += " This " + what + " has existing links to antiquarians or works which will also be converted."
+        }
+        confirmMsg += " This cannot be undone."
+        return confirm(confirmMsg);
     }
     return true; // proceed as normal
 })

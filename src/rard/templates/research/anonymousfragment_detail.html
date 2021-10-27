@@ -31,8 +31,14 @@
             <form novalidate style='margin-left:auto' class='form-inline' action='{% url "anonymous_fragment:convert_to_fragment" object.pk %}' method='POST'>
                 {% csrf_token %}
                 <div class='form-group'>
-                    <button type='submit' class='btn btn-link text-danger confirm-convert p-0 ml-2'
-                        data-what='anonymous fragment'>{% trans 'Make non-anonymous' %}</button>
+                    <button
+                      type='submit'
+                      class='
+                      {% if object.get_all_links %}has-links{% endif %}
+                      btn btn-link text-danger confirm-convert p-0 ml-2
+                      '
+                      data-what='anonymous fragment'
+                    >{% trans 'Make non-anonymous' %}</button>
                 </div>
             </form>
             {% endif %}
