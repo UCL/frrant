@@ -31,7 +31,7 @@
     {% comment %}
     <link href="{% static 'css/alphabetum.css' %}" rel="stylesheet">
     {% endcomment %}
-    {% if NON_PRODUCTION_INSTANCE %}
+    {% if not PRODUCTION_INSTANCE %}
     <!-- Styling to make it obvious we're not in production -->
     <link href="{% static 'css/development.css' %}" rel="stylesheet">
     {% endif %}
@@ -168,7 +168,7 @@
         </button>
         <a class="navbar-brand" href="{% url 'home' %}">
           {% trans "Roman Republican Antiquarians Research Database" %}
-          {% if NON_PRODUCTION_INSTANCE %}
+          {% if not PRODUCTION_INSTANCE %}
             (NON PRODUCTION VERSION)
           {% endif %}
         </a>

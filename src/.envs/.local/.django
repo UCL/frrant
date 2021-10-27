@@ -2,4 +2,4 @@
 # ------------------------------------------------------------------------------
 USE_DOCKER=yes
 IPYTHONDIR=/app/.ipython
-DJANGO_NON_PRODUCTION=true
+DJANGO_PRODUCTION=false

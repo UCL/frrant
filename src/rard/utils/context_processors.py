@@ -9,7 +9,7 @@ def settings_context(_request):
     # to prevent accidental leaking of sensitive information
     return {
         "DEBUG": settings.DEBUG,
-        "NON_PRODUCTION_INSTANCE": settings.NON_PRODUCTION_INSTANCE,
+        "PRODUCTION_INSTANCE": settings.PRODUCTION_INSTANCE,
     }
 
 

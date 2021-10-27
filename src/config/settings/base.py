@@ -18,7 +18,7 @@ if READ_DOT_ENV_FILE:
 # CUSTOM SETTINGS
 # ------------------------------------------------------------------------------
 # Indicate if production so we can warn users
-NON_PRODUCTION_INSTANCE = env.bool("DJANGO_NON_PRODUCTION", False)
+PRODUCTION_INSTANCE = env.bool("DJANGO_PRODUCTION", True)
 
 # GENERAL
 # ------------------------------------------------------------------------------
