@@ -2,7 +2,7 @@ import re
 from itertools import chain
 
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Func, Q, Value, TextField, ExpressionWrapper
+from django.db.models import ExpressionWrapper, Func, Q, TextField, Value
 from django.db.models.functions import Lower
 from django.shortcuts import redirect
 from django.utils.decorators import method_decorator
