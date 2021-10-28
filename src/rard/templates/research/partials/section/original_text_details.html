@@ -37,7 +37,11 @@
                <a href='#{{ line.get_anchor_id }}'>{{ line.order|add:1 }}</a>&nbsp;{{ line.content|safe }} {% if not forloop.last %}|{% endif %}
             {% endfor %}
             {% if not original_text.apparatus_criticus_lines %}
-            -
+              {% if original_text.apparatus_criticus_blank %}
+                Apparatus criticus intentionally left blank
+              {% else %}
+                -
+              {% endif %}
             {% endif %}
         </div>
     </dd>

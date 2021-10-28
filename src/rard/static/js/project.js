@@ -717,6 +717,14 @@ function refreshOriginalTextApparatusCriticus() {
             dataType: 'json',
             success: function (data, textStatus, jqXHR) {
                 $editor.html(data.html);
+
+                // show/hide apparatus criticus intentionally blank checkbox
+                let appCritBlankCheckbox = document.getElementById('id_apparatus_criticus_blank');
+                if (document.getElementsByClassName('apparatus-criticus-line').length == 0) {
+                    appCritBlankCheckbox.parentElement.parentElement.hidden = false;
+                } else {
+                    appCritBlankCheckbox.parentElement.parentElement.hidden = true;
+                }
             },
             error: function (e) {
                 console.log(e)
@@ -769,7 +777,15 @@ $('body').on('click', '#submit-new-apparatus-criticus-line', function() {
             $builder_area.find('.rich-editor').each(function() {
                 initRichTextEditor($(this)) ;
             });
+
+            // Deselect checkbox for app crit intentionally being left blank
+            let appCritBlankCheckbox = document.getElementById('id_apparatus_criticus_blank');
+            if (appCritBlankCheckbox.checked) {
+                appCritBlankCheckbox.checked = false;
+            }
+
             refreshOriginalTextApparatusCriticus();
+
         },
         error: function (e) {
             console.log(e)
