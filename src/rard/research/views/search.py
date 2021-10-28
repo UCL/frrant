@@ -135,7 +135,9 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             return segments[1::2] + single_keywords
 
         def do_match(self, query_set, query_string, annotation_name, query, matcher):
-            expression = ExpressionWrapper(query(query_string), output_field=TextField())
+            expression = ExpressionWrapper(
+                query(query_string), output_field=TextField()
+            )
             annotated = query_set.annotate(**{annotation_name: expression})
             return annotated.filter(matcher(annotation_name + "__contains"))
 
