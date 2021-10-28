@@ -38,6 +38,7 @@
 
             {% bootstrap_field forms.original_text.content field_class='d-none' %}
             {% include 'research/partials/rich_text_editor.html' with field=forms.original_text.content %}
+            {% bootstrap_field forms.original_text.apparatus_criticus_blank %}
 
             {% comment %}
             {% bootstrap_field forms.original_text.apparatus_criticus field_class='d-none' %}

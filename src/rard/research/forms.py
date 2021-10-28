@@ -474,7 +474,13 @@ class OriginalTextForm(OriginalTextAuthorForm):
 
     class Meta:
         model = OriginalText
-        fields = ("citing_work", "reference", "reference_order", "content")
+        fields = (
+            "citing_work",
+            "reference",
+            "reference_order",
+            "content",
+            "apparatus_criticus_blank",
+        )
         labels = {
             "content": _("Original Text"),
         }
