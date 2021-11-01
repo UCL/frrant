@@ -312,6 +312,7 @@ DJANGO_SETTINGS_MODULE=config.settings.development
 DJANGO_SECRET_KEY=<secret key>
 DJANGO_ADMIN_URL=admin/
 DJANGO_ALLOWED_HOSTS=<domain name>
+URL_PREFIX=history/frrant-preprod/
 ```
 
 In the above, the domain name will be e.g. `frrd-dev.addev.ucl.ac.uk` for development. If more than one are required then they can be comma-separated (NB do not put inside braces `[]`)
@@ -348,6 +349,10 @@ for the username/password to use for postgres database.
 
 If your static files have changed in a deployment (css, js, fonts etc) then you need to run the 'collectstatic' command described earlier.
 
+This development version will appear at the path
+`/history/frrant-preprod`. You can deploy it on a
+development machine as well, and it will appear
+at the path `https://localhost/history/frrant-preprod/`
 
 ### SSL Certificates
 
