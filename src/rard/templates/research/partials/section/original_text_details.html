@@ -38,9 +38,9 @@
             {% endfor %}
             {% if not original_text.apparatus_criticus_lines %}
               {% if original_text.apparatus_criticus_blank %}
-                Apparatus criticus intentionally left blank
+                No apparatus criticus exists for this original text.
               {% else %}
-                -
+                <div class="alert alert-warning">No apparatus criticus; confirmation needed.</div>
               {% endif %}
             {% endif %}
         </div>

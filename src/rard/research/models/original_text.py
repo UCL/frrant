@@ -46,7 +46,7 @@ class OriginalText(HistoryModelMixin, BaseModel):
     )
 
     apparatus_criticus_blank = models.BooleanField(
-        "apparatus criticus intentionally blank", blank=False, null=False, default=False
+        "no apparatus criticus exists", blank=False, null=False, default=False
     )
 
     def apparatus_criticus_lines(self):
