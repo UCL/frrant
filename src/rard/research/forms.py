@@ -423,6 +423,7 @@ class OriginalTextDetailsForm(forms.ModelForm):
             "reference",
             "reference_order",
             "content",
+            "apparatus_criticus_blank",
         )
         labels = {
             "content": _("Original Text"),
@@ -447,6 +448,19 @@ class OriginalTextDetailsForm(forms.ModelForm):
         ro = self.cleaned_data["reference_order"]
         return ".".join([i.zfill(5) for i in ro.split(".")])
 
+    def clean(self):
+        cleaned_data = super().clean()
+        # Should be false if there are any apparatus criticus lines
+        app_crit_blank = cleaned_data.get("apparatus_criticus_blank")
+        app_crit_lines = self.instance.apparatus_criticus_lines()
+        if app_crit_blank and app_crit_lines:
+            raise forms.ValidationError(
+                {
+                    "apparatus_criticus_blank": "Apparatus criticus lines exist for "
+                    "this original text so it cannot be left intentionally blank."
+                }
+            )
+
 
 class OriginalTextForm(OriginalTextAuthorForm):
 
@@ -465,6 +479,7 @@ class OriginalTextForm(OriginalTextAuthorForm):
             "reference",
             "reference_order",
             "content",
+            "apparatus_criticus_blank",
         )
         labels = {
             "content": _("Original Text"),
