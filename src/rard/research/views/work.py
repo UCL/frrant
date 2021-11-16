@@ -42,7 +42,8 @@ class WorkDetailView(
         books = work.book_set.all()
         # Empty structure with space for materials with unknown book
         ordered_materials = {
-            book: {"definite": [], "possible": []} for book in list(books) + ["unknown"]
+            book.__str__(): {"definite": [], "possible": []}
+            for book in list(books) + ["unknown"]
         }
 
         def inflate(query_list, pk_field, model, new_key):
