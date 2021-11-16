@@ -1,4 +1,7 @@
+from itertools import groupby
+
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.db.models import F
 from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
@@ -8,7 +11,7 @@ from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from rard.research.forms import BookForm, WorkForm
-from rard.research.models import Book, Work
+from rard.research.models import AnonymousFragment, Book, Fragment, Testimonium, Work
 from rard.research.views.mixins import CanLockMixin, CheckLockMixin
 
 
@@ -23,6 +26,104 @@ class WorkDetailView(
 ):
     model = Work
     permission_required = ("research.view_work",)
+
+    def get_context_data(self, **kwargs):
+        """Add a dictionary to context data called ordered materials.
+        For each book in this work, add the book and a list of associated material
+        ordered by definite/possible boolean, then by material type; e.g.:
+        ordered_materials = {'book1': {'definite': [F1, T1, A1],
+                                       'possible': [F2, T2, A2]
+                                       },
+                             'book2': {...},
+                            }
+        """
+        context = super().get_context_data(**kwargs)
+        work = self.get_object()
+        books = work.book_set.all()
+        # Empty structure with space for materials with unknown book
+        ordered_materials = {
+            book: {"definite": [], "possible": []} for book in list(books) + ["unknown"]
+        }
+
+        def inflate(query_list, pk_field, model, new_key):
+            """For each item in the query list, use the field value and the model
+            to add the actual object to the dictionary"""
+            for item in query_list:
+                item[new_key] = (
+                    model.objects.get(pk=item[pk_field]) if item[pk_field] else None
+                )
+            return query_list
+
+        def make_grouped_dict(query_list):
+            """Take a list of dictionaries each containing 'book' and 'definite' keys
+            and create a new dictionary where the keys are books, each value
+            is another dictionary containing separate object lists for definite
+            and possible links; e.g.:
+            query_list = [{'book':'book1','definite'true','object':F1},
+                          {'book':'book1','definite'false','object':F2},
+                          {'book':'book1','definite'true','object':F3},
+                          {'book':'book1','definite'false','object':F4},
+                          {'book':'book1','definite'true','object':F5},
+                          {'book':'book1','definite'false','object':F6}]
+            grouped_dict = {'book1': {'true': [F1,F3,F5],'false':[F2,F4,F6]}}"""
+            grouped_dict = {
+                k[0]: {k[1]: [f["object"] for f in v]}
+                for k, v in groupby(query_list, lambda x: [x["book"], x["definite"]])
+            }
+            return grouped_dict
+
+        def add_to_ordered_materials(grouped_dict):
+            for book, materials in grouped_dict.items():
+                if book:
+                    ordered_materials[book.__str__()]["definite"] += materials.get(
+                        True, []
+                    )
+                    ordered_materials[book.__str__()]["possible"] += materials.get(
+                        False, []
+                    )
+                else:  # If book is None it's unknown
+                    ordered_materials["unknown"]["definite"] += materials.get(True, [])
+                    ordered_materials["unknown"]["possible"] += materials.get(False, [])
+
+        # For each fragmentlink, get definite, book (can be None), and fragment pk
+        # Needs to be ordered by book then definite for make_grouped_dict to work
+        fragments = list(
+            work.antiquarian_work_fragmentlinks.values(
+                "definite", "book", pk=F("fragment__pk")
+            ).order_by("book", "-definite")
+        )
+        fragments = inflate(
+            inflate(fragments, "pk", Fragment, "object"), "book", Book, "book"
+        )
+        fragments = make_grouped_dict(fragments)
+        add_to_ordered_materials(fragments)
+
+        # Same for testimonia via work_testimoniumlinks
+        testimonia = list(
+            work.antiquarian_work_testimoniumlinks.values(
+                "definite", "book", pk=F("testimonium__pk")
+            ).order_by("book", "-definite")
+        )
+        testimonia = inflate(
+            inflate(testimonia, "pk", Testimonium, "object"), "book", Book, "book"
+        )
+        testimonia = make_grouped_dict(testimonia)
+        add_to_ordered_materials(testimonia)
+
+        # Finally for apposita
+        apposita = list(
+            work.antiquarian_work_appositumfragmentlinks.values(
+                "definite", "book", pk=F("anonymous_fragment__pk")
+            ).order_by("book", "-definite")
+        )
+        apposita = inflate(
+            inflate(apposita, "pk", AnonymousFragment, "object"), "book", Book, "book"
+        )
+        apposita = make_grouped_dict(apposita)
+        add_to_ordered_materials(apposita)
+
+        context["ordered_materials"] = ordered_materials
+        return ordered_materials
 
 
 def add_new_books_to_work(work, form):
