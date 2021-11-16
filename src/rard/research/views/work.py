@@ -124,7 +124,7 @@ class WorkDetailView(
         add_to_ordered_materials(apposita)
 
         context["ordered_materials"] = ordered_materials
-        return ordered_materials
+        return context
 
 
 def add_new_books_to_work(work, form):
