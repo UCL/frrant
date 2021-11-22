@@ -128,6 +128,61 @@
     <hr>
 
     <section>
+      <div class='d-flex justify-content-between mb-3'>
+        <div>
+          <h5>{% trans 'Books' %}</h5>
+        </div>
+      </div>
+      {% for book, material in ordered_materials.items %}
+        <h5>{{ book }}</h5>
+          {% if material.fragments %}
+            {% if material.fragments.definite %}
+              <h7>{% trans 'Definite Fragments' %}</h7>
+              {% for fragment in material.fragments.definite %}
+                {% include 'research/partials/fragment_list_item.html' with fragment=fragment %}
+              {% endfor %}
+            {% endif %}
+            {% if material.fragments.possible %}
+              <h7>{% trans 'Possible Fragments' %}</h7>
+              {% for fragment in material.fragments.possible %}
+                {% include 'research/partials/fragment_list_item.html' with fragment=fragment %}
+              {% endfor %}
+            {% endif %}
+          {% endif %}
+          {% if material.testimonia %}
+            {% if material.testimonia.definite %}
+              <h7>{% trans 'Definite Testimonia' %}</h7>
+              {% for testimonium in material.testimonia.definite %}
+                {% include 'research/partials/testimonium_list_item.html' with testimonium=testimonium %}
+              {% endfor %}
+            {% endif %}
+            {% if material.testimonia.possible %}
+              <h7>{% trans 'Possible Testimonia' %}</h7>
+              {% for testimonium in material.testimonia.possible %}
+                {% include 'research/partials/testimonium_list_item.html' with testimonium=testimonium %}
+              {% endfor %}
+            {% endif %}
+          {% endif %}
+          {% if material.apposita %}
+            {% if material.apposita.definite %}
+              <h7>{% trans 'Definite Apposita' %}</h7>
+              {% for appositum in material.apposita.definite %}
+                {% include 'research/partials/fragment_list_item.html' with fragment=appositum %}
+              {% endfor %}
+            {% endif %}
+            {% if material.apposita.possible %}
+              <h7>{% trans 'Possible Apposita' %}</h7>
+              {% for appositum in material.apposita.possible %}
+                {% include 'research/partials/fragment_list_item.html' with fragment=appositum %}
+              {% endfor %}
+            {% endif %}
+          {% endif %}
+      {% endfor %}
+    </section>
+
+    <hr>
+
+    <section>
         <div class='d-flex justify-content-between mb-3'>
             <div>
                 <h5>{% trans 'Definite Testimonia' %}</h5>

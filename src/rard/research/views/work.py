@@ -42,8 +42,11 @@ class WorkDetailView(
         books = work.book_set.all()
         # Empty structure with space for materials with unknown book
         ordered_materials = {
-            book.__str__(): {"definite": [], "possible": []}
-            for book in list(books) + ["unknown"]
+            book.__str__(): {
+                material: {"definite": [], "possible": []}
+                for material in ["fragments", "testimonia", "apposita"]
+            }
+            for book in list(books) + ["Unknown Book"]
         }
 
         def inflate(query_list, pk_field, model, new_key):
@@ -73,18 +76,22 @@ class WorkDetailView(
             }
             return grouped_dict
 
-        def add_to_ordered_materials(grouped_dict):
+        def add_to_ordered_materials(grouped_dict, material_type):
             for book, materials in grouped_dict.items():
                 if book:
-                    ordered_materials[book.__str__()]["definite"] += materials.get(
-                        True, []
-                    )
-                    ordered_materials[book.__str__()]["possible"] += materials.get(
-                        False, []
-                    )
+                    ordered_materials[book.__str__()][material_type][
+                        "definite"
+                    ] += materials.get(True, [])
+                    ordered_materials[book.__str__()][material_type][
+                        "possible"
+                    ] += materials.get(False, [])
                 else:  # If book is None it's unknown
-                    ordered_materials["unknown"]["definite"] += materials.get(True, [])
-                    ordered_materials["unknown"]["possible"] += materials.get(False, [])
+                    ordered_materials["Unknown Book"][material_type][
+                        "definite"
+                    ] += materials.get(True, [])
+                    ordered_materials["Unknown Book"][material_type][
+                        "possible"
+                    ] += materials.get(False, [])
 
         # For each fragmentlink, get definite, book (can be None), and fragment pk
         # Needs to be ordered by book then definite for make_grouped_dict to work
@@ -97,7 +104,7 @@ class WorkDetailView(
             inflate(fragments, "pk", Fragment, "object"), "book", Book, "book"
         )
         fragments = make_grouped_dict(fragments)
-        add_to_ordered_materials(fragments)
+        add_to_ordered_materials(fragments, "fragments")
 
         # Same for testimonia via work_testimoniumlinks
         testimonia = list(
@@ -109,7 +116,7 @@ class WorkDetailView(
             inflate(testimonia, "pk", Testimonium, "object"), "book", Book, "book"
         )
         testimonia = make_grouped_dict(testimonia)
-        add_to_ordered_materials(testimonia)
+        add_to_ordered_materials(testimonia, "testimonia")
 
         # Finally for apposita
         apposita = list(
@@ -121,9 +128,10 @@ class WorkDetailView(
             inflate(apposita, "pk", AnonymousFragment, "object"), "book", Book, "book"
         )
         apposita = make_grouped_dict(apposita)
-        add_to_ordered_materials(apposita)
+        add_to_ordered_materials(apposita, "apposita")
 
         context["ordered_materials"] = ordered_materials
+        print(ordered_materials)
         return context
 
 
