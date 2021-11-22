@@ -81,10 +81,16 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             self.cleaned_number = 1
             self.folded_number = 1
             self.keywords = PUNCTUATION_RE.sub("", keywords).lower()
-            # The basic function query function will eliminate puntuation
+            # The basic function query function will first eliminate html less than
+            # and greater than character codes, then punctuation,
             # and lowercase the 'haystack' strings to be searched.
             self.basic_query = lambda q: Lower(
-                Func(q, Value(PUNCTUATION), Value(""), function="translate")
+                Func(
+                    Func(q, Value("&[gl]t;"), Value(""), function="regexp_replace"),
+                    Value(PUNCTUATION),
+                    Value(""),
+                    function="translate",
+                )
             )
             self.query = self.basic_query
             # Now we call add_fold repeatedly to add more
