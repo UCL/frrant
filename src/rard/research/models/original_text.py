@@ -45,6 +45,10 @@ class OriginalText(HistoryModelMixin, BaseModel):
         "ApparatusCriticusItem", related_query_name="original_text"
     )
 
+    apparatus_criticus_blank = models.BooleanField(
+        "no apparatus criticus exists", blank=False, null=False, default=False
+    )
+
     def apparatus_criticus_lines(self):
         # use this rather than the above as that doesn't automatically
         # sort the results :/

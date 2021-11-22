@@ -1,6 +1,21 @@
 from .base import *  # noqa
 from .base import env
 
+
+def monkey_patch():
+    """
+    Django doesn't allow underscores in hostnames. This should overwrite that.
+    """
+    import django.http.request
+    from django.utils.regex_helper import _lazy_re_compile
+
+    django.http.request.host_validation_re = _lazy_re_compile(
+        r"^([a-z0-9._-]+|\[[a-f0-9]*:[a-f0-9\.:]+\])(:\d+)?$"
+    )
+
+
+monkey_patch()
+
 # GENERAL
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#secret-key
@@ -8,9 +23,8 @@ SECRET_KEY = env("DJANGO_SECRET_KEY")
 # https://docs.djangoproject.com/en/dev/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["frra-app01p.ad.ucl.ac.uk"])
 ADMINS = [
-    ("""UCL""", "p.bispham@ucl.ac.uk"),
     ("""UCL""", "r.alegre@ucl.ac.uk"),
-    ("""UCL""", "a.georgoulas@ucl.ac.uk"),
+    ("Tom Couch", "t.couch@ucl.ac.uk"),
 ]
 
 
@@ -38,6 +52,9 @@ SECURE_SSL_REDIRECT = env.bool("DJANGO_SECURE_SSL_REDIRECT", default=True)
 SESSION_COOKIE_SECURE = True
 # https://docs.djangoproject.com/en/dev/ref/settings/#csrf-cookie-secure
 CSRF_COOKIE_SECURE = True
+
+CSRF_TRUSTED_ORIGINS = ["www.ucl.ac.uk"]
+
 # https://docs.djangoproject.com/en/dev/topics/security/#ssl-https
 # https://docs.djangoproject.com/en/dev/ref/settings/#secure-hsts-seconds
 # TODO: set this to 60 seconds first and then to 518400 once you prove the former works

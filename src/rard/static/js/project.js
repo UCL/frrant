@@ -94,12 +94,43 @@ $('form').click(function(event) {
   $(this).data('clicked',$(event.target))
 });
 
-// confirm delete of objects when forms submitted
+// confirm delete/convert of objects when forms submitted
 $('body').on("submit", "form", function (e) {
     var $clicked= $(this).data('clicked');
     if ($clicked.hasClass('confirm-delete')) {
         let what = $clicked.data('what') || 'object';
         return confirm("Are you sure you want to delete this " + what + '? This cannot be undone.');
+    }
+    if ($clicked.hasClass('confirm-convert')) {
+        let what = $clicked.data('what') || 'object';
+        let confirmMsg = "Are you sure you want to convert this " + what + "?"
+        if ($clicked.hasClass('has-links')) {
+            confirmMsg += " This " + what + " has existing links to antiquarians or works which will also be converted."
+        }
+        confirmMsg += " This cannot be undone."
+        return confirm(confirmMsg);
+    }
+    return true; // proceed as normal
+})
+
+// Uncomment this block if you want alert re app crit existence on initial fragment create form submit
+/* $('.create-form').on("submit", function (e) {
+    let originalTextForm = $('.create-form')[0];
+    let originalTextData = new FormData(originalTextForm);
+    var $clicked= $(this).data('clicked')[0];
+    if (!originalTextData.get('apparatus_criticus_blank') && $clicked.name != 'then_add_apparatus_criticus') {
+        return confirm("You are creating this text without apparatus critici and have not specified they do not exist. Are you sure?")
+    }
+    return true; // proceed as normal
+}) */
+
+// Alert user if they try to update original text without adding app crit or checking box
+$('.original-text-update').on("submit", function (e) {
+    let originalTextForm = $('.original-text-update')[0];
+    let originalTextData = new FormData(originalTextForm);
+    let numAppCritLines = document.getElementsByClassName('apparatus-criticus-line').length;
+    if ( numAppCritLines == 0 && !originalTextData.get('apparatus_criticus_blank')) {
+        return confirm("You are saving this text without apparatus critici and have not specified they do not exist. Are you sure?")
     }
     return true; // proceed as normal
 })
@@ -708,6 +739,17 @@ function refreshOriginalTextApparatusCriticus() {
             dataType: 'json',
             success: function (data, textStatus, jqXHR) {
                 $editor.html(data.html);
+
+                // show/hide apparatus criticus intentionally blank checkbox
+                let appCritBlankCheckbox = $("#id_apparatus_criticus_blank");
+                if (document.getElementsByClassName('apparatus-criticus-line').length == 0) {
+                    appCritBlankCheckbox.parent().parent().addClass("visible");
+                    appCritBlankCheckbox.parent().parent().removeClass("invisible");
+                } else {
+                    appCritBlankCheckbox.parent().parent().addClass("invisible");
+                    appCritBlankCheckbox.parent().parent().removeClass("visible");
+                    appCritBlankCheckbox[0].checked = false;
+                }
             },
             error: function (e) {
                 console.log(e)
@@ -760,7 +802,9 @@ $('body').on('click', '#submit-new-apparatus-criticus-line', function() {
             $builder_area.find('.rich-editor').each(function() {
                 initRichTextEditor($(this)) ;
             });
+
             refreshOriginalTextApparatusCriticus();
+
         },
         error: function (e) {
             console.log(e)

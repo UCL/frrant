@@ -9,7 +9,7 @@
 
 
     {# Use a POST form to select the work #}
-    <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
+    <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form original-text-update" method='POST'>
         {% csrf_token %}
 
         {% bootstrap_field form.reference %}
@@ -20,6 +20,12 @@
         {% with enable_apparatus_criticus=object %}
         {# only allow apparatus criticus editing if we have an object #}
         {% include 'research/partials/rich_text_editor.html' with object_id=object.pk field=form.content enable_apparatus_criticus=enable_apparatus_criticus %}
+        {# include checkbox to indicate if there are no apparatus criticus #}
+        {% if object.apparatus_criticus_lines %}
+          {% bootstrap_field form.apparatus_criticus_blank field_class="invisible"%}
+        {% else %}
+          {% bootstrap_field form.apparatus_criticus_blank field_class="visible"%}
+        {% endif %}
         {% endwith %}
 
         <button type="submit" class="btn btn-primary">

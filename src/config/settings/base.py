@@ -15,6 +15,11 @@ if READ_DOT_ENV_FILE:
     # OS environment variables take precedence over variables from .env
     env.read_env(str(ROOT_DIR / ".env"))
 
+# CUSTOM SETTINGS
+# ------------------------------------------------------------------------------
+# Indicate if production so we can warn users
+PRODUCTION_INSTANCE = env.bool("DJANGO_PRODUCTION", True)
+
 # GENERAL
 # ------------------------------------------------------------------------------
 # https://docs.djangoproject.com/en/dev/ref/settings/#debug
@@ -232,9 +237,8 @@ EMAIL_TIMEOUT = 5
 ADMIN_URL = "admin/"
 # https://docs.djangoproject.com/en/dev/ref/settings/#admins
 ADMINS = [
-    ("""UCL""", "j.p.cooper@ucl.ac.uk"),
     ("""UCL""", "r.alegre@ucl.ac.uk"),
-    ("""UCL""", "a.georgoulas@ucl.ac.uk"),
+    ("Tom Couch", "t.couch@ucl.ac.uk"),
 ]
 
 # https://docs.djangoproject.com/en/dev/ref/settings/#managers
