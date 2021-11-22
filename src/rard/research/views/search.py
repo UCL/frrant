@@ -86,7 +86,13 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             # and lowercase the 'haystack' strings to be searched.
             self.basic_query = lambda q: Lower(
                 Func(
-                    Func(q, Value("&[gl]t;"), Value(""), function="regexp_replace"),
+                    Func(
+                        q,
+                        Value("&[gl]t;"),
+                        Value(""),
+                        Value("g"),
+                        function="regexp_replace",
+                    ),
                     Value(PUNCTUATION),
                     Value(""),
                     function="translate",
