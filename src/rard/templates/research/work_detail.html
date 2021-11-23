@@ -134,8 +134,8 @@
         </div>
       </div>
       {% for book, material in ordered_materials.items %}
-        <h5>{{ book }}</h5>
-          {% if material.fragments %}
+        {% if material.fragments.definite or material.fragments.possible %}
+          <h5>{{ book }}</h5>
             {% if material.fragments.definite %}
               <h7>{% trans 'Definite Fragments' %}</h7>
               {% for fragment in material.fragments.definite %}
@@ -176,7 +176,7 @@
                 {% include 'research/partials/fragment_list_item.html' with fragment=appositum %}
               {% endfor %}
             {% endif %}
-          {% endif %}
+        {% endif %}
       {% endfor %}
     </section>
 
