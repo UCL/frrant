@@ -131,7 +131,6 @@ class WorkDetailView(
         add_to_ordered_materials(apposita, "apposita")
 
         context["ordered_materials"] = ordered_materials
-        print(ordered_materials)
         return context
 
 
