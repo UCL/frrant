@@ -121,3 +121,6 @@ class Book(HistoryModelMixin, DatedModel, BaseModel):
     def get_absolute_url(self):
         # link to its owning work
         return reverse("work:detail", kwargs={"pk": self.work.pk})
+
+    def get_display_string(self):
+        return self.__str__()
