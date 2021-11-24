@@ -304,6 +304,12 @@
             {% endif %}
         {% endfor %}
 
+        {% if object.is_unlinked %}
+          {% for appositum in object.apposita.all %}
+            {% include 'research/partials/anonymousfragment_list_item.html' with fragment=appositum %}
+          {% endfor %}
+        {% endif %}
+
     </section>
 
 
