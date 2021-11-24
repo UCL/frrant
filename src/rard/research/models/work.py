@@ -1,6 +1,7 @@
 from django.contrib.postgres.aggregates import StringAgg
 from django.db import models
 from django.urls import reverse
+from django.utils.text import slugify
 from simple_history.models import HistoricalRecords
 
 from rard.research.models.mixins import HistoryModelMixin
@@ -122,5 +123,8 @@ class Book(HistoryModelMixin, DatedModel, BaseModel):
         # link to its owning work
         return reverse("work:detail", kwargs={"pk": self.work.pk})
 
-    def get_display_string(self):
+    def get_display_name(self):
         return self.__str__()
+
+    def get_anchor_id(self):
+        return slugify(self.__str__())

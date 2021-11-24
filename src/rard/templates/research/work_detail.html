@@ -75,12 +75,13 @@
             <dd class="col-sm-9">
 
             {% for book in object.book_set.all %}
+              {% with book_name=book.get_anchor_id %}
                 <div class='d-flex justify-content-between mb-3'>
                     <div>
-                      {% if book.get_display_string in ordered_materials %}
-                      <a href="#book{{forloop.counter}}">{{book}}</a>
+                      {% if book_name in ordered_materials.keys %}
+                      <a href="#{{book.get_anchor_id}}">{{book}}</a>
                       {% else %}
-                      {{ book }}
+                        {{ book }}
                       {% endif %}
                       <br><small>{{ book.display_date_range }}</small></div>
                     <div>
@@ -99,6 +100,7 @@
                         </form>
                     </div>
                 </div>
+              {% endwith %}
             {% endfor %}
             </dd>
 
@@ -139,52 +141,50 @@
           <h5>{% trans 'Books' %}</h5>
         </div>
       </div>
-      {% for book, material in ordered_materials.items %}
-        {% if material.fragments.definite or material.fragments.possible %}
-          <div id="book{{forloop.counter}}">
-            <h5>{{ book }}</h5>
-            {% if material.fragments.definite %}
+      {% for book, content in ordered_materials.items %}
+          <div id="{{book}}">
+            <h5>{{ content.book_title }}</h5>
+            {% if content.fragments.definite %}
               <h7>{% trans 'Definite Fragments' %}</h7>
-              {% for fragment in material.fragments.definite %}
+              {% for fragment in content.fragments.definite %}
                 {% include 'research/partials/fragment_list_item.html' with fragment=fragment %}
               {% endfor %}
             {% endif %}
-            {% if material.fragments.possible %}
+            {% if content.fragments.possible %}
               <h7>{% trans 'Possible Fragments' %}</h7>
-              {% for fragment in material.fragments.possible %}
+              {% for fragment in content.fragments.possible %}
                 {% include 'research/partials/fragment_list_item.html' with fragment=fragment %}
               {% endfor %}
             {% endif %}
-            {% if material.testimonia %}
-              {% if material.testimonia.definite %}
+            {% if content.testimonia %}
+              {% if content.testimonia.definite %}
                 <h7>{% trans 'Definite Testimonia' %}</h7>
-                {% for testimonium in material.testimonia.definite %}
+                {% for testimonium in content.testimonia.definite %}
                   {% include 'research/partials/testimonium_list_item.html' with testimonium=testimonium %}
                 {% endfor %}
               {% endif %}
-              {% if material.testimonia.possible %}
+              {% if content.testimonia.possible %}
                 <h7>{% trans 'Possible Testimonia' %}</h7>
-                {% for testimonium in material.testimonia.possible %}
+                {% for testimonium in content.testimonia.possible %}
                   {% include 'research/partials/testimonium_list_item.html' with testimonium=testimonium %}
                 {% endfor %}
               {% endif %}
             {% endif %}
-            {% if material.apposita %}
-              {% if material.apposita.definite %}
+            {% if content.apposita %}
+              {% if content.apposita.definite %}
                 <h7>{% trans 'Definite Apposita' %}</h7>
-                {% for appositum in material.apposita.definite %}
+                {% for appositum in content.apposita.definite %}
                   {% include 'research/partials/fragment_list_item.html' with fragment=appositum %}
                 {% endfor %}
               {% endif %}
-              {% if material.apposita.possible %}
+              {% if content.apposita.possible %}
                 <h7>{% trans 'Possible Apposita' %}</h7>
-                {% for appositum in material.apposita.possible %}
+                {% for appositum in content.apposita.possible %}
                   {% include 'research/partials/fragment_list_item.html' with fragment=appositum %}
                 {% endfor %}
               {% endif %}
             {% endif %}
           </div>
-        {% endif %}
       {% endfor %}
     </section>
 

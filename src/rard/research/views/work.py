@@ -42,11 +42,11 @@ class WorkDetailView(
         books = work.book_set.all()
         # Empty structure with space for materials with unknown book
         ordered_materials = {
-            book.__str__(): {
+            book: {
                 material: {"definite": [], "possible": []}
                 for material in ["fragments", "testimonia", "apposita"]
             }
-            for book in list(books) + ["Unknown Book"]
+            for book in [b.get_anchor_id() for b in books] + ["Unknown Book"]
         }
 
         def inflate(query_list, pk_field, model, new_key):
@@ -79,10 +79,10 @@ class WorkDetailView(
         def add_to_ordered_materials(grouped_dict, material_type):
             for book, materials in grouped_dict.items():
                 if book:
-                    ordered_materials[book.__str__()][material_type][
+                    ordered_materials[book.get_anchor_id()][material_type][
                         "definite"
                     ] += materials.get(True, [])
-                    ordered_materials[book.__str__()][material_type][
+                    ordered_materials[book.get_anchor_id()][material_type][
                         "possible"
                     ] += materials.get(False, [])
                 else:  # If book is None it's unknown
@@ -92,6 +92,21 @@ class WorkDetailView(
                     ordered_materials["Unknown Book"][material_type][
                         "possible"
                     ] += materials.get(False, [])
+
+        def remove_empty_books(ordered_materials):
+            """Check each book and delete it if there's no material"""
+            for book in list(ordered_materials.keys()):
+                content = ordered_materials[book]
+                has_material = any(
+                    [
+                        bool(item_list)
+                        for material in content.values()
+                        for item_list in material.values()
+                    ]
+                )
+                if not has_material:
+                    del ordered_materials[book]
+            return ordered_materials
 
         # For each fragmentlink, get definite, book (can be None), and fragment pk
         # Needs to be ordered by book then definite for make_grouped_dict to work
@@ -129,6 +144,18 @@ class WorkDetailView(
         )
         apposita = make_grouped_dict(apposita)
         add_to_ordered_materials(apposita, "apposita")
+
+        ordered_materials = remove_empty_books(ordered_materials)
+
+        # Add the display title so we can access it when looping through ordered
+        # materials (needs to happen after removing empty books)
+        for book in books:
+            if book.get_anchor_id() in ordered_materials:
+                ordered_materials[book.get_anchor_id()][
+                    "book_title"
+                ] = book.get_display_name()
+        if "Unknown Book" in ordered_materials:
+            ordered_materials["Unknown Book"]["book_title"] = "Unknown Book"
 
         context["ordered_materials"] = ordered_materials
         return context
