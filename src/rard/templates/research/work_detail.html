@@ -134,13 +134,8 @@
     <hr>
 
     <section>
-      <div class='d-flex justify-content-between mb-3'>
-        <div>
-          <h5>{% trans 'Books' %}</h5>
-        </div>
-      </div>
       {% for book, content in ordered_materials.items %}
-          <div id="{{ book.get_anchor_id }}">
+          <div id="{{ book.get_anchor_id }}" class="pb-4">
             <h5>{{ book }}</h5>
             {% if content.fragments.definite %}
               <h7>{% trans 'Definite Fragments' %}</h7>
@@ -172,90 +167,18 @@
               {% if content.apposita.definite %}
                 <h7>{% trans 'Definite Apposita' %}</h7>
                 {% for appositum in content.apposita.definite %}
-                  {% include 'research/partials/fragment_list_item.html' with fragment=appositum %}
+                  {% include 'research/partials/anonymousfragment_list_item.html' with fragment=appositum %}
                 {% endfor %}
               {% endif %}
               {% if content.apposita.possible %}
                 <h7>{% trans 'Possible Apposita' %}</h7>
                 {% for appositum in content.apposita.possible %}
-                  {% include 'research/partials/fragment_list_item.html' with fragment=appositum %}
+                  {% include 'research/partials/anonymousfragment_list_item.html' with fragment=appositum %}
                 {% endfor %}
               {% endif %}
             {% endif %}
           </div>
       {% endfor %}
-    </section>
-
-    <hr>
-
-    <section>
-        <div class='d-flex justify-content-between mb-3'>
-            <div>
-                <h5>{% trans 'Definite Testimonia' %}</h5>
-            </div>
-            <div>
-            </div>
-        </div>
-
-        {% for testimonium in object.definite_testimonia.all %}
-
-        {% include 'research/partials/testimonium_list_item.html' with testimonium=testimonium %}
-
-        {% endfor %}
-    </section>
-
-    <hr>
-
-    <section>
-        <div class='d-flex justify-content-between mb-3'>
-            <div>
-                <h5>{% trans 'Possible Testimonia' %}</h5>
-            </div>
-            <div>
-            </div>
-        </div>
-
-        {% for testimonium in object.possible_testimonia.all %}
-
-        {% include 'research/partials/testimonium_list_item.html' with testimonium=testimonium %}
-
-        {% endfor %}
-    </section>
-
-    <hr>
-
-    <section>
-        <div class='d-flex justify-content-between mb-3'>
-            <div>
-                <h5>{% trans 'Definite Fragments' %}</h5>
-            </div>
-            <div>
-            </div>
-        </div>
-
-        {% for fragment in object.definite_fragments.all %}
-
-        {% include 'research/partials/fragment_list_item.html' with fragment=fragment %}
-
-        {% endfor %}
-    </section>
-
-    <hr>
-
-    <section>
-        <div class='d-flex justify-content-between mb-3'>
-            <div>
-                <h5>{% trans 'Possible Fragments' %}</h5>
-            </div>
-            <div>
-            </div>
-        </div>
-
-        {% for fragment in object.possible_fragments.all %}
-
-        {% include 'research/partials/fragment_list_item.html' with fragment=fragment %}
-
-        {% endfor %}
     </section>
 
 
@@ -288,55 +211,6 @@
             {% endwith %}
 
     </section>
-
-
-    {% comment %}
-        <hr>
-
-
-    <section>
-        <div class='d-flex justify-content-between mb-3'>
-            <div>
-                <h5>{% trans 'Ordered Material' %}</h5>
-            </div>
-            <div>
-            </div>
-        </div>
-
-        <ul>
-            <div class='ordered-list'>
-            {% with tlinks=object.antiquarian_work_testimoniumlinks.all %}
-            {% with flinks=object.antiquarian_work_fragmentlinks.all %}
-            {% with alinks=object.antiquarian_work_appositumfragmentlinks.all %}
-
-                {% for link in tlinks %}
-                    {% include 'research/partials/testimonium_link_list_item.html' with link=link link_text=link.get_work_display_name_full|safe can_edit=perms.research.change_work has_object_lock=has_object_lock %}
-                {% endfor %}
-
-                {% for link in flinks %}
-                    {% include 'research/partials/fragment_link_list_item.html' with link=link  link_text=link.get_work_display_name_full|safe can_edit=perms.research.change_work has_object_lock=has_object_lock %}
-                {% endfor %}
-
-                {% for link in alinks %}
-                    {% include 'research/partials/appositum_fragment_link_list_item.html' with link=link link_text=link.get_work_display_name_full|safe can_edit=perms.research.change_work has_object_lock=has_object_lock %}
-                {% endfor %}
-
-                {% if not flinks and not tlinks and not alinks %}
-                <div class='text-muted my-3 ml-4'><em>No linked material for this work</em></div>
-                {% endif %}
-
-            {% endwith %}
-            {% endwith %}
-            {% endwith %}
-            </div>
-        </ul>
-
-
-
-
-    </section>
-
-    {% endcomment %}
 
     {% endwith %}
 {% endblock %}
