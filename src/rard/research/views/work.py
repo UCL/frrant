@@ -30,12 +30,18 @@ class WorkDetailView(
     def get_context_data(self, **kwargs):
         """Add a dictionary to context data called ordered materials.
         For each book in this work, add the book and a list of associated material
-        ordered by definite/possible boolean, then by material type; e.g.:
-        ordered_materials = {'book1': {'definite': [F1, T1, A1],
-                                       'possible': [F2, T2, A2]
-                                       },
-                             'book2': {...},
+        ordered by material type, then by definite/possible boolean; e.g.:
+        ordered_materials = {'book1': {
+                                'fragments':{
+                                    'definite':[F1,F2,F3],
+                                    'possible':[F4,F5,F6]},
+                                'testimonia':{
+                                    'definite':[T1,T2],
+                                    'possible':[T3,T4]
+                                },
+                                'apposita':{...}
                             }
+                        }
         """
         context = super().get_context_data(**kwargs)
         work = self.get_object()
