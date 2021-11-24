@@ -46,7 +46,7 @@ class WorkDetailView(
                 material: {"definite": [], "possible": []}
                 for material in ["fragments", "testimonia", "apposita"]
             }
-            for book in [b.get_anchor_id() for b in books] + ["Unknown Book"]
+            for book in list(books) + ["Unknown Book"]
         }
 
         def inflate(query_list, pk_field, model, new_key):
@@ -79,12 +79,12 @@ class WorkDetailView(
         def add_to_ordered_materials(grouped_dict, material_type):
             for book, materials in grouped_dict.items():
                 if book:
-                    ordered_materials[book.get_anchor_id()][material_type][
-                        "definite"
-                    ] += materials.get(True, [])
-                    ordered_materials[book.get_anchor_id()][material_type][
-                        "possible"
-                    ] += materials.get(False, [])
+                    ordered_materials[book][material_type]["definite"] += materials.get(
+                        True, []
+                    )
+                    ordered_materials[book][material_type]["possible"] += materials.get(
+                        False, []
+                    )
                 else:  # If book is None it's unknown
                     ordered_materials["Unknown Book"][material_type][
                         "definite"
@@ -146,16 +146,6 @@ class WorkDetailView(
         add_to_ordered_materials(apposita, "apposita")
 
         ordered_materials = remove_empty_books(ordered_materials)
-
-        # Add the display title so we can access it when looping through ordered
-        # materials (needs to happen after removing empty books)
-        for book in books:
-            if book.get_anchor_id() in ordered_materials:
-                ordered_materials[book.get_anchor_id()][
-                    "book_title"
-                ] = book.get_display_name()
-        if "Unknown Book" in ordered_materials:
-            ordered_materials["Unknown Book"]["book_title"] = "Unknown Book"
 
         context["ordered_materials"] = ordered_materials
         return context
