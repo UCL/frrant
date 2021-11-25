@@ -35,6 +35,7 @@ class MentionSearchView(LoginRequiredMixin, View):
             "topics": self.topic_search,
             "works": self.work_search,
             "bibliographies": self.bibliography_search,
+            "unlinked fragments": self.unlinked_fragment_search,
         }
 
     # move to queryset on model managers
@@ -73,6 +74,19 @@ class MentionSearchView(LoginRequiredMixin, View):
             return keywords[1:]
         keywords[0] = k
         return keywords
+
+    @classmethod
+    def unlinked_fragment_search(cls, keywords):
+        qs = Fragment.objects.filter(antiquarian_fragmentlinks=None)
+        kws = keywords.split()
+        ids = cls.remove_keyword("u", kws)
+        if ids is None or 1 < len(ids):
+            return qs.none()
+        if len(ids) == 0:
+            return qs
+        if not ids[0].isnumeric():
+            return qs.none()
+        return qs.filter(id__startswith=int(ids[0]))
 
     @classmethod
     def anonymous_fragment_search(cls, keywords):
