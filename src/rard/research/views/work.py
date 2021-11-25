@@ -118,8 +118,8 @@ class WorkDetailView(
         # Needs to be ordered by book then definite for make_grouped_dict to work
         fragments = list(
             work.antiquarian_work_fragmentlinks.values(
-                "definite", "book", pk=F("fragment__pk")
-            ).order_by("book", "-definite")
+                "definite", "book", "order", pk=F("fragment__pk")
+            ).order_by("book", "-definite", "order")
         )
         fragments = inflate(
             inflate(fragments, "pk", Fragment, "object"), "book", Book, "book"
@@ -130,8 +130,8 @@ class WorkDetailView(
         # Same for testimonia via work_testimoniumlinks
         testimonia = list(
             work.antiquarian_work_testimoniumlinks.values(
-                "definite", "book", pk=F("testimonium__pk")
-            ).order_by("book", "-definite")
+                "definite", "book", "order", pk=F("testimonium__pk")
+            ).order_by("book", "-definite", "order")
         )
         testimonia = inflate(
             inflate(testimonia, "pk", Testimonium, "object"), "book", Book, "book"
@@ -142,8 +142,8 @@ class WorkDetailView(
         # Finally for apposita
         apposita = list(
             work.antiquarian_work_appositumfragmentlinks.values(
-                "definite", "book", pk=F("anonymous_fragment__pk")
-            ).order_by("book", "-definite")
+                "definite", "book", "order", pk=F("anonymous_fragment__pk")
+            ).order_by("book", "-definite", "order")
         )
         apposita = inflate(
             inflate(apposita, "pk", AnonymousFragment, "object"), "book", Book, "book"
