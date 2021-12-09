@@ -2,6 +2,7 @@ import re
 from itertools import chain
 
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.postgres.search import SearchHeadline, SearchQuery
 from django.db.models import ExpressionWrapper, Func, Q, TextField, Value
 from django.db.models.functions import Lower
 from django.shortcuts import redirect
@@ -108,6 +109,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                     self.add_fold(fold_from, fold_to)
                 elif fold_to in k:
                     self.add_fold(fold_from, fold_to)
+            self.folded_keywords = k
             self.folded_matcher = self.get_matcher(k)
             self.nonfolded_matcher = self.get_matcher(self.keywords)
 
@@ -146,12 +148,24 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             single_keywords = " ".join(segments[::2]).split()
             return segments[1::2] + single_keywords
 
-        def do_match(self, query_set, query_string, annotation_name, query, matcher):
+        def do_match(
+            self, query_set, query_string, annotation_name, query, matcher, keywords
+        ):
             expression = ExpressionWrapper(
                 query(query_string), output_field=TextField()
             )
             annotated = query_set.annotate(**{annotation_name: expression})
-            return annotated.filter(matcher(annotation_name + "__contains"))
+            matches = annotated.filter(matcher(annotation_name + "__contains"))
+            search_headline = SearchHeadline(
+                expression,
+                SearchQuery(keywords),
+                start_sel="<span class='search-headline'>",
+                stop_sel="</span>",
+                max_fragments=5,
+                max_words=7,
+                min_words=3,
+            )
+            return matches.annotate(headline=search_headline)
 
         def match(self, query_set, query_string):
             annotation_name = "cleaned{0}".format(self.cleaned_number)
@@ -162,6 +176,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                 annotation_name,
                 self.basic_query,
                 self.nonfolded_matcher,
+                self.keywords,
             )
 
         def match_folded(self, query_set, query_string):
@@ -173,6 +188,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                 annotation_name,
                 self.query,
                 self.folded_matcher,
+                self.folded_keywords,
             )
 
     paginate_by = 10
