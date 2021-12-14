@@ -49,7 +49,7 @@
             <a href='{{ object.get_absolute_url }}'>{{ object }}</a>
             <span class='badge badge-secondary badge-pill'>{{ object|get_object_class }}</span>
         </li>
-        <li>{{object.headline | safe }}</li>
+        <li>{{object.snippet | safe }}</li>
     {% endfor %}
     </ul>
 

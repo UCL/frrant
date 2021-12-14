@@ -2,7 +2,6 @@ import re
 from itertools import chain
 
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.postgres.search import SearchHeadline, SearchQuery
 from django.db.models import ExpressionWrapper, Func, Q, TextField, Value
 from django.db.models.functions import Lower
 from django.shortcuts import redirect
@@ -156,16 +155,51 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             )
             annotated = query_set.annotate(**{annotation_name: expression})
             matches = annotated.filter(matcher(annotation_name + "__contains"))
-            search_headline = SearchHeadline(
-                expression,
-                SearchQuery(keywords),
-                start_sel="<span class='search-headline'>",
-                stop_sel="</span>",
-                max_fragments=5,
-                max_words=7,
-                min_words=3,
+            return self.annotate_with_snippet(matches, self.keywords)
+
+        def annotate_with_snippet(self, qs, keywords):
+            return qs.annotate(
+                snippet=Func(
+                    Func(
+                        Func(
+                            Func(
+                                "original_texts__plain_content",
+                                Value(self.get_snippet_regex(keywords)),
+                                Value(
+                                    r'START_SNIPPET\1<span class="search-snippet">'
+                                    r"\2</span>\3...END_SNIPPET"
+                                ),
+                                Value("gi"),
+                                function="REGEXP_REPLACE",
+                            ),
+                            Value("^.*?START_SNIPPET"),
+                            Value(""),
+                            Value("gs"),
+                            function="REGEXP_REPLACE",
+                        ),
+                        Value("END_SNIPPET.*?(START_SNIPPET)"),
+                        Value(""),
+                        Value("gs"),
+                        function="REGEXP_REPLACE",
+                    ),
+                    Value("END_SNIPPET.*"),
+                    Value(""),
+                    function="REGEXP_REPLACE",
+                    output_field=TextField(),
+                )
             )
-            return matches.annotate(headline=search_headline)
+
+        def get_snippet_regex(self, keywords, before=5, after=5):
+            """This regex should give us three capturing groups we can use
+            with postgres REGEXP_REPLACE to insert <span> tags around our keywords;
+            e.g. REGEXP_REPLACE('content',headline_regex,'\1 <span>\2</span>\3')
+            """
+            keywords = self.get_keywords(keywords)
+            words_before_group = rf"((?:\S+\s){{0,{before}}})"
+            keywords_group = "|".join([r"\S*" + kw + r"\S*" for kw in keywords])
+            keywords_group = r"(" + keywords_group + r")"
+            words_after_group = rf"(\s(?:\S+\s){{0,{after}}})"
+            return words_before_group + keywords_group + words_after_group
 
         def match(self, query_set, query_string):
             annotation_name = "cleaned{0}".format(self.cleaned_number)

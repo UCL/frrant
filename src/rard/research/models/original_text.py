@@ -6,6 +6,7 @@ from simple_history.models import HistoricalRecords
 
 from rard.research.models.mixins import HistoryModelMixin
 from rard.utils.basemodel import BaseModel, DynamicTextField
+from rard.utils.convertors import make_plain_text
 
 
 class OriginalText(HistoryModelMixin, BaseModel):
@@ -30,6 +31,9 @@ class OriginalText(HistoryModelMixin, BaseModel):
 
     content = DynamicTextField(blank=False)
 
+    # Also store copy without html or punctuation for search purposes
+    plain_content = models.TextField(blank=False, default="")
+
     # The value 24 to be used in 'ordering by reference' taking example above
     # In some cases it will be a dot-separated list of numbers that also need
     # to be used for ordering, like 1.3.24.
@@ -48,6 +52,14 @@ class OriginalText(HistoryModelMixin, BaseModel):
     apparatus_criticus_blank = models.BooleanField(
         "no apparatus criticus exists", blank=False, null=False, default=False
     )
+
+    def save(self, *args, **kwargs):
+        """Save html free copy of text fields. We introduce a space
+        between closing and opening tags so words at the beginning/end
+        of list items don't get merged (and other things like that)"""
+        if self.content:
+            self.plain_content = make_plain_text(self.content)
+        super(OriginalText, self).save(*args, **kwargs)
 
     def apparatus_criticus_lines(self):
         # use this rather than the above as that doesn't automatically

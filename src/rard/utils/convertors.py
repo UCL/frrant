@@ -80,3 +80,7 @@ def convert_anonymous_fragment_to_fragment(anonymous_fragment):
     anonymous_fragment.delete()
 
     return fragment
+
+
+def make_plain_text():
+    pass
