@@ -1,3 +1,7 @@
+import string
+
+from django.utils.html import strip_tags
+
 from rard.research.models import AnonymousFragment, Fragment
 from rard.research.models.base import FragmentLink
 
@@ -82,5 +86,7 @@ def convert_anonymous_fragment_to_fragment(anonymous_fragment):
     return fragment
 
 
-def make_plain_text():
-    pass
+def make_plain_text(content):
+    html_free_content = strip_tags(content.replace("><", "> <"))
+    plain_text = html_free_content.translate(str.maketrans("", "", string.punctuation))
+    return plain_text
