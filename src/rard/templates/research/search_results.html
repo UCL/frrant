@@ -43,13 +43,15 @@
 
     </form>
 
-    <ul class="list-group list-group-flush">
+    <div class="list-group list-group-flush">
     {% for object in page_obj %}
-        <li class="rard-list-item border-0  d-flex justify-content-between align-items-center">
-            <a href='{{ object.get_absolute_url }}'>{{ object }}</a>
-            <span class='badge badge-secondary badge-pill'>{{ object|get_object_class }}</span>
-        </li>
-        <li>{{object.snippet | safe }}</li>
+      <a href='{{ object.get_absolute_url }}' class="list-group-item list-group-item-action flex-column align-items-start">
+        <div class="d-flex w-100 justify-content-between">
+          <h5 class="mb-1">{{ object }}</h5>
+          <p><span class='badge badge-secondary badge-pill'>{{ object|get_object_class }}</span></p>
+        </div>
+        <p class="mb-1">{{object.snippet | safe }}</p>
+      </a>
     {% endfor %}
     </ul>
 
