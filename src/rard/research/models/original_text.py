@@ -148,6 +148,9 @@ class Translation(HistoryModelMixin, BaseModel):
 
     translated_text = models.TextField(blank=False)
 
+    # plain copy for search purposes
+    plain_translated_text = models.TextField(blank=False, default="")
+
     approved = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
@@ -156,6 +159,9 @@ class Translation(HistoryModelMixin, BaseModel):
             self.original_text.translation_set.exclude(pk=self.pk).update(
                 approved=False
             )
+        # make a plain copy
+        if self.translated_text:
+            self.plain_translated_text = make_plain_text(self.translated_text)
         super().save(*args, **kwargs)
 
     def __str__(self):
