@@ -6,7 +6,7 @@ from simple_history.models import HistoricalRecords
 
 from rard.research.models.mixins import HistoryModelMixin
 from rard.utils.basemodel import BaseModel, DynamicTextField
-from rard.utils.convertors import make_plain_text
+from rard.utils.text_processors import make_plain_text
 
 
 class OriginalText(HistoryModelMixin, BaseModel):
