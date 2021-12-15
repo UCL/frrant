@@ -455,6 +455,8 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
         blank=True,
     )
 
+    plain_commentary = models.TextField(blank=False, default="")
+
     images = models.ManyToManyField("Image", blank=True)
 
     def __str__(self):

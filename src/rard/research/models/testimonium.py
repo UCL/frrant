@@ -3,6 +3,7 @@ from django.urls import reverse
 from simple_history.models import HistoricalRecords
 
 from rard.research.models.mixins import HistoryModelMixin
+from rard.utils.text_processors import make_plain_text
 
 from .base import HistoricalBaseModel, TestimoniumLink
 
@@ -80,6 +81,11 @@ class Testimonium(HistoryModelMixin, HistoricalBaseModel):
             .order_by("antiquarian", "order")
             .distinct()
         )
+
+    def save(self, *args, **kwargs):
+        if self.commentary:
+            self.plain_commentary = make_plain_text(self.commentary.content)
+        super().save(*args, **kwargs)
 
 
 Testimonium.init_text_object_fields()
