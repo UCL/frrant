@@ -148,28 +148,44 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             return segments[1::2] + single_keywords
 
         def do_match(
-            self, query_set, query_string, annotation_name, query, matcher, keywords
+            self,
+            query_set,
+            query_string,
+            annotation_name,
+            query,
+            matcher,
+            keywords,
+            add_snippet=False,
         ):
             expression = ExpressionWrapper(
                 query(query_string), output_field=TextField()
             )
             annotated = query_set.annotate(**{annotation_name: expression})
             matches = annotated.filter(matcher(annotation_name + "__contains"))
-            return self.annotate_with_snippet(matches, self.keywords)
+            if add_snippet:
+                matches = self.annotate_with_snippet(matches, keywords, query_string)
+            else:
+                matches = matches.annotate(snippet=Value(""))
+            return matches
 
-        def annotate_with_snippet(self, qs, keywords):
+        def annotate_with_snippet(self, qs, keywords, query_string):
             return qs.annotate(
                 snippet=Func(
                     Func(
                         Func(
                             Func(
-                                "original_texts__plain_content",
-                                Value(self.get_snippet_regex(keywords)),
-                                Value(
-                                    r'START_SNIPPET\1<span class="search-snippet">'
-                                    r"\2</span>\3...END_SNIPPET"
+                                Func(
+                                    query_string,
+                                    Value(self.get_snippet_regex(keywords)),
+                                    Value(
+                                        r'START_SNIPPET\1<span class="search-snippet">'
+                                        r"\2</span>\3...END_SNIPPET"
+                                    ),
+                                    Value("gi"),
+                                    function="REGEXP_REPLACE",
                                 ),
-                                Value("gi"),
+                                Value("^((?!START_SNIPPET).)*$"),
+                                Value(""),
                                 function="REGEXP_REPLACE",
                             ),
                             Value("^.*?START_SNIPPET"),
@@ -201,7 +217,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             words_after_group = rf"(\s(?:\S+\s){{0,{after}}})"
             return words_before_group + keywords_group + words_after_group
 
-        def match(self, query_set, query_string):
+        def match(self, query_set, query_string, add_snippet=False):
             annotation_name = "cleaned{0}".format(self.cleaned_number)
             self.cleaned_number += 1
             return self.do_match(
@@ -211,18 +227,21 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                 self.basic_query,
                 self.nonfolded_matcher,
                 self.keywords,
+                add_snippet=add_snippet,
             )
 
-        def match_folded(self, query_set, query_string):
+        def match_folded(self, query_set, query_string, add_snippet=False):
             annotation_name = "folded{0}".format(self.folded_number)
             self.folded_number += 1
+            keywords = self.keywords + " " + self.folded_keywords
             return self.do_match(
                 query_set,
                 query_string,
                 annotation_name,
                 self.query,
                 self.folded_matcher,
-                self.folded_keywords,
+                keywords,
+                add_snippet=add_snippet,
             )
 
     paginate_by = 10
@@ -273,41 +292,37 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         return results.distinct()
 
     @classmethod
+    def original_text_owner_search(cls, terms, qs):
+        search_fields = [
+            ("original_texts__plain_content", terms.match_folded),
+            ("original_texts__translation__plain_translated_text", terms.match),
+            ("plain_commentary", terms.match),
+            ("original_texts__translation__translator_name", terms.match),
+            ("original_texts__reference", terms.match),
+        ]
+        results = []
+        for field in search_fields:
+            field_name, match_function = field
+            matches = match_function(qs, field_name, add_snippet=True)
+            results.append(matches)
+            qs = qs.exclude(id__in=[o.id for o in matches])
+        return chain(*results)
+
+    @classmethod
     def fragment_search(cls, terms):
         qs = Fragment.objects.all()
-        results = (
-            terms.match_folded(qs, "original_texts__content")
-            | terms.match(qs, "original_texts__reference")
-            | terms.match(qs, "original_texts__translation__translated_text")  # noqa
-            | terms.match(qs, "original_texts__translation__translator_name")  # noqa
-            | terms.match_folded(qs, "commentary__content")
-        )
-        return results.distinct()
+        return cls.original_text_owner_search(terms, qs)
 
     @classmethod
     def anonymous_fragment_search(cls, terms, qs=None):
         if not qs:
             qs = AnonymousFragment.objects.all()
-        results = (
-            terms.match_folded(qs, "original_texts__content")
-            | terms.match(qs, "original_texts__reference")
-            | terms.match(qs, "original_texts__translation__translated_text")  # noqa
-            | terms.match(qs, "original_texts__translation__translator_name")  # noqa
-            | terms.match_folded(qs, "commentary__content")
-        )
-        return results.distinct()
+        return cls.original_text_owner_search(terms, qs)
 
     @classmethod
     def testimonium_search(cls, terms):
         qs = Testimonium.objects.all()
-        results = (
-            terms.match_folded(qs, "original_texts__content")
-            | terms.match(qs, "original_texts__reference")
-            | terms.match(qs, "original_texts__translation__translated_text")  # noqa
-            | terms.match(qs, "original_texts__translation__translator_name")  # noqa
-            | terms.match_folded(qs, "commentary__content")
-        )
-        return results.distinct()
+        return cls.original_text_owner_search(terms, qs)
 
     @classmethod
     def apparatus_criticus_search(cls, terms):
