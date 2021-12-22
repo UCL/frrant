@@ -264,32 +264,42 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             "works": self.work_search,
         }
 
+    @classmethod
+    def generic_content_search(cls, qs, search_fields):
+        results = []
+        for field in search_fields:
+            field_name, match_function = field
+            matches = match_function(qs, field_name, add_snippet=True)
+            results.append(matches)
+            qs = qs.exclude(id__in=[o.id for o in matches])
+        return chain(*results)
+
     # move to queryset on model managers
     @classmethod
     def antiquarian_search(cls, terms):
         qs = Antiquarian.objects.all()
-        results = (
-            terms.match(qs, "name")
-            | terms.match(qs, "introduction__content")
-            | terms.match(qs, "re_code")
-        )
-        return results.distinct()
+        search_fields = [
+            ("name", terms.match),
+            ("plain_introduction", terms.match),
+            ("re_code", terms.match),
+        ]
+        return cls.generic_content_search(qs, search_fields)
 
     @classmethod
     def topic_search(cls, terms):
         qs = Topic.objects.all()
-        results = terms.match(qs, "name")
-        return results.distinct()
+        search_fields = [("name", terms.match)]
+        return cls.generic_content_search(qs, search_fields)
 
     @classmethod
     def work_search(cls, terms):
         qs = Work.objects.all()
-        results = (
-            terms.match(qs, "name")
-            | terms.match(qs, "subtitle")
-            | terms.match(qs, "antiquarian__name")
-        )
-        return results.distinct()
+        search_fields = [
+            ("name", terms.match),
+            ("subtitle", terms.match),
+            ("antiquarian__name", terms.match),
+        ]
+        return cls.generic_content_search(qs, search_fields)
 
     @classmethod
     def original_text_owner_search(cls, terms, qs):
@@ -300,13 +310,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             ("original_texts__translation__translator_name", terms.match),
             ("original_texts__reference", terms.match),
         ]
-        results = []
-        for field in search_fields:
-            field_name, match_function = field
-            matches = match_function(qs, field_name, add_snippet=True)
-            results.append(matches)
-            qs = qs.exclude(id__in=[o.id for o in matches])
-        return chain(*results)
+        return cls.generic_content_search(qs, search_fields)
 
     @classmethod
     def fragment_search(cls, terms):
@@ -331,9 +335,9 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         qsa = AnonymousFragment.objects.all()
         qsf = Fragment.objects.all()
         return chain(
-            terms.match_folded(qsf, query_string).distinct(),
-            terms.match_folded(qsa, query_string).distinct(),
-            terms.match_folded(qst, query_string).distinct(),
+            terms.match_folded(qsf, query_string, add_snippet=True).distinct(),
+            terms.match_folded(qsa, query_string, add_snippet=True).distinct(),
+            terms.match_folded(qst, query_string, add_snippet=True).distinct(),
         )
 
     @classmethod
