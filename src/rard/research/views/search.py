@@ -383,7 +383,10 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         context = super().get_context_data(*args, **kwargs)
         keywords = self.request.GET.get("q")
         to_search = self.request.GET.getlist("what")
+        context["ant_filter"] = self.request.GET.getlist("ant")
         context["antiquarians"] = self.get_antiquarian_list(self.object_list)
+        context["ca_filter"] = self.request.GET.getlist("ca")
+        context["authors"] = self.get_citing_author_list(self.object_list)
         context["search_term"] = keywords
         context["to_search"] = to_search
         context["search_classes"] = self.SEARCH_METHODS.keys()
@@ -429,3 +432,6 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         else:
             antiquarians = list(Antiquarian.objects.all())
         return set(antiquarians)
+
+    def get_citing_author_list(self, queryset):
+        return ["John", "Paul", "George", "Ringo"]
