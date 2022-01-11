@@ -27,7 +27,7 @@
         <div class="form-row">
           <div class="col">
             <label for="antiquarianFilter">Antiquarians</label>
-            <select id="antiquarianFilter" class="custom-select" multiple name='ant'>
+            <select id="antiquarianFilter" class="selectpicker" multiple name='ant'>
               {% for antiquarian in antiquarians %}
                 <option value="{{ antiquarian.id }}">{{ antiquarian }}</option>
               {% endfor %}
@@ -35,7 +35,7 @@
           </div>
           <div class="col">
             <label for="citingAuthorFilter">Citing Authors</label>
-            <select id="citingAuthorFilter" class="custom-select" multiple name='ca'>
+            <select id="citingAuthorFilter" class="selectpicker" multiple name='ca'>
               <option value=1>Matthew</option>
               <option value=2>Mark</option>
               <option value=3>Luke</option>
@@ -49,10 +49,10 @@
                 <input type="text" class="form-control alphabetum" name='q' {% if search_term %}value="{{ search_term }}"{% endif %} placeholder="Enter search terms">
             </div>
             <div class="col-sm-3 my-1">
-                <select class="form-control" name='what'>
-                <option value='all'>Search Everything</option>
-                {% for class in search_classes %}
-                <option value='{{ class }}'>{{ class|capfirst }}</option>
+                <select class="form-control selectpicker" name='what' multiple title="Search Everything">
+                <!-- <option value='all' {% if not to_search %}selected{% endif %}>Search Everything</option> -->
+                {% for search_class in search_classes %}
+                <option value='{{ search_class }}' {% if search_class in to_search %}selected{% endif %}>{{ search_class|capfirst }}</option>
                 {% endfor %}
                 </select>
             </div>
