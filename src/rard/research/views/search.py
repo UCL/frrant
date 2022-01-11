@@ -276,7 +276,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
 
     # move to queryset on model managers
     @classmethod
-    def antiquarian_search(cls, terms, ant_filter):
+    def antiquarian_search(cls, terms, **kwargs):
         qs = Antiquarian.objects.all()
         search_fields = [
             ("name", terms.match),
@@ -286,13 +286,13 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         return cls.generic_content_search(qs, search_fields)
 
     @classmethod
-    def topic_search(cls, terms, ant_filter):
+    def topic_search(cls, terms, **kwargs):
         qs = Topic.objects.all()
         search_fields = [("name", terms.match)]
         return cls.generic_content_search(qs, search_fields)
 
     @classmethod
-    def work_search(cls, terms, ant_filter):
+    def work_search(cls, terms, **kwargs):
         qs = Work.objects.all()
         search_fields = [
             ("name", terms.match),
@@ -313,27 +313,27 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         return cls.generic_content_search(qs, search_fields)
 
     @classmethod
-    def fragment_search(cls, terms, ant_filter):
+    def fragment_search(cls, terms, ant_filter=None, ca_filter=None, **kwargs):
         qs = Fragment.objects.all()
         if ant_filter:
             qs = qs.filter(linked_antiquarians__in=ant_filter)
         return cls.original_text_owner_search(terms, qs)
 
     @classmethod
-    def anonymous_fragment_search(cls, terms, ant_filter, qs=None):
+    def anonymous_fragment_search(cls, terms, qs=None, **kwargs):
         if not qs:
             qs = AnonymousFragment.objects.all()
         return cls.original_text_owner_search(terms, qs)
 
     @classmethod
-    def testimonium_search(cls, terms, ant_filter):
+    def testimonium_search(cls, terms, ant_filter=None, ca_filter=None, **kwargs):
         qs = Testimonium.objects.all()
         if ant_filter:
             qs = qs.filter(linked_antiquarians__in=ant_filter)
         return cls.original_text_owner_search(terms, qs)
 
     @classmethod
-    def apparatus_criticus_search(cls, terms, ant_filter):
+    def apparatus_criticus_search(cls, terms, **kwargs):
         query_string = "original_texts__apparatus_criticus_items__content"
         qst = Testimonium.objects.all()
         qsa = AnonymousFragment.objects.all()
@@ -345,23 +345,23 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         )
 
     @classmethod
-    def bibliography_search(cls, terms, ant_filter):
+    def bibliography_search(cls, terms, **kwargs):
         qs = BibliographyItem.objects.all()
         results = terms.match(qs, "authors") | terms.match(qs, "title")
         return results.distinct()
 
     @classmethod
-    def appositum_search(cls, terms, ant_filter):
+    def appositum_search(cls, terms, **kwargs):
         qs = AnonymousFragment.objects.exclude(appositumfragmentlinks_from=None).all()
-        return cls.anonymous_fragment_search(terms, ant_filter, qs=qs)
+        return cls.anonymous_fragment_search(terms, qs=qs, **kwargs)
 
     @classmethod
-    def citing_author_search(cls, terms, ant_filter):
+    def citing_author_search(cls, terms, **kwargs):
         qs = CitingAuthor.objects.all()
         return terms.match(qs, "name").distinct()
 
     @classmethod
-    def citing_work_search(cls, terms, ant_filter):
+    def citing_work_search(cls, terms, **kwargs):
         qs = CitingWork.objects.all()
         results = terms.match(qs, "title") | terms.match(qs, "edition")
         return results.distinct()
@@ -392,7 +392,10 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
 
     def get_queryset(self):
         keywords = self.request.GET.get("q")
-        ant_filter = self.request.GET.getlist("ant")
+        filter_kwargs = {
+            "ant_filter": self.request.GET.getlist("ant"),
+            "ca_filter": self.request.GET.getlist("ca"),
+        }
         if not keywords:
             return []
 
@@ -405,7 +408,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             to_search = self.SEARCH_METHODS.keys()
 
         for what in to_search:
-            result_set.append(self.SEARCH_METHODS[what](terms, ant_filter))
+            result_set.append(self.SEARCH_METHODS[what](terms, **filter_kwargs))
 
         queryset_chain = chain(*result_set)
 
@@ -421,6 +424,8 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                     antiquarians.extend(
                         list(material.linked_antiquarians.distinct().all())
                     )
+                elif mtype == "Antiquarian":
+                    antiquarians.append(material)
         else:
             antiquarians = list(Antiquarian.objects.all())
         return set(antiquarians)
