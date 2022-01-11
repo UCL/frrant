@@ -418,17 +418,17 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         # return a list...
         return sorted(queryset_chain, key=lambda instance: instance.pk, reverse=True)
 
-    def get_antiquarian_list(self, queryset):
+    def get_antiquarian_list(self, object_list):
         antiquarians = []
-        if queryset:
-            for material in queryset:
-                mtype = material.__class__.__name__
-                if mtype in ["Fragment", "Testimonium"]:
+        if object_list:
+            for object in object_list:
+                obj_type = object.__class__.__name__
+                if obj_type in ["Fragment", "Testimonium"]:
                     antiquarians.extend(
-                        list(material.linked_antiquarians.distinct().all())
+                        list(object.linked_antiquarians.distinct().all())
                     )
-                elif mtype == "Antiquarian":
-                    antiquarians.append(material)
+                elif obj_type == "Antiquarian":
+                    antiquarians.append(object)
         else:
             antiquarians = list(Antiquarian.objects.all())
         return set(antiquarians)
