@@ -276,7 +276,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
 
     # move to queryset on model managers
     @classmethod
-    def antiquarian_search(cls, terms):
+    def antiquarian_search(cls, terms, ant_filter):
         qs = Antiquarian.objects.all()
         search_fields = [
             ("name", terms.match),
@@ -286,13 +286,13 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         return cls.generic_content_search(qs, search_fields)
 
     @classmethod
-    def topic_search(cls, terms):
+    def topic_search(cls, terms, ant_filter):
         qs = Topic.objects.all()
         search_fields = [("name", terms.match)]
         return cls.generic_content_search(qs, search_fields)
 
     @classmethod
-    def work_search(cls, terms):
+    def work_search(cls, terms, ant_filter):
         qs = Work.objects.all()
         search_fields = [
             ("name", terms.match),
@@ -313,23 +313,27 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         return cls.generic_content_search(qs, search_fields)
 
     @classmethod
-    def fragment_search(cls, terms):
+    def fragment_search(cls, terms, ant_filter):
         qs = Fragment.objects.all()
+        if ant_filter:
+            qs = qs.filter(linked_antiquarians__in=ant_filter)
         return cls.original_text_owner_search(terms, qs)
 
     @classmethod
-    def anonymous_fragment_search(cls, terms, qs=None):
+    def anonymous_fragment_search(cls, terms, ant_filter, qs=None):
         if not qs:
             qs = AnonymousFragment.objects.all()
         return cls.original_text_owner_search(terms, qs)
 
     @classmethod
-    def testimonium_search(cls, terms):
+    def testimonium_search(cls, terms, ant_filter):
         qs = Testimonium.objects.all()
+        if ant_filter:
+            qs = qs.filter(linked_antiquarians__in=ant_filter)
         return cls.original_text_owner_search(terms, qs)
 
     @classmethod
-    def apparatus_criticus_search(cls, terms):
+    def apparatus_criticus_search(cls, terms, ant_filter):
         query_string = "original_texts__apparatus_criticus_items__content"
         qst = Testimonium.objects.all()
         qsa = AnonymousFragment.objects.all()
@@ -341,23 +345,23 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         )
 
     @classmethod
-    def bibliography_search(cls, terms):
+    def bibliography_search(cls, terms, ant_filter):
         qs = BibliographyItem.objects.all()
         results = terms.match(qs, "authors") | terms.match(qs, "title")
         return results.distinct()
 
     @classmethod
-    def appositum_search(cls, terms):
+    def appositum_search(cls, terms, ant_filter):
         qs = AnonymousFragment.objects.exclude(appositumfragmentlinks_from=None).all()
-        return cls.anonymous_fragment_search(terms, qs=qs)
+        return cls.anonymous_fragment_search(terms, ant_filter, qs=qs)
 
     @classmethod
-    def citing_author_search(cls, terms):
+    def citing_author_search(cls, terms, ant_filter):
         qs = CitingAuthor.objects.all()
         return terms.match(qs, "name").distinct()
 
     @classmethod
-    def citing_work_search(cls, terms):
+    def citing_work_search(cls, terms, ant_filter):
         qs = CitingWork.objects.all()
         results = terms.match(qs, "title") | terms.match(qs, "edition")
         return results.distinct()
@@ -401,7 +405,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             to_search = self.SEARCH_METHODS.keys()
 
         for what in to_search:
-            result_set.append(self.SEARCH_METHODS[what](terms))
+            result_set.append(self.SEARCH_METHODS[what](terms, ant_filter))
 
         queryset_chain = chain(*result_set)
 
