@@ -22,9 +22,31 @@
 
     </p>
     <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form mb-5" method='GET'>
+      <a id="filterToggle" class="btn btn-primary mb-3" data-toggle="collapse" href="#filterFieldset" role="button" aria-expanded="false" aria-controls="filterFieldset">Filter results</a>
+      <fieldset class="form-group collapse" id="filterFieldset">
+        <div class="form-row">
+          <div class="col">
+            <label for="antiquarianFilter">Antiquarians</label>
+            <select id="antiquarianFilter" class="custom-select" multiple name='ant'>
+              {% for antiquarian in antiquarians %}
+                <option value="{{ antiquarian.id }}">{{ antiquarian }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col">
+            <label for="citingAuthorFilter">Citing Authors</label>
+            <select id="citingAuthorFilter" class="custom-select" multiple name='ca'>
+              <option value=1>Matthew</option>
+              <option value=2>Mark</option>
+              <option value=3>Luke</option>
+              <option value=4>John</option>
+            </select>
+          </div>
+        </div>
+      </fieldset>
         <div class="form-row align-items-center">
             <div class="col-sm-7 my-1">
-                <input type="text" class="form-control alphabetum" name='q' placeholder="Enter search terms">
+                <input type="text" class="form-control alphabetum" name='q' {% if search_term %}value="{{ search_term }}"{% endif %} placeholder="Enter search terms">
             </div>
             <div class="col-sm-3 my-1">
                 <select class="form-control" name='what'>

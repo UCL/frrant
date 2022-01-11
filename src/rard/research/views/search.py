@@ -379,6 +379,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         context = super().get_context_data(*args, **kwargs)
         keywords = self.request.GET.get("q")
         to_search = self.request.GET.getlist("what")
+        context["antiquarians"] = self.get_antiquarian_list(self.object_list)
         context["search_term"] = keywords
         context["to_search"] = to_search
         context["search_classes"] = self.SEARCH_METHODS.keys()
@@ -387,6 +388,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
 
     def get_queryset(self):
         keywords = self.request.GET.get("q")
+        ant_filter = self.request.GET.getlist("ant")
         if not keywords:
             return []
 
@@ -405,3 +407,16 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
 
         # return a list...
         return sorted(queryset_chain, key=lambda instance: instance.pk, reverse=True)
+
+    def get_antiquarian_list(self, queryset):
+        antiquarians = []
+        if queryset:
+            for material in queryset:
+                mtype = material.__class__.__name__
+                if mtype in ["Fragment", "Testimonium"]:
+                    antiquarians.extend(
+                        list(material.linked_antiquarians.distinct().all())
+                    )
+        else:
+            antiquarians = list(Antiquarian.objects.all())
+        return set(antiquarians)
