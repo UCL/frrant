@@ -276,8 +276,8 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
 
     # move to queryset on model managers
     @classmethod
-    def antiquarian_search(cls, terms, **kwargs):
-        qs = Antiquarian.objects.all()
+    def antiquarian_search(cls, terms, ant_filter=None, **kwargs):
+        qs = cls.get_filtered_model_qs(Antiquarian, ant_filter=ant_filter)
         search_fields = [
             ("name", terms.match),
             ("plain_introduction", terms.match),
@@ -314,30 +314,36 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
 
     @classmethod
     def fragment_search(cls, terms, ant_filter=None, ca_filter=None, **kwargs):
-        qs = Fragment.objects.all()
-        if ant_filter:
-            qs = qs.filter(linked_antiquarians__in=ant_filter)
+        qs = cls.get_filtered_model_qs(Fragment, ant_filter, ca_filter)
         return cls.original_text_owner_search(terms, qs)
 
     @classmethod
-    def anonymous_fragment_search(cls, terms, qs=None, **kwargs):
+    def anonymous_fragment_search(
+        cls, terms, ant_filter=None, ca_filter=None, qs=None, **kwargs
+    ):
         if not qs:
-            qs = AnonymousFragment.objects.all()
+            qs = cls.get_filtered_model_qs(AnonymousFragment, ant_filter, ca_filter)
         return cls.original_text_owner_search(terms, qs)
 
     @classmethod
     def testimonium_search(cls, terms, ant_filter=None, ca_filter=None, **kwargs):
-        qs = Testimonium.objects.all()
-        if ant_filter:
-            qs = qs.filter(linked_antiquarians__in=ant_filter)
+        qs = cls.get_filtered_model_qs(Testimonium, ant_filter, ca_filter)
         return cls.original_text_owner_search(terms, qs)
 
     @classmethod
-    def apparatus_criticus_search(cls, terms, **kwargs):
+    def apparatus_criticus_search(
+        cls, terms, ant_filter=None, ca_filter=None, **kwargs
+    ):
         query_string = "original_texts__apparatus_criticus_items__content"
-        qst = Testimonium.objects.all()
-        qsa = AnonymousFragment.objects.all()
-        qsf = Fragment.objects.all()
+        qst = cls.get_filtered_model_qs(
+            Testimonium, ant_filter=ant_filter, ca_filter=ca_filter
+        )
+        qsa = cls.get_filtered_model_qs(
+            AnonymousFragment, ant_filter=ant_filter, ca_filter=ca_filter
+        )
+        qsf = cls.get_filtered_model_qs(
+            Fragment, ant_filter=ant_filter, ca_filter=ca_filter
+        )
         return chain(
             terms.match_folded(qsf, query_string, add_snippet=True).distinct(),
             terms.match_folded(qsa, query_string, add_snippet=True).distinct(),
@@ -365,6 +371,19 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         qs = CitingWork.objects.all()
         results = terms.match(qs, "title") | terms.match(qs, "edition")
         return results.distinct()
+
+    @classmethod
+    def get_filtered_model_qs(cls, model, ant_filter=None, ca_filter=None):
+        qs = model.objects.all()
+        if ant_filter:
+            if model in [Fragment, Testimonium]:
+                qs = qs.filter(linked_antiquarians__in=ant_filter)
+            if model == Antiquarian:
+                qs = qs.filter(id__in=ant_filter)
+        if ca_filter:
+            if model in [Fragment, AnonymousFragment, Testimonium]:
+                qs = qs.filter(original_texts__citing_work__author__in=ca_filter)
+        return qs
 
     def get(self, request, *args, **kwargs):
         keywords = self.request.GET.get("q", None)
@@ -419,6 +438,10 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         return sorted(queryset_chain, key=lambda instance: instance.pk, reverse=True)
 
     def get_antiquarian_list(self, object_list):
+        """For each object in the object list, add any related antiquarians
+        to a list. CitingAuthor, CitingWork, AnonymousFragment and Topic
+        objects are ignored as the relationship is too tenuous.
+        """
         antiquarians = []
         if object_list:
             for object in object_list:
@@ -429,9 +452,25 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                     )
                 elif obj_type == "Antiquarian":
                     antiquarians.append(object)
+                elif obj_type == "BibliographyItem":
+                    antiquarians.append(object.bibliography_items.first())
+                elif obj_type == "Work":
+                    antiquarians.extend(list(object.antiquarian_set.all()))
+            # Remove duplicates and sort
+            antiquarians = list(set(antiquarians))
+            antiquarians.sort(key=lambda x: (x.order_name, x.re_code))
         else:
+            # Return all antiquarians (already sorted)
             antiquarians = list(Antiquarian.objects.all())
-        return set(antiquarians)
+        return antiquarians
 
-    def get_citing_author_list(self, queryset):
-        return ["John", "Paul", "George", "Ringo"]
+    def get_citing_author_list(self, object_list):
+        """For each object in the object list, add any related citing authors
+        to a list.
+        """
+        authors = []
+        if object_list:
+            pass
+        else:
+            authors = list(CitingAuthor.objects.all())
+        return authors
