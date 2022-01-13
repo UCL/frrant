@@ -292,8 +292,8 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         return cls.generic_content_search(qs, search_fields)
 
     @classmethod
-    def work_search(cls, terms, **kwargs):
-        qs = Work.objects.all()
+    def work_search(cls, terms, ant_filter=None, **kwargs):
+        qs = cls.get_filtered_model_qs(Work, ant_filter=ant_filter)
         search_fields = [
             ("name", terms.match),
             ("subtitle", terms.match),
@@ -314,7 +314,9 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
 
     @classmethod
     def fragment_search(cls, terms, ant_filter=None, ca_filter=None, **kwargs):
-        qs = cls.get_filtered_model_qs(Fragment, ant_filter, ca_filter)
+        qs = cls.get_filtered_model_qs(
+            Fragment, ant_filter=ant_filter, ca_filter=ca_filter
+        )
         return cls.original_text_owner_search(terms, qs)
 
     @classmethod
@@ -322,12 +324,16 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         cls, terms, ant_filter=None, ca_filter=None, qs=None, **kwargs
     ):
         if not qs:
-            qs = cls.get_filtered_model_qs(AnonymousFragment, ant_filter, ca_filter)
+            qs = cls.get_filtered_model_qs(
+                AnonymousFragment, ant_filter=ant_filter, ca_filter=ca_filter
+            )
         return cls.original_text_owner_search(terms, qs)
 
     @classmethod
     def testimonium_search(cls, terms, ant_filter=None, ca_filter=None, **kwargs):
-        qs = cls.get_filtered_model_qs(Testimonium, ant_filter, ca_filter)
+        qs = cls.get_filtered_model_qs(
+            Testimonium, ant_filter=ant_filter, ca_filter=ca_filter
+        )
         return cls.original_text_owner_search(terms, qs)
 
     @classmethod
@@ -351,14 +357,17 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         )
 
     @classmethod
-    def bibliography_search(cls, terms, **kwargs):
-        qs = BibliographyItem.objects.all()
+    def bibliography_search(cls, terms, ant_filter=None, **kwargs):
+        qs = cls.get_filtered_model_qs(BibliographyItem, ant_filter=ant_filter)
         results = terms.match(qs, "authors") | terms.match(qs, "title")
         return results.distinct()
 
     @classmethod
-    def appositum_search(cls, terms, **kwargs):
+    def appositum_search(cls, terms, ant_filter=None, ca_filter=None, **kwargs):
         qs = AnonymousFragment.objects.exclude(appositumfragmentlinks_from=None).all()
+        qs = cls.get_filtered_model_qs(
+            AnonymousFragment, qs=qs, ant_filter=ant_filter, ca_filter=ca_filter
+        )
         return cls.anonymous_fragment_search(terms, qs=qs, **kwargs)
 
     @classmethod
@@ -373,16 +382,27 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         return results.distinct()
 
     @classmethod
-    def get_filtered_model_qs(cls, model, ant_filter=None, ca_filter=None):
-        qs = model.objects.all()
+    def get_filtered_model_qs(cls, model, qs=None, ant_filter=None, ca_filter=None):
+        if not qs:
+            qs = model.objects.all()
         if ant_filter:
             if model in [Fragment, Testimonium]:
                 qs = qs.filter(linked_antiquarians__in=ant_filter)
+            if model == AnonymousFragment:
+                qs = qs.filter(appositumfragmentlinks_from__antiquarian__in=ant_filter)
             if model == Antiquarian:
                 qs = qs.filter(id__in=ant_filter)
+            if model == Work:
+                qs = qs.filter(antiquarian__in=ant_filter)
+            if model == BibliographyItem:
+                qs = qs.filter(bibliography_items__in=ant_filter)
         if ca_filter:
             if model in [Fragment, AnonymousFragment, Testimonium]:
                 qs = qs.filter(original_texts__citing_work__author__in=ca_filter)
+            if model == CitingWork:
+                qs = qs.filter(author__in=ca_filter)
+            if model == CitingAuthor:
+                qs = qs.filter(id__in=ca_filter)
         return qs
 
     def get(self, request, *args, **kwargs):
@@ -445,16 +465,24 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         antiquarians = []
         if object_list:
             for object in object_list:
-                obj_type = object.__class__.__name__
-                if obj_type in ["Fragment", "Testimonium"]:
+                obj_type = object.__class__
+                if obj_type in [Fragment, Testimonium]:
                     antiquarians.extend(
                         list(object.linked_antiquarians.distinct().all())
                     )
-                elif obj_type == "Antiquarian":
+                if obj_type == AnonymousFragment:
+                    antiquarians.extend(
+                        list(
+                            Antiquarian.objects.filter(
+                                appositumfragmentlinks__anonymous_fragment=object
+                            )
+                        )
+                    )
+                elif obj_type == Antiquarian:
                     antiquarians.append(object)
-                elif obj_type == "BibliographyItem":
-                    antiquarians.append(object.bibliography_items.first())
-                elif obj_type == "Work":
+                elif obj_type == BibliographyItem:
+                    antiquarians.extend(list(object.bibliography_items.all()))
+                elif obj_type == Work:
                     antiquarians.extend(list(object.antiquarian_set.all()))
             # Remove duplicates and sort
             antiquarians = list(set(antiquarians))
