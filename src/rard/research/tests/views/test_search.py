@@ -308,3 +308,38 @@ class TestSearchView(TestCase):
         self.assertEqual(do_search(view.citing_work_search, "opu"), [cw1])
         self.assertEqual(do_search(view.citing_work_search, "xth"), [cw2])
         self.assertEqual(do_search(view.citing_work_search, "ook"), [cw1, cw2])
+
+    def test_search_snippets(self):
+
+        raw_content = (
+            "Lorem ipsum dolor sit amet, <span class='test consectatur'>"
+            "consectetur</span> adipiscing <strong>elit</strong>, sed do "
+            "eiusmod tempor incididunt ut labore et dolore magna aliqua"
+        )
+        search_term = "consectetur"
+        expected_snippet = (
+            'Lorem ipsum dolor sit amet <span class="search-snippet">'
+            "consectetur</span> adipiscing elit sed do eiusmod ..."
+        )
+
+        view = SearchView()
+
+        cw = CitingWork.objects.create(title="citing_work")
+
+        # fragments
+        f1 = Fragment.objects.create()
+        f1.original_texts.create(
+            content=raw_content,
+            citing_work=cw,
+        )
+        f1.save()
+
+        search_results = list(view.fragment_search(SearchView.Term(search_term)))
+
+        # Did the search work as expected?
+        self.assertIn(f1, search_results)
+        # Is the snippet correct?
+        self.assertEqual(search_results[0].snippet, expected_snippet)
+
+    def test_search_filters(self):
+        pass
