@@ -16,7 +16,7 @@ from rard.research.models import (
     Topic,
     Work,
 )
-from rard.research.models.base import AppositumFragmentLink
+from rard.research.models.base import AppositumFragmentLink, FragmentLink
 from rard.research.views import SearchView
 from rard.users.tests.factories import UserFactory
 
@@ -332,7 +332,6 @@ class TestSearchView(TestCase):
             content=raw_content,
             citing_work=cw,
         )
-        f1.save()
 
         search_results = list(view.fragment_search(SearchView.Term(search_term)))
 
@@ -342,4 +341,51 @@ class TestSearchView(TestCase):
         self.assertEqual(search_results[0].snippet, expected_snippet)
 
     def test_search_filters(self):
-        pass
+        # Antiquarians
+        ant1 = Antiquarian.objects.create(name="John", re_code="1")
+        ant2 = Antiquarian.objects.create(name="Paul", re_code="2")
+
+        # Authors
+        auth1 = CitingAuthor.objects.create(name="George")
+        cw1 = CitingWork.objects.create(title="Something", author=auth1)
+        auth2 = CitingAuthor.objects.create(name="Ringo")
+        cw2 = CitingWork.objects.create(title="Yellow Submarine", author=auth2)
+
+        # Fragments
+        f1 = Fragment.objects.create()
+        f1.original_texts.create(
+            content="A fragment of wonderful text", citing_work=cw1
+        )
+        f2 = Fragment.objects.create()
+        f2.original_texts.create(content="Another wonderful fragment", citing_work=cw2)
+        FragmentLink.objects.create(fragment=f1, antiquarian=ant1)
+        FragmentLink.objects.create(fragment=f2, antiquarian=ant2)
+
+        # Test search requests
+        url = reverse("search:home")
+
+        # make sure we can get both fragments
+        data = {
+            "q": "wonderful",
+        }
+        request = RequestFactory().get(url, data=data)
+        request.user = UserFactory()
+        response = SearchView.as_view()(request)
+
+        self.assertCountEqual(response.context_data["results"], [f1, f2])
+
+        # Filter by antiquarian
+        data = {"q": "wonderful", "ant": ant1.id}
+        request = RequestFactory().get(url, data=data)
+        request.user = UserFactory()
+        response = SearchView.as_view()(request)
+
+        self.assertEqual(response.context_data["results"], [f1])
+
+        # Filter by citing author
+        data = {"q": "wonderful", "ca": auth2.id}
+        request = RequestFactory().get(url, data=data)
+        request.user = UserFactory()
+        response = SearchView.as_view()(request)
+
+        self.assertEqual(response.context_data["results"], [f2])
