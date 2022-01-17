@@ -35,7 +35,7 @@
             <label for="citingAuthorFilter">Citing Authors</label>
             <select id="citingAuthorFilter" class="selectpicker" multiple name='ca' title="All" data-selected-text-format="count" data-actions-box="true">
               {% for author in authors %}
-                <option value="{{ author }}" {% if author in ca_filter %}selected{% endif %}>{{ author }}</option>
+                <option value="{{ author.id }}" {% if author.id|stringformat:"i" in ca_filter %}selected{% endif %}>{{ author }}</option>
               {% endfor %}
             </select>
           </div>

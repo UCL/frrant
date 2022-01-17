@@ -13,12 +13,13 @@ from rard.research.models import (
     AnonymousFragment,
     Antiquarian,
     BibliographyItem,
+    CitingAuthor,
+    CitingWork,
     Fragment,
     Testimonium,
     Topic,
     Work,
 )
-from rard.research.models.citing_work import CitingAuthor, CitingWork
 
 # Fold [X,Y] transforms all instances of Y into X before matching
 # Folds are applied in the specified order, so we don't need
@@ -423,9 +424,11 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         keywords = self.request.GET.get("q")
         to_search = self.request.GET.getlist("what")
         context["ant_filter"] = self.request.GET.getlist("ant")
-        context["antiquarians"] = self.get_antiquarian_list(self.object_list)
+        (
+            context["antiquarians"],
+            context["authors"],
+        ) = self.antiquarians_and_authors_in_object_list(self.object_list)
         context["ca_filter"] = self.request.GET.getlist("ca")
-        context["authors"] = self.get_citing_author_list(self.object_list)
         context["search_term"] = keywords
         context["to_search"] = to_search
         context["search_classes"] = self.SEARCH_METHODS.keys()
@@ -457,18 +460,42 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         # return a list...
         return sorted(queryset_chain, key=lambda instance: instance.pk, reverse=True)
 
-    def get_antiquarian_list(self, object_list):
-        """For each object in the object list, add any related antiquarians
-        to a list. CitingAuthor, CitingWork, AnonymousFragment and Topic
-        objects are ignored as the relationship is too tenuous.
+    def antiquarians_and_authors_in_object_list(self, object_list):
+        """Generate lists of Antiquarians and Citing Authors associated with
+        the list of objects provided.
+
+        Antiquarians can come from: Fragments, Testimonia, Anonymous Fragments,
+        Antiquarians, Bibliography Items, or Works.
+
+        Citing Authors can come from: Fragments, Testimonia, Anonymous
+        Fragments, Citing Works, or Citing Authors.
         """
         antiquarians = []
+        authors = []
         if object_list:
             for object in object_list:
                 obj_type = object.__class__
-                if obj_type in [Fragment, Testimonium]:
+                if obj_type == Fragment:
                     antiquarians.extend(
                         list(object.linked_antiquarians.distinct().all())
+                    )
+                    authors.extend(
+                        list(
+                            CitingAuthor.objects.filter(
+                                citingwork__originaltext__fragments=object
+                            )
+                        )
+                    )
+                if obj_type == Testimonium:
+                    antiquarians.extend(
+                        list(object.linked_antiquarians.distinct().all())
+                    )
+                    authors.extend(
+                        list(
+                            CitingAuthor.objects.filter(
+                                citingwork__originaltext__testimonia=object
+                            )
+                        )
                     )
                 if obj_type == AnonymousFragment:
                     antiquarians.extend(
@@ -478,27 +505,30 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                             )
                         )
                     )
+                    authors.extend(
+                        list(
+                            CitingAuthor.objects.filter(
+                                citingwork__originaltext__anonymous_fragments=object
+                            )
+                        )
+                    )
                 elif obj_type == Antiquarian:
                     antiquarians.append(object)
                 elif obj_type == BibliographyItem:
                     antiquarians.extend(list(object.bibliography_items.all()))
                 elif obj_type == Work:
                     antiquarians.extend(list(object.antiquarian_set.all()))
+                elif obj_type == CitingWork:
+                    authors.append(object.author)
+                elif obj_type == CitingAuthor:
+                    authors.append(object)
             # Remove duplicates and sort
             antiquarians = list(set(antiquarians))
             antiquarians.sort(key=lambda x: (x.order_name, x.re_code))
+            authors = list(set(authors))
+            authors.sort(key=lambda x: x.order_name)
         else:
-            # Return all antiquarians (already sorted)
+            # Return all antiquarians and authors (already sorted)
             antiquarians = list(Antiquarian.objects.all())
-        return antiquarians
-
-    def get_citing_author_list(self, object_list):
-        """For each object in the object list, add any related citing authors
-        to a list.
-        """
-        authors = []
-        if object_list:
-            pass
-        else:
             authors = list(CitingAuthor.objects.all())
-        return authors
+        return antiquarians, authors
