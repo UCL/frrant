@@ -25,6 +25,7 @@
         <div class="form-row">
           <div class="col">
             <label for="antiquarianFilter">Antiquarians</label>
+            <i class="bi bi-info-circle" data-toggle="tooltip" title="This filter does not affect Topics, Citing Authors or Citing Works"></i>
             <select id="antiquarianFilter" class="selectpicker" multiple name='ant' title="All" data-selected-text-format="count" data-actions-box="true">
               {% for antiquarian in antiquarians %}
                 <option value="{{ antiquarian.id }}" {% if antiquarian.id|stringformat:"i" in ant_filter %}selected{% endif %}>{{ antiquarian }}</option>
@@ -33,6 +34,7 @@
           </div>
           <div class="col">
             <label for="citingAuthorFilter">Citing Authors</label>
+            <i class="bi bi-info-circle" data-toggle="tooltip" title="This filter does not affect Topics, Antiquarians, Works, or Bibliographies"></i>
             <select id="citingAuthorFilter" class="selectpicker" multiple name='ca' title="All" data-selected-text-format="count" data-actions-box="true">
               {% for author in authors %}
                 <option value="{{ author.id }}" {% if author.id|stringformat:"i" in ca_filter %}selected{% endif %}>{{ author }}</option>
