@@ -303,11 +303,7 @@ class TestSearchView(TestCase):
 
         self.assertEqual(do_search(view.citing_work_search, "opu"), [cw1])
         self.assertEqual(do_search(view.citing_work_search, "xth"), [cw2])
-        self.assertEqual(do_search(view.citing_work_search, "ook"), [cw1, cw2])
-
-        self.assertEqual(do_search(view.citing_work_search, "opu"), [cw1])
-        self.assertEqual(do_search(view.citing_work_search, "xth"), [cw2])
-        self.assertEqual(do_search(view.citing_work_search, "ook"), [cw1, cw2])
+        self.assertCountEqual(do_search(view.citing_work_search, "ook"), [cw1, cw2])
 
     def test_search_snippets(self):
 
