@@ -372,13 +372,13 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         return cls.anonymous_fragment_search(terms, qs=qs, **kwargs)
 
     @classmethod
-    def citing_author_search(cls, terms, **kwargs):
-        qs = CitingAuthor.objects.all()
+    def citing_author_search(cls, terms, ca_filter=None, **kwargs):
+        qs = cls.get_filtered_model_qs(CitingAuthor, ca_filter=ca_filter)
         return terms.match(qs, "name").distinct()
 
     @classmethod
-    def citing_work_search(cls, terms, **kwargs):
-        qs = CitingWork.objects.all()
+    def citing_work_search(cls, terms, ca_filter=None, **kwargs):
+        qs = cls.get_filtered_model_qs(CitingWork, ca_filter=ca_filter)
         results = terms.match(qs, "title") | terms.match(qs, "edition")
         return results.distinct()
 
