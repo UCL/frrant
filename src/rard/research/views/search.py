@@ -360,8 +360,8 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     @classmethod
     def bibliography_search(cls, terms, ant_filter=None, **kwargs):
         qs = cls.get_filtered_model_qs(BibliographyItem, ant_filter=ant_filter)
-        results = terms.match(qs, "authors") | terms.match(qs, "title")
-        return results.distinct()
+        search_fields = [("authors", terms.match), ("title", terms.match)]
+        return cls.generic_content_search(qs, search_fields)
 
     @classmethod
     def appositum_search(cls, terms, ant_filter=None, ca_filter=None, **kwargs):
@@ -374,13 +374,14 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     @classmethod
     def citing_author_search(cls, terms, ca_filter=None, **kwargs):
         qs = cls.get_filtered_model_qs(CitingAuthor, ca_filter=ca_filter)
-        return terms.match(qs, "name").distinct()
+        search_fields = [("name", terms.match)]
+        return cls.generic_content_search(qs, search_fields)
 
     @classmethod
     def citing_work_search(cls, terms, ca_filter=None, **kwargs):
         qs = cls.get_filtered_model_qs(CitingWork, ca_filter=ca_filter)
-        results = terms.match(qs, "title") | terms.match(qs, "edition")
-        return results.distinct()
+        search_fields = [("title", terms.match), ("edition", terms.match)]
+        return cls.generic_content_search(qs, search_fields)
 
     @classmethod
     def get_filtered_model_qs(cls, model, qs=None, ant_filter=None, ca_filter=None):
