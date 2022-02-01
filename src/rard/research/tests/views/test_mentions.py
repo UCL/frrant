@@ -131,6 +131,11 @@ class TestMentionsView(TestCase):
         self.assertEqual(list(view.work_search("NothInG")), [w2])
         self.assertEqual(list(view.work_search("O")), [w2, w1])
 
+        # unlinked fragments
+        f56 = Fragment.objects.create(id=56)
+        f523 = Fragment.objects.create(id=523)
+        self.assertEqual(list(view.unlinked_fragment_search("u5")), [f56, f523])
+
         # fragments
         f1 = Fragment.objects.create()
         FragmentLink.objects.create(fragment=f1, antiquarian=a1)

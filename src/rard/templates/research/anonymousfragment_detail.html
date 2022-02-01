@@ -233,6 +233,12 @@
                       {% include 'research/partials/appositum_links_list_item.html' with link=link can_edit=perms.research.change_anonymous_fragment has_object_lock=has_object_lock %}
                     {% endfor %}
 
+                    {% for fragment in object.fragments.all %}
+                      {% if fragment.is_unlinked %}
+                        {% include 'research/partials/fragment_list_item.html' with fragment=fragment %}
+                      {% endif %}
+                    {% endfor %}
+
                 {% endif %}
             </div>
         </div>

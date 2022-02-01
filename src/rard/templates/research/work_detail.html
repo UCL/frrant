@@ -74,35 +74,41 @@
             <dt class="col-sm-3">{% trans 'Books' %}</dt>
             <dd class="col-sm-9">
 
-            {% for book in object.book_set.all %}
+              {% for book in object.book_set.all %}
                 <div class='d-flex justify-content-between mb-3'>
-                    <div>{{ book }}<br><small>{{ book.display_date_range }}</small></div>
-                    <div>
-                        <form novalidate class='form-inline' action='{% url "work:delete_book" book.pk %}' method='POST'>
-                            {% csrf_token %}
-                            <div class='form-row align-items-center'>
-                                {% if perms.research.change_work and perms.research.change_book and has_object_lock %}
-                                <a href='{% url "work:update_book" book.pk %}'>Edit</a>
-                                {% endif %}
-                                {% if perms.research.change_work and perms.research.delete_book and has_object_lock %}
-                                <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
-                                    data-what='book'>{% trans 'Delete' %}</button>
-                                {% endif %}
-                                <a class='ml-2' href='{{ book.history_url }}'><small><i class='fas fa-list'></i> Changelog</small></a>
-                            </div>
-                        </form>
-                    </div>
+                  <div>
+                    {% if book in ordered_materials %}
+                      <a href="#{{book.get_anchor_id}}">{{book}}</a>
+                    {% else %}
+                      {{ book }}
+                    {% endif %}
+                    <br><small>{{ book.display_date_range }}</small></div>
+                  <div>
+                    <form novalidate class='form-inline' action='{% url "work:delete_book" book.pk %}' method='POST'>
+                      {% csrf_token %}
+                      <div class='form-row align-items-center'>
+                        {% if perms.research.change_work and perms.research.change_book and has_object_lock %}
+                          <a href='{% url "work:update_book" book.pk %}'>Edit</a>
+                        {% endif %}
+                        {% if perms.research.change_work and perms.research.delete_book and has_object_lock %}
+                          <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+                              data-what='book'>{% trans 'Delete' %}</button>
+                        {% endif %}
+                        <a class='ml-2' href='{{ book.history_url }}'><small><i class='fas fa-list'></i> Changelog</small></a>
+                      </div>
+                    </form>
+                  </div>
                 </div>
-            {% endfor %}
+              {% endfor %}
             </dd>
 
             {% endif %}
         </dl>
 
         <p>
-            <small>
-            {% include 'research/partials/render_last_modified_info.html' with object=object %}
-            </small>
+          <small>
+          {% include 'research/partials/render_last_modified_info.html' with object=object %}
+          </small>
         </p>
 
     </section>
@@ -128,73 +134,51 @@
     <hr>
 
     <section>
-        <div class='d-flex justify-content-between mb-3'>
-            <div>
-                <h5>{% trans 'Definite Testimonia' %}</h5>
-            </div>
-            <div>
-            </div>
-        </div>
-
-        {% for testimonium in object.definite_testimonia.all %}
-
-        {% include 'research/partials/testimonium_list_item.html' with testimonium=testimonium %}
-
-        {% endfor %}
-    </section>
-
-    <hr>
-
-    <section>
-        <div class='d-flex justify-content-between mb-3'>
-            <div>
-                <h5>{% trans 'Possible Testimonia' %}</h5>
-            </div>
-            <div>
-            </div>
-        </div>
-
-        {% for testimonium in object.possible_testimonia.all %}
-
-        {% include 'research/partials/testimonium_list_item.html' with testimonium=testimonium %}
-
-        {% endfor %}
-    </section>
-
-    <hr>
-
-    <section>
-        <div class='d-flex justify-content-between mb-3'>
-            <div>
-                <h5>{% trans 'Definite Fragments' %}</h5>
-            </div>
-            <div>
-            </div>
-        </div>
-
-        {% for fragment in object.definite_fragments.all %}
-
-        {% include 'research/partials/fragment_list_item.html' with fragment=fragment %}
-
-        {% endfor %}
-    </section>
-
-    <hr>
-
-    <section>
-        <div class='d-flex justify-content-between mb-3'>
-            <div>
-                <h5>{% trans 'Possible Fragments' %}</h5>
-            </div>
-            <div>
-            </div>
-        </div>
-
-        {% for fragment in object.possible_fragments.all %}
-
-        {% include 'research/partials/fragment_list_item.html' with fragment=fragment %}
-
-        {% endfor %}
+      {% for book, content in ordered_materials.items %}
+          <div id="{{ book.get_anchor_id }}" class="pb-4">
+            <h5>{{ book }}</h5>
+            {% if content.fragments.definite %}
+              <h7>{% trans 'Definite Fragments' %}</h7>
+              {% for fragment in content.fragments.definite %}
+                {% include 'research/partials/fragment_list_item.html' with fragment=fragment %}
+              {% endfor %}
+            {% endif %}
+            {% if content.fragments.possible %}
+              <h7>{% trans 'Possible Fragments' %}</h7>
+              {% for fragment in content.fragments.possible %}
+                {% include 'research/partials/fragment_list_item.html' with fragment=fragment %}
+              {% endfor %}
+            {% endif %}
+            {% if content.testimonia %}
+              {% if content.testimonia.definite %}
+                <h7>{% trans 'Definite Testimonia' %}</h7>
+                {% for testimonium in content.testimonia.definite %}
+                  {% include 'research/partials/testimonium_list_item.html' with testimonium=testimonium %}
+                {% endfor %}
+              {% endif %}
+              {% if content.testimonia.possible %}
+                <h7>{% trans 'Possible Testimonia' %}</h7>
+                {% for testimonium in content.testimonia.possible %}
+                  {% include 'research/partials/testimonium_list_item.html' with testimonium=testimonium %}
+                {% endfor %}
+              {% endif %}
+            {% endif %}
+            {% if content.apposita %}
+              {% if content.apposita.definite %}
+                <h7>{% trans 'Definite Apposita' %}</h7>
+                {% for appositum in content.apposita.definite %}
+                  {% include 'research/partials/anonymousfragment_list_item.html' with fragment=appositum %}
+                {% endfor %}
+              {% endif %}
+              {% if content.apposita.possible %}
+                <h7>{% trans 'Possible Apposita' %}</h7>
+                {% for appositum in content.apposita.possible %}
+                  {% include 'research/partials/anonymousfragment_list_item.html' with fragment=appositum %}
+                {% endfor %}
+              {% endif %}
+            {% endif %}
+          </div>
+      {% endfor %}
     </section>
 
 
@@ -227,55 +211,6 @@
             {% endwith %}
 
     </section>
-
-
-    {% comment %}
-        <hr>
-
-
-    <section>
-        <div class='d-flex justify-content-between mb-3'>
-            <div>
-                <h5>{% trans 'Ordered Material' %}</h5>
-            </div>
-            <div>
-            </div>
-        </div>
-
-        <ul>
-            <div class='ordered-list'>
-            {% with tlinks=object.antiquarian_work_testimoniumlinks.all %}
-            {% with flinks=object.antiquarian_work_fragmentlinks.all %}
-            {% with alinks=object.antiquarian_work_appositumfragmentlinks.all %}
-
-                {% for link in tlinks %}
-                    {% include 'research/partials/testimonium_link_list_item.html' with link=link link_text=link.get_work_display_name_full|safe can_edit=perms.research.change_work has_object_lock=has_object_lock %}
-                {% endfor %}
-
-                {% for link in flinks %}
-                    {% include 'research/partials/fragment_link_list_item.html' with link=link  link_text=link.get_work_display_name_full|safe can_edit=perms.research.change_work has_object_lock=has_object_lock %}
-                {% endfor %}
-
-                {% for link in alinks %}
-                    {% include 'research/partials/appositum_fragment_link_list_item.html' with link=link link_text=link.get_work_display_name_full|safe can_edit=perms.research.change_work has_object_lock=has_object_lock %}
-                {% endfor %}
-
-                {% if not flinks and not tlinks and not alinks %}
-                <div class='text-muted my-3 ml-4'><em>No linked material for this work</em></div>
-                {% endif %}
-
-            {% endwith %}
-            {% endwith %}
-            {% endwith %}
-            </div>
-        </ul>
-
-
-
-
-    </section>
-
-    {% endcomment %}
 
     {% endwith %}
 {% endblock %}
