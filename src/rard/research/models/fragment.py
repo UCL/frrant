@@ -13,6 +13,7 @@ from rard.research.models.mixins import HistoryModelMixin
 from rard.research.models.topic import Topic
 from rard.utils.basemodel import DatedModel, OrderableModel
 from rard.utils.decorators import disable_for_loaddata
+from rard.utils.text_processors import make_plain_text
 
 
 class TopicLink(models.Model):
@@ -118,6 +119,11 @@ class Fragment(HistoryModelMixin, HistoricalBaseModel, DatedModel):
     def get_all_appositum_links(self):
         return self.appositumfragmentlinks_to.order_by("work", "work_order")
 
+    def save(self, *args, **kwargs):
+        if self.commentary:
+            self.plain_commentary = make_plain_text(self.commentary.content)
+        super().save(*args, **kwargs)
+
     @property
     def is_unlinked(self):
         if self.get_all_links():
@@ -198,6 +204,8 @@ class AnonymousFragment(
     def save(self, *args, **kwargs):
         if self.order is None:
             self.order = self.__class__.objects.count()
+        if self.commentary:
+            self.plain_commentary = make_plain_text(self.commentary.content)
         super().save(*args, **kwargs)
 
     @classmethod

@@ -7,6 +7,7 @@ from simple_history.models import HistoricalRecords
 from rard.research.models.mixins import HistoryModelMixin, TextObjectFieldMixin
 from rard.utils.basemodel import BaseModel, DatedModel, LockableModel, OrderableModel
 from rard.utils.decorators import disable_for_loaddata
+from rard.utils.text_processors import make_plain_text
 
 
 class WorkLink(OrderableModel, models.Model):
@@ -122,6 +123,8 @@ class Antiquarian(
         related_name="introduction_for",
     )
 
+    plain_introduction = models.TextField(blank=False, default="")
+
     re_code = models.CharField(
         max_length=64, blank=False, unique=True, verbose_name="RE Number"
     )
@@ -155,6 +158,8 @@ class Antiquarian(
     def save(self, *args, **kwargs):
         if not self.order_name:
             self.order_name = self.name
+        if self.introduction:
+            self.plain_introduction = make_plain_text(self.introduction.content)
         super().save(*args, **kwargs)
 
     @property
