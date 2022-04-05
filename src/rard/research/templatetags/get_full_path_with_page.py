@@ -8,6 +8,6 @@ register = template.Library()
 @register.filter
 def get_full_path_with_page(request, page):
     params = copy(request.GET)
-    params["page"] = page
-    get_string = "&".join(["{}={}".format(k, v) for k, v in params.items()])
+    get_string = params.urlencode()
+    get_string += f"&page={page}"
     return "{}?{}".format(request.path, get_string)

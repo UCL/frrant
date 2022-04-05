@@ -13,12 +13,13 @@ from rard.research.models import (
     AnonymousFragment,
     Antiquarian,
     BibliographyItem,
+    CitingAuthor,
+    CitingWork,
     Fragment,
     Testimonium,
     Topic,
     Work,
 )
-from rard.research.models.citing_work import CitingAuthor, CitingWork
 
 # Fold [X,Y] transforms all instances of Y into X before matching
 # Folds are applied in the specified order, so we don't need
@@ -108,6 +109,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                     self.add_fold(fold_from, fold_to)
                 elif fold_to in k:
                     self.add_fold(fold_from, fold_to)
+            self.folded_keywords = k
             self.folded_matcher = self.get_matcher(k)
             self.nonfolded_matcher = self.get_matcher(self.keywords)
 
@@ -146,14 +148,77 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             single_keywords = " ".join(segments[::2]).split()
             return segments[1::2] + single_keywords
 
-        def do_match(self, query_set, query_string, annotation_name, query, matcher):
+        def do_match(
+            self,
+            query_set,
+            query_string,
+            annotation_name,
+            query,
+            matcher,
+            keywords,
+            add_snippet=False,
+        ):
             expression = ExpressionWrapper(
                 query(query_string), output_field=TextField()
             )
             annotated = query_set.annotate(**{annotation_name: expression})
-            return annotated.filter(matcher(annotation_name + "__contains"))
+            matches = annotated.filter(matcher(annotation_name + "__contains"))
+            if add_snippet:
+                matches = self.annotate_with_snippet(matches, keywords, query_string)
+            else:
+                matches = matches.annotate(snippet=Value(""))
+            return matches
 
-        def match(self, query_set, query_string):
+        def annotate_with_snippet(self, qs, keywords, query_string):
+            return qs.annotate(
+                snippet=Func(
+                    Func(
+                        Func(
+                            Func(
+                                Func(
+                                    query_string,
+                                    Value(self.get_snippet_regex(keywords)),
+                                    Value(
+                                        r'START_SNIPPET\1<span class="search-snippet">'
+                                        r"\2</span>\3...END_SNIPPET"
+                                    ),
+                                    Value("gi"),
+                                    function="REGEXP_REPLACE",
+                                ),
+                                Value("^((?!START_SNIPPET).)*$"),
+                                Value(""),
+                                function="REGEXP_REPLACE",
+                            ),
+                            Value("^.*?START_SNIPPET"),
+                            Value(""),
+                            Value("gs"),
+                            function="REGEXP_REPLACE",
+                        ),
+                        Value("END_SNIPPET.*?(START_SNIPPET)"),
+                        Value(""),
+                        Value("gs"),
+                        function="REGEXP_REPLACE",
+                    ),
+                    Value("END_SNIPPET.*"),
+                    Value(""),
+                    function="REGEXP_REPLACE",
+                    output_field=TextField(),
+                )
+            )
+
+        def get_snippet_regex(self, keywords, before=5, after=5):
+            """This regex should give us three capturing groups we can use
+            with postgres REGEXP_REPLACE to insert <span> tags around our keywords;
+            e.g. REGEXP_REPLACE('content',headline_regex,'\1 <span>\2</span>\3')
+            """
+            keywords = self.get_keywords(keywords)
+            words_before_group = rf"((?:\S+\s){{0,{before}}})"
+            keywords_group = "|".join([r"\S*" + kw + r"\S*" for kw in keywords])
+            keywords_group = r"(" + keywords_group + r")"
+            words_after_group = rf"(\s(?:\S+\s){{0,{after}}})"
+            return words_before_group + keywords_group + words_after_group
+
+        def match(self, query_set, query_string, add_snippet=False):
             annotation_name = "cleaned{0}".format(self.cleaned_number)
             self.cleaned_number += 1
             return self.do_match(
@@ -162,17 +227,22 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                 annotation_name,
                 self.basic_query,
                 self.nonfolded_matcher,
+                self.keywords,
+                add_snippet=add_snippet,
             )
 
-        def match_folded(self, query_set, query_string):
+        def match_folded(self, query_set, query_string, add_snippet=False):
             annotation_name = "folded{0}".format(self.folded_number)
             self.folded_number += 1
+            keywords = self.keywords + " " + self.folded_keywords
             return self.do_match(
                 query_set,
                 query_string,
                 annotation_name,
                 self.query,
                 self.folded_matcher,
+                keywords,
+                add_snippet=add_snippet,
             )
 
     paginate_by = 10
@@ -195,103 +265,147 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             "works": self.work_search,
         }
 
+    @classmethod
+    def generic_content_search(cls, qs, search_fields):
+        results = []
+        for field in search_fields:
+            field_name, match_function = field
+            matches = match_function(qs, field_name, add_snippet=True)
+            results.append(matches)
+            qs = qs.exclude(id__in=[o.id for o in matches])
+        return chain(*results)
+
     # move to queryset on model managers
     @classmethod
-    def antiquarian_search(cls, terms):
-        qs = Antiquarian.objects.all()
-        results = (
-            terms.match(qs, "name")
-            | terms.match(qs, "introduction__content")
-            | terms.match(qs, "re_code")
-        )
-        return results.distinct()
+    def antiquarian_search(cls, terms, ant_filter=None, **kwargs):
+        qs = cls.get_filtered_model_qs(Antiquarian, ant_filter=ant_filter)
+        search_fields = [
+            ("name", terms.match),
+            ("plain_introduction", terms.match),
+            ("re_code", terms.match),
+        ]
+        return cls.generic_content_search(qs, search_fields)
 
     @classmethod
-    def topic_search(cls, terms):
+    def topic_search(cls, terms, **kwargs):
         qs = Topic.objects.all()
-        results = terms.match(qs, "name")
-        return results.distinct()
+        search_fields = [("name", terms.match)]
+        return cls.generic_content_search(qs, search_fields)
 
     @classmethod
-    def work_search(cls, terms):
-        qs = Work.objects.all()
-        results = (
-            terms.match(qs, "name")
-            | terms.match(qs, "subtitle")
-            | terms.match(qs, "antiquarian__name")
+    def work_search(cls, terms, ant_filter=None, **kwargs):
+        qs = cls.get_filtered_model_qs(Work, ant_filter=ant_filter)
+        search_fields = [
+            ("name", terms.match),
+            ("subtitle", terms.match),
+            ("antiquarian__name", terms.match),
+        ]
+        return cls.generic_content_search(qs, search_fields)
+
+    @classmethod
+    def original_text_owner_search(cls, terms, qs):
+        search_fields = [
+            ("original_texts__plain_content", terms.match_folded),
+            ("original_texts__translation__plain_translated_text", terms.match),
+            ("plain_commentary", terms.match),
+            ("original_texts__translation__translator_name", terms.match),
+            ("original_texts__reference", terms.match),
+        ]
+        return cls.generic_content_search(qs, search_fields)
+
+    @classmethod
+    def fragment_search(cls, terms, ant_filter=None, ca_filter=None, **kwargs):
+        qs = cls.get_filtered_model_qs(
+            Fragment, ant_filter=ant_filter, ca_filter=ca_filter
         )
-        return results.distinct()
+        return cls.original_text_owner_search(terms, qs)
 
     @classmethod
-    def fragment_search(cls, terms):
-        qs = Fragment.objects.all()
-        results = (
-            terms.match_folded(qs, "original_texts__content")
-            | terms.match(qs, "original_texts__reference")
-            | terms.match(qs, "original_texts__translation__translated_text")  # noqa
-            | terms.match(qs, "original_texts__translation__translator_name")  # noqa
-            | terms.match_folded(qs, "commentary__content")
-        )
-        return results.distinct()
-
-    @classmethod
-    def anonymous_fragment_search(cls, terms, qs=None):
+    def anonymous_fragment_search(
+        cls, terms, ant_filter=None, ca_filter=None, qs=None, **kwargs
+    ):
         if not qs:
-            qs = AnonymousFragment.objects.all()
-        results = (
-            terms.match_folded(qs, "original_texts__content")
-            | terms.match(qs, "original_texts__reference")
-            | terms.match(qs, "original_texts__translation__translated_text")  # noqa
-            | terms.match(qs, "original_texts__translation__translator_name")  # noqa
-            | terms.match_folded(qs, "commentary__content")
-        )
-        return results.distinct()
+            qs = cls.get_filtered_model_qs(
+                AnonymousFragment, ant_filter=ant_filter, ca_filter=ca_filter
+            )
+        return cls.original_text_owner_search(terms, qs)
 
     @classmethod
-    def testimonium_search(cls, terms):
-        qs = Testimonium.objects.all()
-        results = (
-            terms.match_folded(qs, "original_texts__content")
-            | terms.match(qs, "original_texts__reference")
-            | terms.match(qs, "original_texts__translation__translated_text")  # noqa
-            | terms.match(qs, "original_texts__translation__translator_name")  # noqa
-            | terms.match_folded(qs, "commentary__content")
+    def testimonium_search(cls, terms, ant_filter=None, ca_filter=None, **kwargs):
+        qs = cls.get_filtered_model_qs(
+            Testimonium, ant_filter=ant_filter, ca_filter=ca_filter
         )
-        return results.distinct()
+        return cls.original_text_owner_search(terms, qs)
 
     @classmethod
-    def apparatus_criticus_search(cls, terms):
+    def apparatus_criticus_search(
+        cls, terms, ant_filter=None, ca_filter=None, **kwargs
+    ):
         query_string = "original_texts__apparatus_criticus_items__content"
-        qst = Testimonium.objects.all()
-        qsa = AnonymousFragment.objects.all()
-        qsf = Fragment.objects.all()
+        qst = cls.get_filtered_model_qs(
+            Testimonium, ant_filter=ant_filter, ca_filter=ca_filter
+        )
+        qsa = cls.get_filtered_model_qs(
+            AnonymousFragment, ant_filter=ant_filter, ca_filter=ca_filter
+        )
+        qsf = cls.get_filtered_model_qs(
+            Fragment, ant_filter=ant_filter, ca_filter=ca_filter
+        )
         return chain(
-            terms.match_folded(qsf, query_string).distinct(),
-            terms.match_folded(qsa, query_string).distinct(),
-            terms.match_folded(qst, query_string).distinct(),
+            terms.match_folded(qsf, query_string, add_snippet=True).distinct(),
+            terms.match_folded(qsa, query_string, add_snippet=True).distinct(),
+            terms.match_folded(qst, query_string, add_snippet=True).distinct(),
         )
 
     @classmethod
-    def bibliography_search(cls, terms):
-        qs = BibliographyItem.objects.all()
-        results = terms.match(qs, "authors") | terms.match(qs, "title")
-        return results.distinct()
+    def bibliography_search(cls, terms, ant_filter=None, **kwargs):
+        qs = cls.get_filtered_model_qs(BibliographyItem, ant_filter=ant_filter)
+        search_fields = [("authors", terms.match), ("title", terms.match)]
+        return cls.generic_content_search(qs, search_fields)
 
     @classmethod
-    def appositum_search(cls, terms):
+    def appositum_search(cls, terms, ant_filter=None, ca_filter=None, **kwargs):
         qs = AnonymousFragment.objects.exclude(appositumfragmentlinks_from=None).all()
-        return cls.anonymous_fragment_search(terms, qs=qs)
+        qs = cls.get_filtered_model_qs(
+            AnonymousFragment, qs=qs, ant_filter=ant_filter, ca_filter=ca_filter
+        )
+        return cls.anonymous_fragment_search(terms, qs=qs, **kwargs)
 
     @classmethod
-    def citing_author_search(cls, terms):
-        qs = CitingAuthor.objects.all()
-        return terms.match(qs, "name").distinct()
+    def citing_author_search(cls, terms, ca_filter=None, **kwargs):
+        qs = cls.get_filtered_model_qs(CitingAuthor, ca_filter=ca_filter)
+        search_fields = [("name", terms.match)]
+        return cls.generic_content_search(qs, search_fields)
 
     @classmethod
-    def citing_work_search(cls, terms):
-        qs = CitingWork.objects.all()
-        results = terms.match(qs, "title") | terms.match(qs, "edition")
-        return results.distinct()
+    def citing_work_search(cls, terms, ca_filter=None, **kwargs):
+        qs = cls.get_filtered_model_qs(CitingWork, ca_filter=ca_filter)
+        search_fields = [("title", terms.match), ("edition", terms.match)]
+        return cls.generic_content_search(qs, search_fields)
+
+    @classmethod
+    def get_filtered_model_qs(cls, model, qs=None, ant_filter=None, ca_filter=None):
+        if not qs:
+            qs = model.objects.all()
+        if ant_filter:
+            if model in [Fragment, Testimonium]:
+                qs = qs.filter(linked_antiquarians__in=ant_filter)
+            if model == AnonymousFragment:
+                qs = qs.filter(appositumfragmentlinks_from__antiquarian__in=ant_filter)
+            if model == Antiquarian:
+                qs = qs.filter(id__in=ant_filter)
+            if model == Work:
+                qs = qs.filter(antiquarian__in=ant_filter)
+            if model == BibliographyItem:
+                qs = qs.filter(bibliography_items__in=ant_filter)
+        if ca_filter:
+            if model in [Fragment, AnonymousFragment, Testimonium]:
+                qs = qs.filter(original_texts__citing_work__author__in=ca_filter)
+            if model == CitingWork:
+                qs = qs.filter(author__in=ca_filter)
+            if model == CitingAuthor:
+                qs = qs.filter(id__in=ca_filter)
+        return qs
 
     def get(self, request, *args, **kwargs):
         keywords = self.request.GET.get("q", None)
@@ -310,6 +424,12 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         context = super().get_context_data(*args, **kwargs)
         keywords = self.request.GET.get("q")
         to_search = self.request.GET.getlist("what")
+        context["ant_filter"] = self.request.GET.getlist("ant")
+        (
+            context["antiquarians"],
+            context["authors"],
+        ) = self.antiquarians_and_authors_in_object_list(self.object_list)
+        context["ca_filter"] = self.request.GET.getlist("ca")
         context["search_term"] = keywords
         context["to_search"] = to_search
         context["search_classes"] = self.SEARCH_METHODS.keys()
@@ -318,6 +438,10 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
 
     def get_queryset(self):
         keywords = self.request.GET.get("q")
+        filter_kwargs = {
+            "ant_filter": self.request.GET.getlist("ant"),
+            "ca_filter": self.request.GET.getlist("ca"),
+        }
         if not keywords:
             return []
 
@@ -330,9 +454,82 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             to_search = self.SEARCH_METHODS.keys()
 
         for what in to_search:
-            result_set.append(self.SEARCH_METHODS[what](terms))
+            result_set.append(self.SEARCH_METHODS[what](terms, **filter_kwargs))
 
         queryset_chain = chain(*result_set)
 
         # return a list...
         return sorted(queryset_chain, key=lambda instance: instance.pk, reverse=True)
+
+    def antiquarians_and_authors_in_object_list(self, object_list):
+        """Generate lists of Antiquarians and Citing Authors associated with
+        the list of objects provided.
+
+        Antiquarians can come from: Fragments, Testimonia, Anonymous Fragments,
+        Antiquarians, Bibliography Items, or Works.
+
+        Citing Authors can come from: Fragments, Testimonia, Anonymous
+        Fragments, Citing Works, or Citing Authors.
+        """
+        antiquarians = []
+        authors = []
+        if object_list:
+            for object in object_list:
+                obj_type = object.__class__
+                if obj_type == Fragment:
+                    antiquarians.extend(
+                        list(object.linked_antiquarians.distinct().all())
+                    )
+                    authors.extend(
+                        list(
+                            CitingAuthor.objects.filter(
+                                citingwork__originaltext__fragments=object
+                            )
+                        )
+                    )
+                if obj_type == Testimonium:
+                    antiquarians.extend(
+                        list(object.linked_antiquarians.distinct().all())
+                    )
+                    authors.extend(
+                        list(
+                            CitingAuthor.objects.filter(
+                                citingwork__originaltext__testimonia=object
+                            )
+                        )
+                    )
+                if obj_type == AnonymousFragment:
+                    antiquarians.extend(
+                        list(
+                            Antiquarian.objects.filter(
+                                appositumfragmentlinks__anonymous_fragment=object
+                            )
+                        )
+                    )
+                    authors.extend(
+                        list(
+                            CitingAuthor.objects.filter(
+                                citingwork__originaltext__anonymous_fragments=object
+                            )
+                        )
+                    )
+                elif obj_type == Antiquarian:
+                    antiquarians.append(object)
+                elif obj_type == BibliographyItem:
+                    antiquarians.extend(list(object.bibliography_items.all()))
+                elif obj_type == Work:
+                    antiquarians.extend(list(object.antiquarian_set.all()))
+                elif obj_type == CitingWork:
+                    authors.append(object.author)
+                elif obj_type == CitingAuthor:
+                    authors.append(object)
+            # Remove duplicates and sort
+            antiquarians = list(set(antiquarians))
+            antiquarians.sort(key=lambda x: (x.order_name, x.re_code))
+            authors = list(set(authors))
+            authors.sort(key=lambda x: x.order_name)
+        else:
+            # Return all antiquarians and authors (already sorted)
+            antiquarians = list(Antiquarian.objects.all())
+            authors = list(CitingAuthor.objects.all())
+        return antiquarians, authors

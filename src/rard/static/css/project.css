@@ -30,3 +30,7 @@ table.books-widget .book-order {
     border-color: #eed3d7;
     color: #b94a48
 }
+
+.search-snippet {
+    background-color: yellow;
+}
