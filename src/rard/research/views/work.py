@@ -76,10 +76,10 @@ class WorkDetailView(
                           {'book':'book1','definite'true','object':F5},
                           {'book':'book1','definite'false','object':F6}]
             grouped_dict = {'book1': {'true': [F1,F3,F5],'false':[F2,F4,F6]}}"""
-            grouped_dict = {
-                k[0]: {k[1]: [f["object"] for f in v]}
-                for k, v in groupby(query_list, lambda x: [x["book"], x["definite"]])
-            }
+            grouped_dict = {}
+            for k, v in groupby(query_list, lambda x: [x["book"], x["definite"]]):
+                grouped_dict.setdefault(k[0], {})
+                grouped_dict[k[0]][k[1]] = [f["object"] for f in v]
             return grouped_dict
 
         def add_to_ordered_materials(grouped_dict, material_type):
