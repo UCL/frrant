@@ -262,3 +262,15 @@ class TestFragmentConvertViews(TestCase):
         )
         self.assertEqual(new_fragment.date_range, "509 BCE - 31 BCE")
         self.assertEqual(new_fragment.commentary.content, "hello")
+
+    def test_converted_unlinked_has_correct_order(self):
+        """Make sure newly created anonymous fragment has the correct order
+        value."""
+        ufr_topic = Topic.objects.get(name="ufr topic")
+        ufr_topic.move_to(0)  # Give unlinked fragment's topic first place
+        new_fragment = convert_unlinked_fragment_to_anonymous_fragment(
+            self.unlinked_fragment
+        )
+        new_fragment.save()
+        self.assertEqual(ufr_topic.order, 0)
+        self.assertEqual(new_fragment.order, 0)

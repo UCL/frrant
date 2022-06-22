@@ -1,5 +1,6 @@
 from rard.research.models import AnonymousFragment, Fragment
 from rard.research.models.base import FragmentLink
+from rard.research.models.fragment import reindex_anonymous_fragments
 
 
 class FragmentIsNotConvertible(Exception):
@@ -60,7 +61,8 @@ def convert_unlinked_fragment_to_anonymous_fragment(fragment):
     transfer_data_between_fragments(fragment, anonymous_fragment)
     anonymous_fragment.save()
     fragment.delete()
-
+    reindex_anonymous_fragments()
+    anonymous_fragment.refresh_from_db()
     return anonymous_fragment
 
 
