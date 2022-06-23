@@ -3,11 +3,7 @@
 
 {% with object=antiquarian %}
 
-        <div class='ordered-list parent-ordering-group'>
-        {% for work in object.ordered_works.all %}
-
-        <div class='drop-target' data-pos='{{ forloop.counter0 }}' data-objecttype='work'>
-        </div>
+      <div class='ordered-list parent-ordering-group'>
 
         <div class='ordered-list'>
         <ul class='parent-ordering-group'>
@@ -21,6 +17,11 @@
           {% endwith %}
 
         </ul>
+        </div>
+
+        {% for work in object.ordered_works.all %}
+
+        <div class='drop-target' data-pos='{{ forloop.counter0 }}' data-objecttype='work'>
         </div>
 
             <div id='work_{{ work.pk }}' class='parent-ordering-group drag-item ordered-list-item' draggable='false' data-work='{{ work.pk }}' data-antiquarian='{{ object.pk }}' data-objecttype='work' data-pos='{{ forloop.counter0 }}'>
@@ -114,6 +115,6 @@
         {% endwith %}
 
         </ul>
-        </div>
+      </div>
 
 {% endwith %}
