@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 volumes:
   local_postgres_data: {}
@@ -11,6 +11,7 @@ services:
       dockerfile: ./compose/local/django/Dockerfile
     image: rard_local_django
     container_name: django
+    platform: linux/x86_64
     depends_on:
       - postgres
       - elasticsearch
@@ -32,6 +33,7 @@ services:
       dockerfile: ./compose/development/postgres/Dockerfile
     image: rard_local_postgres
     container_name: postgres
+    platform: linux/x86_64
     volumes:
       - local_postgres_data:/var/lib/postgresql/data:Z
       - local_postgres_data_backups:/backups:z
@@ -40,6 +42,7 @@ services:
 
   elasticsearch:
     container_name: elasticsearch
+    platform: linux/x86_64
     image: elasticsearch:7.4.0
     environment:
       - discovery.type=single-node
@@ -50,6 +53,7 @@ services:
   docs:
     image: rard_local_docs
     container_name: docs
+    platform: linux/x86_64
     build:
       context: .
       dockerfile: ./compose/local/docs/Dockerfile
@@ -60,4 +64,4 @@ services:
       - ./config:/app/config:z
       - ./rard:/app/rard:z
     ports:
-      - "7000:7000"
+      - "9000:9000"
