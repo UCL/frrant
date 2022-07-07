@@ -20,7 +20,7 @@ class LinkBaseModel(BaseModel):
 
     def related_queryset(self):
         return self.__class__.objects.filter(antiquarian=self.antiquarian).order_by(
-            "work__worklink__order"
+            "-work__isnull", "work__worklink__order"
         )
 
     # keep these in case ever required again

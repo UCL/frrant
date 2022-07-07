@@ -1,3 +1,5 @@
+import itertools
+
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.db.models.signals import m2m_changed, post_delete, post_save, pre_delete
@@ -315,9 +317,17 @@ class Antiquarian(
                 self.fragmentlinks.all()
                 .order_by("work__worklink__order", "work_order")
                 .distinct(),
-                self.testimoniumlinks.all()
-                .order_by("work__worklink__order", "work_order")
-                .distinct(),
+                # We want testimonium links without works to be ordered first
+                # but for some reason adding "-work__isnull" to the order_by
+                # breaks the rest of the ordering. Using itertools chain as
+                # a workaround does the job.
+                itertools.chain(
+                    self.testimoniumlinks.all().filter(work__isnull=True).distinct(),
+                    self.testimoniumlinks.all()
+                    .filter(work__isnull=False)
+                    .order_by("work__worklink__order", "work_order")
+                    .distinct(),
+                ),
                 self.appositumfragmentlinks.all()
                 .order_by("work__worklink__order", "work_order")
                 .distinct(),
