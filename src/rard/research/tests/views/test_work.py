@@ -2,7 +2,8 @@ import pytest
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
-from rard.research.models import Antiquarian, Book, Work
+from rard.research.models import Antiquarian, Book, Fragment, Testimonium, Work
+from rard.research.models.base import FragmentLink, TestimoniumLink
 from rard.research.views import (
     WorkCreateView,
     WorkDeleteView,
@@ -193,3 +194,58 @@ class TestWorkUpdateView(TestCase):
         self.assertEqual(bs[1].subtitle, "beta")
         self.assertEqual(bs[1].order_year, -25)
         self.assertEqual(bs[1].date_range, "40-10BC")
+
+
+class TestWorkDetailView(TestCase):
+    def setUp(self):
+        self.user = UserFactory.create()
+
+    def test_ordered_materials(self):
+        work = Work.objects.create(name="meditations")
+        book1 = Book.objects.create(work=work, number=1)
+        book2 = Book.objects.create(work=work, number=2)
+
+        f1 = Fragment.objects.create(name="Fragment One")
+        FragmentLink.objects.create(fragment=f1, work=work, book=book1, definite=True)
+        f2 = Fragment.objects.create(name="Fragment Two")
+        FragmentLink.objects.create(fragment=f2, work=work, book=book2, definite=False)
+        f3 = Fragment.objects.create(name="Fragment Three")
+        FragmentLink.objects.create(fragment=f3, work=work, definite=False)
+        f4 = Fragment.objects.create(name="Fragment Four")
+        FragmentLink.objects.create(fragment=f4, work=work, definite=True)
+
+        t1 = Testimonium.objects.create(name="Testimonium One")
+        TestimoniumLink.objects.create(
+            testimonium=t1, work=work, book=book1, definite=False
+        )
+        t2 = Testimonium.objects.create(name="Testimonium Two")
+        TestimoniumLink.objects.create(
+            testimonium=t2, work=work, book=book2, definite=True
+        )
+        t3 = Testimonium.objects.create(name="Testimonium Three")
+        TestimoniumLink.objects.create(testimonium=t3, work=work, definite=False)
+        t4 = Testimonium.objects.create(name="Testimonium Four")
+        TestimoniumLink.objects.create(testimonium=t4, work=work, definite=True)
+
+        url = reverse("work:detail", kwargs={"pk": work.pk})
+        self.client.force_login(self.user)
+        response = self.client.get(url)
+
+        target_materials = {
+            book: {
+                material: {"definite": [], "possible": []}
+                for material in ["fragments", "testimonia", "apposita"]
+            }
+            for book in [book1, book2] + ["Unknown Book"]
+        }
+        target_materials[book1]["fragments"]["definite"] = [f1]
+        target_materials[book2]["fragments"]["possible"] = [f2]
+        target_materials["Unknown Book"]["fragments"]["definite"] = [f4]
+        target_materials["Unknown Book"]["fragments"]["possible"] = [f3]
+        target_materials[book1]["testimonia"]["possible"] = [t1]
+        target_materials[book2]["testimonia"]["definite"] = [t2]
+        target_materials["Unknown Book"]["testimonia"]["definite"] = [t4]
+        target_materials["Unknown Book"]["testimonia"]["possible"] = [t3]
+
+        assert "ordered_materials" in response.context
+        assert response.context["ordered_materials"] == target_materials
