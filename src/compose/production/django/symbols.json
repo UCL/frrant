@@ -6810,8 +6810,8 @@
     "model": "research.symbol",
     "pk": 616,
     "fields": {
-        "created": "2020-11-11T12:48:02.000Z",
-        "modified": "2020-11-11T12:48:02.000Z",
+        "created": "2020-11-11T12:48:02Z",
+        "modified": "2020-11-11T12:48:02Z",
         "group": 4,
         "name": "",
         "code": "2012"
@@ -13118,6 +13118,17 @@
         "group": 15,
         "name": "Hello, World!",
         "code": "2C41"
+    }
+},
+{
+    "model": "research.symbol",
+    "pk": 1190,
+    "fields": {
+        "created": "2022-06-07T13:18:16.199Z",
+        "modified": "2022-06-07T13:18:16.199Z",
+        "group": 4,
+        "name": "",
+        "code": "03BD"
     }
 }
 ]
