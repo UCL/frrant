@@ -1,0 +1,14 @@
+{# for selecting topic for anonymous fragment list page #}
+
+<form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='GET'>
+    <div class="form-row align-items-center">
+        <div>
+            <select class="submit-on-change form-control form-control-sm" name='topic-select'>
+                <option value="none" selected>Topic</option>
+                {% for i in topics %}
+                <option value={{ i.0 }}>{{ i.1 }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+</form>

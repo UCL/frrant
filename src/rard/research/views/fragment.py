@@ -1,3 +1,5 @@
+from multiprocessing import get_context
+from urllib import request
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.http.response import Http404, HttpResponseBadRequest, HttpResponseRedirect
@@ -27,6 +29,7 @@ from rard.research.models import (
     CitingAuthor,
     CitingWork,
     Fragment,
+    Topic,
     Work,
 )
 from rard.research.models.base import AppositumFragmentLink, FragmentLink
@@ -267,19 +270,56 @@ class FragmentListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     permission_required = ("research.view_fragment",)
 
 
-class AnonymousFragmentListView(FragmentListView):
-    paginate_by = 10
+class AnonymousFragmentListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     model = AnonymousFragment
     permission_required = ("research.view_fragment",)
 
+    def get_context_data(self, *args, **kwargs):
+
+        context_data = super().get_context_data(*args, **kwargs)
+        topic_qs = Topic.objects.all()
+        topics = []
+        for i in topic_qs:
+            topics.append([i.id, i.name])
+        context_data["topics"] = topics
+        return context_data
+
     def get_queryset(self):
         # do not show anon fragment that are appositum to other things
-        qs = super().get_queryset().filter(appositumfragmentlinks_from__isnull=True)
+        topic_id = self.request.GET.get("topic-select", None)
+        if not topic_id:
+            topic_id = Topic.objects.get(order=0).id
+
+        qs = (
+            super()
+            .get_queryset()
+            .filter(appositumfragmentlinks_from__isnull=True, topics__id=topic_id)
+        )
+
         from django.db.models import F
 
         filtered = qs.annotate(
             topic=F("topics__name"), topic_order=F("topics__order")
         ).order_by("topic_order", "order")
+
+        # topic = ["topic"]
+        # qs = (
+        #     super()
+        #     .get_queryset()
+        #     .filter(appositumfragmentlinks_from__isnull=True, topic=topic)
+        # )
+        # from django.db.models import F
+
+        # filtered = qs.annotate(
+        #     topic_order=F("topics__order"), ref_order=F("original_text__ref_no")
+        # )
+
+        # order_by = self.request.GET["order_by"]
+        # if order_by == "ref_number":
+        #     filtered.order_by("ref")
+        # else:
+        #     filtered.order_by("topic__order")
+
         return filtered
 
 
