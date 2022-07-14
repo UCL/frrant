@@ -474,7 +474,6 @@ function drag(ev) {
   let object_type = $(ev.target).data("objecttype");
   let pos = parseInt(src_pos);
   ev.dataTransfer.setData("Text", ev.target.id);
-  console.log(object_type, pos, ev.target.id);
   // Only show drop targets belonging to the same work
   let work_div = $(ev.target).parent().closest(".parent-ordering-group");
   // if we manipulate the DOM on drag start we need
@@ -525,12 +524,10 @@ function drop(ev) {
     data["move_to"] = new_pos;
     moveLinkTo(data);
   } else if (object_type == "anonymoustopiclink") {
-    console.log("it's an atl!")
     let topic_id = $(item).data("topic");
     let anonymoustopiclink_id = $(item).data("anonymoustopiclink");
     data = { anonymoustopiclink_id: anonymoustopiclink_id, topic_id: topic_id };
     data["move_to"] = new_pos;
-    console.log(data);
     moveAnonymousFragmentTo(data);
   } else {
     let link_id = $(item).data("link");
@@ -677,7 +674,6 @@ function runMoveAction(post_data, post_url) {
   $(".ordered-list button").css("pointer-events", "none");
   $(".ordered-list").css("opacity", "0.5");
   $("body").css("cursor", "progress");
-  console.log(data);
 
   $.ajax({
     url: post_url,
