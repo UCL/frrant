@@ -4,7 +4,7 @@
 <div class='ordered-list parent-ordering-group'>
     {% for object in object_list %}
 
-        {% include 'research/partials/anonymousfragment_list_item.html' with fragment=object.fragment can_edit=perms.research.change_fragment %}
+        {% include 'research/partials/anonymoustopiclink_list_item.html' with link=object can_edit=perms.research.change_fragment %}
 
 
     {% endfor %}

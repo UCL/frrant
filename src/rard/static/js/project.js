@@ -558,21 +558,19 @@ $("body").on("click", 'button[name="topic_up"]', function () {
   moveTopicTo(data);
 });
 
-$("body").on("click", 'button[name="anonymoustopiclink_down"]', function () {
+$("body").on("click", 'button[name="fragment_down"]', function () {
   let pos = $(this).data("pos");
   let new_pos = pos + 1;
-  let topic_id = $(this).data("anonymoustopiclink");
-  let page_index = $(".ordered-list").data("page");
+  let anonymoustopiclink_id = $(this).data("anonymoustopiclink");
   let data = { anonymoustopiclink_id: anonymoustopiclink_id, move_to: new_pos };
   moveAnonymousFragmentTo(data);
 });
 
-$("body").on("click", 'button[name="anonymoustopiclink_up"]', function () {
+$("body").on("click", 'button[name="fragment_up"]', function () {
   let pos = $(this).data("pos");
   // let object_type = $(this).data('objecttype');
   let new_pos = pos - 1;
-  let topic_id = $(this).data("anonymoustopiclink");
-  let page_index = $(".ordered-list").data("page");
+  let anonymoustopiclink_id = $(this).data("anonymoustopiclink");
   let data = { anonymoustopiclink_id: anonymoustopiclink_id, move_to: new_pos };
   moveAnonymousFragmentTo(data);
 });
