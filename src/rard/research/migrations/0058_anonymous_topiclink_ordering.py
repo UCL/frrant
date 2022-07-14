@@ -11,6 +11,7 @@ def give_anonymoustopiclinks_order(apps, schema_editor):
         qs = AnonymousTopicLink.objects.filter(topic=topic).order_by("fragment__order")
         for count, link in enumerate(qs):
             link.order = count
+            link.save()
 
 
 def reverse_give_anonymoustopiclinks_order(apps, schema_editor):
@@ -21,6 +22,7 @@ def reverse_give_anonymoustopiclinks_order(apps, schema_editor):
         qs = AnonymousTopicLink.objects.filter(topic=topic).order_by("fragment__order")
         for count, link in enumerate(qs):
             link.order = None
+            link.save()
 
 
 class Migration(migrations.Migration):
