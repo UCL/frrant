@@ -48,6 +48,11 @@ urlpatterns = [
     path("ajax/move-link/", views.MoveLinkView.as_view(), name="move_link"),
     path("ajax/move-topic/", views.MoveTopicView.as_view(), name="move_topic"),
     path(
+        "ajax/move-anonymoustopiclink/",
+        views.MoveAnonymousTopicLinkView.as_view(),
+        name="move_anonymoustopiclink",
+    ),
+    path(
         "ajax/create-apparatus-criticus-line/",
         views.CreateApparatusCriticusLineView.as_view(),
         name="create_apparatus_criticus_line",

@@ -21,13 +21,10 @@
 {% block inner %}
 
 
-    {% for object in object_list %}
+    <h5 class='mt-3 alphabetum'>{{ selected_topic.name }}</h5>
 
-    {% ifchanged object.topic %}<h5 class='mt-3'>{{ object.topic|default:'Uncategorised' }}</h5> {% endifchanged %}
+    {% include 'research/partials/ordered_anonymousfragment_area.html' %}
 
-    {% include 'research/partials/anonymousfragment_list_item.html' with fragment=object %}
-
-    {% endfor %}
 
 
 {% endblock %}

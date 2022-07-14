@@ -67,6 +67,7 @@ from .fragment import (
     RemoveAppositumLinkView,
     RemoveFragmentLinkView,
     UnlinkedFragmentConvertToAnonymousView,
+    MoveAnonymousTopicLinkView,
 )
 from .history import HistoryListView
 from .home import HomeView
@@ -182,6 +183,7 @@ __all__ = [
     "HomeView",
     "MentionSearchView",
     "MoveTopicView",
+    "MoveAnonymousTopicLinkView",
     "OriginalTextDeleteView",
     "OriginalTextUpdateAuthorView",
     "OriginalTextUpdateView",

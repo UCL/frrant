@@ -1,9 +1,16 @@
 from multiprocessing import get_context
 from urllib import request
+from django.contrib.auth.context_processors import PermWrapper
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
-from django.http.response import Http404, HttpResponseBadRequest, HttpResponseRedirect
+from django.http.response import (
+    Http404,
+    HttpResponseBadRequest,
+    HttpResponseRedirect,
+    JsonResponse,
+)
 from django.shortcuts import get_object_or_404, redirect
+from django.template.loader import render_to_string
 from django.urls import resolve, reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
@@ -33,6 +40,7 @@ from rard.research.models import (
     Work,
 )
 from rard.research.models.base import AppositumFragmentLink, FragmentLink
+from rard.research.models.fragment import AnonymousTopicLink
 from rard.research.views.mixins import CanLockMixin, CheckLockMixin
 from rard.utils.convertors import (
     convert_anonymous_fragment_to_fragment,
@@ -271,8 +279,15 @@ class FragmentListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
 
 
 class AnonymousFragmentListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
-    model = AnonymousFragment
-    permission_required = ("research.view_fragment",)
+    model = AnonymousTopicLink
+    permission_required = "research.view_fragment"
+    template_name = "research/anonymousfragment_list.html"
+
+    def get_selected_topic(self):
+        topic_id = self.request.GET.get("topic-select", None)
+        if not topic_id:
+            topic_id = Topic.objects.get(order=0).id
+        return Topic.objects.get(id=topic_id)
 
     def get_context_data(self, *args, **kwargs):
 
@@ -282,45 +297,21 @@ class AnonymousFragmentListView(LoginRequiredMixin, PermissionRequiredMixin, Lis
         for i in topic_qs:
             topics.append([i.id, i.name])
         context_data["topics"] = topics
+        context_data["selected_topic"] = self.get_selected_topic()
         return context_data
 
     def get_queryset(self):
-        # do not show anon fragment that are appositum to other things
-        topic_id = self.request.GET.get("topic-select", None)
-        if not topic_id:
-            topic_id = Topic.objects.get(order=0).id
 
         qs = (
             super()
             .get_queryset()
-            .filter(appositumfragmentlinks_from__isnull=True, topics__id=topic_id)
-        )
+            .filter(
+                fragment__appositumfragmentlinks_from__isnull=True,
+                topic__id=self.get_selected_topic().id,
+            )
+        ).order_by("order")
 
-        from django.db.models import F
-
-        filtered = qs.annotate(
-            topic=F("topics__name"), topic_order=F("topics__order")
-        ).order_by("topic_order", "order")
-
-        # topic = ["topic"]
-        # qs = (
-        #     super()
-        #     .get_queryset()
-        #     .filter(appositumfragmentlinks_from__isnull=True, topic=topic)
-        # )
-        # from django.db.models import F
-
-        # filtered = qs.annotate(
-        #     topic_order=F("topics__order"), ref_order=F("original_text__ref_no")
-        # )
-
-        # order_by = self.request.GET["order_by"]
-        # if order_by == "ref_number":
-        #     filtered.order_by("ref")
-        # else:
-        #     filtered.order_by("topic__order")
-
-        return filtered
+        return qs
 
 
 class AddAppositumGeneralLinkView(
@@ -775,3 +766,41 @@ class RemoveFragmentLinkView(
         if not getattr(self, "fragment", False):
             self.fragment = self.get_object().fragment
         return self.fragment
+
+
+class MoveAnonymousTopicLinkView(LoginRequiredMixin, View):
+
+    render_partial_template = "research/partials/ordered_fragment_area.html"
+
+    def render_valid_response(self):
+
+        view = AnonymousFragmentListView()
+        context = {
+            "has_object_lock": True,
+            "can_edit": True,
+            "perms": PermWrapper(self.request.user),
+        }
+        html = render_to_string(self.render_partial_template, context)
+        ajax_data = {"status": 200, "html": html}
+        return JsonResponse(data=ajax_data, safe=False)
+
+    def post(self, *args, **kwargs):
+
+        anonymoustopiclink_pk = self.request.POST.get("anonymoustopiclink_id", None)
+        if anonymoustopiclink_pk:
+            # moving a topic in the collection
+            try:
+                anonymoustopiclink = AnonymousTopicLink.objects.get(
+                    pk=anonymoustopiclink_pk
+                )
+
+                if "move_to" in self.request.POST:
+                    pos = int(self.request.POST.get("move_to"))
+                    anonymoustopiclink.move_to(pos)
+
+                return self.render_valid_response()
+
+            except (Topic.DoesNotExist, KeyError):
+                raise Http404
+
+        raise Http404

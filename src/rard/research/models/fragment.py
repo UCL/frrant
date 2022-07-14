@@ -132,7 +132,7 @@ class Fragment(HistoryModelMixin, HistoricalBaseModel, DatedModel):
             return True
 
 
-class AnonymousTopicLink(models.Model):
+class AnonymousTopicLink(OrderableModel):
 
     # need a different class for anonymous topics so they can
     # vary independently
