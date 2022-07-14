@@ -149,6 +149,13 @@ class AnonymousTopicLink(OrderableModel):
     # with respect to topic
     order = models.IntegerField(default=None, null=True)
 
+    def related_queryset(self):
+        # ordering wrt topic so filter on that
+        # also exclude apposita
+        return self.__class__.objects.filter(
+            fragment__appositumfragmentlinks_from__isnull=True, topic=self.topic
+        )
+
 
 class AnonymousFragment(
     HistoryModelMixin, OrderableModel, HistoricalBaseModel, DatedModel
