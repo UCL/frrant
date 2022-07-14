@@ -1,5 +1,3 @@
-from multiprocessing import get_context
-from urllib import request
 from django.contrib.auth.context_processors import PermWrapper
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
@@ -300,14 +298,20 @@ class AnonymousFragmentListView(LoginRequiredMixin, PermissionRequiredMixin, Lis
         context_data["selected_topic"] = self.get_selected_topic()
         return context_data
 
-    def get_queryset(self):
+    def get_queryset(self, topic_id=None):
+        """Queryset should include all anonymous topic links related
+        to a give topic and should not include apposita.
 
+        If no topic_id is given we'll get the topic from the request.
+        If none given there, choose the topic with the lowest order
+        as default."""
+        topic_id = topic_id or self.get_selected_topic().id
         qs = (
             super()
             .get_queryset()
             .filter(
                 fragment__appositumfragmentlinks_from__isnull=True,
-                topic__id=self.get_selected_topic().id,
+                topic__id=topic_id,
             )
         ).order_by("order")
 
@@ -770,12 +774,14 @@ class RemoveFragmentLinkView(
 
 class MoveAnonymousTopicLinkView(LoginRequiredMixin, View):
 
-    render_partial_template = "research/partials/ordered_fragment_area.html"
+    render_partial_template = "research/partials/ordered_anonymoustopiclink_area.html"
 
-    def render_valid_response(self):
+    def render_valid_response(self, topic_id):
 
         view = AnonymousFragmentListView()
+        qs = view.get_queryset(topic_id=topic_id)
         context = {
+            "object_list": qs,
             "has_object_lock": True,
             "can_edit": True,
             "perms": PermWrapper(self.request.user),
@@ -787,8 +793,9 @@ class MoveAnonymousTopicLinkView(LoginRequiredMixin, View):
     def post(self, *args, **kwargs):
 
         anonymoustopiclink_pk = self.request.POST.get("anonymoustopiclink_id", None)
-        if anonymoustopiclink_pk:
-            # moving a topic in the collection
+        topic_id = self.request.POST.get("topic_id", None)
+        if anonymoustopiclink_pk and topic_id:
+            # moving an anonymous topic link in the collection
             try:
                 anonymoustopiclink = AnonymousTopicLink.objects.get(
                     pk=anonymoustopiclink_pk
@@ -798,7 +805,7 @@ class MoveAnonymousTopicLinkView(LoginRequiredMixin, View):
                     pos = int(self.request.POST.get("move_to"))
                     anonymoustopiclink.move_to(pos)
 
-                return self.render_valid_response()
+                return self.render_valid_response(topic_id)
 
             except (Topic.DoesNotExist, KeyError):
                 raise Http404
