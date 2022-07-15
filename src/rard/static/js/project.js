@@ -563,7 +563,8 @@ $("body").on("click", 'button[name="fragment_down"]', function () {
   let pos = $(this).data("pos");
   let new_pos = pos + 1;
   let anonymoustopiclink_id = $(this).data("anonymoustopiclink");
-  let data = { anonymoustopiclink_id: anonymoustopiclink_id, move_to: new_pos };
+  let topic_id = $(this).data("topic");
+  let data = { anonymoustopiclink_id: anonymoustopiclink_id, move_to: new_pos, topic_id: topic_id };
   moveAnonymousFragmentTo(data);
 });
 
@@ -572,7 +573,8 @@ $("body").on("click", 'button[name="fragment_up"]', function () {
   // let object_type = $(this).data('objecttype');
   let new_pos = pos - 1;
   let anonymoustopiclink_id = $(this).data("anonymoustopiclink");
-  let data = { anonymoustopiclink_id: anonymoustopiclink_id, move_to: new_pos };
+  let topic_id = $(this).data("topic");
+  let data = { anonymoustopiclink_id: anonymoustopiclink_id, move_to: new_pos, topic_id: topic_id };
   moveAnonymousFragmentTo(data);
 });
 
