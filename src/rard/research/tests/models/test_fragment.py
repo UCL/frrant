@@ -4,10 +4,12 @@ from django.urls import reverse
 
 from rard.research.models import (
     AnonymousFragment,
+    AnonymousTopicLink,
     CitingWork,
     Fragment,
     OriginalText,
     TextObjectField,
+    Topic,
 )
 
 pytestmark = pytest.mark.django_db
@@ -154,3 +156,29 @@ class TestAnonymousFragment(TestCase):
     def test_get_display_name_no_original_text(self):
         fragment = Fragment.objects.create(name="name")
         self.assertEqual(fragment.get_display_name(), str(fragment))
+
+
+class TestAnonymousTopicLink(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+
+        cls.anon1 = AnonymousFragment.objects.create(name="anon1")
+        cls.anon2 = AnonymousFragment.objects.create(name="anon2")
+        cls.anon3 = AnonymousFragment.objects.create(name="anon3")
+        cls.t1 = Topic.objects.create(name="topic1")
+        cls.anon1.topics.add(cls.t1)
+        cls.anon2.topics.add(cls.t1)
+
+    def test_new_link_order_is_last_if_not_apposita(self):
+        """when a new AnonymousTopicLink is saved, it should be given
+        an order value equal to the number of pre-existing links
+        associated with that topic; e.g. if there are 10 AnonymousTopicLinks
+        associated with the topic "Monarchy", a new AnonymousTopicLink
+        associated with "Monarchy" should have order = 10."""
+        self.anon3.topics.add(self.t1)
+        self.anon3.save()
+        new_link = AnonymousTopicLink.objects.filter(
+            topic=self.t1, fragment=self.anon3
+        ).first()
+        new_link.save()
+        self.assertEqual(new_link.order, 3)
