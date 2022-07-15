@@ -234,7 +234,7 @@ def reindex_anonymous_fragments():
 
     # single db update
     with transaction.atomic():
-
+        # Order by topics, then fragments' order within those topics
         anon_fragments = AnonymousFragment.objects.order_by("topics__order", "order")
         # because we are ordering on an m2m field value we may have
         # duplicates in there. We want to remove these dupes but keep
@@ -286,7 +286,12 @@ def handle_changed_anon_topics(sender, instance, **kwargs):
 def handle_changed_anon_topic_links(sender, instance, action, model, pk_set, **kwargs):
     if action not in ("post_add", "post_remove"):
         return
-
+    links = sender.objects.filter(fragment=instance, topic__in=pk_set)
+    for link in links:
+        if link.order is None:
+            link.order = link.related_queryset().count() - 1
+            link.save()
+    # insert reindex_anonymous_topic_links here
     reindex_anonymous_fragments()
 
 
