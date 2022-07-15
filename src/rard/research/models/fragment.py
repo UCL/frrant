@@ -284,13 +284,19 @@ def handle_changed_anon_topics(sender, instance, **kwargs):
 
 @disable_for_loaddata
 def handle_changed_anon_topic_links(sender, instance, action, model, pk_set, **kwargs):
+    is_apposita = bool(instance.get_all_links().count())
     if action not in ("post_add", "post_remove"):
         return
+
     links = sender.objects.filter(fragment=instance, topic__in=pk_set)
     for link in links:
-        if link.order is None:
-            link.order = link.related_queryset().count() - 1
+        if is_apposita:
+            link.order = 0
             link.save()
+        elif link.order is None:
+            link.order = link.related_queryset().count()
+            link.save()
+
     # insert reindex_anonymous_topic_links here
     reindex_anonymous_fragments()
 

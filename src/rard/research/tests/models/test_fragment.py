@@ -1,16 +1,20 @@
+from unicodedata import name
 import pytest
+from unittest import skip
 from django.test import TestCase
 from django.urls import reverse
 
 from rard.research.models import (
     AnonymousFragment,
     AnonymousTopicLink,
+    Antiquarian,
     CitingWork,
     Fragment,
     OriginalText,
     TextObjectField,
     Topic,
 )
+from rard.research.models.base import AppositumFragmentLink
 
 pytestmark = pytest.mark.django_db
 
@@ -167,7 +171,11 @@ class TestAnonymousTopicLink(TestCase):
         cls.anon3 = AnonymousFragment.objects.create(name="anon3")
         cls.t1 = Topic.objects.create(name="topic1")
         cls.anon1.topics.add(cls.t1)
-        cls.anon2.topics.add(cls.t1)
+
+        cls.a1 = Antiquarian.objects.create(name="a1")
+        AppositumFragmentLink.objects.create(
+            anonymous_fragment=cls.anon3, antiquarian=cls.a1
+        )
 
     def test_new_link_order_is_last_if_not_apposita(self):
         """when a new AnonymousTopicLink is saved, it should be given
@@ -175,10 +183,17 @@ class TestAnonymousTopicLink(TestCase):
         associated with that topic; e.g. if there are 10 AnonymousTopicLinks
         associated with the topic "Monarchy", a new AnonymousTopicLink
         associated with "Monarchy" should have order = 10."""
+        self.anon2.topics.add(self.t1)
+        new_link = AnonymousTopicLink.objects.filter(
+            topic=self.t1, fragment=self.anon2
+        ).first()
+        # new_link.save()
+        self.assertEqual(new_link.order, 2)
+
+    def test_new_link_order_is_zero_if_apposita(self):
         self.anon3.topics.add(self.t1)
         self.anon3.save()
-        new_link = AnonymousTopicLink.objects.filter(
+        new_link2 = AnonymousTopicLink.objects.filter(
             topic=self.t1, fragment=self.anon3
         ).first()
-        new_link.save()
-        self.assertEqual(new_link.order, 3)
+        self.assertEqual(new_link2.order, 0)
