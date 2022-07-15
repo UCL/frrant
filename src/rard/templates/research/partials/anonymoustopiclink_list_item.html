@@ -46,6 +46,6 @@
 </div>
 {% if forloop.last %}
 {# add drop target at end #}
-<div class='drop-target' data-pos='{{ forloop.counter + 1 }}' data-objecttype='anonymoustopiclink'>
+<div class='drop-target' data-pos='{{ forloop.counter|add:1 }}' data-objecttype='anonymoustopiclink'>
 </div>
 {% endif %}
