@@ -284,10 +284,19 @@ class TestWorkLinkScheme(TestCase):
                 "name": "name{}".format(i),
             }
             fragment = Fragment.objects.create(**data)
+            testimonium = Testimonium.objects.create(**data)
 
             # add links to antiquarian directly
             FragmentLink.objects.create(
                 antiquarian=self.antiquarian, fragment=fragment, definite=True
+            )
+            # Only create work links for half the testimonia
+            work = self.work if i % 2 == 0 else None
+            TestimoniumLink.objects.create(
+                antiquarian=self.antiquarian,
+                work=work,
+                testimonium=testimonium,
+                definite=True,
             )
             # add links to works
             FragmentLink.objects.create(
@@ -306,6 +315,18 @@ class TestWorkLinkScheme(TestCase):
             FragmentLink.objects.filter(antiquarian=self.antiquarian)
         ):
             self.assertEqual(count, link.order)
+
+    def test_testimonia_without_work_ordered_first(self):
+        """TestimoniaLinks with no work specified should be ordered before
+        those with a linked work"""
+        # Odd numbered testimonia were not linked to works so we expect them to be first
+        names_order = [f"name{i}" for i in [1, 3, 5, 7, 9, 0, 2, 4, 6, 8]]
+        for count, name in enumerate(names_order):
+            testimonium = Testimonium.objects.get(name=name)
+            self.assertEqual(
+                TestimoniumLink.objects.filter(testimonium=testimonium).first().order,
+                count,
+            )
 
     def test_ordered_fragments_method(self):
         ordered_fragments = [f.pk for f in self.antiquarian.ordered_fragments()]
