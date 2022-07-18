@@ -170,6 +170,7 @@ class TestAnonymousTopicLink(TestCase):
         cls.anon2 = AnonymousFragment.objects.create(name="anon2")
         cls.anon3 = AnonymousFragment.objects.create(name="anon3")
         cls.t1 = Topic.objects.create(name="topic1")
+        cls.t2 = Topic.objects.create(name="topic2")
         cls.anon1.topics.add(cls.t1)
 
         cls.a1 = Antiquarian.objects.create(name="a1")
@@ -178,7 +179,7 @@ class TestAnonymousTopicLink(TestCase):
         )
 
     def test_new_link_order_is_last_if_not_apposita(self):
-        """when a new AnonymousTopicLink is saved, it should be given
+        """When a new AnonymousTopicLink is saved, it should be given
         an order value equal to the number of pre-existing links
         associated with that topic; e.g. if there are 10 AnonymousTopicLinks
         associated with the topic "Monarchy", a new AnonymousTopicLink
@@ -191,9 +192,28 @@ class TestAnonymousTopicLink(TestCase):
         self.assertEqual(new_link.order, 2)
 
     def test_new_link_order_is_zero_if_apposita(self):
+        """When a new AnonymousTopicLink is saved, and the fragment is an apposita,
+        it should be given an order of zero."""
         self.anon3.topics.add(self.t1)
         self.anon3.save()
         new_link2 = AnonymousTopicLink.objects.filter(
             topic=self.t1, fragment=self.anon3
         ).first()
         self.assertEqual(new_link2.order, 0)
+
+    def test_links_reindexed_when_link_removed(self):
+        """When an AnonymousTopicLink is deleted, anonymous topic links within
+        the affected topic should be reindexed"""
+        self.anon1.topics.add(self.t2)
+        self.anon2.topics.add(self.t2)
+
+        t2qs = AnonymousTopicLink.objects.filter(topic=self.t2)
+        new_link3 = AnonymousTopicLink.objects.filter(
+            topic=self.t2, fragment=self.anon2
+        ).first()
+        # if the index of anon2 is 1, remove anon1 and check index of anon2
+        if (*t2qs,).index(new_link3) == 1:
+            self.anon1.topics.remove(self.t2)
+            t2qs = AnonymousTopicLink.objects.filter(topic=self.t2)
+            new_link3_index = (*t2qs,).index(new_link3)
+            self.assertEqual(new_link3_index, 0)
