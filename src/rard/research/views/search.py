@@ -522,6 +522,8 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
 
         to_search = self.request.GET.getlist("what", ["all"])
         if to_search == ["all"]:
+            # Use default methods rather than all because we don't want
+            # to search same fragment several times with different methods
             to_search = self.SEARCH_METHODS["default_methods"].keys()
 
         for what in to_search:
