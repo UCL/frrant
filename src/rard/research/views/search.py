@@ -1,4 +1,5 @@
 import re
+from functools import partial
 from itertools import chain
 
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -251,19 +252,37 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
 
     @property
     def SEARCH_METHODS(self):
-        return {
-            "anonymous fragments": self.anonymous_fragment_search,
+        methods_dict = {
             "antiquarians": self.antiquarian_search,
             "apparatus critici": self.apparatus_criticus_search,
-            "apposita": self.appositum_search,
             "bibliographies": self.bibliography_search,
             "citing authors": self.citing_author_search,
             "citing works": self.citing_work_search,
-            "fragments": self.fragment_search,
-            "testimonia": self.testimonium_search,
             "topics": self.topic_search,
             "works": self.work_search,
         }
+        for content_type, method in [
+            ("fragments", self.fragment_search),
+            ("testimonia", self.testimonium_search),
+            ("apposita", self.appositum_search),
+            ("anonymous fragments", self.anonymous_fragment_search),
+        ]:
+            for content_field, search_field in [
+                ("all content", None),
+                ("original texts", ["original_texts__plain_content", "folded"]),
+                (
+                    "translations",
+                    [
+                        "original_texts__translation__plain_translated_text",
+                        "non-folded",
+                    ],
+                ),
+                ("commentary", ["plain_commentary", "non-folded"]),
+            ]:
+                methods_dict[f"{content_type} - {content_field}"] = partial(
+                    method, search_field=search_field
+                )
+        return methods_dict
 
     @classmethod
     def generic_content_search(cls, qs, search_fields):
@@ -272,6 +291,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             field_name, match_function = field
             matches = match_function(qs, field_name, add_snippet=True)
             results.append(matches)
+            # Remove objects from queryset once matched so they don't get matched twice
             qs = qs.exclude(id__in=[o.id for o in matches])
         return chain(*results)
 
@@ -303,39 +323,67 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         return cls.generic_content_search(qs, search_fields)
 
     @classmethod
-    def original_text_owner_search(cls, terms, qs):
-        search_fields = [
-            ("original_texts__plain_content", terms.match_folded),
-            ("original_texts__translation__plain_translated_text", terms.match),
-            ("plain_commentary", terms.match),
-            ("original_texts__translation__translator_name", terms.match),
-            ("original_texts__reference", terms.match),
-        ]
+    def original_text_owner_search(cls, terms, qs, search_field=None):
+        if search_field:
+            match_function = (
+                terms.match_folded if search_field[1] == "folded" else terms.match
+            )
+            search_fields = [(search_field[0], match_function)]
+        else:
+            search_fields = [
+                ("original_texts__plain_content", terms.match_folded),
+                ("original_texts__translation__plain_translated_text", terms.match),
+                ("plain_commentary", terms.match),
+                ("original_texts__translation__translator_name", terms.match),
+                ("original_texts__reference", terms.match),
+            ]
         return cls.generic_content_search(qs, search_fields)
 
     @classmethod
-    def fragment_search(cls, terms, ant_filter=None, ca_filter=None, **kwargs):
+    def fragment_search(
+        cls, terms, ant_filter=None, ca_filter=None, search_field=None, **kwargs
+    ):
         qs = cls.get_filtered_model_qs(
             Fragment, ant_filter=ant_filter, ca_filter=ca_filter
         )
-        return cls.original_text_owner_search(terms, qs)
+        return cls.original_text_owner_search(terms, qs, search_field=search_field)
+
+    @classmethod
+    def testimonium_search(
+        cls, terms, ant_filter=None, ca_filter=None, search_field=None, **kwargs
+    ):
+        qs = cls.get_filtered_model_qs(
+            Testimonium, ant_filter=ant_filter, ca_filter=ca_filter
+        )
+        return cls.original_text_owner_search(terms, qs, search_field=search_field)
 
     @classmethod
     def anonymous_fragment_search(
-        cls, terms, ant_filter=None, ca_filter=None, qs=None, **kwargs
+        cls,
+        terms,
+        ant_filter=None,
+        ca_filter=None,
+        search_field=None,
+        qs=None,
+        **kwargs,
     ):
         if not qs:
             qs = cls.get_filtered_model_qs(
                 AnonymousFragment, ant_filter=ant_filter, ca_filter=ca_filter
             )
-        return cls.original_text_owner_search(terms, qs)
+        return cls.original_text_owner_search(terms, qs, search_field=search_field)
 
     @classmethod
-    def testimonium_search(cls, terms, ant_filter=None, ca_filter=None, **kwargs):
+    def appositum_search(
+        cls, terms, ant_filter=None, ca_filter=None, search_field=None, **kwargs
+    ):
+        qs = AnonymousFragment.objects.exclude(appositumfragmentlinks_from=None).all()
         qs = cls.get_filtered_model_qs(
-            Testimonium, ant_filter=ant_filter, ca_filter=ca_filter
+            AnonymousFragment, qs=qs, ant_filter=ant_filter, ca_filter=ca_filter
         )
-        return cls.original_text_owner_search(terms, qs)
+        return cls.anonymous_fragment_search(
+            terms, qs=qs, search_field=search_field, **kwargs
+        )
 
     @classmethod
     def apparatus_criticus_search(
@@ -362,14 +410,6 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         qs = cls.get_filtered_model_qs(BibliographyItem, ant_filter=ant_filter)
         search_fields = [("authors", terms.match), ("title", terms.match)]
         return cls.generic_content_search(qs, search_fields)
-
-    @classmethod
-    def appositum_search(cls, terms, ant_filter=None, ca_filter=None, **kwargs):
-        qs = AnonymousFragment.objects.exclude(appositumfragmentlinks_from=None).all()
-        qs = cls.get_filtered_model_qs(
-            AnonymousFragment, qs=qs, ant_filter=ant_filter, ca_filter=ca_filter
-        )
-        return cls.anonymous_fragment_search(terms, qs=qs, **kwargs)
 
     @classmethod
     def citing_author_search(cls, terms, ca_filter=None, **kwargs):
@@ -460,6 +500,17 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
 
         # return a list...
         return sorted(queryset_chain, key=lambda instance: instance.pk, reverse=True)
+
+    def get_search_classes_from_search_methods(self):
+        """self.SEARCH_METHODS is a nested dictionary so we want to convert this
+        to something a template can use to create a grouped select picker"""
+        search_classes = []
+        for key, value in self.SEARCH_METHODS.items():
+            if isinstance(value, dict):
+                search_classes.append([key] + [sub_key for sub_key in value.keys()])
+            else:
+                search_classes.append([key])
+        return search_classes
 
     def antiquarians_and_authors_in_object_list(self, object_list):
         """Generate lists of Antiquarians and Citing Authors associated with
