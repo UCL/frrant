@@ -250,9 +250,47 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     template_name = "research/search_results.html"
     context_object_name = "results"
 
+    class SearchMethodGroup:
+        search_types = [
+            ("all content", None),
+            ("original texts", ["original_texts__plain_content", "folded"]),
+            (
+                "translations",
+                [
+                    "original_texts__translation__plain_translated_text",
+                    "non-folded",
+                ],
+            ),
+            ("commentary", ["plain_commentary", "non-folded"]),
+        ]
+
+        def __init__(self, name_prefix, core_method):
+            self.methods = {}
+            for content_field, search_field in self.search_types:
+                self.methods[f"{name_prefix} - {content_field}"] = partial(
+                    core_method, search_field=search_field
+                )
+            self.default_method_name = f"{name_prefix} - {self.search_types[0][0]}"
+
+        @property
+        def default_method(self):
+            return {self.default_method_name: self.methods[self.default_method_name]}
+
     @property
     def SEARCH_METHODS(self):
-        methods_dict = {
+        fragment_search_methods = self.SearchMethodGroup(
+            "fragments", self.fragment_search
+        )
+        testimonia_search_methods = self.SearchMethodGroup(
+            "testimonia", self.testimonium_search
+        )
+        apposita_search_methods = self.SearchMethodGroup(
+            "apposita", self.appositum_search
+        )
+        anon_fragment_search_methods = self.SearchMethodGroup(
+            "anonymous fragments", self.anonymous_fragment_search
+        )
+        single_methods = {
             "antiquarians": self.antiquarian_search,
             "apparatus critici": self.apparatus_criticus_search,
             "bibliographies": self.bibliography_search,
@@ -261,28 +299,21 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             "topics": self.topic_search,
             "works": self.work_search,
         }
-        for content_type, method in [
-            ("fragments", self.fragment_search),
-            ("testimonia", self.testimonium_search),
-            ("apposita", self.appositum_search),
-            ("anonymous fragments", self.anonymous_fragment_search),
-        ]:
-            for content_field, search_field in [
-                ("all content", None),
-                ("original texts", ["original_texts__plain_content", "folded"]),
-                (
-                    "translations",
-                    [
-                        "original_texts__translation__plain_translated_text",
-                        "non-folded",
-                    ],
-                ),
-                ("commentary", ["plain_commentary", "non-folded"]),
-            ]:
-                methods_dict[f"{content_type} - {content_field}"] = partial(
-                    method, search_field=search_field
-                )
-        return methods_dict
+        all_methods = {
+            **single_methods,
+            **fragment_search_methods.methods,
+            **testimonia_search_methods.methods,
+            **apposita_search_methods.methods,
+            **anon_fragment_search_methods.methods,
+        }
+        default_methods = {
+            **single_methods,
+            **fragment_search_methods.default_method,
+            **testimonia_search_methods.default_method,
+            **apposita_search_methods.default_method,
+            **anon_fragment_search_methods.default_method,
+        }
+        return {"all_methods": all_methods, "default_methods": default_methods}
 
     @classmethod
     def generic_content_search(cls, qs, search_fields):
@@ -472,7 +503,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         context["ca_filter"] = self.request.GET.getlist("ca")
         context["search_term"] = keywords
         context["to_search"] = to_search
-        context["search_classes"] = self.SEARCH_METHODS.keys()
+        context["search_classes"] = self.SEARCH_METHODS["all_methods"].keys()
 
         return context
 
@@ -491,26 +522,17 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
 
         to_search = self.request.GET.getlist("what", ["all"])
         if to_search == ["all"]:
-            to_search = self.SEARCH_METHODS.keys()
+            to_search = self.SEARCH_METHODS["default_methods"].keys()
 
         for what in to_search:
-            result_set.append(self.SEARCH_METHODS[what](terms, **filter_kwargs))
+            result_set.append(
+                self.SEARCH_METHODS["all_methods"][what](terms, **filter_kwargs)
+            )
 
         queryset_chain = chain(*result_set)
 
         # return a list...
         return sorted(queryset_chain, key=lambda instance: instance.pk, reverse=True)
-
-    def get_search_classes_from_search_methods(self):
-        """self.SEARCH_METHODS is a nested dictionary so we want to convert this
-        to something a template can use to create a grouped select picker"""
-        search_classes = []
-        for key, value in self.SEARCH_METHODS.items():
-            if isinstance(value, dict):
-                search_classes.append([key] + [sub_key for sub_key in value.keys()])
-            else:
-                search_classes.append([key])
-        return search_classes
 
     def antiquarians_and_authors_in_object_list(self, object_list):
         """Generate lists of Antiquarians and Citing Authors associated with

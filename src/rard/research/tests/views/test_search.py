@@ -132,19 +132,31 @@ class TestSearchView(TestCase):
     def test_search_classes(self):
         # the types of objects we can search
         self.assertEqual(
-            [x for x in SearchView().SEARCH_METHODS.keys()],
+            [x for x in SearchView().SEARCH_METHODS["all_methods"].keys()],
             [
-                "anonymous fragments",
                 "antiquarians",
                 "apparatus critici",
-                "apposita",
                 "bibliographies",
                 "citing authors",
                 "citing works",
-                "fragments",
-                "testimonia",
                 "topics",
                 "works",
+                "fragments - all content",
+                "fragments - original texts",
+                "fragments - translations",
+                "fragments - commentary",
+                "testimonia - all content",
+                "testimonia - original texts",
+                "testimonia - translations",
+                "testimonia - commentary",
+                "apposita - all content",
+                "apposita - original texts",
+                "apposita - translations",
+                "apposita - commentary",
+                "anonymous fragments - all content",
+                "anonymous fragments - original texts",
+                "anonymous fragments - translations",
+                "anonymous fragments - commentary",
             ],
         )
 
