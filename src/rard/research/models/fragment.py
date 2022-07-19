@@ -149,6 +149,9 @@ class AnonymousTopicLink(OrderableModel):
     # with respect to topic
     order = models.IntegerField(default=None, null=True)
 
+    # apposita have order 0 so we start counting from 1
+    order_index_start = 1
+
     def related_queryset(self):
         # ordering wrt topic so filter on that
         # also exclude apposita
