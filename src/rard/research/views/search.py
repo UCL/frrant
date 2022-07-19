@@ -251,6 +251,21 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     context_object_name = "results"
 
     class SearchMethodGroup:
+        """Initialise this with a group name (e.g. fragments) and
+        the core method to be modified using functools.partial; e.g.
+        fragment_search_methods = SearchMethodGroup("fragments", fragment_search)
+
+        The core method should accept the search_field keyword argument
+        which can override the default set of search fields the core method
+        would normally use.
+
+        A default_method property returns the method to be used to search all
+        content.
+
+        A display_list property returns:
+        [group_name, "all content", "orginal texts", "translations", "commentary"]
+        """
+
         search_types = [
             ("all content", None),
             ("original texts", ["original_texts__plain_content", "folded"]),
