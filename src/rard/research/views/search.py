@@ -264,17 +264,22 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             ("commentary", ["plain_commentary", "non-folded"]),
         ]
 
-        def __init__(self, name_prefix, core_method):
+        def __init__(self, group_name, core_method):
+            self.group_name = group_name
             self.methods = {}
             for content_field, search_field in self.search_types:
-                self.methods[f"{name_prefix} - {content_field}"] = partial(
+                self.methods[f"{group_name}_{content_field}"] = partial(
                     core_method, search_field=search_field
                 )
-            self.default_method_name = f"{name_prefix} - {self.search_types[0][0]}"
+            self.default_method_name = f"{group_name}_{self.search_types[0][0]}"
 
         @property
         def default_method(self):
             return {self.default_method_name: self.methods[self.default_method_name]}
+
+        @property
+        def method_list(self):
+            return [self.group_name] + [type[0] for type in self.search_types]
 
     @property
     def SEARCH_METHODS(self):
@@ -313,7 +318,18 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             **apposita_search_methods.default_method,
             **anon_fragment_search_methods.default_method,
         }
-        return {"all_methods": all_methods, "default_methods": default_methods}
+        methods_list = (
+            [[key] for key in single_methods.keys()]
+            + [fragment_search_methods.method_list]
+            + [testimonia_search_methods.method_list]
+            + [apposita_search_methods.method_list]
+            + [anon_fragment_search_methods.method_list]
+        )
+        return {
+            "all_methods": all_methods,
+            "default_methods": default_methods,
+            "methods_list": methods_list,
+        }
 
     @classmethod
     def generic_content_search(cls, qs, search_fields):
@@ -503,7 +519,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         context["ca_filter"] = self.request.GET.getlist("ca")
         context["search_term"] = keywords
         context["to_search"] = to_search
-        context["search_classes"] = self.SEARCH_METHODS["all_methods"].keys()
+        context["search_classes"] = self.SEARCH_METHODS["methods_list"]
 
         return context
 
