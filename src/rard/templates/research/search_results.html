@@ -49,7 +49,7 @@
               <optgroup label="{{ search_class.0|capfirst }}">
                 {% for sub_class in search_class|slice:"1:" %}
                 {% with method_name=search_class.0|add:"_"|add:sub_class %}
-                <option value='method_name' {% if method_name in to_search %}selected{% endif %}>{{ sub_class|capfirst }}</option>
+                <option value='{{ method_name }}' {% if method_name in to_search %}selected{% endif %}>{{ sub_class|capfirst }}</option>
                 {% endwith %}
                 {% endfor %}
               </optgroup>
