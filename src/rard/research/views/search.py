@@ -278,7 +278,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             return {self.default_method_name: self.methods[self.default_method_name]}
 
         @property
-        def method_list(self):
+        def display_list(self):
             return [self.group_name] + [type[0] for type in self.search_types]
 
     @property
@@ -318,17 +318,17 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             **apposita_search_methods.default_method,
             **anon_fragment_search_methods.default_method,
         }
-        methods_list = (
+        display_list = (
             [[key] for key in single_methods.keys()]
-            + [fragment_search_methods.method_list]
-            + [testimonia_search_methods.method_list]
-            + [apposita_search_methods.method_list]
-            + [anon_fragment_search_methods.method_list]
+            + [fragment_search_methods.display_list]
+            + [testimonia_search_methods.display_list]
+            + [apposita_search_methods.display_list]
+            + [anon_fragment_search_methods.display_list]
         )
         return {
             "all_methods": all_methods,
             "default_methods": default_methods,
-            "methods_list": methods_list,
+            "display_list": display_list,
         }
 
     @classmethod
@@ -519,7 +519,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         context["ca_filter"] = self.request.GET.getlist("ca")
         context["search_term"] = keywords
         context["to_search"] = to_search
-        context["search_classes"] = self.SEARCH_METHODS["methods_list"]
+        context["search_classes"] = self.SEARCH_METHODS["display_list"]
 
         return context
 
