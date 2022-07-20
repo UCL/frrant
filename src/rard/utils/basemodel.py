@@ -494,7 +494,7 @@ class OrderableModel(models.Model):
             return
 
         # if beyond the end do nothing (UI bug)
-        if pos >= self.related_queryset().count():
+        if pos >= self.related_queryset().count() + self.order_index_start:
             return
 
         if pos < old_pos:
