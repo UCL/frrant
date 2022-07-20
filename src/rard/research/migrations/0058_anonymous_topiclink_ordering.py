@@ -8,10 +8,18 @@ def give_anonymoustopiclinks_order(apps, schema_editor):
     AnonymousTopicLink = apps.get_model("research", "AnonymousTopicLink")
 
     for topic in Topic.objects.all():
-        qs = AnonymousTopicLink.objects.filter(topic=topic).order_by("fragment__order")
-        for count, link in enumerate(qs):
-            link.order = count
+        anon_qs = AnonymousTopicLink.objects.filter(
+            fragment__appositumfragmentlinks_from__isnull=True,
+            topic=topic
+            ).order_by("fragment__order")
+        for count, link in enumerate(anon_qs):
+            link.order = count + 1  # Start counting from 1 if not apposita
             link.save()
+        apposita_qs = AnonymousTopicLink.objects.filter(
+            fragment__appositumfragmentlinks_from__isnull=False
+        ).order_by("fragment__order")
+        for link in apposita_qs:
+            link.order = 0  # Apposita should always have order 0
 
 
 def reverse_give_anonymoustopiclinks_order(apps, schema_editor):
