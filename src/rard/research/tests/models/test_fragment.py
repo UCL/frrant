@@ -1,6 +1,4 @@
-from unicodedata import name
 import pytest
-from unittest import skip
 from django.test import TestCase
 from django.urls import reverse
 
@@ -181,14 +179,15 @@ class TestAnonymousTopicLink(TestCase):
     def test_new_link_order_is_last_if_not_apposita(self):
         """When a new AnonymousTopicLink is saved, it should be given
         an order value equal to the number of pre-existing links
-        associated with that topic; e.g. if there are 10 AnonymousTopicLinks
+        associated with that topic plus 1; e.g. if there are 10 AnonymousTopicLinks
         associated with the topic "Monarchy", a new AnonymousTopicLink
-        associated with "Monarchy" should have order = 10."""
+        associated with "Monarchy" should have order = 11."""
         self.anon2.topics.add(self.t1)
         new_link = AnonymousTopicLink.objects.filter(
             topic=self.t1, fragment=self.anon2
         ).first()
-        # new_link.save()
+        # new_link should have order 2 because the topic already
+        # contained one anonymous fragment
         self.assertEqual(new_link.order, 2)
 
     def test_new_link_order_is_zero_if_apposita(self):
