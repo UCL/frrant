@@ -5,6 +5,7 @@ from django.urls import reverse
 
 from rard.research.models import (
     AnonymousFragment,
+    AnonymousTopicLink,
     Antiquarian,
     CitingWork,
     Fragment,
@@ -20,6 +21,7 @@ from rard.research.views import (
     FragmentDetailView,
     FragmentListView,
     FragmentUpdateView,
+    MoveAnonymousTopicLinkView,
     UnlinkedFragmentConvertToAnonymousView,
 )
 from rard.users.tests.factories import UserFactory
@@ -274,3 +276,62 @@ class TestFragmentConvertViews(TestCase):
         new_fragment.save()
         self.assertEqual(ufr_topic.order, 0)
         self.assertEqual(new_fragment.order, 0)
+
+
+class TestMoveAnonymousTopicLinkView(TestCase):
+    def setUp(self):
+        # Create 3 anon frags, 1 of which is an apposita
+        af1 = AnonymousFragment.objects.create(name="af1")
+        af2 = AnonymousFragment.objects.create(name="af2")
+        af3 = AnonymousFragment.objects.create(name="af3")
+        ant = Antiquarian.objects.create()
+        AppositumFragmentLink.objects.create(anonymous_fragment=af1, antiquarian=ant)
+        # Create topic and add all 3 anon frags
+        top1 = Topic.objects.create(name="top1")
+        af1.topics.add(top1)
+        af2.topics.add(top1)
+        af3.topics.add(top1)
+
+    def test_move_anon_fragment_link_up(self):
+        top1 = Topic.objects.get(name="top1")
+        af1 = AnonymousFragment.objects.get(name="af1")
+        af2 = AnonymousFragment.objects.get(name="af2")
+        af3 = AnonymousFragment.objects.get(name="af3")
+        atl1 = AnonymousTopicLink.objects.filter(fragment=af1, topic=top1).first()
+        atl2 = AnonymousTopicLink.objects.filter(fragment=af2, topic=top1).first()
+        atl3 = AnonymousTopicLink.objects.filter(fragment=af3, topic=top1).first()
+        self.assertEqual([atl1.order, atl2.order, atl3.order], [0, 1, 2])
+        data = {"move_to": 1, "topic_id": top1.id, "anonymoustopiclink_id": atl3.id}
+        view = MoveAnonymousTopicLinkView.as_view()
+        request = RequestFactory().post("/", data=data)
+        request.user = UserFactory.create()
+        response = view(
+            request,
+        )
+        self.assertEqual(response.status_code, 200)
+        atl1.refresh_from_db()
+        atl2.refresh_from_db()
+        atl3.refresh_from_db()
+        self.assertEqual([atl1.order, atl2.order, atl3.order], [0, 2, 1])
+
+    def test_move_anon_fragment_link_down(self):
+        top1 = Topic.objects.get(name="top1")
+        af1 = AnonymousFragment.objects.get(name="af1")
+        af2 = AnonymousFragment.objects.get(name="af2")
+        af3 = AnonymousFragment.objects.get(name="af3")
+        atl1 = AnonymousTopicLink.objects.filter(fragment=af1, topic=top1).first()
+        atl2 = AnonymousTopicLink.objects.filter(fragment=af2, topic=top1).first()
+        atl3 = AnonymousTopicLink.objects.filter(fragment=af3, topic=top1).first()
+        self.assertEqual([atl1.order, atl2.order, atl3.order], [0, 1, 2])
+        data = {"move_to": 2, "topic_id": top1.id, "anonymoustopiclink_id": atl2.id}
+        view = MoveAnonymousTopicLinkView.as_view()
+        request = RequestFactory().post("/", data=data)
+        request.user = UserFactory.create()
+        response = view(
+            request,
+        )
+        self.assertEqual(response.status_code, 200)
+        atl1.refresh_from_db()
+        atl2.refresh_from_db()
+        atl3.refresh_from_db()
+        self.assertEqual([atl1.order, atl2.order, atl3.order], [0, 2, 1])
