@@ -1,5 +1,6 @@
 import pytest
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import BadRequest, ObjectDoesNotExist
+from django.http.response import Http404
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
@@ -335,3 +336,33 @@ class TestMoveAnonymousTopicLinkView(TestCase):
         atl2.refresh_from_db()
         atl3.refresh_from_db()
         self.assertEqual([atl1.order, atl2.order, atl3.order], [0, 2, 1])
+
+    def test_move_apposita_raises_error(self):
+        top1 = Topic.objects.get(name="top1")
+        af1 = AnonymousFragment.objects.get(name="af1")
+        atl1 = AnonymousTopicLink.objects.filter(fragment=af1, topic=top1).first()
+        self.assertEqual(atl1.order, 0)
+        data = {"move_to": 1, "topic_id": top1.id, "anonymoustopiclink_id": atl1.id}
+        view = MoveAnonymousTopicLinkView.as_view()
+        request = RequestFactory().post("/", data=data)
+        request.user = UserFactory.create()
+        msg = "Apposita cannot be reordered within a topic"
+        self.assertRaises(BadRequest, view, request, msg=msg)
+
+    def test_topic_not_found_raises_404(self):
+        top1 = Topic.objects.get(name="top1")
+        af2 = AnonymousFragment.objects.get(name="af2")
+        atl2 = AnonymousTopicLink.objects.filter(fragment=af2, topic=top1).first()
+        data = {"move_to": 2, "topic_id": 99, "anonymoustopiclink_id": atl2.id}
+        view = MoveAnonymousTopicLinkView.as_view()
+        request = RequestFactory().post("/", data=data)
+        request.user = UserFactory.create()
+        self.assertRaises(Http404, view, request)
+
+    def test_link_not_found_raises_404(self):
+        top1 = Topic.objects.get(name="top1")
+        data = {"move_to": 2, "topic_id": top1.id, "anonymoustopiclink_id": 99}
+        view = MoveAnonymousTopicLinkView.as_view()
+        request = RequestFactory().post("/", data=data)
+        request.user = UserFactory.create()
+        self.assertRaises(Http404, view, request)
