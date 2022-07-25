@@ -1,6 +1,6 @@
 from django.contrib.auth.context_processors import PermWrapper
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import BadRequest, ObjectDoesNotExist
 from django.http.response import (
     Http404,
     HttpResponseBadRequest,
@@ -298,20 +298,20 @@ class AnonymousFragmentListView(LoginRequiredMixin, PermissionRequiredMixin, Lis
         context_data["selected_topic"] = self.get_selected_topic()
         return context_data
 
-    def get_queryset(self, topic_id=None):
+    def get_queryset(self, topic=None):
         """Queryset should include all anonymous topic links related
         to a give topic and should not include apposita.
 
         If no topic_id is given we'll get the topic from the request.
         If none given there, choose the topic with the lowest order
         as default."""
-        topic_id = topic_id or self.get_selected_topic().id
+        topic = topic or self.get_selected_topic()
         qs = (
             super()
             .get_queryset()
             .filter(
                 fragment__appositumfragmentlinks_from__isnull=True,
-                topic__id=topic_id,
+                topic=topic,
             )
         ).order_by("order")
 
@@ -779,7 +779,8 @@ class MoveAnonymousTopicLinkView(LoginRequiredMixin, View):
     def render_valid_response(self, topic_id):
 
         view = AnonymousFragmentListView()
-        qs = view.get_queryset(topic_id=topic_id)
+        topic = Topic.objects.get(id=topic_id)
+        qs = view.get_queryset(topic=topic)
         context = {
             "object_list": qs,
             "has_object_lock": True,
@@ -801,13 +802,16 @@ class MoveAnonymousTopicLinkView(LoginRequiredMixin, View):
                     pk=anonymoustopiclink_pk
                 )
 
+                if anonymoustopiclink.fragment.get_all_links().count() > 0:
+                    raise BadRequest("Apposita cannot be reordered within a topic")
+
                 if "move_to" in self.request.POST:
                     pos = int(self.request.POST.get("move_to"))
                     anonymoustopiclink.move_to(pos)
 
                 return self.render_valid_response(topic_id)
 
-            except (Topic.DoesNotExist, KeyError):
+            except (Topic.DoesNotExist, AnonymousTopicLink.DoesNotExist, KeyError):
                 raise Http404
 
         raise Http404

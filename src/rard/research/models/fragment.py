@@ -149,6 +149,9 @@ class AnonymousTopicLink(OrderableModel):
     # with respect to topic
     order = models.IntegerField(default=None, null=True)
 
+    # apposita have order 0 so we start counting from 1
+    order_index_start = 1
+
     def related_queryset(self):
         # ordering wrt topic so filter on that
         # also exclude apposita
@@ -286,18 +289,30 @@ def handle_changed_anon_topics(sender, instance, **kwargs):
 
 @disable_for_loaddata
 def handle_changed_anon_topic_links(sender, instance, action, model, pk_set, **kwargs):
-    is_apposita = bool(instance.get_all_links().count())
     if action not in ("post_add", "post_remove"):
         return
 
-    links = sender.objects.filter(fragment=instance, topic__in=pk_set)
-    for link in links:
-        if is_apposita:
-            link.order = 0
-            link.save()
-        elif link.order is None:
-            link.order = link.related_queryset().count()
-            link.save()
+    # If using anonymous_fragment.topics.add(), instance is
+    # an AnonymousFragment. If using topic.anonymousfragment_set.add()
+    # instance is a Topic
+    if instance.__class__ == Topic:
+        topic_pks = [instance.pk]
+        fragment_pks = pk_set
+    elif instance.__class__ == AnonymousFragment:
+        topic_pks = pk_set
+        fragment_pks = [instance.pk]
+
+    for pk in fragment_pks:
+        fragment = AnonymousFragment.objects.get(pk=pk)
+        is_apposita = bool(fragment.get_all_links().count())
+        links = sender.objects.filter(fragment=fragment, topic__in=topic_pks)
+        for link in links:
+            if is_apposita:
+                link.order = 0
+                link.save()
+            elif link.order is None:
+                link.order = link.related_queryset().count()
+                link.save()
 
     # insert reindex_anonymous_topic_links here
     reindex_anonymous_fragments()
