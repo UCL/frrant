@@ -160,6 +160,36 @@ class TestAnonymousFragment(TestCase):
         fragment = Fragment.objects.create(name="name")
         self.assertEqual(fragment.get_display_name(), str(fragment))
 
+    @classmethod
+    def setUpTestData(cls):
+
+        cls.anon1 = AnonymousFragment.objects.create(name="anon1")
+        cls.anon2 = AnonymousFragment.objects.create(name="anon2")
+        cls.anon3 = AnonymousFragment.objects.create(name="anon3")
+
+        cls.t1 = Topic.objects.create(name="Monarchy", order=0)
+        cls.t2 = Topic.objects.create(name="Law", order=1)
+
+        cls.f1 = Fragment.objects.create(name="frag1")
+        AppositumFragmentLink.objects.create(
+            anonymous_fragment=cls.anon3, linked_to=cls.f1
+        )
+        cls.anon1.topics.add(cls.t1)
+        cls.anon2.topics.add(cls.t1)
+        cls.anon3.topics.add(cls.t1)
+
+        cls.anon2.topics.add(cls.t2)
+        cls.anon1.topics.add(cls.t2)
+
+    def test_reindex_anonymous_fragments_order_by_topic(self):
+        self.assertLess(self.anon1.order, self.anon2.order)
+        self.assertEqual(self.t1.order, 0)
+        self.t1.swap(self.t2)
+        self.anon1.refresh_from_db()
+        self.anon2.refresh_from_db()
+
+        self.assertLess(self.anon2.order, self.anon1.order)
+
 
 class TestAnonymousTopicLink(TestCase):
     @classmethod
