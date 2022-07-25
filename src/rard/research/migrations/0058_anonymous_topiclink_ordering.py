@@ -15,11 +15,10 @@ def give_anonymoustopiclinks_order(apps, schema_editor):
         for count, link in enumerate(anon_qs):
             link.order = count + 1  # Start counting from 1 if not apposita
             link.save()
-        apposita_qs = AnonymousTopicLink.objects.filter(
-            fragment__appositumfragmentlinks_from__isnull=False
-        ).order_by("fragment__order")
-        for link in apposita_qs:
-            link.order = 0  # Apposita should always have order 0
+    # All apposita-topic links should have order 0 regardless of topic
+    AnonymousTopicLink.objects.filter(
+        fragment__appositumfragmentlinks_from__isnull=False
+        ).update(order=0)
 
 
 def reverse_give_anonymoustopiclinks_order(apps, schema_editor):
