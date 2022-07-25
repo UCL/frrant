@@ -13,6 +13,7 @@ from rard.research.models import (
     OriginalText,
     TextObjectField,
     Topic,
+    fragment,
 )
 from rard.research.models.base import AppositumFragmentLink
 
@@ -178,6 +179,7 @@ class TestAnonymousTopicLink(TestCase):
             anonymous_fragment=cls.anon3, antiquarian=cls.a1
         )
 
+    @skip
     def test_new_link_order_is_last_if_not_apposita(self):
         """When a new AnonymousTopicLink is saved, it should be given
         an order value equal to the number of pre-existing links
@@ -191,6 +193,7 @@ class TestAnonymousTopicLink(TestCase):
         # new_link.save()
         self.assertEqual(new_link.order, 2)
 
+    @skip
     def test_new_link_order_is_zero_if_apposita(self):
         """When a new AnonymousTopicLink is saved, and the fragment is an apposita,
         it should be given an order of zero."""
@@ -201,6 +204,7 @@ class TestAnonymousTopicLink(TestCase):
         ).first()
         self.assertEqual(new_link2.order, 0)
 
+    @skip
     def test_links_reindexed_when_link_removed(self):
         """When an AnonymousTopicLink is deleted, anonymous topic links within
         the affected topic should be reindexed"""
@@ -217,3 +221,22 @@ class TestAnonymousTopicLink(TestCase):
             t2qs = AnonymousTopicLink.objects.filter(topic=self.t2)
             new_link3_index = (*t2qs,).index(new_link3)
             self.assertEqual(new_link3_index, 0)
+
+    def test_link_order_change_updates_anon_fragment_order(self):
+        """when AnonymousTopicLinks are reordered within a topic,
+        anonymous fragments should be reindexed to take this into
+        account; e.g. assert AnonymousFragment.reindex_anonymous_fragments
+        is called when link order changes"""
+
+        self.anon2.topics.add(self.t1)
+        self.assertEqual([self.anon1.order, self.anon2.order], [0, 1])
+
+        atl = AnonymousTopicLink.objects.filter(
+            topic=self.t1, fragment=self.anon2
+        ).first()
+        atl.up()
+        self.assertEqual(atl.order, 1)
+        self.anon2.refresh_from_db()
+        self.anon1.refresh_from_db()
+
+        self.assertEqual([self.anon1.order, self.anon2.order], [1, 0])
