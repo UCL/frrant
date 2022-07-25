@@ -235,7 +235,9 @@ def reindex_anonymous_fragments():
     # single db update
     with transaction.atomic():
         # Order by topics, then fragments' order within those topics
-        anon_fragments = AnonymousFragment.objects.order_by("topics__order", "order")
+        anon_fragments = AnonymousFragment.objects.order_by(
+            "topics__order", "anonymoustopiclink__order", "order"
+        )
         # because we are ordering on an m2m field value we may have
         # duplicates in there. We want to remove these dupes but keep
         # the ordering of the list. Fast way is via a set of dict keys
@@ -304,6 +306,7 @@ def handle_changed_anon_topic_links(sender, instance, action, model, pk_set, **k
 m2m_changed.connect(handle_changed_anon_topic_links, sender=AnonymousTopicLink)
 post_delete.connect(handle_changed_anon_topics, sender=AnonymousTopicLink)
 post_save.connect(handle_changed_anon_topics, sender=Topic)
+post_save.connect(handle_changed_anon_topics, sender=AnonymousTopicLink)
 
 m2m_changed.connect(handle_apposita_change, sender=Fragment.apposita.through)
 
