@@ -11,6 +11,7 @@ from rard.research.models import (
     OriginalText,
     TextObjectField,
     Topic,
+    fragment,
 )
 from rard.research.models.base import AppositumFragmentLink
 
@@ -235,3 +236,23 @@ class TestAnonymousTopicLink(TestCase):
         self.anon1.refresh_from_db()
 
         self.assertEqual([self.anon1.order, self.anon2.order], [1, 0])
+
+    def test_apposita_not_in_related_queryset(self):
+        # check anon3 not in a qs
+        self.t3 = Topic.objects.create(name="topic3")
+        self.anon1.topics.add(self.t3)
+        self.anon2.topics.add(self.t3)
+        self.anon3.topics.add(self.t3)
+
+        anon1_topiclink = AnonymousTopicLink.objects.filter(
+            topic=self.t3, fragment=self.anon1
+        ).first()
+
+        anon3_topiclink = AnonymousTopicLink.objects.filter(
+            topic=self.t3, fragment=self.anon3
+        ).first()
+
+        anon1qs = anon1_topiclink.related_queryset()
+
+        self.assertIn(anon1_topiclink, anon1qs)
+        self.assertNotIn(anon3_topiclink, anon1qs)
