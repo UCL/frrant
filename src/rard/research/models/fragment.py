@@ -288,7 +288,46 @@ def handle_changed_anon_topics(sender, instance, **kwargs):
 
 
 @disable_for_loaddata
+def reindex_anonymous_topic_links(topics=None):
+    topics = topics or Topic.objects.all()
+    for topic in topics:
+        # Make sure apposita have order = 0
+        AnonymousTopicLink.objects.filter(
+            topic=topic, fragment__appositumfragmentlinks_from__isnull=False
+        ).update(
+            order=0
+        )  # Use update to avoid save
+
+        anonymous_links = AnonymousTopicLink.objects.filter(
+            topic=topic, fragment__appositumfragmentlinks_from__isnull=True
+        ).order_by("order")
+        for count, link in enumerate(anonymous_links):
+            # Use queryset update to avoid triggering save signal
+            AnonymousTopicLink.objects.filter(pk=link.pk).update(order=count + 1)
+
+
+def set_default_anonymoustopiclink_order(topic_pks, fragment_pks):
+    for pk in fragment_pks:
+        fragment = AnonymousFragment.objects.get(pk=pk)
+        is_apposita = bool(fragment.get_all_links().count())
+        links = AnonymousTopicLink.objects.filter(
+            fragment=fragment, topic__in=topic_pks
+        )
+        for link in links:
+            order = 0 if is_apposita else link.related_queryset().count() + 1
+            # Use update to avoid triggering save signal
+            AnonymousTopicLink.objects.filter(pk=link.pk).update(order=order)
+
+
+@disable_for_loaddata
 def handle_changed_anon_topic_links(sender, instance, action, model, pk_set, **kwargs):
+    """When an anonymous fragment is added to a topic, we need to give the new
+    anonymous topic link a default order: zero for apposita, and
+    related_queryset.count() + 1 for non-apposita.
+
+    When an anonymous fragment is removed from a topic, we need to reindex the related
+    queryset to fill any gaps"""
+
     if action not in ("post_add", "post_remove"):
         return
 
@@ -302,26 +341,21 @@ def handle_changed_anon_topic_links(sender, instance, action, model, pk_set, **k
         topic_pks = pk_set
         fragment_pks = [instance.pk]
 
-    for pk in fragment_pks:
-        fragment = AnonymousFragment.objects.get(pk=pk)
-        is_apposita = bool(fragment.get_all_links().count())
-        links = sender.objects.filter(fragment=fragment, topic__in=topic_pks)
-        for link in links:
-            if is_apposita:
-                link.order = 0
-                link.save()
-            elif link.order is None:
-                link.order = link.related_queryset().count()
-                link.save()
+    if action == "post_add":
+        set_default_anonymoustopiclink_order(topic_pks, fragment_pks)
+    if action == "post_remove":
+        reindex_anonymous_topic_links(topics=Topic.objects.filter(pk__in=topic_pks))
 
-    # insert reindex_anonymous_topic_links here
     reindex_anonymous_fragments()
 
 
+# When an anonymous fragment is added to a topic, we need to set its order
 m2m_changed.connect(handle_changed_anon_topic_links, sender=AnonymousTopicLink)
 post_delete.connect(handle_changed_anon_topics, sender=AnonymousTopicLink)
-post_save.connect(handle_changed_anon_topics, sender=Topic)
+# When AnonymousTopicLink order changes, reindex anonymous fragments
 post_save.connect(handle_changed_anon_topics, sender=AnonymousTopicLink)
+
+post_save.connect(handle_changed_anon_topics, sender=Topic)
 
 m2m_changed.connect(handle_apposita_change, sender=Fragment.apposita.through)
 
