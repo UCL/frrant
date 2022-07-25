@@ -207,16 +207,16 @@ class TestAnonymousTopicLink(TestCase):
         self.anon1.topics.add(self.t2)
         self.anon2.topics.add(self.t2)
 
-        t2qs = AnonymousTopicLink.objects.filter(topic=self.t2)
-        new_link3 = AnonymousTopicLink.objects.filter(
+        anon1_link = AnonymousTopicLink.objects.filter(
+            topic=self.t2, fragment=self.anon1
+        ).first()
+        anon2_link = AnonymousTopicLink.objects.filter(
             topic=self.t2, fragment=self.anon2
         ).first()
-        # if the index of anon2 is 1, remove anon1 and check index of anon2
-        if (*t2qs,).index(new_link3) == 1:
-            self.anon1.topics.remove(self.t2)
-            t2qs = AnonymousTopicLink.objects.filter(topic=self.t2)
-            new_link3_index = (*t2qs,).index(new_link3)
-            self.assertEqual(new_link3_index, 0)
+        self.assertEqual([anon1_link.order, anon2_link.order], [1, 2])
+        self.anon1.topics.remove(self.t2)
+        anon2_link.refresh_from_db()
+        self.assertEqual(anon2_link.order, 1)
 
     def test_link_order_change_updates_anon_fragment_order(self):
         """when AnonymousTopicLinks are reordered within a topic,
