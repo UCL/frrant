@@ -314,7 +314,7 @@ def set_default_anonymoustopiclink_order(topic_pks, fragment_pks):
             fragment=fragment, topic__in=topic_pks
         )
         for link in links:
-            order = 0 if is_apposita else link.related_queryset().count() + 1
+            order = 0 if is_apposita else link.related_queryset().count()
             # Use update to avoid triggering save signal
             AnonymousTopicLink.objects.filter(pk=link.pk).update(order=order)
 
