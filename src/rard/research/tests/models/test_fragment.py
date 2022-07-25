@@ -11,7 +11,6 @@ from rard.research.models import (
     OriginalText,
     TextObjectField,
     Topic,
-    fragment,
 )
 from rard.research.models.base import AppositumFragmentLink
 
@@ -177,7 +176,6 @@ class TestAnonymousTopicLink(TestCase):
             anonymous_fragment=cls.anon3, antiquarian=cls.a1
         )
 
-    @skip
     def test_new_link_order_is_last_if_not_apposita(self):
         """When a new AnonymousTopicLink is saved, it should be given
         an order value equal to the number of pre-existing links
@@ -192,7 +190,6 @@ class TestAnonymousTopicLink(TestCase):
         # contained one anonymous fragment
         self.assertEqual(new_link.order, 2)
 
-    @skip
     def test_new_link_order_is_zero_if_apposita(self):
         """When a new AnonymousTopicLink is saved, and the fragment is an apposita,
         it should be given an order of zero."""
@@ -203,7 +200,6 @@ class TestAnonymousTopicLink(TestCase):
         ).first()
         self.assertEqual(new_link2.order, 0)
 
-    @skip
     def test_links_reindexed_when_link_removed(self):
         """When an AnonymousTopicLink is deleted, anonymous topic links within
         the affected topic should be reindexed"""
