@@ -64,10 +64,10 @@ from .fragment import (
     FragmentUpdateAntiquariansView,
     FragmentUpdateCommentaryView,
     FragmentUpdateView,
+    MoveAnonymousTopicLinkView,
     RemoveAppositumLinkView,
     RemoveFragmentLinkView,
     UnlinkedFragmentConvertToAnonymousView,
-    MoveAnonymousTopicLinkView,
 )
 from .history import HistoryListView
 from .home import HomeView
