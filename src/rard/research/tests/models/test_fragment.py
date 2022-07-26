@@ -174,6 +174,7 @@ class TestAnonymousFragment(TestCase):
         AppositumFragmentLink.objects.create(
             anonymous_fragment=cls.anon3, linked_to=cls.f1
         )
+
         cls.anon1.topics.add(cls.t1)
         cls.anon2.topics.add(cls.t1)
         cls.anon3.topics.add(cls.t1)
@@ -182,12 +183,50 @@ class TestAnonymousFragment(TestCase):
         cls.anon1.topics.add(cls.t2)
 
     def test_reindex_anonymous_fragments_order_by_topic(self):
+        """When reindexing anonymous fragments, topic order should take precedence
+        over order within topic."""
         self.assertLess(self.anon1.order, self.anon2.order)
         self.assertEqual(self.t1.order, 0)
         self.t1.swap(self.t2)
         self.anon1.refresh_from_db()
         self.anon2.refresh_from_db()
 
+        self.assertLess(self.anon2.order, self.anon1.order)
+
+    def test_reindex_anonymous_fragments_order_by_topic_link_order(self):
+        """When reindexing anonymous fragments, their order with respect to topics
+        should be taken into account. Where two fragments both belong to the same two
+        topics and their order relative to each other is different within those topics,
+        their order with respect to the topic with lower order should take precedence."""
+
+        atl_1 = AnonymousTopicLink.objects.filter(
+            topic=self.t1, fragment=self.anon1
+        ).first()
+        atl_2 = AnonymousTopicLink.objects.filter(
+            topic=self.t1, fragment=self.anon2
+        ).first()
+        atl_3 = AnonymousTopicLink.objects.filter(
+            topic=self.t1, fragment=self.anon3
+        ).first()  # order 0 since appositum
+        atl_4 = AnonymousTopicLink.objects.filter(
+            topic=self.t2, fragment=self.anon1
+        ).first()
+        atl_5 = AnonymousTopicLink.objects.filter(
+            topic=self.t2, fragment=self.anon2
+        ).first()
+
+        """if the orders of atl_1 and atl_2 are swapped, anon2 should now have a lower order than anon1"""
+        self.assertLess(atl_1.order, atl_2.order)
+        self.assertLess(self.anon1.order, self.anon2.order)
+        atl_1.swap(atl_2)
+        self.anon1.refresh_from_db()
+        self.anon2.refresh_from_db()
+        self.assertLess(self.anon2.order, self.anon1.order)
+
+        """if atl_4 and atl_5 are then swapped, anon2 should still have a lower order than anon1"""
+        atl_4.swap(atl_5)
+        self.anon1.refresh_from_db()
+        self.anon2.refresh_from_db()
         self.assertLess(self.anon2.order, self.anon1.order)
 
 
