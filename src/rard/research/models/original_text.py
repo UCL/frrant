@@ -4,6 +4,7 @@ from django.db import models
 from django.utils.safestring import mark_safe
 from simple_history.models import HistoricalRecords
 
+from rard.research.models.reference import Reference
 from rard.research.models.mixins import HistoryModelMixin
 from rard.utils.basemodel import BaseModel, DynamicTextField
 from rard.utils.text_processors import make_plain_text
@@ -16,8 +17,16 @@ class OriginalText(HistoryModelMixin, BaseModel):
     def related_lock_object(self):
         return self.owner
 
-    class Meta:
-        ordering = ("citing_work", "reference_order")
+    # class Meta:
+    # ordering = ("citing_work", "reference_order")
+
+    @property
+    def reference(self):
+        return Reference.objects.filter(original_text=self).first().text
+
+    @property
+    def reference_order(self):
+        return Reference.objects.filter(original_text=self).first().order
 
     # original text can belong to either a fragment or a testimonium
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
@@ -26,20 +35,10 @@ class OriginalText(HistoryModelMixin, BaseModel):
 
     citing_work = models.ForeignKey("CitingWork", on_delete=models.CASCADE)
 
-    # e.g. page 24
-    reference = models.CharField(max_length=128, blank=False)
-
     content = DynamicTextField(blank=False)
 
     # Also store copy without html or punctuation for search purposes
     plain_content = models.TextField(blank=False, default="")
-
-    # The value 24 to be used in 'ordering by reference' taking example above
-    # In some cases it will be a dot-separated list of numbers that also need
-    # to be used for ordering, like 1.3.24.
-    reference_order = models.CharField(
-        blank=False, null=True, default=None, max_length=100
-    )
 
     # to be nuked eventually. not required now but hidden from view
     # to preserve previous values in case our data migration is insufficient

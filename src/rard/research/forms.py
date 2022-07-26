@@ -420,8 +420,6 @@ class OriginalTextDetailsForm(forms.ModelForm):
     class Meta:
         model = OriginalText
         fields = (
-            "reference",
-            "reference_order",
             "content",
             "apparatus_criticus_blank",
         )
@@ -470,14 +468,10 @@ class OriginalTextForm(OriginalTextAuthorForm):
         label="Add apparatus criticus line",
     )
 
-    reference_order = forms.CharField(validators=[_validate_reference_order])
-
     class Meta:
         model = OriginalText
         fields = (
             "citing_work",
-            "reference",
-            "reference_order",
             "content",
             "apparatus_criticus_blank",
         )
