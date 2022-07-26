@@ -11,7 +11,6 @@ from rard.research.models import (
     OriginalText,
     TextObjectField,
     Topic,
-    fragment,
 )
 from rard.research.models.base import AppositumFragmentLink
 
@@ -90,6 +89,28 @@ class TestFragment(TestCase):
 
 
 class TestAnonymousFragment(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+
+        cls.anon1 = AnonymousFragment.objects.create(name="anon1")
+        cls.anon2 = AnonymousFragment.objects.create(name="anon2")
+        cls.anon3 = AnonymousFragment.objects.create(name="anon3")
+
+        cls.t1 = Topic.objects.create(name="Monarchy", order=0)
+        cls.t2 = Topic.objects.create(name="Law", order=1)
+
+        cls.f1 = Fragment.objects.create(name="frag1")
+        AppositumFragmentLink.objects.create(
+            anonymous_fragment=cls.anon3, linked_to=cls.f1
+        )
+
+        cls.anon1.topics.add(cls.t1)
+        cls.anon2.topics.add(cls.t1)
+        cls.anon3.topics.add(cls.t1)
+
+        cls.anon2.topics.add(cls.t2)
+        cls.anon1.topics.add(cls.t2)
+
     def test_creation(self):
         # can create with a name only
         data = {
@@ -109,10 +130,7 @@ class TestAnonymousFragment(TestCase):
 
     def test_display(self):
         # the __str__ function should show the name
-        data = {
-            "name": "name",
-        }
-        fragment = AnonymousFragment.objects.create(**data)
+        fragment = AnonymousFragment.objects.first()
         self.assertEqual(str(fragment), "Anonymous F1")
 
     def test_initial_images(self):
@@ -146,7 +164,7 @@ class TestAnonymousFragment(TestCase):
 
     def test_get_display_name(self):
         # we need to show the name of the first citing work of original texts
-        fragment = AnonymousFragment.objects.create(name="name")
+        fragment = AnonymousFragment.objects.first()
         citing_work = CitingWork.objects.create(title="title")
         data = {
             "content": "content",
@@ -159,28 +177,6 @@ class TestAnonymousFragment(TestCase):
     def test_get_display_name_no_original_text(self):
         fragment = Fragment.objects.create(name="name")
         self.assertEqual(fragment.get_display_name(), str(fragment))
-
-    @classmethod
-    def setUpTestData(cls):
-
-        cls.anon1 = AnonymousFragment.objects.create(name="anon1")
-        cls.anon2 = AnonymousFragment.objects.create(name="anon2")
-        cls.anon3 = AnonymousFragment.objects.create(name="anon3")
-
-        cls.t1 = Topic.objects.create(name="Monarchy", order=0)
-        cls.t2 = Topic.objects.create(name="Law", order=1)
-
-        cls.f1 = Fragment.objects.create(name="frag1")
-        AppositumFragmentLink.objects.create(
-            anonymous_fragment=cls.anon3, linked_to=cls.f1
-        )
-
-        cls.anon1.topics.add(cls.t1)
-        cls.anon2.topics.add(cls.t1)
-        cls.anon3.topics.add(cls.t1)
-
-        cls.anon2.topics.add(cls.t2)
-        cls.anon1.topics.add(cls.t2)
 
     def test_reindex_anonymous_fragments_order_by_topic(self):
         """When reindexing anonymous fragments, topic order should take precedence
@@ -197,7 +193,8 @@ class TestAnonymousFragment(TestCase):
         """When reindexing anonymous fragments, their order with respect to topics
         should be taken into account. Where two fragments both belong to the same two
         topics and their order relative to each other is different within those topics,
-        their order with respect to the topic with lower order should take precedence."""
+        their order with respect to the topic with lower order should take precedence.
+        """
 
         atl_1 = AnonymousTopicLink.objects.filter(
             topic=self.t1, fragment=self.anon1
@@ -205,7 +202,7 @@ class TestAnonymousFragment(TestCase):
         atl_2 = AnonymousTopicLink.objects.filter(
             topic=self.t1, fragment=self.anon2
         ).first()
-        atl_3 = AnonymousTopicLink.objects.filter(
+        AnonymousTopicLink.objects.filter(
             topic=self.t1, fragment=self.anon3
         ).first()  # order 0 since appositum
         atl_4 = AnonymousTopicLink.objects.filter(
@@ -215,7 +212,8 @@ class TestAnonymousFragment(TestCase):
             topic=self.t2, fragment=self.anon2
         ).first()
 
-        """if the orders of atl_1 and atl_2 are swapped, anon2 should now have a lower order than anon1"""
+        """if the orders of atl_1 and atl_2 are swapped, anon2 should now have a
+        lower order than anon1"""
         self.assertLess(atl_1.order, atl_2.order)
         self.assertLess(self.anon1.order, self.anon2.order)
         atl_1.swap(atl_2)
@@ -223,7 +221,8 @@ class TestAnonymousFragment(TestCase):
         self.anon2.refresh_from_db()
         self.assertLess(self.anon2.order, self.anon1.order)
 
-        """if atl_4 and atl_5 are then swapped, anon2 should still have a lower order than anon1"""
+        """if atl_4 and atl_5 are then swapped, anon2 should still have a lower
+        order than anon1"""
         atl_4.swap(atl_5)
         self.anon1.refresh_from_db()
         self.anon2.refresh_from_db()
