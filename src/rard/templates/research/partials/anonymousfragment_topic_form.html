@@ -4,7 +4,7 @@
     <div class="form-row align-items-center">
         <div>
             <select class="submit-on-change form-control form-control-sm" name='topic-select'>
-                <option value="none" selected>Topic</option>
+                <option value="none" selected>{{ selected_topic }}</option>
                 {% for i in topics %}
                 <option value={{ i.0 }}>{{ i.1 }}</option>
                 {% endfor %}
