@@ -19,6 +19,7 @@ from rard.research.models import (
     OriginalText,
     Testimonium,
 )
+from rard.research.models.reference import Reference
 from rard.research.views.fragment import OriginalTextCitingWorkView
 from rard.research.views.mixins import CheckLockMixin
 

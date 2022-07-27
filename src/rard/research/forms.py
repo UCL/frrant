@@ -1,5 +1,6 @@
 from django import forms
 from django.core.exceptions import FieldDoesNotExist
+from django.forms import inlineformset_factory
 from django.utils.translation import gettext_lazy as _
 
 from rard.research.models import (
@@ -11,6 +12,7 @@ from rard.research.models import (
     Comment,
     Fragment,
     OriginalText,
+    Reference,
     Testimonium,
     Work,
 )
@@ -592,6 +594,17 @@ class AnonymousFragmentForm(forms.ModelForm):
         )
         labels = {"date_range": "Chronological reference"}
         widgets = {"topics": forms.CheckboxSelectMultiple}
+
+
+class ReferenceForm(forms.ModelForm):
+    class Meta:
+        model = Reference
+        fields = ("text", "order")
+
+
+ReferenceFormset = inlineformset_factory(
+    OriginalText, Reference, form=ReferenceForm, fields=("text", "order")
+)
 
 
 class TestimoniumForm(HistoricalFormBase):

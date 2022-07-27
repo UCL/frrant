@@ -22,11 +22,19 @@ class OriginalText(HistoryModelMixin, BaseModel):
 
     @property
     def reference(self):
-        return Reference.objects.filter(original_text=self).first().text
+        references = Reference.objects.filter(original_text=self)
+        if references:
+            return references.first().text
+        else:
+            return ""
 
     @property
     def reference_order(self):
-        return Reference.objects.filter(original_text=self).first().order
+        reference_order = Reference.objects.filter(original_text=self)
+        if reference_order:
+            return reference_order.first().order
+        else:
+            return ""
 
     # original text can belong to either a fragment or a testimonium
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)

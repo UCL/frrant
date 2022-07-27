@@ -27,6 +27,7 @@ from rard.research.forms import (
     FragmentForm,
     FragmentLinkWorkForm,
     OriginalTextForm,
+    ReferenceFormset,
 )
 from rard.research.models import (
     AnonymousFragment,
@@ -129,6 +130,7 @@ class HistoricalBaseCreateView(OriginalTextCitingWorkView):
     def get_forms(self):
         forms = super().get_forms()
         forms["object"] = self.form_class(data=self.request.POST or None)
+        forms["references"] = ReferenceFormset(data=self.request.POST or None)
         return forms
 
     def post_process_saved_object(self, saved_object):
@@ -146,6 +148,11 @@ class HistoricalBaseCreateView(OriginalTextCitingWorkView):
         original_text.owner = self.saved_object
 
         original_text.save()
+
+        references = forms["references"]
+        references.instance = original_text
+        print(references)
+        references.save()
 
         self.post_process_saved_object(self.saved_object)
 
