@@ -33,7 +33,7 @@
         {% if citing_author and citing_work %}
 
 
-            {{ bootstrap_field forms.references }}
+            {{ forms.references }}
 
             {% bootstrap_field forms.original_text.content field_class='d-none' %}
             {% include 'research/partials/rich_text_editor.html' with field=forms.original_text.content %}
