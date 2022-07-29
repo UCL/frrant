@@ -603,7 +603,11 @@ class ReferenceForm(forms.ModelForm):
 
 
 ReferenceFormset = inlineformset_factory(
-    OriginalText, Reference, form=ReferenceForm, fields=("text", "order")
+    OriginalText,
+    Reference,
+    form=ReferenceForm,
+    fields=("text", "order"),
+    labels={"text": "Reference", "order": "Reference order"},
 )
 
 
