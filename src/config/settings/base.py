@@ -73,6 +73,7 @@ DJANGO_APPS = [
 THIRD_PARTY_APPS = [
     "bootstrap4",
     "simple_history",
+    "crispy_forms",
 ]
 
 LOCAL_APPS = [

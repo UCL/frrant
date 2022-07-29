@@ -3,6 +3,8 @@
 {% extends "research/base.html" %}
 {% load i18n bootstrap4 %}
 
+{% load crispy_forms_tags %}
+
 {% block heading %}
     {{ title }}
     {% if owner_for %}
@@ -33,7 +35,11 @@
         {% if citing_author and citing_work %}
 
 
-            {{ forms.references }}
+            {{ forms.references|crispy }}
+
+            {% comment %} {% for field in forms.references %}
+                {{field}}
+            {% endfor %} {% endcomment %}
 
             {% bootstrap_field forms.original_text.content field_class='d-none' %}
             {% include 'research/partials/rich_text_editor.html' with field=forms.original_text.content %}
