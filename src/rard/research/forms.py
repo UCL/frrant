@@ -607,7 +607,9 @@ ReferenceFormset = inlineformset_factory(
     Reference,
     form=ReferenceForm,
     fields=("text", "order"),
-    labels={"text": "Reference", "order": "Reference order"},
+    labels={"text": "Reference", "order": "Reference Order"},
+    can_delete=False,
+    extra=1,
 )
 
 

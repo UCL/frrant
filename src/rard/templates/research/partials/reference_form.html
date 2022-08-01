@@ -1,0 +1,44 @@
+{% load i18n bootstrap4 %}
+
+{% load crispy_forms_tags %}
+
+{% comment %} this way also works
+{{ forms.references|crispy }} {% endcomment %}
+{{ forms.references.management_form }}
+
+{% for field in forms.references %}
+<div class="reference-form">
+    {% crispy field %}
+</div>
+{% endfor %}  
+
+{% comment %}
+{% bootstrap_formset forms.references %}
+{% endcomment %}
+
+<button type='button' class='add-form btn btn-light btn-sm' id="add-reference-form">
+    + Add another reference
+</button> 
+<script>
+    let referenceForm = document.querySelectorAll(".reference-form")
+    let container = document.querySelector("#reference-form-area")
+    let addButton = document.querySelector("#add-reference-form")
+    let totalForms = document.querySelector("#id_references-TOTAL_FORMS")
+
+    let formNum = referenceForm.length-1
+    addButton.addEventListener('click', addForm)
+
+    function addForm(e){
+        e.preventDefault()
+
+        let newForm = referenceForm[0].cloneNode(true)
+        let formRegex = RegExp(`form-(\\d){1}-`,'g')
+
+        formNum++
+        newForm.innerHTML = newForm.innerHTML.replace(formRegex, `form-${formNum}-`)
+        container.insertBefore(newForm, addButton)
+        
+        totalForms.setAttribute('value', `${formNum+1}`)
+    }
+</script>
+

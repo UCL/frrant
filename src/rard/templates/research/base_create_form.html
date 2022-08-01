@@ -35,11 +35,11 @@
         {% if citing_author and citing_work %}
 
 
-            {{ forms.references|crispy }}
+            <div id="reference-form-area">
+            {% include 'research/partials/reference_form.html' %}   
+            </div>
+            <br>
 
-            {% comment %} {% for field in forms.references %}
-                {{field}}
-            {% endfor %} {% endcomment %}
 
             {% bootstrap_field forms.original_text.content field_class='d-none' %}
             {% include 'research/partials/rich_text_editor.html' with field=forms.original_text.content %}
