@@ -2,9 +2,9 @@
 
 {% load crispy_forms_tags %}
 
-{% comment %} this way also works
-{{ forms.references|crispy }} {% endcomment %}
+<div id="reference-form-area">
 {{ forms.references.management_form }}
+
 
 {% for field in forms.references %}
 <div class="reference-form">
@@ -12,13 +12,18 @@
 </div>
 {% endfor %}  
 
-{% comment %}
-{% bootstrap_formset forms.references %}
-{% endcomment %}
-
 <button type='button' class='add-form btn btn-light btn-sm' id="add-reference-form">
     + Add another reference
 </button> 
+
+</div>
+<br>
+
+{% bootstrap_field forms.original_text.content field_class='d-none' %}
+{% include 'research/partials/rich_text_editor.html' with field=forms.original_text.content %}
+{% bootstrap_field forms.original_text.apparatus_criticus_blank %}
+
+
 <script>
     let referenceForm = document.querySelectorAll(".reference-form")
     let container = document.querySelector("#reference-form-area")

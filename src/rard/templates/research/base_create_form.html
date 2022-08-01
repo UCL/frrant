@@ -35,15 +35,14 @@
         {% if citing_author and citing_work %}
 
 
-            <div id="reference-form-area">
+            
             {% include 'research/partials/reference_form.html' %}   
-            </div>
-            <br>
+            
 
 
-            {% bootstrap_field forms.original_text.content field_class='d-none' %}
+            {% comment %} abstracting to reference_form.html {% bootstrap_field forms.original_text.content field_class='d-none' %}
             {% include 'research/partials/rich_text_editor.html' with field=forms.original_text.content %}
-            {% bootstrap_field forms.original_text.apparatus_criticus_blank %}
+            {% bootstrap_field forms.original_text.apparatus_criticus_blank %} {% endcomment %}
 
             {% comment %}
             {% bootstrap_field forms.original_text.apparatus_criticus field_class='d-none' %}
