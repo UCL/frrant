@@ -12,9 +12,9 @@
 </div>
 {% endfor %}  
 
-<button type='button' class='add-form btn btn-light btn-sm' id="add-reference-form">
+<p class='add-form btn btn-light btn-sm' id="add-reference-form">
     + Add another reference
-</button> 
+</p> 
 
 </div>
 <br>
@@ -35,12 +35,12 @@
 
     function addForm(e){
         e.preventDefault()
-
+        console.log("adding new reference")
         let newForm = referenceForm[0].cloneNode(true)
-        let formRegex = RegExp(`form-(\\d){1}-`,'g')
+        let formRegex = RegExp(`references-(\\d){1}-`,'g')
 
         formNum++
-        newForm.innerHTML = newForm.innerHTML.replace(formRegex, `form-${formNum}-`)
+        newForm.innerHTML = newForm.innerHTML.replace(formRegex, `references-${formNum}-`)
         container.insertBefore(newForm, addButton)
         
         totalForms.setAttribute('value', `${formNum+1}`)
