@@ -18,18 +18,32 @@
         {% endif %}
     </dd>
 
-    <dt class="col-sm-3">{% trans 'Reference' %}</dt>
-    <dd class="col-sm-9">{{ original_text.reference|default:'-' }}</dd>
+    <dt class="col-sm-3">{% trans 'References (order)' %}</dt>
+    {% comment %} <dd class="col-sm-9">{{ original_text.reference|default:'-' }}</dd> {% endcomment %}
+    <dd class="col-sm-9">
+    {% for i in original_text.references.all %}
+        <p>
+            {{i.text|default:'-'}} ({{i.order}})
+        </p>
+    {% endfor %}
+    </dd>
 
 {% comment %}
     {# to restore the legacy apparatus criticus entry uncommment this block #}
     <dt class="col-sm-3">{% trans 'Apparatus Criticus' %}</dt>
     <dd class="col-sm-9">{{ original_text.apparatus_criticus|safe|default:'-'|linebreaks }}</dd>
 {% endcomment %}
-
+{% comment %}  
     <dt class="col-sm-3">{% trans 'Reference Order' %}</dt>
-    <dd class="col-sm-9">{{ original_text.remove_reference_order_padding }}</dd>
-
+    {% comment %} <dd class="col-sm-9">{{ original_text.remove_reference_order_padding }}</dd> 
+    <dd class="col-sm-9">
+    {% for i in original_text.references.all %}
+        <p>
+            {{i.order}}
+        </p>
+    {% endfor %}
+    </dd>    
+{% endcomment %}
     <dt class="col-sm-3">{% trans 'Apparatus Criticus' %}</dt>
     <dd class="col-sm-9">
         <div>

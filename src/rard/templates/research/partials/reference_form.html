@@ -6,15 +6,14 @@
 <div id="reference-form-area">
 
 
-{% comment %} this doesn't work?? {% for field in forms.references %}
+ {% for field in forms.references %}
 <div class="reference-form">
-    {% crispy field %}
+    {{ field|crispy }}
 </div>
-{% endfor %}   {% endcomment %}
+{% endfor %}   
 
-<div class="reference-form">
-    {{ forms.references|crispy }}
-</div>
+
+
 
 <p class='add-form btn btn-light btn-sm' id="add-reference-form">
     + Add another reference
@@ -38,7 +37,7 @@
     addButton.addEventListener('click', addForm)
 
     function addForm(e){
-        //e.preventDefault()
+        e.preventDefault()
         let newForm = referenceForm[0].cloneNode(true)
         let formRegex = RegExp(`references-(\\d){1}-`,'g')
 
