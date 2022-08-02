@@ -2,15 +2,19 @@
 
 {% load crispy_forms_tags %}
 
-<div id="reference-form-area">
 {{ forms.references.management_form }}
+<div id="reference-form-area">
 
 
-{% for field in forms.references %}
+{% comment %} this doesn't work?? {% for field in forms.references %}
 <div class="reference-form">
     {% crispy field %}
 </div>
-{% endfor %}  
+{% endfor %}   {% endcomment %}
+
+<div class="reference-form">
+    {{ forms.references|crispy }}
+</div>
 
 <p class='add-form btn btn-light btn-sm' id="add-reference-form">
     + Add another reference
@@ -34,8 +38,7 @@
     addButton.addEventListener('click', addForm)
 
     function addForm(e){
-        e.preventDefault()
-        console.log("adding new reference")
+        //e.preventDefault()
         let newForm = referenceForm[0].cloneNode(true)
         let formRegex = RegExp(`references-(\\d){1}-`,'g')
 
