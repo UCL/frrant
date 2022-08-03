@@ -151,7 +151,6 @@ class HistoricalBaseCreateView(OriginalTextCitingWorkView):
 
         references = forms["references"]
         references.instance = original_text
-        print(references)
         references.save()
 
         self.post_process_saved_object(self.saved_object)
