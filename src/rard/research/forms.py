@@ -601,6 +601,21 @@ class ReferenceForm(forms.ModelForm):
         model = Reference
         fields = ("text", "order")
 
+    def __init__(self, *args, **kwargs):
+
+        reference = kwargs.get("instance", None)
+
+        if reference and reference.order:
+            reference.order = reference.remove_reference_order_padding()
+
+        super().__init__(*args, **kwargs)
+
+    def clean_order(self):
+        # Reference order needs to be stored as a string with leading 0s such
+        # as 00001.00020.02340 for 1.20.2340
+        ro = self.cleaned_data["order"]
+        return ".".join([i.zfill(5) for i in ro.split(".")])
+
 
 ReferenceFormset = inlineformset_factory(
     OriginalText,
