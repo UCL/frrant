@@ -4,8 +4,8 @@ from django.db import models
 from django.utils.safestring import mark_safe
 from simple_history.models import HistoricalRecords
 
-from rard.research.models.reference import Reference
 from rard.research.models.mixins import HistoryModelMixin
+from rard.research.models.reference import Reference
 from rard.utils.basemodel import BaseModel, DynamicTextField
 from rard.utils.text_processors import make_plain_text
 
@@ -90,11 +90,6 @@ class OriginalText(HistoryModelMixin, BaseModel):
             index = self.index_with_respect_to_parent_object()
             ordinal = chr(ord("a") + index)
         return ordinal
-
-    def remove_reference_order_padding(self):
-        # Remove leading 0s so we display the user-friendly version
-        # e.g. 000001.000024.001230 will show as 1.24.1230
-        return ".".join([i.lstrip("0") for i in self.reference_order.split(".")])
 
     # the ID to use in the concordance table
     @property
