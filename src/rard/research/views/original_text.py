@@ -192,7 +192,6 @@ class OriginalTextUpdateView(CheckLockMixin, UpdateView):
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context["forms"] = {}
-        print(self.request.POST)
         if self.request.POST:
             context["forms"]["references"] = ReferenceFormset(
                 data=self.request.POST, instance=self.object
@@ -211,7 +210,7 @@ class OriginalTextUpdateView(CheckLockMixin, UpdateView):
                 references.instance = self.object
                 references.save()
             else:
-                print(references.errors)
+                return self.render_to_response(context)
         return super(OriginalTextUpdateView, self).form_valid(form)
 
 
