@@ -417,8 +417,6 @@ class OriginalTextDetailsForm(forms.ModelForm):
         label="Add apparatus criticus line",
     )
 
-    reference_order = forms.CharField(validators=[_validate_reference_order])
-
     class Meta:
         model = OriginalText
         fields = (
@@ -597,6 +595,9 @@ class AnonymousFragmentForm(forms.ModelForm):
 
 
 class ReferenceForm(forms.ModelForm):
+
+    order = forms.CharField(validators=[_validate_reference_order])
+
     class Meta:
         model = Reference
         fields = ("text", "order")
