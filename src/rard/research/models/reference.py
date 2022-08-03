@@ -16,3 +16,8 @@ class Reference(models.Model):
         default=None,
         related_name="references",
     )
+
+    def remove_reference_order_padding(self):
+        # Remove leading 0s so we display the user-friendly version
+        # e.g. 000001.000024.001230 will show as 1.24.1230
+        return ".".join([i.lstrip("0") for i in self.order.split(".")])
