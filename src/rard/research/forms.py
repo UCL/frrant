@@ -23,6 +23,12 @@ from rard.research.models.base import (
 )
 
 
+from crispy_forms.helper import FormHelper
+from crispy_forms import layout, bootstrap
+from crispy_forms.layout import Layout, Row, Field
+from crispy_forms import bootstrap, layout
+
+
 def _validate_reference_order(ro):
     # check ref order doesn't have any section longer than 5 characters as well
     # as non-numeric
@@ -608,7 +614,7 @@ ReferenceFormset = inlineformset_factory(
     form=ReferenceForm,
     fields=("text", "order"),
     labels={"text": "Reference", "order": "Reference Order"},
-    can_delete=False,
+    can_delete=True,
     extra=1,
 )
 

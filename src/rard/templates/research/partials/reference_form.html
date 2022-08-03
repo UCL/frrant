@@ -3,17 +3,15 @@
 {% load crispy_forms_tags %}
 
 {{ forms.references.management_form }}
+
 <div id="reference-form-area">
+{% for form in forms.references %}
 
+    <div class="reference-form row ml-3 justify-content-between">
+       {{ form|crispy }}
+    </div>
 
- {% for field in forms.references %}
-<div class="reference-form">
-    {{ field|crispy }}
-</div>
 {% endfor %}   
-
-
-
 
 <p class='add-form btn btn-light btn-sm' id="add-reference-form">
     + Add another reference
