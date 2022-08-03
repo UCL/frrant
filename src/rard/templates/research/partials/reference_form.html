@@ -7,6 +7,9 @@
 <div id="reference-form-area">
   {% for form in forms.references %}
   <div class="reference-form form-row">
+    {% for hidden in form.hidden_fields %}
+    {{ hidden|as_crispy_field }}
+    {% endfor %}
     {% bootstrap_field form.text show_label=False field_class="col-md" %}
     {% bootstrap_field form.order show_label=False field_class="col-md" %}
     {% bootstrap_field form.DELETE field_class="form-check form-check-inline col-sm" %}
@@ -33,9 +36,10 @@
         e.preventDefault()
         let newForm = referenceForm[0].cloneNode(true)
         let formRegex = RegExp(`references-(\\d){1}-`,'g')
+        let valueRegex = RegExp(`value="[^"]+"`, 'g')
 
         formNum++
-        newForm.innerHTML = newForm.innerHTML.replace(formRegex, `references-${formNum}-`)
+        newForm.innerHTML = newForm.innerHTML.replace(formRegex, `references-${formNum}-`).replace(valueRegex, "")
         container.insertBefore(newForm, addButton)
 
         totalForms.setAttribute('value', `${formNum+1}`)
