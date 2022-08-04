@@ -14,8 +14,8 @@ mock==4.0.2  # https://github.com/testing-cabal/mock
 
 # Documentation
 # ------------------------------------------------------------------------------
-sphinx==3.2.1  # https://github.com/sphinx-doc/sphinx
-sphinx-autobuild==2020.9.1 # https://github.com/GaretJax/sphinx-autobuild
+sphinx==5.1.1  # https://github.com/sphinx-doc/sphinx
+sphinx-autobuild==2021.3.14 # https://github.com/GaretJax/sphinx-autobuild
 
 # Code quality
 # ------------------------------------------------------------------------------
