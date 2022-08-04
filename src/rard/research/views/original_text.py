@@ -1,4 +1,5 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.db import transaction
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.urls import resolve, reverse
@@ -10,6 +11,7 @@ from rard.research.forms import (
     OriginalTextAuthorForm,
     OriginalTextDetailsForm,
     OriginalTextForm,
+    ReferenceFormset,
 )
 from rard.research.models import (
     AnonymousFragment,
@@ -19,7 +21,6 @@ from rard.research.models import (
     OriginalText,
     Testimonium,
 )
-from rard.research.models.reference import Reference
 from rard.research.views.fragment import OriginalTextCitingWorkView
 from rard.research.views.mixins import CheckLockMixin
 
@@ -187,6 +188,30 @@ class OriginalTextUpdateView(CheckLockMixin, UpdateView):
 
     def get_success_url(self, *args, **kwargs):
         return self.object.owner.get_absolute_url()
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context["forms"] = {}
+        if self.request.POST:
+            context["forms"]["references"] = ReferenceFormset(
+                data=self.request.POST, instance=self.object
+            )
+        else:
+            context["forms"]["references"] = ReferenceFormset(instance=self.object)
+        return context
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        references = context["forms"]["references"]
+        with transaction.atomic():
+            self.object = form.save()
+
+            if references.is_valid():
+                references.instance = self.object
+                references.save()
+            else:
+                return self.render_to_response(context)
+        return super(OriginalTextUpdateView, self).form_valid(form)
 
 
 @method_decorator(require_POST, name="dispatch")

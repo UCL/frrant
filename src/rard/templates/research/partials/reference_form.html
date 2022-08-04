@@ -3,27 +3,25 @@
 {% load crispy_forms_tags %}
 
 {{ forms.references.management_form }}
-
+<legend style="font-family:alphabetum; font-size:large">References</legend>
 <div id="reference-form-area">
-{% for form in forms.references %}
+  {% for form in forms.references %}
+  <div class="reference-form form-row">
+    {% for hidden in form.hidden_fields %}
+    {{ hidden|as_crispy_field }}
+    {% endfor %}
+    {% bootstrap_field form.text show_label=False field_class="col-md" %}
+    {% bootstrap_field form.order show_label=False field_class="col-md" %}
+    {% bootstrap_field form.DELETE field_class="form-check form-check-inline col-sm" %}
+  </div>
+  {% endfor %}
 
-    <div class="reference-form row ml-3 justify-content-between">
-       {{ form|crispy }}
-    </div>
-
-{% endfor %}   
-
-<p class='add-form btn btn-light btn-sm' id="add-reference-form">
+  <p class='add-form btn btn-light btn-sm' id="add-reference-form">
     + Add another reference
-</p> 
-
+</p>
 </div>
+
 <br>
-
-{% bootstrap_field forms.original_text.content field_class='d-none' %}
-{% include 'research/partials/rich_text_editor.html' with field=forms.original_text.content %}
-{% bootstrap_field forms.original_text.apparatus_criticus_blank %}
-
 
 <script>
     let referenceForm = document.querySelectorAll(".reference-form")
@@ -38,12 +36,12 @@
         e.preventDefault()
         let newForm = referenceForm[0].cloneNode(true)
         let formRegex = RegExp(`references-(\\d){1}-`,'g')
+        let valueRegex = RegExp(`value="[^"]+"`, 'g')
 
         formNum++
-        newForm.innerHTML = newForm.innerHTML.replace(formRegex, `references-${formNum}-`)
+        newForm.innerHTML = newForm.innerHTML.replace(formRegex, `references-${formNum}-`).replace(valueRegex, "")
         container.insertBefore(newForm, addButton)
-        
+
         totalForms.setAttribute('value', `${formNum+1}`)
     }
 </script>
-
