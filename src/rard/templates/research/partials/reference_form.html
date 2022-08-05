@@ -4,21 +4,23 @@
 
 {{ forms.references.management_form }}
 <legend style="font-family:alphabetum; font-size:large">References</legend>
-<div id="reference-form-area">
+<div id="reference-form-area" class="pr-3">
   {% for form in forms.references %}
-  <div class="reference-form form-row">
+  <div class="reference-form form-row justify-content-start">
     {% for hidden in form.hidden_fields %}
     {{ hidden|as_crispy_field }}
     {% endfor %}
-    {% bootstrap_field form.text show_label=False field_class="col-md" %}
-    {% bootstrap_field form.order show_label=False field_class="col-md" %}
-    {% bootstrap_field form.DELETE field_class="form-check form-check-inline col-sm" %}
+    {% bootstrap_field form.text show_label=False field_class="col-lg mr-5" %}
+    {% bootstrap_field form.order show_label=False field_class="col-lg mr-3 pr-4" %}
+    {% bootstrap_field form.DELETE field_class="form-check form-check-inline col-sm mt-2" %}
   </div>
   {% endfor %}
 
-  <p class='add-form btn btn-light btn-sm' id="add-reference-form">
-    + Add another reference
-</p>
+    <div class="row justify-content-end">
+        <p class='add-form btn btn-light btn-sm pr-2' id="add-reference-form">
+        + Add another reference
+        </p>
+    </div>
 </div>
 
 <br>
