@@ -2,7 +2,7 @@ from .antiquarian import Antiquarian, AntiquarianConcordance
 from .bibliography import BibliographyItem
 from .citing_work import CitingAuthor, CitingWork
 from .comment import Comment
-from .fragment import AnonymousFragment, Fragment
+from .fragment import AnonymousFragment, AnonymousTopicLink, Fragment, TopicLink
 from .history import HistoricalRecordLog
 from .image import Image
 from .linkable import ApparatusCriticusItem
@@ -15,6 +15,7 @@ from .work import Book, Work
 
 __all__ = [
     "AnonymousFragment",
+    "AnonymousTopicLink",
     "Antiquarian",
     "AntiquarianConcordance",
     "BibliographyItem",
@@ -32,6 +33,7 @@ __all__ = [
     "Testimonium",
     "TextObjectField",
     "Topic",
+    "TopicLink",
     "Translation",
     "Work",
     "Book",

@@ -13,7 +13,7 @@
       <script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.min.js"></script>
     <![endif]-->
 
-    <link rel="icon" href="{% static 'images/favicons/favicon.ico' %}">
+    <link rel="icon" href="{% static 'images/favicons/icon.svg' %}">
 
     {% block css %}
 
@@ -243,6 +243,7 @@
         const g_refresh_original_text_content_url = '{% url "refresh_original_text_content" %}';
         const g_move_link_url = '{% url "move_link" %}';
         const g_move_topic_url = '{% url "move_topic" %}';
+        const g_move_anonymoustopiclink_url = '{% url "move_anonymoustopiclink" %}';
       </script>
       <script src="{% static 'js/project.js' %}"></script>
 

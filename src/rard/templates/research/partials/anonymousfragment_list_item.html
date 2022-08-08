@@ -2,9 +2,11 @@
 
 {% load i18n show_citing_info %}
 
-<div class='rard-list-item d-flex justify-content-between'>
+<div class='drop-target' data-pos='{{ forloop.counter0 }}' data-objecttype='fragment'>
+</div>
+<div id='fragment_{{ fragment.pk }}' data-fragment='{{ fragment.pk }}' draggable='false' data-objecttype='fragment' data-pos='{{ forloop.counter0 }}' class='drag-item ordered-list-item rard-list-item d-flex justify-content-between'>
     <div>
-        <li>
+        <li style="list-style-type:none">
             <span>
                 {% with fragment.get_display_name as link_text %}
                     {% if perms.research.view_fragment %}
@@ -33,5 +35,17 @@
         </div>
     </div>
     <div class='rard-list-item-actions'>
+        {% if can_edit %}
+        <button type='button' class='drag-handle btn btn-light' style='cursor: move;' data-pos='{{ forloop.counter0 }}'><i class='fas fa-bars'></i></button>
+        <button data-fragment='{{ fragment.pk }}' data-objecttype='fragment' data-pos='{{ forloop.counter0 }}' type='button' class='btn btn-light btn-sm' {% if forloop.first %}disabled{% endif %}
+            name='fragment_up'><i class='fas fa-caret-up'></i></button>
+        <button data-fragment='{{ fragment.pk }}' data-objecttype='fragment' data-pos='{{ forloop.counter0 }}' type='button' class='btn btn-light btn-sm' {% if forloop.last %}disabled{% endif %}
+            name='fragment_down'><i class='fas fa-caret-down'></i></button>
+    {% endif %}
     </div>
 </div>
+{% if forloop.last %}
+{# add drop target at end #}
+<div class='drop-target' data-pos='{{ forloop.counter }}' data-objecttype='fragment'>
+</div>
+{% endif %}

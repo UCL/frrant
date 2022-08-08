@@ -1,25 +1,27 @@
-{% extends "research/list_base.html" %}
+{% extends "research/base.html" %}
 {% load i18n %}
 
 {% block heading %}
     {% trans 'Anonymous Fragments' %}
+     <div class="ml-3 mt-2">
+            {% include 'research/partials/anonymousfragment_topic_form.html' %}
+        </div>
 {% endblock %}
 
 {% block action %}
     {% if perms.research.add_fragment %}
     <a href='{% url "anonymous_fragment:create" %}'>{% trans 'Create New' %}</a>
     {% endif %}
+    <br>
+        {% comment %} We'll add this back in once it's functional <div>
+            {% include 'research/partials/anonymousfragment_order_form.html' %}
+        </div> {% endcomment %}
 {% endblock %}
 
 {% block inner %}
-    {% for object in page_obj %}
 
-    {% ifchanged object.topic %}<h5 class='mt-3'>{{ object.topic|default:'Uncategorised' }}</h5> {% endifchanged %}
+    <h5 class='mt-3 alphabetum'>{{ selected_topic.name }}</h5>
 
-    {% include 'research/partials/anonymousfragment_list_item.html' with fragment=object %}
-
-    {% endfor %}
-
-    {{ block.super }}
+    {% include 'research/partials/ordered_anonymoustopiclink_area.html' %}
 
 {% endblock %}

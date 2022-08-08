@@ -468,6 +468,8 @@ class OrderableModel(models.Model):
 
     order = models.PositiveIntegerField(default=None, null=True, blank=True)
 
+    order_index_start = 0
+
     def related_queryset(self):
         # by default sort according to all objects of this class
         # and this can be overidden in the subclasses in case
@@ -492,7 +494,7 @@ class OrderableModel(models.Model):
             return
 
         # if beyond the end do nothing (UI bug)
-        if pos >= self.related_queryset().count():
+        if pos >= self.related_queryset().count() + self.order_index_start:
             return
 
         if pos < old_pos:
@@ -504,7 +506,7 @@ class OrderableModel(models.Model):
             to_reorder = (
                 self.related_queryset().exclude(pk=self.pk).filter(order__lte=pos)
             )
-            reindex_start_pos = 0
+            reindex_start_pos = self.order_index_start
 
         with transaction.atomic():
             for count, obj in enumerate(to_reorder):
