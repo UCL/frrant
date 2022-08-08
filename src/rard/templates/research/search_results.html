@@ -44,9 +44,19 @@
           <div class="col">
             <label for="contentTypeFilter">Content Type</label>
             <select class="form-control selectpicker" name='what' multiple title="Search Everything" data-selected-text-format="count" data-actions-box="true">
-              {% for search_class in search_classes %}
-                <option value='{{ search_class }}' {% if search_class in to_search %}selected{% endif %}>{{ search_class|capfirst }}</option>
-              {% endfor %}
+            {% for search_class in search_classes %}
+              {% if search_class|length > 1 %}
+              <optgroup label="{{ search_class.0|capfirst }}">
+                {% for sub_class in search_class|slice:"1:" %}
+                {% with method_name=search_class.0|add:"_"|add:sub_class %}
+                <option value='{{ method_name }}' {% if method_name in to_search %}selected{% endif %}>{{ sub_class|capfirst }}</option>
+                {% endwith %}
+                {% endfor %}
+              </optgroup>
+              {% else %}
+              <option value='{{ search_class.0 }}' {% if search_class.0 in to_search %}selected{% endif %}>{{ search_class.0|capfirst }}</option>
+              {% endif %}
+            {% endfor %}
             </select>
           </div>
         </div>

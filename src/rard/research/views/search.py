@@ -1,4 +1,5 @@
 import re
+from functools import partial
 from itertools import chain
 
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -249,20 +250,100 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     template_name = "research/search_results.html"
     context_object_name = "results"
 
+    class SearchMethodGroup:
+        """Initialise this with a group name (e.g. fragments) and
+        the core method to be modified using functools.partial; e.g.
+        fragment_search_methods = SearchMethodGroup("fragments", fragment_search)
+
+        The core method should accept the search_field keyword argument
+        which can override the default set of search fields the core method
+        would normally use.
+
+        A default_method property returns the method to be used to search all
+        content.
+
+        A display_list property returns:
+        [group_name, "all content", "orginal texts", "translations", "commentary"]
+        """
+
+        search_types = [
+            ("all content", None),
+            ("original texts", ["original_texts__plain_content", "folded"]),
+            (
+                "translations",
+                [
+                    "original_texts__translation__plain_translated_text",
+                    "non-folded",
+                ],
+            ),
+            ("commentary", ["plain_commentary", "non-folded"]),
+        ]
+
+        def __init__(self, group_name, core_method):
+            self.group_name = group_name
+            self.methods = {}
+            for content_field, search_field in self.search_types:
+                self.methods[f"{group_name}_{content_field}"] = partial(
+                    core_method, search_field=search_field
+                )
+            self.default_method_name = f"{group_name}_{self.search_types[0][0]}"
+
+        @property
+        def default_method(self):
+            return {self.default_method_name: self.methods[self.default_method_name]}
+
+        @property
+        def display_list(self):
+            return [self.group_name] + [type[0] for type in self.search_types]
+
     @property
     def SEARCH_METHODS(self):
-        return {
-            "anonymous fragments": self.anonymous_fragment_search,
+        fragment_search_methods = self.SearchMethodGroup(
+            "fragments", self.fragment_search
+        )
+        testimonia_search_methods = self.SearchMethodGroup(
+            "testimonia", self.testimonium_search
+        )
+        apposita_search_methods = self.SearchMethodGroup(
+            "apposita", self.appositum_search
+        )
+        anon_fragment_search_methods = self.SearchMethodGroup(
+            "anonymous fragments", self.anonymous_fragment_search
+        )
+        single_methods = {
             "antiquarians": self.antiquarian_search,
             "apparatus critici": self.apparatus_criticus_search,
-            "apposita": self.appositum_search,
             "bibliographies": self.bibliography_search,
             "citing authors": self.citing_author_search,
             "citing works": self.citing_work_search,
-            "fragments": self.fragment_search,
-            "testimonia": self.testimonium_search,
             "topics": self.topic_search,
             "works": self.work_search,
+        }
+        all_methods = {
+            **single_methods,
+            **fragment_search_methods.methods,
+            **testimonia_search_methods.methods,
+            **apposita_search_methods.methods,
+            **anon_fragment_search_methods.methods,
+        }
+        default_methods = {
+            **single_methods,
+            **fragment_search_methods.default_method,
+            **testimonia_search_methods.default_method,
+            **apposita_search_methods.default_method,
+            **anon_fragment_search_methods.default_method,
+        }
+        display_list = (
+            [[key] for key in single_methods.keys()]
+            + [fragment_search_methods.display_list]
+            + [testimonia_search_methods.display_list]
+            + [apposita_search_methods.display_list]
+            + [anon_fragment_search_methods.display_list]
+        )
+        return {
+            "all_methods": all_methods,
+            "default_methods": default_methods,
+            "display_list": display_list,
         }
 
     @classmethod
@@ -272,6 +353,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             field_name, match_function = field
             matches = match_function(qs, field_name, add_snippet=True)
             results.append(matches)
+            # Remove objects from queryset once matched so they don't get matched twice
             qs = qs.exclude(id__in=[o.id for o in matches])
         return chain(*results)
 
@@ -303,39 +385,67 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         return cls.generic_content_search(qs, search_fields)
 
     @classmethod
-    def original_text_owner_search(cls, terms, qs):
-        search_fields = [
-            ("original_texts__plain_content", terms.match_folded),
-            ("original_texts__translation__plain_translated_text", terms.match),
-            ("plain_commentary", terms.match),
-            ("original_texts__translation__translator_name", terms.match),
-            ("original_texts__reference", terms.match),
-        ]
+    def original_text_owner_search(cls, terms, qs, search_field=None):
+        if search_field:
+            match_function = (
+                terms.match_folded if search_field[1] == "folded" else terms.match
+            )
+            search_fields = [(search_field[0], match_function)]
+        else:
+            search_fields = [
+                ("original_texts__plain_content", terms.match_folded),
+                ("original_texts__translation__plain_translated_text", terms.match),
+                ("plain_commentary", terms.match),
+                ("original_texts__translation__translator_name", terms.match),
+                ("original_texts__reference", terms.match),
+            ]
         return cls.generic_content_search(qs, search_fields)
 
     @classmethod
-    def fragment_search(cls, terms, ant_filter=None, ca_filter=None, **kwargs):
+    def fragment_search(
+        cls, terms, ant_filter=None, ca_filter=None, search_field=None, **kwargs
+    ):
         qs = cls.get_filtered_model_qs(
             Fragment, ant_filter=ant_filter, ca_filter=ca_filter
         )
-        return cls.original_text_owner_search(terms, qs)
+        return cls.original_text_owner_search(terms, qs, search_field=search_field)
+
+    @classmethod
+    def testimonium_search(
+        cls, terms, ant_filter=None, ca_filter=None, search_field=None, **kwargs
+    ):
+        qs = cls.get_filtered_model_qs(
+            Testimonium, ant_filter=ant_filter, ca_filter=ca_filter
+        )
+        return cls.original_text_owner_search(terms, qs, search_field=search_field)
 
     @classmethod
     def anonymous_fragment_search(
-        cls, terms, ant_filter=None, ca_filter=None, qs=None, **kwargs
+        cls,
+        terms,
+        ant_filter=None,
+        ca_filter=None,
+        search_field=None,
+        qs=None,
+        **kwargs,
     ):
         if not qs:
             qs = cls.get_filtered_model_qs(
                 AnonymousFragment, ant_filter=ant_filter, ca_filter=ca_filter
             )
-        return cls.original_text_owner_search(terms, qs)
+        return cls.original_text_owner_search(terms, qs, search_field=search_field)
 
     @classmethod
-    def testimonium_search(cls, terms, ant_filter=None, ca_filter=None, **kwargs):
+    def appositum_search(
+        cls, terms, ant_filter=None, ca_filter=None, search_field=None, **kwargs
+    ):
+        qs = AnonymousFragment.objects.exclude(appositumfragmentlinks_from=None).all()
         qs = cls.get_filtered_model_qs(
-            Testimonium, ant_filter=ant_filter, ca_filter=ca_filter
+            AnonymousFragment, qs=qs, ant_filter=ant_filter, ca_filter=ca_filter
         )
-        return cls.original_text_owner_search(terms, qs)
+        return cls.anonymous_fragment_search(
+            terms, qs=qs, search_field=search_field, **kwargs
+        )
 
     @classmethod
     def apparatus_criticus_search(
@@ -362,14 +472,6 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         qs = cls.get_filtered_model_qs(BibliographyItem, ant_filter=ant_filter)
         search_fields = [("authors", terms.match), ("title", terms.match)]
         return cls.generic_content_search(qs, search_fields)
-
-    @classmethod
-    def appositum_search(cls, terms, ant_filter=None, ca_filter=None, **kwargs):
-        qs = AnonymousFragment.objects.exclude(appositumfragmentlinks_from=None).all()
-        qs = cls.get_filtered_model_qs(
-            AnonymousFragment, qs=qs, ant_filter=ant_filter, ca_filter=ca_filter
-        )
-        return cls.anonymous_fragment_search(terms, qs=qs, **kwargs)
 
     @classmethod
     def citing_author_search(cls, terms, ca_filter=None, **kwargs):
@@ -432,7 +534,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         context["ca_filter"] = self.request.GET.getlist("ca")
         context["search_term"] = keywords
         context["to_search"] = to_search
-        context["search_classes"] = self.SEARCH_METHODS.keys()
+        context["search_classes"] = self.SEARCH_METHODS["display_list"]
 
         return context
 
@@ -451,10 +553,14 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
 
         to_search = self.request.GET.getlist("what", ["all"])
         if to_search == ["all"]:
-            to_search = self.SEARCH_METHODS.keys()
+            # Use default methods rather than all because we don't want
+            # to search same fragment several times with different methods
+            to_search = self.SEARCH_METHODS["default_methods"].keys()
 
         for what in to_search:
-            result_set.append(self.SEARCH_METHODS[what](terms, **filter_kwargs))
+            result_set.append(
+                self.SEARCH_METHODS["all_methods"][what](terms, **filter_kwargs)
+            )
 
         queryset_chain = chain(*result_set)
 
