@@ -301,9 +301,12 @@ def reindex_anonymous_topic_links(topics=None):
         anonymous_links = AnonymousTopicLink.objects.filter(
             topic=topic, fragment__appositumfragmentlinks_from__isnull=True
         ).order_by("order")
-        for count, link in enumerate(anonymous_links):
-            # Use queryset update to avoid triggering save signal
-            AnonymousTopicLink.objects.filter(pk=link.pk).update(order=count + 1)
+
+        # single db update
+        with transaction.atomic():
+            for count, link in enumerate(anonymous_links):
+                # Use queryset update to avoid triggering save signal
+                AnonymousTopicLink.objects.filter(pk=link.pk).update(order=count + 1)
 
 
 def set_default_anonymoustopiclink_order(topic_pks, fragment_pks):
