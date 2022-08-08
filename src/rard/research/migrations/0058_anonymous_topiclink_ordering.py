@@ -22,15 +22,8 @@ def give_anonymoustopiclinks_order(apps, schema_editor):
 
 
 def reverse_give_anonymoustopiclinks_order(apps, schema_editor):
-    Topic = apps.get_model("research", "Topic")
     AnonymousTopicLink = apps.get_model("research", "AnonymousTopicLink")
-
-    for topic in Topic.objects.all():
-        qs = AnonymousTopicLink.objects.filter(topic=topic).order_by("fragment__order")
-        for count, link in enumerate(qs):
-            link.order = None
-            link.save()
-
+    AnonymousTopicLink.objects.update(order=None)
 
 class Migration(migrations.Migration):
 
