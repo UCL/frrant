@@ -11,8 +11,8 @@
     {% for hidden in form.hidden_fields %}
     {{ hidden|as_crispy_field }}
     {% endfor %}
-    {% bootstrap_field form.text show_label=False field_class="mr-5 col" %}
-    {% bootstrap_field form.order show_label=False field_class="mr-3 pr-4 col" %}
+    {% bootstrap_field form.editor show_label=False field_class="mr-5 col" %}
+    {% bootstrap_field form.reference_position show_label=False field_class="mr-3 pr-4 col" %}
     {% bootstrap_field form.DELETE field_class="col-sm mt-1 form-check" %}
   </div>
   {% endfor %}
