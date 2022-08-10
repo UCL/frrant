@@ -17,24 +17,23 @@ class OriginalText(HistoryModelMixin, BaseModel):
     def related_lock_object(self):
         return self.owner
 
-    # class Meta:
-    # ordering = ("citing_work", "reference_order")
+    class Meta:
+        ordering = ("citing_work", "reference_order")
 
     @property
     def reference(self):
         references = Reference.objects.filter(original_text=self)
         if references:
-            return references.first().text
+            return references.first().reference_position
         else:
             return ""
 
-    @property
-    def reference_order(self):
-        reference_order = Reference.objects.filter(original_text=self)
-        if reference_order:
-            return reference_order.first().order
-        else:
-            return ""
+    # The value to be used in 'ordering by reference'
+    # In some cases it will be a dot-separated list of numbers that also need
+    # to be used for ordering, like 1.3.24.
+    reference_order = models.CharField(
+        blank=False, null=True, default=None, max_length=100
+    )
 
     # original text can belong to either a fragment or a testimonium
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
@@ -90,6 +89,11 @@ class OriginalText(HistoryModelMixin, BaseModel):
             index = self.index_with_respect_to_parent_object()
             ordinal = chr(ord("a") + index)
         return ordinal
+
+    def remove_reference_order_padding(self):
+        # Remove leading 0s so we display the user-friendly version
+        # e.g. 000001.000024.001230 will show as 1.24.1230
+        return ".".join([i.lstrip("0") for i in self.reference_order.split(".")])
 
     # the ID to use in the concordance table
     @property
