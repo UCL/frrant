@@ -21,7 +21,7 @@ from rard.research.models.base import (
     FragmentLink,
     TestimoniumLink,
 )
-
+from rard.research.models.original_text import Concordance
 
 from crispy_forms.helper import FormHelper
 from crispy_forms import layout, bootstrap
@@ -614,6 +614,23 @@ ReferenceFormset = inlineformset_factory(
     form=ReferenceForm,
     fields=("editor", "reference_position"),
     labels={"editor": "Editor", "reference_position": "Reference"},
+    can_delete=True,
+    extra=1,
+)
+
+
+class ConcordanceForm(forms.ModelForm):
+    class Meta:
+        model = Concordance
+        fields = ("source", "identifier")
+
+
+ConcordanceFormset = inlineformset_factory(
+    OriginalText,
+    Concordance,
+    form=ConcordanceForm,
+    fields=("source", "identifier"),
+    labels={"source": "Source", "identifier": "Identifier"},
     can_delete=True,
     extra=1,
 )
