@@ -23,7 +23,7 @@
     <dd class="col-sm-9">
     {% for i in original_text.references.all %}
         <p>
-            {{i.editor|default:'-'}} ({{i.reference_position}})
+            {{i.editor|default:''}} {{i.reference_position}} 
         </p>
     {% endfor %}
     </dd>
