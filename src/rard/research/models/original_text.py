@@ -24,6 +24,7 @@ class OriginalText(HistoryModelMixin, BaseModel):
     def reference(self):
         references = Reference.objects.filter(original_text=self)
         if references:
+            # only return the number values as the editor isn't critical
             return references.first().reference_position
         else:
             return ""
