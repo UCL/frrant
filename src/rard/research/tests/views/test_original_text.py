@@ -2,7 +2,13 @@ import pytest
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
-from rard.research.models import CitingAuthor, CitingWork, Fragment, OriginalText
+from rard.research.models import (
+    CitingAuthor,
+    CitingWork,
+    Fragment,
+    OriginalText,
+    Reference,
+)
 from rard.research.views import (
     FragmentOriginalTextCreateView,
     OriginalTextDeleteView,
@@ -246,3 +252,38 @@ class TestOriginalTextViewPermissions(TestCase):
         self.assertIn(
             "research.delete_originaltext", OriginalTextDeleteView.permission_required
         )
+
+
+class TestReferences(TestCase):
+    def setUp(self):
+        self.citing_work = CitingWork.objects.create(title="title")
+        fragment = Fragment.objects.create(name="fragment_name")
+        self.user = UserFactory.create()
+        fragment.lock(self.user)
+
+        self.original_text = OriginalText.objects.create(
+            owner=fragment,
+            citing_work=self.citing_work,
+        )
+
+    def test_reference_creation(self):
+        reference = "2.6-9"
+        self.reference = Reference.objects.create(
+            editor="superfluous",
+            reference_position=reference,
+            original_text=self.original_text,
+        )
+        self.assertEqual(
+            self.original_text.reference, self.reference.reference_position
+        )
+
+    def test_reference_deletion(self):
+        reference = "2.6-9"
+        self.reference = Reference.objects.create(
+            editor="superfluous",
+            reference_position=reference,
+            original_text=self.original_text,
+        )
+        self.reference.delete()
+        self.original_text.refresh_from_db()
+        self.assertNotEqual(self.original_text.reference, reference)
