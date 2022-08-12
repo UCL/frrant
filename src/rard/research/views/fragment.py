@@ -131,6 +131,7 @@ class HistoricalBaseCreateView(OriginalTextCitingWorkView):
         forms = super().get_forms()
         forms["object"] = self.form_class(data=self.request.POST or None)
         forms["references"] = ReferenceFormset(data=self.request.POST or None)
+        forms["concordances"] = ReferenceFormset(data=self.request.POST or None)
         return forms
 
     def post_process_saved_object(self, saved_object):
@@ -152,6 +153,10 @@ class HistoricalBaseCreateView(OriginalTextCitingWorkView):
         references = forms["references"]
         references.instance = original_text
         references.save()
+
+        concordances = forms["concordances"]
+        concordances.instance = original_text
+        concordances.save()
 
         self.post_process_saved_object(self.saved_object)
 

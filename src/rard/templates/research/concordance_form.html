@@ -17,23 +17,31 @@
             {% include 'research/partials/original_text_preview.html' with original_text=original_text %}
         </div>
 
-    <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
+    <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form mb-4" method='POST' id="concordance-form-area">
         {% csrf_token %}
-        {% comment %} {% bootstrap_form form %} {% endcomment %}
-        {{ forms.concordances.management_form }}
-        <legend style="font-family:alphabetum; font-size:large">Concordances</legend>
+        {{ form.management_form}}
+        <div class="concordance-form">
+        {% bootstrap_form form %} 
+        </div>
 
-        <div id="concordance-form-area" class="pr-3">
+        {% for i in extraFormCount %}
+        <div id="form-{{i}}">
+        {% bootstrap_form form %} 
+        </div>
+        {% endfor %}
+
+        {% comment %} <div id="concordance-form-area" class="pr-3">
         {% for form in forms.concordances %}
         <div class="concordance-form form-row justify-content-start">
-            {% for hidden in form.hidden_fields %}
+            {{ form }}
+            {% comment %} {% for hidden in form.hidden_fields %}
             {{ hidden|as_crispy_field }}
             {% endfor %}
             {% bootstrap_field form.source show_label=False field_class="mr-5 col" %}
             {% bootstrap_field form.identifier show_label=False field_class="mr-3 pr-4 col" %}
-            {% bootstrap_field form.DELETE field_class="col-sm mt-1 form-check" %}
-        </div>
-        {% endfor %}
+            {% bootstrap_field form.DELETE field_class="col-sm mt-1 form-check" %} 
+        </div> 
+        {% endfor %}{% endcomment %}
 
             <button class='add-form btn btn-light btn-sm pr-2 float-right' id="add-concordance-form">
             + Add another concordance
@@ -52,22 +60,17 @@
         let concordanceForm = document.querySelectorAll(".concordance-form")
         let container = document.querySelector("#concordance-form-area")
         let addButton = document.querySelector("#add-concordance-form")
-        let totalForms = document.querySelector("#id_concordances-TOTAL_FORMS")
     
         let formNum = concordanceForm.length-1
         addButton.addEventListener('click', addForm)
-    
-        function addForm(e){
+        
+
+       function addForm(e){
             e.preventDefault()
             let newForm = concordanceForm[0].cloneNode(true)
-            let formRegex = RegExp(`concordances-(\\d){1}-`,'g')
-            let valueRegex = RegExp(`value="[^"]+"`, 'g')
     
             formNum++
-            newForm.innerHTML = newForm.innerHTML.replace(formRegex, `concordances-${formNum}-`).replace(valueRegex, "")
             container.insertBefore(newForm, addButton)
-    
-            totalForms.setAttribute('value', `${formNum+1}`)
-        }
+        } 
     </script>
 {% endblock %}

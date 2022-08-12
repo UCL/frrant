@@ -196,13 +196,18 @@ class OriginalTextUpdateView(CheckLockMixin, UpdateView):
             context["forms"]["references"] = ReferenceFormset(
                 data=self.request.POST, instance=self.object
             )
+            context["forms"]["concordances"] = ReferenceFormset(
+                data=self.request.POST, instance=self.object
+            )
         else:
             context["forms"]["references"] = ReferenceFormset(instance=self.object)
+            context["forms"]["concordances"] = ReferenceFormset(instance=self.object)
         return context
 
     def form_valid(self, form):
         context = self.get_context_data()
         references = context["forms"]["references"]
+
         with transaction.atomic():
             self.object = form.save()
 
