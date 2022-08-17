@@ -92,6 +92,19 @@ class MentionSearchView(LoginRequiredMixin, View):
     def anonymous_fragment_search(cls, keywords):
         qs = AnonymousFragment.objects.all()
         kws = keywords.split()
+        ids = cls.remove_keyword("a", kws)
+        if ids is None or 1 < len(ids):
+            return qs.none()
+        if len(ids) == 0:
+            return qs
+        if not ids[0].isnumeric():
+            return qs.none()
+        return qs.filter(order=int(ids[0]) - 1)
+
+    @classmethod
+    def anonymous_fragment_search(cls, keywords):
+        qs = Fragment.objects.all()
+        kws = keywords.split()
         ids = cls.remove_keyword("f", kws)
         if ids is None or 1 < len(ids):
             return qs.none()
