@@ -99,7 +99,7 @@ class MentionSearchView(LoginRequiredMixin, View):
             return qs
         if not ids[0].isnumeric():
             return qs.none()
-        return qs.filter(order=int(ids[0]) - 1)
+        return qs.filter(order=int(ids[0]) - 1).order_by("order")
 
     @classmethod
     def anonymous_fragment_search(cls, keywords):
