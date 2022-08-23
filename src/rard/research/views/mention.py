@@ -58,7 +58,7 @@ class MentionSearchView(LoginRequiredMixin, View):
         return results.distinct()
 
     @classmethod
-    def fragment_search(cls, keywords):
+    def fragmentlink_search(cls, keywords):
         qs = Fragment.objects.all()
         results = qs.filter(
             antiquarian_fragmentlinks__antiquarian__name__icontains=keywords  # noqa
@@ -86,7 +86,7 @@ class MentionSearchView(LoginRequiredMixin, View):
             return qs
         if not ids[0].isnumeric():
             return qs.none()
-        return qs.filter(id__startswith=int(ids[0]))
+        return qs.filter(id__startswith=int(ids[0])).order_by("order")
 
     @classmethod
     def anonymous_fragment_search(cls, keywords):
@@ -99,10 +99,10 @@ class MentionSearchView(LoginRequiredMixin, View):
             return qs
         if not ids[0].isnumeric():
             return qs.none()
-        return qs.filter(order=int(ids[0]) - 1).order_by("order")
+        return qs.filter(order=int(ids[0]) - 1).order_by("-order")
 
     @classmethod
-    def anonymous_fragment_search(cls, keywords):
+    def fragment_search(cls, keywords):
         qs = Fragment.objects.all()
         kws = keywords.split()
         ids = cls.remove_keyword("f", kws)
@@ -112,7 +112,7 @@ class MentionSearchView(LoginRequiredMixin, View):
             return qs
         if not ids[0].isnumeric():
             return qs.none()
-        return qs.filter(order=int(ids[0]) - 1)
+        return qs.filter(id__startswith=int(ids[0])).order_by("order")
 
     @classmethod
     def testimonium_search(cls, keywords):
