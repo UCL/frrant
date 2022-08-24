@@ -96,10 +96,10 @@ class MentionSearchView(LoginRequiredMixin, View):
         if ids is None or 1 < len(ids):
             return qs.none()
         if len(ids) == 0:
-            return qs
+            return qs.order_by("order")
         if not ids[0].isnumeric():
             return qs.none()
-        return qs.filter(order=int(ids[0]) - 1).order_by("-order")
+        return qs.filter(order=int(ids[0]) - 1).order_by("order")
 
     @classmethod
     def fragment_search(cls, keywords):
