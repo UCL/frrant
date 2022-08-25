@@ -29,6 +29,18 @@ class OriginalText(HistoryModelMixin, BaseModel):
         else:
             return ""
 
+    @property
+    def reference_list(self):
+        """Returns a list of references with editor and ref position for each unless there's only one, in which case only the ref position is shown"""
+        references = Reference.objects.filter(original_text=self)
+        if references.count() > 1:
+            return [
+                f"{reference.editor} {reference.reference_position} |"
+                for reference in references
+            ]
+        else:
+            return [references.first().reference_position]
+
     # The value to be used in 'ordering by reference'
     # In some cases it will be a dot-separated list of numbers that also need
     # to be used for ordering, like 1.3.24.
