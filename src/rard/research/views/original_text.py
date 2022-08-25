@@ -203,6 +203,9 @@ class OriginalTextUpdateView(CheckLockMixin, UpdateView):
     def form_valid(self, form):
         context = self.get_context_data()
         references = context["forms"]["references"]
+        # Not sure why but non-padded version of reference_order
+        # is saved if we don't call this method again
+        form._post_clean()
         with transaction.atomic():
             self.object = form.save()
 

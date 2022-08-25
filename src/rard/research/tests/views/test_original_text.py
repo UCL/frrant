@@ -193,6 +193,7 @@ class TestOriginalTextUpdateView(TestCase):
         # note at this stage reference order should be padded with 0s
 
         REFERENCE_ORDER = "10.17"
+        EXPECTED_REFERENCE_ORDER = "00010.00017"
         NEW_CONTENT = "Some new content"
 
         data = {
@@ -214,8 +215,7 @@ class TestOriginalTextUpdateView(TestCase):
         # refetch object
         ot = OriginalText.objects.get(pk=self.original_text.pk)
         self.assertEqual(ot.content, NEW_CONTENT)
-        print(ot.reference_order)
-        self.assertEqual(ot.reference_order, REFERENCE_ORDER)
+        self.assertEqual(ot.reference_order, EXPECTED_REFERENCE_ORDER)
 
 
 class TestOriginalTextViewPermissions(TestCase):
