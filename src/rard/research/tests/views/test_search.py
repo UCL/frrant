@@ -189,15 +189,14 @@ class TestSearchView(TestCase):
         f1 = Fragment.objects.create()
         f1.original_texts.create(
             content="findme with your search powers",
-            reference="louisa may alcott",
             citing_work=cw,
+        ).references.create(
+            reference_position="louisa may alcott",
         )
 
         f2 = Fragment.objects.create()
-        f2.original_texts.create(
-            content="not$me",
-            reference="daisy ma<>,./?;'#:@~[]{}-=_+!\"£$%^&*()\\|y cooper",
-            citing_work=cw,
+        f2.original_texts.create(content="not$me", citing_work=cw,).references.create(
+            reference_position="daisy ma<>,./?;'#:@~[]{}-=_+!\"£$%^&*()\\|y cooper",
         )
 
         self.assertEqual(do_search(view.fragment_search, "findme yovr"), [f1])
