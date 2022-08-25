@@ -2,7 +2,7 @@ import pytest
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
-from rard.research.models import CitingAuthor, CitingWork
+from rard.research.models import CitingAuthor, CitingWork, OriginalText
 from rard.research.models.fragment import AnonymousFragment, Fragment
 from rard.research.models.testimonium import Testimonium
 from rard.research.views import (
@@ -70,30 +70,19 @@ class TestCitingAuthorDetailView(TestCase):
         self.user = UserFactory.create()
         text_names = ["f1", "f2", "t1", "t2", "a1", "a2"]
         reference_orders = ["1.1.1", "1.1.2", "1.1.12", "1.2.1", "1.12.1", "12.1.1"]
-        create_views = (
-            [FragmentCreateView] * 2
-            + [TestimoniumCreateView] * 2
-            + [AnonymousFragmentCreateView] * 2
-        )
         model_types = [Fragment] * 2 + [Testimonium] * 2 + [AnonymousFragment] * 2
-        citing_works = [self.work1.pk, self.work2.pk] * 3
+        citing_works = [self.work1, self.work2] * 3
         self.texts = []
         for i in range(6):
-            data = {
-                "name": text_names[i],
-                "content": "content",
-                "reference": "Page 1",
-                "reference_order": reference_orders[i],
-                "citing_work": citing_works[i],
-                "citing_author": self.citing_author.pk,
-                "create_object": True,
-            }
-            request = RequestFactory().post("/", data=data)
-            request.user = self.user
-            response = create_views[i].as_view()(request)
-            self.texts.append(
-                model_types[i].objects.filter(pk=response.url.split("/")[2]).first()
+            fragment = model_types[i].objects.create(name=text_names[i])
+            originaltext = OriginalText.objects.create(
+                content="content",
+                reference_order=reference_orders[i],
+                citing_work=citing_works[i],
+                owner=fragment,
             )
+
+            self.texts.append(fragment)
         self.ordered_texts = [self.texts[i] for i in [0, 2, 4, 1, 3, 5]]
 
     def test_order_by_work_then_reference(self):
