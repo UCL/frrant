@@ -23,7 +23,7 @@ def reverse_move_ref_info_to_object(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("research", "0058_anonymous_topiclink_ordering"),
+        ("research", "0059_add_temp_default_reference"),
     ]
 
     operations = [
