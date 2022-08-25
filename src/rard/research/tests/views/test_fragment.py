@@ -82,12 +82,18 @@ class TestFragmentSuccessUrls(TestCase):
             "name": "name",
             "apparatus_criticus": "app_criticus",
             "content": "content",
-            "reference": "Page 1",
             "reference_order": 1,
-            "title": "citing work title",
             "citing_work": self.citing_work.pk,
             "citing_author": self.citing_work.author.pk,
             "create_object": True,
+            "references-TOTAL_FORMS": 1,
+            "references-INITIAL_FORMS": 0,
+            "references-MIN_NUM_FORMS": 0,
+            "references-MAX_NUM_FORMS": 1000,
+            "references-0-id": "",
+            "references-0-original_text": "",
+            "references-0-editor": "geoff",
+            "references-0-reference_position": "1.2.3",
         }
         # assert no fragments initially
         self.assertEqual(0, Fragment.objects.count())
