@@ -172,7 +172,7 @@ class TestAnonymousFragment(TestCase):
         }
         # it is unlinked so we show general
         OriginalText.objects.create(**data, owner=fragment)
-        self.assertEqual(fragment.get_display_name(), f"Anonymous F{initial_count + 1}")
+        self.assertEqual(fragment.get_display_name(), "Anonymous F1")
 
     def test_get_display_name_no_original_text(self):
         fragment = Fragment.objects.create(name="name")

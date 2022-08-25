@@ -8,8 +8,8 @@ from rard.research.models import (
     Concordance,
     Fragment,
     OriginalText,
-    Translation,
     Reference,
+    Translation,
 )
 from rard.research.models.base import FragmentLink
 

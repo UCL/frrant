@@ -8,12 +8,9 @@ from rard.research.models import (
     CitingWork,
     Fragment,
     Topic,
-    citing_work,
 )
 from rard.research.models.original_text import OriginalText
 from rard.research.views import (
-    AnonymousFragmentCreateView,
-    FragmentCreateView,
     TopicCreateView,
     TopicDeleteView,
     TopicDetailView,

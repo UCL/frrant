@@ -6,14 +6,11 @@ from rard.research.models import CitingAuthor, CitingWork, OriginalText
 from rard.research.models.fragment import AnonymousFragment, Fragment
 from rard.research.models.testimonium import Testimonium
 from rard.research.views import (
-    AnonymousFragmentCreateView,
     CitingAuthorDetailView,
     CitingAuthorListView,
     CitingWorkDeleteView,
     CitingWorkDetailView,
     CitingWorkUpdateView,
-    FragmentCreateView,
-    TestimoniumCreateView,
 )
 from rard.users.tests.factories import UserFactory
 
@@ -75,7 +72,7 @@ class TestCitingAuthorDetailView(TestCase):
         self.texts = []
         for i in range(6):
             fragment = model_types[i].objects.create(name=text_names[i])
-            originaltext = OriginalText.objects.create(
+            OriginalText.objects.create(
                 content="content",
                 reference_order=reference_orders[i],
                 citing_work=citing_works[i],

@@ -31,7 +31,8 @@ class OriginalText(HistoryModelMixin, BaseModel):
 
     @property
     def reference_list(self):
-        """Returns a list of references with editor and ref position for each unless there's only one, in which case only the ref position is shown"""
+        """Returns a list of references with editor and ref position for each
+        unless there's only one, in which case only the ref position is shown"""
         references = Reference.objects.filter(original_text=self)
         if references.count() > 1:
             return [

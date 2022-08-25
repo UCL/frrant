@@ -2,13 +2,7 @@ import pytest
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
-from rard.research.models import (
-    CitingAuthor,
-    CitingWork,
-    Fragment,
-    OriginalText,
-    Reference,
-)
+from rard.research.models import CitingAuthor, CitingWork, Fragment, OriginalText
 from rard.research.views import (
     FragmentOriginalTextCreateView,
     OriginalTextDeleteView,
@@ -282,8 +276,6 @@ class TestReferences(TestCase):
         }
         # assert no original texts initially
         self.assertEqual(0, OriginalText.objects.count())
-
-        url = reverse("fragment:create")
 
         request = RequestFactory().post("/", data=data)
         request.user = UserFactory.create()
