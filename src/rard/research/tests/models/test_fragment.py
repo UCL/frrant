@@ -89,6 +89,28 @@ class TestFragment(TestCase):
 
 
 class TestAnonymousFragment(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+
+        cls.anon1 = AnonymousFragment.objects.create(name="anon1")
+        cls.anon2 = AnonymousFragment.objects.create(name="anon2")
+        cls.anon3 = AnonymousFragment.objects.create(name="anon3")
+
+        cls.t1 = Topic.objects.create(name="Monarchy", order=0)
+        cls.t2 = Topic.objects.create(name="Law", order=1)
+
+        cls.f1 = Fragment.objects.create(name="frag1")
+        AppositumFragmentLink.objects.create(
+            anonymous_fragment=cls.anon3, linked_to=cls.f1
+        )
+
+        cls.anon1.topics.add(cls.t1)
+        cls.anon2.topics.add(cls.t1)
+        cls.anon3.topics.add(cls.t1)
+
+        cls.anon2.topics.add(cls.t2)
+        cls.anon1.topics.add(cls.t2)
+
     def test_creation(self):
         # can create with a name only
         data = {
@@ -108,13 +130,8 @@ class TestAnonymousFragment(TestCase):
 
     def test_display(self):
         # the __str__ function should show the name
-        data = {
-            "name": "name",
-        }
-        initial_count = AnonymousFragment.objects.count()
-        fragment = AnonymousFragment.objects.create(**data)
-        self.assertEqual(fragment.order, initial_count)
-        self.assertEqual(str(fragment), f"Anonymous F{initial_count + 1}")
+        fragment = AnonymousFragment.objects.first()
+        self.assertEqual(str(fragment), "Anonymous F1")
 
     def test_initial_images(self):
         fragment = AnonymousFragment.objects.create(name="name")
@@ -147,8 +164,7 @@ class TestAnonymousFragment(TestCase):
 
     def test_get_display_name(self):
         # we need to show the name of the first citing work of original texts
-        initial_count = AnonymousFragment.objects.count()
-        fragment = AnonymousFragment.objects.create(name="name")
+        fragment = AnonymousFragment.objects.first()
         citing_work = CitingWork.objects.create(title="title")
         data = {
             "content": "content",
@@ -161,28 +177,6 @@ class TestAnonymousFragment(TestCase):
     def test_get_display_name_no_original_text(self):
         fragment = Fragment.objects.create(name="name")
         self.assertEqual(fragment.get_display_name(), str(fragment))
-
-    @classmethod
-    def setUpTestData(cls):
-
-        cls.anon1 = AnonymousFragment.objects.create(name="anon1")
-        cls.anon2 = AnonymousFragment.objects.create(name="anon2")
-        cls.anon3 = AnonymousFragment.objects.create(name="anon3")
-
-        cls.t1 = Topic.objects.create(name="Monarchy", order=0)
-        cls.t2 = Topic.objects.create(name="Law", order=1)
-
-        cls.f1 = Fragment.objects.create(name="frag1")
-        AppositumFragmentLink.objects.create(
-            anonymous_fragment=cls.anon3, linked_to=cls.f1
-        )
-
-        cls.anon1.topics.add(cls.t1)
-        cls.anon2.topics.add(cls.t1)
-        cls.anon3.topics.add(cls.t1)
-
-        cls.anon2.topics.add(cls.t2)
-        cls.anon1.topics.add(cls.t2)
 
     def test_reindex_anonymous_fragments_order_by_topic(self):
         """When reindexing anonymous fragments, topic order should take precedence

@@ -11,9 +11,11 @@ from rard.research.models import (
     CitingAuthor,
     CitingWork,
     Fragment,
+    OriginalText,
     Testimonium,
     TextObjectField,
     Topic,
+    Translation,
     Work,
 )
 from rard.research.models.base import AppositumFragmentLink, FragmentLink
@@ -132,21 +134,109 @@ class TestSearchView(TestCase):
     def test_search_classes(self):
         # the types of objects we can search
         self.assertEqual(
-            [x for x in SearchView().SEARCH_METHODS.keys()],
+            [x for x in SearchView().SEARCH_METHODS["all_methods"].keys()],
             [
-                "anonymous fragments",
                 "antiquarians",
                 "apparatus critici",
-                "apposita",
                 "bibliographies",
                 "citing authors",
                 "citing works",
-                "fragments",
-                "testimonia",
                 "topics",
                 "works",
+                "fragments_all content",
+                "fragments_original texts",
+                "fragments_translations",
+                "fragments_commentary",
+                "testimonia_all content",
+                "testimonia_original texts",
+                "testimonia_translations",
+                "testimonia_commentary",
+                "apposita_all content",
+                "apposita_original texts",
+                "apposita_translations",
+                "apposita_commentary",
+                "anonymous fragments_all content",
+                "anonymous fragments_original texts",
+                "anonymous fragments_translations",
+                "anonymous fragments_commentary",
             ],
         )
+
+    def setup_content_field_search_data(self):
+        cw = CitingWork.objects.create(title="citing_work")
+        # fragments
+        comm1 = TextObjectField.objects.create(content="step floor cheese")
+        comm2 = TextObjectField.objects.create(content="mash fiorentina claus")
+        f1 = Fragment.objects.create()
+        f2 = Fragment.objects.create()
+        f1.commentary = comm1
+        f2.commentary = comm2
+        ot1 = OriginalText.objects.create(
+            content="step fiorentina cheese",
+            reference="alice",
+            citing_work=cw,
+            owner=f1,
+        )
+        ot2 = OriginalText.objects.create(
+            content="mash floor claus", reference="alice", citing_work=cw, owner=f2
+        )
+        Translation.objects.create(
+            original_text=ot1, translated_text="mash fiorentina cheese"
+        )
+        Translation.objects.create(
+            original_text=ot2, translated_text="step floor claus"
+        )
+        f1.save()
+        f2.save()
+
+    def test_original_text_content_field_search(self):
+        """Test searching just the original text content
+        for a fragment"""
+        self.setup_content_field_search_data()
+
+        # search for 'fiorentina' in the fragments' original texts
+        view = SearchView()
+        # Confirm general search returns both fragments
+        data = {
+            "q": "fiorentina",
+        }
+        url = reverse("search:home")
+        request = RequestFactory().get(url, data=data)
+        view.request = request
+        self.assertEqual(len(view.get_queryset()), 2)
+        # Now search for original_text content only
+        data["what"] = "fragments_original texts"
+        request = RequestFactory().get(url, data=data)
+        view.request = request
+        self.assertEqual(len(view.get_queryset()), 1)
+
+    def test_translation_content_field_search(self):
+        self.setup_content_field_search_data()
+
+        # search for 'fiorentina' in the fragments' translations
+        view = SearchView()
+        data = {
+            "q": "fiorentina",
+            "what": "fragments_translations",
+        }
+        url = reverse("search:home")
+        request = RequestFactory().get(url, data=data)
+        view.request = request
+        self.assertEqual(len(view.get_queryset()), 1)
+
+    def test_commentary_content_field_search(self):
+        self.setup_content_field_search_data()
+
+        # search for 'fiorentina' in the fragments' commentaries
+        view = SearchView()
+        data = {
+            "q": "fiorentina",
+            "what": "fragments_commentary",
+        }
+        url = reverse("search:home")
+        request = RequestFactory().get(url, data=data)
+        view.request = request
+        self.assertEqual(len(view.get_queryset()), 1)
 
     def test_search_objects(self):
 

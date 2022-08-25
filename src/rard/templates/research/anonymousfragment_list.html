@@ -13,9 +13,9 @@
     <a href='{% url "anonymous_fragment:create" %}'>{% trans 'Create New' %}</a>
     {% endif %}
     <br>
-        <div>
+        {% comment %} We'll add this back in once it's functional <div>
             {% include 'research/partials/anonymousfragment_order_form.html' %}
-        </div>
+        </div> {% endcomment %}
 {% endblock %}
 
 {% block inner %}
