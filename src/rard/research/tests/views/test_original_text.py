@@ -16,6 +16,7 @@ from rard.research.views import (
     OriginalTextUpdateView,
     TestimoniumOriginalTextCreateView,
 )
+from rard.research.views.fragment import FragmentCreateView
 from rard.users.tests.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
@@ -255,34 +256,45 @@ class TestOriginalTextViewPermissions(TestCase):
 
 class TestReferences(TestCase):
     def setUp(self):
-        self.citing_work = CitingWork.objects.create(title="title")
-        fragment = Fragment.objects.create(name="fragment_name")
+        self.citing_author = CitingAuthor.objects.create(name="test_author")
+        self.citing_work = CitingWork.objects.create(
+            title="title", author=self.citing_author
+        )
         self.user = UserFactory.create()
-        fragment.lock(self.user)
 
-        self.original_text = OriginalText.objects.create(
-            owner=fragment,
-            citing_work=self.citing_work,
-        )
+    def test_fragment_creation(self):
+        # data for both original text and fragment
+        data = {
+            "apparatus_criticus": "app_criticus",
+            "content": "content",
+            "reference_order": 1,
+            "citing_work": self.citing_work.pk,
+            "citing_author": self.citing_work.author.pk,
+            "create_object": True,
+            "references-TOTAL_FORMS": 1,
+            "references-INITIAL_FORMS": 0,
+            "references-MIN_NUM_FORMS": 0,
+            "references-MAX_NUM_FORMS": 1000,
+            "references-0-id": "",
+            "references-0-original_text": "",
+            "references-0-editor": "geoff",
+            "references-0-reference_position": "1.2.3",
+        }
+        # assert no original texts initially
+        self.assertEqual(0, OriginalText.objects.count())
 
-    def test_reference_creation(self):
-        reference = "2.6-9"
-        self.reference = Reference.objects.create(
-            editor="superfluous",
-            reference_position=reference,
-            original_text=self.original_text,
-        )
-        self.assertEqual(
-            self.original_text.reference, self.reference.reference_position
-        )
+        url = reverse("fragment:create")
 
-    def test_reference_deletion(self):
-        reference = "2.6-9"
-        self.reference = Reference.objects.create(
-            editor="superfluous",
-            reference_position=reference,
-            original_text=self.original_text,
+        request = RequestFactory().post("/", data=data)
+        request.user = UserFactory.create()
+
+        response = FragmentCreateView.as_view()(
+            request,
         )
-        self.reference.delete()
-        self.original_text.refresh_from_db()
-        self.assertNotEqual(self.original_text.reference, reference)
+        self.assertEqual(302, response.status_code)
+        self.assertEqual(1, Fragment.objects.count())
+        self.assertEqual(1, OriginalText.objects.count())
+        originaltext = OriginalText.objects.filter(content="content").first()
+
+        self.assertEqual(1, originaltext.references.count())
+        self.assertEqual(originaltext.references.first().reference_position, "1.2.3")
