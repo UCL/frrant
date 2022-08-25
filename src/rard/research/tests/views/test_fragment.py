@@ -43,7 +43,6 @@ class TestFragmentSuccessUrls(TestCase):
     def test_redirect_on_create(self):
         # data for both original text and fragment
         data = {
-            "name": "name",
             "apparatus_criticus": "app_criticus",
             "content": "content",
             "reference_order": 1,
@@ -79,7 +78,6 @@ class TestFragmentSuccessUrls(TestCase):
     def test_create_citing_work(self):
         # data for both original text and fragment
         data = {
-            "name": "name",
             "apparatus_criticus": "app_criticus",
             "content": "content",
             "reference_order": 1,
