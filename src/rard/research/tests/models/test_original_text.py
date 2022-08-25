@@ -9,6 +9,7 @@ from rard.research.models import (
     Fragment,
     OriginalText,
     Translation,
+    Reference,
 )
 from rard.research.models.base import FragmentLink
 
@@ -203,3 +204,29 @@ class TestCitingWork(TestCase):
         }
         citing_work = CitingWork.objects.create(**data)
         self.assertFalse(str(citing_work).find(data["edition"]) >= 0)
+
+
+class TestReferences(TestCase):
+    def setUp(self):
+        self.citing_work = CitingWork.objects.create(title="title")
+        fragment = Fragment.objects.create(name="fragment_name")
+
+        self.original_text = OriginalText.objects.create(
+            owner=fragment,
+            citing_work=self.citing_work,
+        )
+
+        reference = "2.6-9"
+        self.reference = Reference.objects.create(
+            editor="superfluous",
+            reference_position=reference,
+            original_text=self.original_text,
+        )
+
+    def test_reference_creation(self):
+        self.assertEqual(self.original_text.references.first(), self.reference)
+
+    def test_reference_deletion(self):
+        self.reference.delete()
+        self.original_text.refresh_from_db()
+        self.assertEqual(self.original_text.references.count(), 0)
