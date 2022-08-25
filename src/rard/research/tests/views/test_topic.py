@@ -8,7 +8,9 @@ from rard.research.models import (
     CitingWork,
     Fragment,
     Topic,
+    citing_work,
 )
+from rard.research.models.original_text import OriginalText
 from rard.research.views import (
     AnonymousFragmentCreateView,
     FragmentCreateView,
@@ -183,6 +185,8 @@ class TestTopicViewPermissions(TestCase):
 
 class TestTopicDetailView(TestCase):
     def setUp(self):
+        """Create two fragments and two anonymous fragments
+        linked to a topic with different authors"""
         # Create a topic
         self.topic_name = "test_topic"
         self.topic = Topic.objects.create(name=self.topic_name)
@@ -196,37 +200,37 @@ class TestTopicDetailView(TestCase):
         self.citing_work_2 = CitingWork.objects.create(
             title="title_2", author=self.citing_author_a
         )
+        # create fragments and anonymous fragments which will be
+        # owners of original texts
+        self.fragment_1 = Fragment.objects.create(name="f1a")
+        self.anonymous_1 = AnonymousFragment.objects.create(name="f1b")
+        self.fragment_2 = Fragment.objects.create(name="f2a")
+        self.anonymous_2 = AnonymousFragment.objects.create(name="f2b")
 
-        # Create two fragments and two anonymous fragments
-        # linked to this topic with different authors
+        self.originaltext_1a = OriginalText.objects.create(
+            citing_work=self.citing_work_1, content="blah", owner=self.fragment_1
+        )
+        self.originaltext_1b = OriginalText.objects.create(
+            citing_work=self.citing_work_1, content="blah", owner=self.anonymous_1
+        )
+        self.originaltext_2a = OriginalText.objects.create(
+            citing_work=self.citing_work_2, content="blah", owner=self.fragment_2
+        )
+        self.originaltext_2b = OriginalText.objects.create(
+            citing_work=self.citing_work_2, content="blah", owner=self.anonymous_2
+        )
+
         self.user = UserFactory.create()
-        fragment_1 = {
-            "name": "fragment 1",
-            "apparatus_criticus": "app_criticus",
-            "content": "content",
-            "reference": "Page 1",
-            "reference_order": 1,
-            "topics": [self.topic.pk],
-            "citing_work": self.citing_work_1.pk,
-            "citing_author": self.citing_work_1.author.pk,
-            "create_object": True,
-        }
-        fragment_2 = fragment_1.copy()
-        fragment_2["name"] = "fragment 2"
-        fragment_2["citing_work"] = self.citing_work_2.pk
-        fragment_2["citing_author"] = self.citing_work_2.author.pk
-        self.topic_items = []
-        for fragment in [fragment_1, fragment_2]:
-            request = RequestFactory().post("/", data=fragment)
-            request.user = self.user
-            response = FragmentCreateView.as_view()(request)
-            self.topic_items.append(
-                Fragment.objects.filter(pk=response.url.split("/")[2]).first()
-            )
-            response = AnonymousFragmentCreateView.as_view()(request)
-            self.topic_items.append(
-                AnonymousFragment.objects.filter(pk=response.url.split("/")[2]).first()
-            )
+
+        self.topic_items = [
+            self.fragment_1,
+            self.anonymous_1,
+            self.fragment_2,
+            self.anonymous_2,
+        ]
+
+        for i in self.topic_items:
+            i.topics.add(self.topic)
 
     def test_antiquarian_order(self):
         request = RequestFactory().get("/")
