@@ -234,7 +234,7 @@ class TestReferences(TestCase):
     def test_reference_list_property(self):
         self.assertEqual(self.original_text.references.count(), 1)
         self.assertEqual(
-            self.original_text.reference_list[0], self.reference.reference_position
+            self.original_text.reference_list, self.reference.reference_position
         )
         self.reference2 = Reference.objects.create(
             editor="superfluous",
