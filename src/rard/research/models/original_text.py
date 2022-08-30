@@ -81,8 +81,8 @@ class OriginalText(HistoryModelMixin, BaseModel):
 
     def citing_work_reference_display(self):
         citing_work_str = str(self.citing_work)
-        if self.reference:
-            citing_work_str = " ".join([citing_work_str, self.reference])
+        if self.reference_list:
+            citing_work_str = " ".join([citing_work_str, self.reference_list])
         return citing_work_str
 
     def index_with_respect_to_parent_object(self):
