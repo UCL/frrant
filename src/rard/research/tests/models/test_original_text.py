@@ -230,3 +230,18 @@ class TestReferences(TestCase):
         self.reference.delete()
         self.original_text.refresh_from_db()
         self.assertEqual(self.original_text.references.count(), 0)
+
+    def test_reference_list_property(self):
+        self.assertEqual(self.original_text.references.count(), 1)
+        self.assertEqual(
+            self.original_text.reference_list[0], self.reference.reference_position
+        )
+        self.reference2 = Reference.objects.create(
+            editor="superfluous",
+            reference_position="3.9.9",
+            original_text=self.original_text,
+        )
+        references_list = ["superfluous 2.6-9 |", "superfluous 3.9.9 |"]
+        self.assertEqual(self.original_text.references.count(), 2)
+        self.assertIn("superfluous", self.original_text.reference_list[0])
+        self.assertEqual(self.original_text.reference_list, references_list)
