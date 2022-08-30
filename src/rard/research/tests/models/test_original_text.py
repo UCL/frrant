@@ -241,7 +241,6 @@ class TestReferences(TestCase):
             reference_position="3.9.9",
             original_text=self.original_text,
         )
-        references_list = ["superfluous 2.6-9 |", "superfluous 3.9.9 |"]
+        references_list = "superfluous 2.6-9 | superfluous 3.9.9 "
         self.assertEqual(self.original_text.references.count(), 2)
-        self.assertIn("superfluous", self.original_text.reference_list[0])
         self.assertEqual(self.original_text.reference_list, references_list)
