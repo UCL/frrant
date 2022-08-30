@@ -26,10 +26,12 @@ class OriginalText(HistoryModelMixin, BaseModel):
         unless there's only one, in which case only the ref position is shown"""
         references = Reference.objects.filter(original_text=self)
         if references.count() > 1:
-            return " | ".join([
-                f"{reference.editor} {reference.reference_position}"
-                for reference in references
-            ])
+            return " | ".join(
+                [
+                    f"{reference.editor} {reference.reference_position}"
+                    for reference in references
+                ]
+            )
         else:
             return references.first().reference_position
 
