@@ -1,6 +1,7 @@
 # from django.contrib.postgres.search import SearchQuery, SearchRank, \
 #     SearchVector
 from itertools import chain
+from unicodedata import numeric
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Q
@@ -28,14 +29,14 @@ class MentionSearchView(LoginRequiredMixin, View):
     @property
     def SEARCH_METHODS(self):
         return {
-            "antiquarians": self.antiquarian_search,
-            "testimonia": self.testimonium_search,
-            "anonymous fragments": self.anonymous_fragment_search,
-            "fragments": self.fragment_search,
-            "topics": self.topic_search,
-            "works": self.work_search,
-            "bibliographies": self.bibliography_search,
-            "unlinked fragments": self.unlinked_fragment_search,
+            "aq": self.antiquarian_search,
+            "tt": self.testimonium_search,
+            "af": self.anonymous_fragment_search,
+            "fr": self.fragment_search,
+            "tp": self.topic_search,
+            "wk": self.work_search,
+            "bi": self.bibliography_search,
+            "uf": self.unlinked_fragment_search,
         }
 
     # move to queryset on model managers
@@ -57,12 +58,39 @@ class MentionSearchView(LoginRequiredMixin, View):
         results = qs.filter(name__icontains=keywords)
         return results.distinct()
 
+    def order_number_search(keywords):
+        order_number = None
+        for kw in keywords:
+            if kw.isnumeric():
+                order_number = int(kw)
+                keywords.remove(kw)
+
+        return order_number, keywords
+
     @classmethod
     def fragment_search(cls, keywords):
+        order_number, antiquarian = cls.order_number_search(keywords)
         qs = Fragment.objects.all()
-        results = qs.filter(
-            antiquarian_fragmentlinks__antiquarian__name__icontains=keywords  # noqa
-        )
+        # if the keyword is a number then use order number search
+        if order_number:
+            order_number = order_number - 1
+            """either the antiquarian order number is the order number or the work order number is the order number"""
+            order_query = Q(antiquarian_fragmentlinks__order=order_number) | Q(
+                antiquarian_fragmentlinks__work_order=order_number
+            )
+
+        else:
+            order_query = Q()
+
+        if antiquarian:
+            ant_query = Q()
+            for a in antiquarian:
+                ant_query = ant_query & Q(
+                    antiquarian_fragmentlinks__antiquarian__name__icontains=a
+                )
+        else:
+            ant_query = Q()
+        results = qs.filter(ant_query, order_query)
         return results.distinct()
 
     @classmethod
@@ -136,17 +164,32 @@ class MentionSearchView(LoginRequiredMixin, View):
 
         return JsonResponse(data=ajax_data, safe=False)
 
+    def parse_mention(self, q):
+        # split string at colon
+        search_terms = q.split(":")
+        method = search_terms.pop(0)
+        return method, search_terms
+
     def get_queryset(self):
-        keywords = self.request.GET.get("q")
-        if not keywords:
+        method, search_terms = self.parse_mention(self.request.GET.get("q"))
+
+        # check if method is in the search method keys eg aq, tt, etc, if not return an empty list
+        if method in self.SEARCH_METHODS.keys():
+            # call method with list of search terms
+            return self.SEARCH_METHODS[method](search_terms)
+        else:
             return []
 
-        result_set = []
-        to_search = self.SEARCH_METHODS.keys()
-        for what in to_search:
-            result_set.append(self.SEARCH_METHODS[what](keywords))
+        # keywords = self.request.GET.get("q")
+        # if not keywords:
+        #     return []
 
-        queryset_chain = chain(*result_set)
+        # result_set = []
+        # to_search = self.SEARCH_METHODS.keys()
+        # for what in to_search:
+        #     result_set.append(self.SEARCH_METHODS[what](keywords))
 
-        # return a of results
-        return sorted(queryset_chain, key=lambda instance: instance.pk, reverse=True)
+        # queryset_chain = chain(*result_set)
+
+        # # return a of results
+        # return sorted(queryset_chain, key=lambda instance: instance.pk, reverse=True)
