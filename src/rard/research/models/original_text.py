@@ -20,7 +20,6 @@ class OriginalText(HistoryModelMixin, BaseModel):
     class Meta:
         ordering = ("citing_work", "reference_order")
 
-
     @property
     def reference_list(self):
         """Returns a list of references with editor and ref position for each
