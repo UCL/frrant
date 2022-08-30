@@ -19,7 +19,6 @@
     </dd>
 
     <dt class="col-sm-3">{% trans 'References' %}</dt>
-    {% comment %} <dd class="col-sm-9">{{ original_text.reference|default:'-' }}</dd> {% endcomment %}
     <dd class="col-sm-9">
     {% for i in original_text.reference_list %}{{i}}{% endfor %}
     </dd>
@@ -29,17 +28,7 @@
     <dt class="col-sm-3">{% trans 'Apparatus Criticus' %}</dt>
     <dd class="col-sm-9">{{ original_text.apparatus_criticus|safe|default:'-'|linebreaks }}</dd>
 {% endcomment %}
-{% comment %}
-    <dt class="col-sm-3">{% trans 'Reference Order' %}</dt>
-    {% comment %} <dd class="col-sm-9">{{ original_text.remove_reference_order_padding }}</dd>
-    <dd class="col-sm-9">
-    {% for i in original_text.references.all %}
-        <p>
-            {{i.order}}
-        </p>
-    {% endfor %}
-    </dd>
-{% endcomment %}
+
     <dt class="col-sm-3">{% trans 'Apparatus Criticus' %}</dt>
     <dd class="col-sm-9">
         <div>

@@ -21,15 +21,6 @@ class OriginalText(HistoryModelMixin, BaseModel):
         ordering = ("citing_work", "reference_order")
 
     @property
-    def reference(self):
-        references = Reference.objects.filter(original_text=self)
-        if references:
-            # only return the number values as the editor isn't critical
-            return references.first().reference_position
-        else:
-            return ""
-
-    @property
     def reference_list(self):
         """Returns a list of references with editor and ref position for each
         unless there's only one, in which case only the ref position is shown"""
