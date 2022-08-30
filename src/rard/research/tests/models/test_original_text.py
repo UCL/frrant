@@ -8,6 +8,7 @@ from rard.research.models import (
     Concordance,
     Fragment,
     OriginalText,
+    Reference,
     Translation,
 )
 from rard.research.models.base import FragmentLink
@@ -203,3 +204,43 @@ class TestCitingWork(TestCase):
         }
         citing_work = CitingWork.objects.create(**data)
         self.assertFalse(str(citing_work).find(data["edition"]) >= 0)
+
+
+class TestReferences(TestCase):
+    def setUp(self):
+        self.citing_work = CitingWork.objects.create(title="title")
+        fragment = Fragment.objects.create(name="fragment_name")
+
+        self.original_text = OriginalText.objects.create(
+            owner=fragment,
+            citing_work=self.citing_work,
+        )
+
+        reference = "2.6-9"
+        self.reference = Reference.objects.create(
+            editor="superfluous",
+            reference_position=reference,
+            original_text=self.original_text,
+        )
+
+    def test_reference_creation(self):
+        self.assertEqual(self.original_text.references.first(), self.reference)
+
+    def test_reference_deletion(self):
+        self.reference.delete()
+        self.original_text.refresh_from_db()
+        self.assertEqual(self.original_text.references.count(), 0)
+
+    def test_reference_list_property(self):
+        self.assertEqual(self.original_text.references.count(), 1)
+        self.assertEqual(
+            self.original_text.reference_list, self.reference.reference_position
+        )
+        self.reference2 = Reference.objects.create(
+            editor="superfluous",
+            reference_position="3.9.9",
+            original_text=self.original_text,
+        )
+        references_list = "superfluous 2.6-9 | superfluous 3.9.9"
+        self.assertEqual(self.original_text.references.count(), 2)
+        self.assertEqual(self.original_text.reference_list, references_list)

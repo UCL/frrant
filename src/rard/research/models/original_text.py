@@ -5,6 +5,7 @@ from django.utils.safestring import mark_safe
 from simple_history.models import HistoricalRecords
 
 from rard.research.models.mixins import HistoryModelMixin
+from rard.research.models.reference import Reference
 from rard.utils.basemodel import BaseModel, DynamicTextField
 from rard.utils.text_processors import make_plain_text
 
@@ -19,6 +20,28 @@ class OriginalText(HistoryModelMixin, BaseModel):
     class Meta:
         ordering = ("citing_work", "reference_order")
 
+    @property
+    def reference_list(self):
+        """Returns a string which lists the editor and ref position for each reference
+        unless there's only one, in which case only the ref position is shown"""
+        references = Reference.objects.filter(original_text=self)
+        if references.count() > 1:
+            return " | ".join(
+                [
+                    f"{reference.editor} {reference.reference_position}"
+                    for reference in references
+                ]
+            )
+        else:
+            return references.first().reference_position
+
+    # The value to be used in 'ordering by reference'
+    # In some cases it will be a dot-separated list of numbers that also need
+    # to be used for ordering, like 1.3.24.
+    reference_order = models.CharField(
+        blank=False, null=True, default=None, max_length=100
+    )
+
     # original text can belong to either a fragment or a testimonium
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
@@ -26,20 +49,10 @@ class OriginalText(HistoryModelMixin, BaseModel):
 
     citing_work = models.ForeignKey("CitingWork", on_delete=models.CASCADE)
 
-    # e.g. page 24
-    reference = models.CharField(max_length=128, blank=False)
-
     content = DynamicTextField(blank=False)
 
     # Also store copy without html or punctuation for search purposes
     plain_content = models.TextField(blank=False, default="")
-
-    # The value 24 to be used in 'ordering by reference' taking example above
-    # In some cases it will be a dot-separated list of numbers that also need
-    # to be used for ordering, like 1.3.24.
-    reference_order = models.CharField(
-        blank=False, null=True, default=None, max_length=100
-    )
 
     # to be nuked eventually. not required now but hidden from view
     # to preserve previous values in case our data migration is insufficient

@@ -173,12 +173,17 @@ class TestSearchView(TestCase):
         f2.commentary = comm2
         ot1 = OriginalText.objects.create(
             content="step fiorentina cheese",
-            reference="alice",
             citing_work=cw,
             owner=f1,
         )
+        ot1.references.create(
+            reference_position="alice",
+        )
         ot2 = OriginalText.objects.create(
-            content="mash floor claus", reference="alice", citing_work=cw, owner=f2
+            content="mash floor claus", citing_work=cw, owner=f2
+        )
+        ot2.references.create(
+            reference_position="alice",
         )
         Translation.objects.create(
             original_text=ot1, translated_text="mash fiorentina cheese"
@@ -279,15 +284,14 @@ class TestSearchView(TestCase):
         f1 = Fragment.objects.create()
         f1.original_texts.create(
             content="findme with your search powers",
-            reference="louisa may alcott",
             citing_work=cw,
+        ).references.create(
+            reference_position="louisa may alcott",
         )
 
         f2 = Fragment.objects.create()
-        f2.original_texts.create(
-            content="not$me",
-            reference="daisy ma<>,./?;'#:@~[]{}-=_+!\"£$%^&*()\\|y cooper",
-            citing_work=cw,
+        f2.original_texts.create(content="not$me", citing_work=cw,).references.create(
+            reference_position="daisy ma<>,./?;'#:@~[]{}-=_+!\"£$%^&*()\\|y cooper",
         )
 
         self.assertEqual(do_search(view.fragment_search, "findme yovr"), [f1])

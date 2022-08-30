@@ -397,7 +397,8 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                 ("original_texts__translation__plain_translated_text", terms.match),
                 ("plain_commentary", terms.match),
                 ("original_texts__translation__translator_name", terms.match),
-                ("original_texts__reference", terms.match),
+                ("original_texts__references__reference_position", terms.match),
+                ("original_texts__references__editor", terms.match),
             ]
         return cls.generic_content_search(qs, search_fields)
 

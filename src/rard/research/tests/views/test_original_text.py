@@ -10,6 +10,7 @@ from rard.research.views import (
     OriginalTextUpdateView,
     TestimoniumOriginalTextCreateView,
 )
+from rard.research.views.fragment import FragmentCreateView
 from rard.users.tests.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
@@ -190,12 +191,12 @@ class TestOriginalTextUpdateView(TestCase):
     def test_update_details_post(self):
         # data for both original text and fragment
         # note at this stage reference order should be padded with 0s
-        REFERENCE = "page 10e17"
-        REFERENCE_ORDER = "00010.00017"
+
+        REFERENCE_ORDER = "10.17"
+        EXPECTED_REFERENCE_ORDER = "00010.00017"
         NEW_CONTENT = "Some new content"
 
         data = {
-            "reference": REFERENCE,
             "reference_order": REFERENCE_ORDER,
             "content": NEW_CONTENT,
             "create_object": True,
@@ -213,9 +214,8 @@ class TestOriginalTextUpdateView(TestCase):
 
         # refetch object
         ot = OriginalText.objects.get(pk=self.original_text.pk)
-        self.assertEqual(ot.reference, REFERENCE)
-        self.assertEqual(ot.reference_order, REFERENCE_ORDER)
         self.assertEqual(ot.content, NEW_CONTENT)
+        self.assertEqual(ot.reference_order, EXPECTED_REFERENCE_ORDER)
 
 
 class TestOriginalTextViewPermissions(TestCase):
@@ -246,3 +246,47 @@ class TestOriginalTextViewPermissions(TestCase):
         self.assertIn(
             "research.delete_originaltext", OriginalTextDeleteView.permission_required
         )
+
+
+class TestReferences(TestCase):
+    def setUp(self):
+        self.citing_author = CitingAuthor.objects.create(name="test_author")
+        self.citing_work = CitingWork.objects.create(
+            title="title", author=self.citing_author
+        )
+        self.user = UserFactory.create()
+
+    def test_fragment_creation(self):
+        # data for both original text and fragment
+        data = {
+            "apparatus_criticus": "app_criticus",
+            "content": "content",
+            "reference_order": 1,
+            "citing_work": self.citing_work.pk,
+            "citing_author": self.citing_work.author.pk,
+            "create_object": True,
+            "references-TOTAL_FORMS": 1,
+            "references-INITIAL_FORMS": 0,
+            "references-MIN_NUM_FORMS": 0,
+            "references-MAX_NUM_FORMS": 1000,
+            "references-0-id": "",
+            "references-0-original_text": "",
+            "references-0-editor": "geoff",
+            "references-0-reference_position": "1.2.3",
+        }
+        # assert no original texts initially
+        self.assertEqual(0, OriginalText.objects.count())
+
+        request = RequestFactory().post("/", data=data)
+        request.user = UserFactory.create()
+
+        response = FragmentCreateView.as_view()(
+            request,
+        )
+        self.assertEqual(302, response.status_code)
+        self.assertEqual(1, Fragment.objects.count())
+        self.assertEqual(1, OriginalText.objects.count())
+        originaltext = OriginalText.objects.filter(content="content").first()
+
+        self.assertEqual(1, originaltext.references.count())
+        self.assertEqual(originaltext.references.first().reference_position, "1.2.3")

@@ -1,5 +1,6 @@
 from django import forms
 from django.core.exceptions import FieldDoesNotExist
+from django.forms import inlineformset_factory
 from django.utils.translation import gettext_lazy as _
 
 from rard.research.models import (
@@ -11,6 +12,7 @@ from rard.research.models import (
     Comment,
     Fragment,
     OriginalText,
+    Reference,
     Testimonium,
     Work,
 )
@@ -419,12 +421,7 @@ class OriginalTextDetailsForm(forms.ModelForm):
 
     class Meta:
         model = OriginalText
-        fields = (
-            "reference",
-            "reference_order",
-            "content",
-            "apparatus_criticus_blank",
-        )
+        fields = ("content", "apparatus_criticus_blank", "reference_order")
         labels = {
             "content": _("Original Text"),
         }
@@ -476,10 +473,9 @@ class OriginalTextForm(OriginalTextAuthorForm):
         model = OriginalText
         fields = (
             "citing_work",
-            "reference",
-            "reference_order",
             "content",
             "apparatus_criticus_blank",
+            "reference_order",
         )
         labels = {
             "content": _("Original Text"),
@@ -598,6 +594,23 @@ class AnonymousFragmentForm(forms.ModelForm):
         )
         labels = {"date_range": "Chronological reference"}
         widgets = {"topics": forms.CheckboxSelectMultiple}
+
+
+class ReferenceForm(forms.ModelForm):
+    class Meta:
+        model = Reference
+        fields = ("editor", "reference_position")
+
+
+ReferenceFormset = inlineformset_factory(
+    OriginalText,
+    Reference,
+    form=ReferenceForm,
+    fields=("editor", "reference_position"),
+    labels={"editor": "Editor", "reference_position": "Reference"},
+    can_delete=True,
+    extra=1,
+)
 
 
 class TestimoniumForm(HistoricalFormBase):
