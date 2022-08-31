@@ -509,6 +509,22 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                 qs = qs.filter(id__in=ca_filter)
         return qs
 
+    def transform_keywords_to_regex(keywords):
+        """Takes a list of keywords which may include ? and * wildcards
+        and converts each one into an equivalent regular expression."""
+        for i, kw in enumerate(keywords):
+            reg_kw = r"\m"  # \m matches start of word
+            for char in kw:
+                if char == "?":
+                    reg_kw += r"\w"  # a single word char (greek chars work here)
+                elif char == "*":
+                    reg_kw += r"\w*"  # zero or more word characters
+                else:
+                    reg_kw += char
+            reg_kw += r"\M"  # \M matches end of word
+            keywords[i] = reg_kw
+        return keywords
+
     def get(self, request, *args, **kwargs):
         keywords = self.request.GET.get("q", None)
         if keywords is not None and keywords.strip() == "":
