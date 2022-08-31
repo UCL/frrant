@@ -115,7 +115,8 @@ class MentionSearchView(LoginRequiredMixin, View):
 
         if order_number:
             order_number = order_number - 1
-            """either the antiquarian order number is the order number or the work order number is the order number"""
+            """either the antiquarian order number is
+             the order number or the work order number is the order number"""
             order_query = Q(antiquarian_fragmentlinks__order=order_number) | Q(
                 antiquarian_fragmentlinks__work_order=order_number
             )
@@ -169,7 +170,6 @@ class MentionSearchView(LoginRequiredMixin, View):
 
     def get_queryset(self):
         method, search_terms = self.parse_mention(self.request.GET.get("q"))
-
         # check if method is in the search method keys eg aq, tt, etc, if not return an empty list
         if method in self.BASIC_SEARCH_METHODS.keys():
             # call method with list of search terms
