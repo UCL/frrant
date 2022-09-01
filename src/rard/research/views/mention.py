@@ -81,9 +81,10 @@ class MentionSearchView(LoginRequiredMixin, View):
 
     @classmethod
     def anonymous_fragment_search(cls, keywords):
+        # do we want to make it so the search is inclusive, not exact?
+        # i.e @af:1 returns 1,10,11,etc
         order_number = cls.order_number_search(keywords)[0]
         qs = AnonymousFragment.objects.all()
-        # or should i just be calling order number search for af and uf
         if order_number:
             order_number = order_number - 1
             order_query = Q(id=order_number) | Q(order=order_number)
@@ -163,7 +164,6 @@ class MentionSearchView(LoginRequiredMixin, View):
         return JsonResponse(data=ajax_data, safe=False)
 
     def parse_mention(self, q):
-        # split string at colon for method and query
         search_terms = q.split(":")
         method = search_terms.pop(0)
         return method, search_terms
