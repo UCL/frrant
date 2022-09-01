@@ -5,7 +5,7 @@ from unicodedata import numeric
 
 from django.apps import apps
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import CharField, ExpressionWrapper, F, Q, Value
+from django.db.models import CharField, F, Q, Value
 from django.db.models.functions import Concat
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
@@ -169,6 +169,9 @@ class MentionSearchView(LoginRequiredMixin, View):
         return method, search_terms
 
     def get_queryset(self):
+        if self.request.GET.get("q") is None:
+            return []
+
         method, search_terms = self.parse_mention(self.request.GET.get("q"))
         # check if method is in the search method keys eg aq, tt, etc, if not return an empty list
         if method in self.BASIC_SEARCH_METHODS.keys():
