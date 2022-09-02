@@ -399,6 +399,43 @@ class TestSearchView(TestCase):
         self.assertEqual(do_search(view.citing_work_search, "*xth"), [cw2])
         self.assertCountEqual(do_search(view.citing_work_search, "?ook"), [cw1, cw2])
 
+    def test_wildcards(self):
+
+        # Run a particular search and return a list of results
+        def do_search(search_function, keywords):
+            return list(search_function(SearchView.Term(keywords)))
+
+        cw = CitingWork.objects.create(title="citing_work")
+        f1 = Fragment.objects.create()
+        f1.original_texts.create(
+            **{"citing_work": cw, "content": "characteristic rage"}
+        )
+        f2 = Fragment.objects.create()
+        f2.original_texts.create(
+            **{"citing_work": cw, "content": "middle aged man in lycra"}
+        )
+        f3 = Fragment.objects.create()
+        f3.original_texts.create(
+            **{"citing_work": cw, "content": "what's my age again?"}
+        )
+
+        view = SearchView()
+
+        self.assertEqual(do_search(view.fragment_search, "age"), [f3])
+        self.assertEqual(do_search(view.fragment_search, "age?"), [f2])
+        self.assertEqual(do_search(view.fragment_search, "?age"), [f1])
+        self.assertEqual(do_search(view.fragment_search, "?age*"), [f1])
+        self.assertEqual(do_search(view.fragment_search, "age*"), [f2, f3])
+        self.assertEqual(do_search(view.fragment_search, "*age"), [f1, f3])
+        self.assertEqual(do_search(view.fragment_search, "*age?"), [f2])
+        self.assertEqual(do_search(view.fragment_search, "*age*"), [f1, f2, f3])
+        # Non-wildcard punctuation should be ignored in search term
+        self.assertEqual(do_search(view.fragment_search, "what's"), [f3])
+        self.assertEqual(do_search(view.fragment_search, "whats"), [f3])
+        # Punctuation should be ignored in content
+        self.assertEqual(do_search(view.fragment_search, "again"), [f3])
+        self.assertEqual(do_search(view.fragment_search, "again?"), [])
+
     def test_search_snippets(self):
 
         raw_content = (
