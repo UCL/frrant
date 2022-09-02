@@ -82,7 +82,13 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         def __init__(self, keywords):
             self.cleaned_number = 1
             self.folded_number = 1
+            # Remove all punctuation except * and ?
             self.keywords = PUNCTUATION_RE.sub("", keywords).lower()
+            # If wildcard characters appear in keywords, use regex lookup
+            if any([char in self.keywords for char in ["*", "?"]]):
+                self.lookup = "regex"
+            else:
+                self.lookup = "contains"
             # The basic function query function will first eliminate html less than
             # and greater than character codes, then punctuation,
             # and lowercase the 'haystack' strings to be searched.
@@ -163,7 +169,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                 query(query_string), output_field=TextField()
             )
             annotated = query_set.annotate(**{annotation_name: expression})
-            matches = annotated.filter(matcher(annotation_name + "__contains"))
+            matches = annotated.filter(matcher(annotation_name + "__" + self.lookup))
             if add_snippet:
                 matches = self.annotate_with_snippet(matches, keywords, query_string)
             else:
