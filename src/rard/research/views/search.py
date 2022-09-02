@@ -2,6 +2,7 @@ import re
 from functools import partial
 from itertools import chain
 
+from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import ExpressionWrapper, Func, Q, TextField, Value
 from django.db.models.functions import Lower
@@ -62,8 +63,8 @@ rard_folds = [
     ["x", "xs"],
 ]
 
-WILDCARD_SINGLE_CHAR = "?"
-WILDCARD_MANY_CHAR = "*"
+WILDCARD_SINGLE_CHAR = settings.WILDCARD_SINGLE_CHAR
+WILDCARD_MANY_CHAR = settings.WILDCARD_MANY_CHAR
 WILDCARD_CHARS = [WILDCARD_SINGLE_CHAR, WILDCARD_MANY_CHAR]
 PUNCTUATION_BASE = r"!£$%^&*()_+-={}:@~;\'#|\\<>?,./`¬"
 # Remove wildcard characters from PUNCTUATION_BASE which is used to screen
