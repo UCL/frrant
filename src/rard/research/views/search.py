@@ -65,7 +65,7 @@ rard_folds = [
 WILDCARD_SINGLE_CHAR = "?"
 WILDCARD_MANY_CHAR = "*"
 WILDCARD_CHARS = [WILDCARD_SINGLE_CHAR, WILDCARD_MANY_CHAR]
-PUNCTUATION_BASE = r"!£$%^&()_+-={}:@~;\'#|\\<>,./`¬"
+PUNCTUATION_BASE = r"!£$%^&*()_+-={}:@~;\'#|\\<>?,./`¬"
 # Remove wildcard characters from PUNCTUATION_BASE which is used to screen
 # out punctuation from search terms
 PUNCTUATION_BASE = PUNCTUATION_BASE.translate({ord(c): None for c in WILDCARD_CHARS})
