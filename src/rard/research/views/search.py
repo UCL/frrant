@@ -167,7 +167,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             returns
             ["\\m\\wulius\\M", "\\mc\\w*sar\\M"]
 
-            :param keywords: A list of keywords strings to search
+            :param keywords: A list of strings to search
             :type keywords: list
             :return: list of regular expressions
             :rtype: list
