@@ -62,7 +62,7 @@ rard_folds = [
     ["x", "xs"],
 ]
 
-PUNCTUATION_BASE = r"!£$%^&*()_+-={}:@~;\'#|\\<>?,./`¬"
+PUNCTUATION_BASE = r"!£$%^&()_+-={}:@~;\'#|\\<>,./`¬"
 PUNCTUATION_RE = re.compile(r"[\[\]{0}]".format(PUNCTUATION_BASE))
 PUNCTUATION = PUNCTUATION_BASE + r'[]"'
 
