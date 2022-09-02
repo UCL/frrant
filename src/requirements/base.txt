@@ -14,3 +14,4 @@ django-model-utils==4.0.0  # https://github.com/jazzband/django-model-utils
 django-redis==4.12.1  # https://github.com/jazzband/django-redis
 django-bootstrap4==2.2.0  # https://pypi.org/project/django-bootstrap4/
 django-simple-history==2.12.0  # https://pypi.org/project/django-simple-history/
+django-crispy-forms==1.14.0

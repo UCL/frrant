@@ -11,10 +11,8 @@
     {# Use a POST form to select the work #}
     <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form original-text-update" method='POST'>
         {% csrf_token %}
-
-        {% bootstrap_field form.reference %}
-        {% bootstrap_field form.reference_order %}
-
+        {% include 'research/partials/reference_form.html' %}
+        {% bootstrap_field form.reference_order field_class='d-flex' %}
         {% bootstrap_field form.content field_class='d-none' %}
 
         {% with enable_apparatus_criticus=object %}
