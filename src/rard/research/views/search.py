@@ -62,7 +62,13 @@ rard_folds = [
     ["x", "xs"],
 ]
 
+WILDCARD_SINGLE_CHAR = "?"
+WILDCARD_MANY_CHAR = "*"
+WILDCARD_CHARS = [WILDCARD_SINGLE_CHAR, WILDCARD_MANY_CHAR]
 PUNCTUATION_BASE = r"!£$%^&()_+-={}:@~;\'#|\\<>,./`¬"
+# Remove wildcard characters from PUNCTUATION_BASE which is used to screen
+# out punctuation from search terms
+PUNCTUATION_BASE = PUNCTUATION_BASE.translate({ord(c): None for c in WILDCARD_CHARS})
 PUNCTUATION_RE = re.compile(r"[\[\]{0}]".format(PUNCTUATION_BASE))
 PUNCTUATION = PUNCTUATION_BASE + r'[]"'
 
@@ -85,7 +91,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             # Remove all punctuation except * and ?
             self.keywords = PUNCTUATION_RE.sub("", keywords).lower()
             # If wildcard characters appear in keywords, use regex lookup
-            if any([char in self.keywords for char in ["*", "?"]]):
+            if any([char in self.keywords for char in WILDCARD_CHARS]):
                 self.lookup = "regex"
             else:
                 self.lookup = "contains"
@@ -159,12 +165,11 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                 keywords = self.transform_keywords_to_regex(keywords)
             return keywords
 
-        def transform_keywords_to_regex(keywords):
-            """Takes a list of keywords which may include ? and * wildcards
+        def transform_keywords_to_regex(self, keywords):
+            """Takes a list of keywords which may include wildcard characters
             and converts them into a list of equivalent regular expressions.
-            For example:
-            transform_keywords_to_regex(["?ulius", "c*sar"])
-            returns
+            Example:
+            >>> transform_keywords_to_regex(["?ulius", "c*sar"])
             ["\\m\\wulius\\M", "\\mc\\w*sar\\M"]
 
             :param keywords: A list of strings to search
@@ -175,9 +180,9 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             for i, kw in enumerate(keywords):
                 reg_kw = r"\m"  # \m matches start of word
                 for char in kw:
-                    if char == "?":
+                    if char == WILDCARD_SINGLE_CHAR:
                         reg_kw += r"\w"  # a single word char (greek chars work here)
-                    elif char == "*":
+                    elif char == WILDCARD_MANY_CHAR:
                         reg_kw += r"\w*"  # zero or more word characters
                     else:
                         reg_kw += char
