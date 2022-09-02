@@ -264,7 +264,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             """
             keywords = self.get_keywords(keywords)
             words_before_group = rf"((?:\S+\s){{0,{before}}})"
-            keywords_group = "|".join([r"\S*" + kw + r"\S*" for kw in keywords])
+            keywords_group = "|".join(keywords)
             keywords_group = r"(" + keywords_group + r")"
             words_after_group = rf"(\s(?:\S+\s){{0,{after}}})"
             return words_before_group + keywords_group + words_after_group
