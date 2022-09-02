@@ -149,11 +149,41 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             """
             Turns a string into a series of keywords. This is mostly splittling
             by whitespace, but strings surrounded by double quotes are
-            returned verbatim.
+            returned verbatim. Each keywords is converted to a regular expression
+            if self.lookup is regex.
             """
             segments = search_string.split('"')
             single_keywords = " ".join(segments[::2]).split()
-            return segments[1::2] + single_keywords
+            keywords = segments[1::2] + single_keywords
+            if self.lookup == "regex":
+                keywords = self.transform_keywords_to_regex(keywords)
+            return keywords
+
+        def transform_keywords_to_regex(keywords):
+            """Takes a list of keywords which may include ? and * wildcards
+            and converts them into a list of equivalent regular expressions.
+            For example:
+            transform_keywords_to_regex(["?ulius", "c*sar"])
+            returns
+            ["\\m\\wulius\\M", "\\mc\\w*sar\\M"]
+
+            :param keywords: A list of keywords strings to search
+            :type keywords: list
+            :return: list of regular expressions
+            :rtype: list
+            """
+            for i, kw in enumerate(keywords):
+                reg_kw = r"\m"  # \m matches start of word
+                for char in kw:
+                    if char == "?":
+                        reg_kw += r"\w"  # a single word char (greek chars work here)
+                    elif char == "*":
+                        reg_kw += r"\w*"  # zero or more word characters
+                    else:
+                        reg_kw += char
+                reg_kw += r"\M"  # \M matches end of word
+                keywords[i] = reg_kw
+            return keywords
 
         def do_match(
             self,
@@ -514,22 +544,6 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             if model == CitingAuthor:
                 qs = qs.filter(id__in=ca_filter)
         return qs
-
-    def transform_keywords_to_regex(keywords):
-        """Takes a list of keywords which may include ? and * wildcards
-        and converts each one into an equivalent regular expression."""
-        for i, kw in enumerate(keywords):
-            reg_kw = r"\m"  # \m matches start of word
-            for char in kw:
-                if char == "?":
-                    reg_kw += r"\w"  # a single word char (greek chars work here)
-                elif char == "*":
-                    reg_kw += r"\w*"  # zero or more word characters
-                else:
-                    reg_kw += char
-            reg_kw += r"\M"  # \M matches end of word
-            keywords[i] = reg_kw
-        return keywords
 
     def get(self, request, *args, **kwargs):
         keywords = self.request.GET.get("q", None)
