@@ -89,13 +89,19 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         def __init__(self, keywords):
             self.cleaned_number = 1
             self.folded_number = 1
-            # Remove all punctuation except * and ?
+            # Remove all punctuation except wildcard characers
             self.keywords = PUNCTUATION_RE.sub("", keywords).lower()
-            # If wildcard characters appear in keywords, use regex lookup
-            if any([char in self.keywords for char in WILDCARD_CHARS]):
-                self.lookup = "regex"
-            else:
-                self.lookup = "contains"
+
+            # Using regex for everything doesn't seem to have a big impact
+            # But replace this line with the alternative code if you want to
+            # only use regex for search terms containing wildcards
+            self.lookup = "regex"
+            # # If wildcard characters appear in keywords, use regex lookup
+            # if any([char in self.keywords for char in WILDCARD_CHARS]):
+            #     self.lookup = "regex"
+            # else:
+            #     self.lookup = "contains"
+
             # The basic function query function will first eliminate html less than
             # and greater than character codes, then punctuation,
             # and lowercase the 'haystack' strings to be searched.
