@@ -67,11 +67,13 @@ WILDCARD_SINGLE_CHAR = settings.WILDCARD_SINGLE_CHAR
 WILDCARD_MANY_CHAR = settings.WILDCARD_MANY_CHAR
 WILDCARD_CHARS = [WILDCARD_SINGLE_CHAR, WILDCARD_MANY_CHAR]
 PUNCTUATION_BASE = r"!£$%^&*()_+-={}:@~;\'#|\\<>?,./`¬"
+# PUNCTUATION should include wildcard chars as it is used with content rather than
+# search terms
+PUNCTUATION = PUNCTUATION_BASE + r'[]"'
 # Remove wildcard characters from PUNCTUATION_BASE which is used to screen
 # out punctuation from search terms
 PUNCTUATION_BASE = PUNCTUATION_BASE.translate({ord(c): None for c in WILDCARD_CHARS})
 PUNCTUATION_RE = re.compile(r"[\[\]{0}]".format(PUNCTUATION_BASE))
-PUNCTUATION = PUNCTUATION_BASE + r'[]"'
 
 
 @method_decorator(require_GET, name="dispatch")
