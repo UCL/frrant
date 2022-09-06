@@ -1,4 +1,5 @@
 from unittest import mock
+
 import pytest
 from django.core.files.images import ImageFile
 from django.test import TestCase
