@@ -16,6 +16,7 @@ from rard.research.models import (
 from rard.research.models.base import FragmentLink, TestimoniumLink
 from rard.research.views import MentionSearchView
 from rard.users.tests.factories import UserFactory
+from unittest import mock
 
 pytestmark = pytest.mark.django_db
 
@@ -114,8 +115,8 @@ class TestMentionsView(TestCase):
 
         # create some data and then show we don't find any of it
         # unless we add search terms to the request
-        Antiquarian.objects.create(name="findme", re_code="1")
-        Antiquarian.objects.create(name="andme", re_code="2")
+        Antiquarian.objects.create(name="findme", re_code="4")
+        Antiquarian.objects.create(name="andme", re_code="5")
 
         self.view.request = self.request(data={})
         self.assertEqual(0, len(self.view.get_queryset()))
