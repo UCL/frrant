@@ -110,7 +110,7 @@ class MentionSearchView(LoginRequiredMixin, View):
     def fragment_search(cls, keywords):
         # if the keyword is a number then use order number search
         order_number, antiquarian = cls.order_number_search(keywords)
-        qs = Fragment.objects.all()
+        qs = Fragment.objects.filter(antiquarian_fragmentlinks__isnull=False)
 
         if order_number:
             order_number = order_number - 1
