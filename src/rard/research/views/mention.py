@@ -1,7 +1,5 @@
 # from django.contrib.postgres.search import SearchQuery, SearchRank, \
 #     SearchVector
-from itertools import chain
-from unicodedata import numeric
 
 from django.apps import apps
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -173,7 +171,8 @@ class MentionSearchView(LoginRequiredMixin, View):
             return []
 
         method, search_terms = self.parse_mention(self.request.GET.get("q"))
-        # check if method is in the search method keys eg aq, tt, etc, if not return an empty list
+        # check if method is in the search method keys
+        # eg aq, tt, etc, if not return an empty list
         if method in self.BASIC_SEARCH_METHODS.keys():
             # call method with list of search terms
             return self.BASIC_SEARCH_METHODS[method](

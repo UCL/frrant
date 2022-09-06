@@ -13,11 +13,7 @@ from rard.research.models import (
     Topic,
     Work,
 )
-from rard.research.models.base import (
-    AppositumFragmentLink,
-    FragmentLink,
-    TestimoniumLink,
-)
+from rard.research.models.base import FragmentLink, TestimoniumLink
 from rard.research.views import MentionSearchView
 from rard.users.tests.factories import UserFactory
 
@@ -156,14 +152,14 @@ class TestMentionsView(TestCase):
         view = self.view
         # ideally we could check the relevant function is called
 
-        self.view.request = self.request(
+        view.request = self.request(
             data={
                 "q": "fr",
             }
         )
         print(list(self.view.get_queryset()))
         # fails because it's including unlinked fsr
-        self.assertEqual(3, len(list(self.view.get_queryset())))
+        self.assertEqual(3, len(list(view.get_queryset())))
 
     # def test_search_queryset(self):
 
