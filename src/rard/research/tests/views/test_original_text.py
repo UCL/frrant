@@ -290,3 +290,31 @@ class TestReferences(TestCase):
 
         self.assertEqual(1, originaltext.references.count())
         self.assertEqual(originaltext.references.first().reference_position, "1.2.3")
+
+    def test_at_least_one_reference(self):
+        # data for both original text and fragment
+        # but without any references
+        data = {
+            "apparatus_criticus": "app_criticus",
+            "content": "content",
+            "reference_order": 1,
+            "citing_work": self.citing_work.pk,
+            "citing_author": self.citing_work.author.pk,
+            "create_object": True,
+            "references-TOTAL_FORMS": 1,
+            "references-INITIAL_FORMS": 0,
+            "references-MIN_NUM_FORMS": 0,
+            "references-MAX_NUM_FORMS": 1000,
+        }
+
+        # assert no original texts initially
+        self.assertEqual(0, OriginalText.objects.count())
+
+        request = RequestFactory().post("/", data=data)
+        request.user = UserFactory.create()
+
+        FragmentCreateView.as_view()(
+            request,
+        )
+        self.assertEqual(0, Fragment.objects.count())
+        self.assertEqual(0, OriginalText.objects.count())
