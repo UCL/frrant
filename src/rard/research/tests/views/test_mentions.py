@@ -1,3 +1,5 @@
+from unittest import mock
+
 import pytest
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
@@ -16,7 +18,6 @@ from rard.research.models import (
 from rard.research.models.base import FragmentLink, TestimoniumLink
 from rard.research.views import MentionSearchView
 from rard.users.tests.factories import UserFactory
-from unittest import mock
 
 pytestmark = pytest.mark.django_db
 
@@ -36,7 +37,7 @@ class TestMentionsView(TestCase):
         self.tt2 = Testimonium.objects.create()
         TestimoniumLink.objects.create(testimonium=self.tt2, antiquarian=self.andrew)
         self.tt3 = Testimonium.objects.create()
-        TestimoniumLink.objects.create(testimonium=self.tt2, antiquarian=self.bixby)
+        TestimoniumLink.objects.create(testimonium=self.tt3, antiquarian=self.bixby)
 
         self.pictures = Topic.objects.create(name="pictures")
         self.coups = Topic.objects.create(name="coups")
@@ -47,37 +48,37 @@ class TestMentionsView(TestCase):
         self.rose = Work.objects.create(name="rose")
 
         # create special search items
-        self.af11 = AnonymousFragment.objects.create(id=12)
-        self.af13 = AnonymousFragment.objects.create(id=14)
-        self.af31 = AnonymousFragment.objects.create(id=32)
+        self.af13 = AnonymousFragment.objects.create(id=12)
+        self.af15 = AnonymousFragment.objects.create(id=14)
+        self.af33 = AnonymousFragment.objects.create(id=32)
 
         self.f1 = Fragment.objects.create()
         FragmentLink.objects.create(fragment=self.f1, antiquarian=self.antman)
         self.f2 = Fragment.objects.create()
         FragmentLink.objects.create(fragment=self.f2, antiquarian=self.andrew)
         self.f3 = Fragment.objects.create()
-        FragmentLink.objects.create(fragment=self.f2, antiquarian=self.bixby)
+        FragmentLink.objects.create(fragment=self.f3, antiquarian=self.bixby)
 
         self.f56 = Fragment.objects.create(id=56)
         self.f523 = Fragment.objects.create(id=523)
         self.f600 = Fragment.objects.create(id=600)
 
         self.bi1 = BibliographyItem.objects.create(
-            authors="fee fie foe",
+            authors="fee froe",
             author_surnames="Froe",
             title="apples and pears",
             parent=self.antman,
         )
         self.bi2 = BibliographyItem.objects.create(
-            authors="tee tie toe",
+            authors="tee twoe",
             author_surnames="Twoe",
             title="peppers and carrots",
             parent=self.andrew,
         )
         self.bi3 = BibliographyItem.objects.create(
-            authors="fee fie foe",
-            author_surnames="Twoe",
-            title="peppers and apples",
+            authors="fie froe, tie twoe",
+            author_surnames="Froe",
+            title="peppers 2 apples",
             parent=self.andrew,
         )
 
@@ -149,138 +150,327 @@ class TestMentionsView(TestCase):
             [self.andropov, self.provisions, self.rose],
         )
 
-    def test_special_search(self):
+    def test_bibliography_search(self):
         view = self.view
-        # ideally we could check the relevant function is called
+        view.request = self.request(
+            data={
+                "q": "bi",
+            }
+        )
+        # check correct method called
+        with mock.patch(
+            "rard.research.views.MentionSearchView.bibliography_search"
+        ) as mock_search_method:
+            view.get_queryset()
+            mock_search_method.assert_called_with([])
 
+        # no search term
+        self.assertEqual(len(list(view.get_queryset())), 3)
+
+        # number as search: only applicable if number in title
+        view.request = self.request(
+            data={
+                "q": "bi:2",
+            }
+        )
+        self.assertEqual(len(list(view.get_queryset())), 1)
+        self.assertEqual(view.get_queryset().first(), self.bi3)
+
+        # string as search
+        view.request = self.request(
+            data={
+                "q": "bi:fro",
+            }
+        )
+        self.assertEqual(len(list(view.get_queryset())), 2)
+
+        # string and number as search, reversible
+        view.request = self.request(
+            data={
+                "q": "bi:froe:2",
+            }
+        )
+        self.assertEqual(len(list(view.get_queryset())), 1)
+        self.assertEqual(view.get_queryset().first(), self.bi3)
+
+        view.request = self.request(
+            data={
+                "q": "bi:2:two",
+            }
+        )
+        self.assertEqual(len(list(view.get_queryset())), 1)
+        self.assertEqual(view.get_queryset().first(), self.bi3)
+
+    def test_anonymous_fragment_search(self):
+        view = self.view
+        view.request = self.request(
+            data={
+                "q": "af",
+            }
+        )
+        # check correct method called
+        with mock.patch(
+            "rard.research.views.MentionSearchView.anonymous_fragment_search"
+        ) as mock_search_method:
+            view.get_queryset()
+            mock_search_method.assert_called_with([])
+
+        # no search term
+        self.assertEqual(len(list(view.get_queryset())), 3)
+
+        # number as search
+        view.request = self.request(
+            data={
+                "q": "af:13",
+            }
+        )
+        self.assertEqual(len(list(view.get_queryset())), 1)
+        self.assertEqual(view.get_queryset().first(), self.af13)
+
+        # string as search: should ignore strings
+        view.request = self.request(
+            data={
+                "q": "af:abc",
+            }
+        )
+        self.assertEqual(len(list(view.get_queryset())), 3)
+
+        # string and number as search, reversible
+        view.request = self.request(
+            data={
+                "q": "af:an:13",
+            }
+        )
+        self.assertEqual(len(list(view.get_queryset())), 1)
+        self.assertEqual(view.get_queryset().first(), self.af13)
+
+        view.request = self.request(
+            data={
+                "q": "af:13:an",
+            }
+        )
+        self.assertEqual(len(list(view.get_queryset())), 1)
+        self.assertEqual(view.get_queryset().first(), self.af13)
+
+    def test_fragment_search(self):
+        view = self.view
         view.request = self.request(
             data={
                 "q": "fr",
             }
         )
-        print(list(self.view.get_queryset()))
-        # fails because it's including unlinked fsr
-        self.assertEqual(3, len(list(view.get_queryset())))
+        # check correct method called
+        with mock.patch(
+            "rard.research.views.MentionSearchView.fragment_search"
+        ) as mock_search_method:
+            view.get_queryset()
+            mock_search_method.assert_called_with([])
 
-    # def test_search_queryset(self):
+        # no search term
+        self.assertEqual(len(list(view.get_queryset())), 3)
 
-    #     # create some data to search
-    #     Antiquarian.objects.create(name="andrew", re_code="1")
-    #     Antiquarian.objects.create(name="antman", re_code="2")
-    #     Work.objects.create(name="andropov")
-    #     self.view.request = self.request(
-    #         data={
-    #             "q": "wk:an",
-    #         }
-    #     )
-    #     self.assertEqual(3, len(self.view.get_queryset()))
-    #     self.view.request = self.request(
-    #         data={
-    #             "q": "aq:andr",
-    #         }
-    #     )
-    #     self.assertEqual(2, len(self.view.get_queryset()))
-    #     self.view.request = self.request(
-    #         data={
-    #             "q": "wk:andre",
-    #         }
-    #     )
-    #     self.assertEqual(1, len(self.view.get_queryset()))
-    #     self.view.request = self.request(
-    #         data={
-    #             "q": "andrei",
-    #         }
-    #     )
-    #     self.assertEqual(0, len(self.view.get_queryset()))
+        # number as search
+        view.request = self.request(
+            data={
+                "q": "fr:1",
+            }
+        )
+        self.assertEqual(len(list(view.get_queryset())), 3)
 
-    # def test_search_objects(self):
+        # string as search
+        view.request = self.request(
+            data={
+                "q": "fr:b",
+            }
+        )
+        self.assertEqual(len(list(view.get_queryset())), 1)
+        self.assertEqual(view.get_queryset().first(), self.f3)
 
-    #     # basic tests for antiquarian
-    #     a1 = Antiquarian.objects.create(name="findme", re_code="1")
-    #     a2 = Antiquarian.objects.create(name="foo", re_code="2")
-    #     view = self.view
-    #     self.assertEqual(list(view.antiquarian_search("findme")), [a1])
-    #     self.assertEqual(list(view.antiquarian_search("FinD")), [a1])
-    #     self.assertEqual(list(view.antiquarian_search("foo")), [a2])
-    #     self.assertEqual(list(view.antiquarian_search("fO")), [a2])
-    #     self.assertEqual(list(view.antiquarian_search("F")), [a1, a2])
+        # string and number as search, reversible
+        view.request = self.request(
+            data={
+                "q": "fr:an:1",
+            }
+        )
+        self.assertEqual(len(list(view.get_queryset())), 2)
 
-    #     # topics
-    #     t1 = Topic.objects.create(name="topic", order=1)
-    #     t2 = Topic.objects.create(name="pictures", order=2)
-    #     self.assertEqual(list(view.topic_search("topic")), [t1])
-    #     self.assertEqual(list(view.topic_search("TOPIc")), [t1])
-    #     self.assertEqual(list(view.topic_search("picture")), [t2])
-    #     self.assertEqual(list(view.topic_search("PiCTureS")), [t2])
-    #     self.assertEqual(list(view.topic_search("PIC")), [t1, t2])
+        view.request = self.request(
+            data={
+                "q": "fr:1:an",
+            }
+        )
+        self.assertEqual(len(list(view.get_queryset())), 2)
 
-    #     # works
-    #     w1 = Work.objects.create(name="work")
-    #     w2 = Work.objects.create(name="nothing")
-    #     self.assertEqual(list(view.work_search("work")), [w1])
-    #     self.assertEqual(list(view.work_search("WORK")), [w1])
-    #     self.assertEqual(list(view.work_search("nothing")), [w2])
-    #     self.assertEqual(list(view.work_search("NothInG")), [w2])
-    #     self.assertEqual(list(view.work_search("O")), [w2, w1])
+    def test_unlinked_fragment_search(self):
+        view = self.view
+        view.request = self.request(
+            data={
+                "q": "uf",
+            }
+        )
+        # check correct method called
+        with mock.patch(
+            "rard.research.views.MentionSearchView.unlinked_fragment_search"
+        ) as mock_search_method:
+            view.get_queryset()
+            mock_search_method.assert_called_with([])
 
-    #     # unlinked fragments
-    #     f56 = Fragment.objects.create(id=56)
-    #     f523 = Fragment.objects.create(id=523)
-    #     self.assertEqual(list(view.unlinked_fragment_search("u5")), [f56, f523])
+        # no search term
+        self.assertEqual(len(list(view.get_queryset())), 3)
 
-    #     # fragments
-    #     f1 = Fragment.objects.create()
-    #     FragmentLink.objects.create(fragment=f1, antiquarian=a1)
+        # number as search
+        view.request = self.request(
+            data={
+                "q": "uf:5",
+            }
+        )
+        self.assertEqual(len(list(view.get_queryset())), 2)
 
-    #     f2 = Fragment.objects.create()
-    #     FragmentLink.objects.create(fragment=f2, antiquarian=a2)
+        # string as search: should ignore strings
+        view.request = self.request(
+            data={
+                "q": "uf:abc",
+            }
+        )
+        self.assertEqual(len(list(view.get_queryset())), 3)
 
-    #     self.assertEqual(list(view.fragment_search("findme")), [f1])
-    #     self.assertEqual(list(view.fragment_search("FINDM")), [f1])
-    #     self.assertEqual(list(view.fragment_search("foo")), [f2])
-    #     self.assertEqual(list(view.fragment_search("Fo")), [f2])
-    #     self.assertEqual(list(view.fragment_search("f")), [f1, f2])
+        # string and number as search, reversible
+        view.request = self.request(
+            data={
+                "q": "uf:an:6",
+            }
+        )
+        self.assertEqual(len(list(view.get_queryset())), 1)
+        self.assertEqual(view.get_queryset().first(), self.f600)
 
-    #     t1 = Testimonium.objects.create()
-    #     TestimoniumLink.objects.create(testimonium=t1, antiquarian=a1)
+        view.request = self.request(
+            data={
+                "q": "uf:6:an",
+            }
+        )
+        self.assertEqual(len(list(view.get_queryset())), 1)
+        self.assertEqual(view.get_queryset().first(), self.f600)
 
-    #     t2 = Testimonium.objects.create()
-    #     TestimoniumLink.objects.create(testimonium=t2, antiquarian=a2)
 
-    #     self.assertEqual(list(view.testimonium_search("findme")), [t1])
-    #     self.assertEqual(list(view.testimonium_search("FIN")), [t1])
-    #     self.assertEqual(list(view.testimonium_search("foo")), [t2])
-    #     self.assertEqual(list(view.testimonium_search("fO")), [t2])
-    #     self.assertEqual(list(view.testimonium_search("F")), [t1, t2])
+# def test_search_queryset(self):
 
-    #     # anonymous fragments
-    #     af1 = AnonymousFragment.objects.create()
-    #     AppositumFragmentLink.objects.create(anonymous_fragment=af1, antiquarian=a1)
-    #     af2 = AnonymousFragment.objects.create()
-    #     AppositumFragmentLink.objects.create(anonymous_fragment=af2, antiquarian=a2)
+#     # create some data to search
+#     Antiquarian.objects.create(name="andrew", re_code="1")
+#     Antiquarian.objects.create(name="antman", re_code="2")
+#     Work.objects.create(name="andropov")
+#     self.view.request = self.request(
+#         data={
+#             "q": "wk:an",
+#         }
+#     )
+#     self.assertEqual(3, len(self.view.get_queryset()))
+#     self.view.request = self.request(
+#         data={
+#             "q": "aq:andr",
+#         }
+#     )
+#     self.assertEqual(2, len(self.view.get_queryset()))
+#     self.view.request = self.request(
+#         data={
+#             "q": "wk:andre",
+#         }
+#     )
+#     self.assertEqual(1, len(self.view.get_queryset()))
+#     self.view.request = self.request(
+#         data={
+#             "q": "andrei",
+#         }
+#     )
+#     self.assertEqual(0, len(self.view.get_queryset()))
 
-    #     self.assertEqual(list(view.anonymous_fragment_search("f1")), [af1])
-    #     self.assertEqual(list(view.anonymous_fragment_search("F1")), [af1])
-    #     self.assertEqual(list(view.anonymous_fragment_search("f2")), [af2])
-    #     self.assertEqual(list(view.anonymous_fragment_search("F 2")), [af2])
-    #     self.assertEqual(list(view.anonymous_fragment_search("F")), [af1, af2])
-    #     self.assertEqual(list(view.anonymous_fragment_search("")), [])
-    #     self.assertEqual(list(view.anonymous_fragment_search("1")), [])
+# def test_search_objects(self):
 
-    #     # bibliography items
-    #     bi1 = BibliographyItem.objects.create(
-    #         authors="fee fie foe",
-    #         author_surnames="Froe",
-    #         title="apples and pears",
-    #         parent=a1,
-    #     )
-    #     bi2 = BibliographyItem.objects.create(
-    #         authors="tee tie toe",
-    #         author_surnames="Twoe",
-    #         title="peppers and carrots",
-    #         parent=a2,
-    #     )
-    #     self.assertEqual(list(view.bibliography_search("fie")), [bi1])
-    #     self.assertEqual(list(view.bibliography_search("toe")), [bi2])
-    #     self.assertEqual(list(view.bibliography_search("apples")), [bi1])
-    #     self.assertEqual(list(view.bibliography_search("and")), [bi1, bi2])
+#     # basic tests for antiquarian
+#     a1 = Antiquarian.objects.create(name="findme", re_code="1")
+#     a2 = Antiquarian.objects.create(name="foo", re_code="2")
+#     view = self.view
+#     self.assertEqual(list(view.antiquarian_search("findme")), [a1])
+#     self.assertEqual(list(view.antiquarian_search("FinD")), [a1])
+#     self.assertEqual(list(view.antiquarian_search("foo")), [a2])
+#     self.assertEqual(list(view.antiquarian_search("fO")), [a2])
+#     self.assertEqual(list(view.antiquarian_search("F")), [a1, a2])
+
+#     # topics
+#     t1 = Topic.objects.create(name="topic", order=1)
+#     t2 = Topic.objects.create(name="pictures", order=2)
+#     self.assertEqual(list(view.topic_search("topic")), [t1])
+#     self.assertEqual(list(view.topic_search("TOPIc")), [t1])
+#     self.assertEqual(list(view.topic_search("picture")), [t2])
+#     self.assertEqual(list(view.topic_search("PiCTureS")), [t2])
+#     self.assertEqual(list(view.topic_search("PIC")), [t1, t2])
+
+#     # works
+#     w1 = Work.objects.create(name="work")
+#     w2 = Work.objects.create(name="nothing")
+#     self.assertEqual(list(view.work_search("work")), [w1])
+#     self.assertEqual(list(view.work_search("WORK")), [w1])
+#     self.assertEqual(list(view.work_search("nothing")), [w2])
+#     self.assertEqual(list(view.work_search("NothInG")), [w2])
+#     self.assertEqual(list(view.work_search("O")), [w2, w1])
+
+#     # unlinked fragments
+#     f56 = Fragment.objects.create(id=56)
+#     f523 = Fragment.objects.create(id=523)
+#     self.assertEqual(list(view.unlinked_fragment_search("u5")), [f56, f523])
+
+#     # fragments
+#     f1 = Fragment.objects.create()
+#     FragmentLink.objects.create(fragment=f1, antiquarian=a1)
+
+#     f2 = Fragment.objects.create()
+#     FragmentLink.objects.create(fragment=f2, antiquarian=a2)
+
+#     self.assertEqual(list(view.fragment_search("findme")), [f1])
+#     self.assertEqual(list(view.fragment_search("FINDM")), [f1])
+#     self.assertEqual(list(view.fragment_search("foo")), [f2])
+#     self.assertEqual(list(view.fragment_search("Fo")), [f2])
+#     self.assertEqual(list(view.fragment_search("f")), [f1, f2])
+
+#     t1 = Testimonium.objects.create()
+#     TestimoniumLink.objects.create(testimonium=t1, antiquarian=a1)
+
+#     t2 = Testimonium.objects.create()
+#     TestimoniumLink.objects.create(testimonium=t2, antiquarian=a2)
+
+#     self.assertEqual(list(view.testimonium_search("findme")), [t1])
+#     self.assertEqual(list(view.testimonium_search("FIN")), [t1])
+#     self.assertEqual(list(view.testimonium_search("foo")), [t2])
+#     self.assertEqual(list(view.testimonium_search("fO")), [t2])
+#     self.assertEqual(list(view.testimonium_search("F")), [t1, t2])
+
+#     # anonymous fragments
+#     af1 = AnonymousFragment.objects.create()
+#     AppositumFragmentLink.objects.create(anonymous_fragment=af1, antiquarian=a1)
+#     af2 = AnonymousFragment.objects.create()
+#     AppositumFragmentLink.objects.create(anonymous_fragment=af2, antiquarian=a2)
+
+#     self.assertEqual(list(view.anonymous_fragment_search("f1")), [af1])
+#     self.assertEqual(list(view.anonymous_fragment_search("F1")), [af1])
+#     self.assertEqual(list(view.anonymous_fragment_search("f2")), [af2])
+#     self.assertEqual(list(view.anonymous_fragment_search("F 2")), [af2])
+#     self.assertEqual(list(view.anonymous_fragment_search("F")), [af1, af2])
+#     self.assertEqual(list(view.anonymous_fragment_search("")), [])
+#     self.assertEqual(list(view.anonymous_fragment_search("1")), [])
+
+#     # bibliography items
+#     bi1 = BibliographyItem.objects.create(
+#         authors="fee fie foe",
+#         author_surnames="Froe",
+#         title="apples and pears",
+#         parent=a1,
+#     )
+#     bi2 = BibliographyItem.objects.create(
+#         authors="tee tie toe",
+#         author_surnames="Twoe",
+#         title="peppers and carrots",
+#         parent=a2,
+#     )
+#     self.assertEqual(list(view.bibliography_search("fie")), [bi1])
+#     self.assertEqual(list(view.bibliography_search("toe")), [bi2])
+#     self.assertEqual(list(view.bibliography_search("apples")), [bi1])
+#     self.assertEqual(list(view.bibliography_search("and")), [bi1, bi2])
