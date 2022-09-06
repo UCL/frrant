@@ -609,7 +609,10 @@ ReferenceFormset = inlineformset_factory(
     fields=("editor", "reference_position"),
     labels={"editor": "Editor", "reference_position": "Reference"},
     can_delete=True,
-    extra=1,
+    min_num=1,
+    validate_min=True,
+    extra=0,
+    error_messages={"too_few_forms": "Please add at least one reference"},
 )
 
 
