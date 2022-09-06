@@ -4,6 +4,7 @@
 
 {{ forms.references.management_form }}
 <legend style="font-family:alphabetum; font-size:large">References</legend>
+{% bootstrap_formset_errors forms.references %}
 
 <div id="reference-form-area" class="pr-3">
   {% for form in forms.references %}
