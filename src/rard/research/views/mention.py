@@ -38,13 +38,14 @@ class MentionSearchView(LoginRequiredMixin, View):
     @property
     def BASIC_SEARCH_TYPES(self):
         return {
-            "aq": [Antiquarian, "name__icontains"],
+            "aq": [Antiquarian, "name__icontains", "name"],
             "tt": [
                 Testimonium,
                 "antiquarian_testimoniumlinks__antiquarian__name__icontains",
+                "antiquarian_testimoniumlinks__antiquarian__name",
             ],
-            "tp": [Topic, "name__icontains"],
-            "wk": [Work, "name__icontains"],
+            "tp": [Topic, "name__icontains", "order"],
+            "wk": [Work, "name__icontains", "name"],
         }
 
     @property
@@ -68,6 +69,7 @@ class MentionSearchView(LoginRequiredMixin, View):
     def basic_search(cls, self, method, keywords):
         target_model = self.BASIC_SEARCH_TYPES[method][0]
         filter_slug = self.BASIC_SEARCH_TYPES[method][1]
+        ordering = self.BASIC_SEARCH_TYPES[method][2]
 
         model_query = Q()
         for kw in keywords:
@@ -75,7 +77,8 @@ class MentionSearchView(LoginRequiredMixin, View):
 
         qs = target_model.objects.all()
         results = qs.filter(model_query)
-        return results.distinct()
+
+        return results.distinct().order_by(ordering)
 
     @classmethod
     def anonymous_fragment_search(cls, keywords):
@@ -130,7 +133,9 @@ class MentionSearchView(LoginRequiredMixin, View):
                 )
         else:
             ant_query = Q()
+
         results = qs.filter(ant_query, order_query)
+
         return results.distinct()
 
     @classmethod

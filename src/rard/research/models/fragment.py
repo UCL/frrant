@@ -124,6 +124,9 @@ class Fragment(HistoryModelMixin, HistoricalBaseModel, DatedModel):
             self.plain_commentary = make_plain_text(self.commentary.content)
         super().save(*args, **kwargs)
 
+    def __str__(self):
+        return self.get_display_name_option_c()
+
     @property
     def is_unlinked(self):
         if self.get_all_links():
