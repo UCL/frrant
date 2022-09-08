@@ -6,10 +6,10 @@ from django.db import models
 from simple_history.models import HistoricalRecords
 
 from rard.research.models.mixins import HistoryModelMixin
-from rard.utils.basemodel import BaseModel
+from rard.utils.basemodel import BaseModel, LockableModel
 
 
-class BibliographyItem(HistoryModelMixin, BaseModel):
+class BibliographyItem(HistoryModelMixin, BaseModel, LockableModel):
 
     history = HistoricalRecords()
 

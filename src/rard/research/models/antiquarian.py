@@ -149,8 +149,8 @@ class Antiquarian(
     )'''
 
     bibliography_items = models.ManyToManyField(
-        "BibliographyItem", 
-        related_query_name="bibliography_items",
+        "BibliographyItem",
+        related_query_name="biblography_items",
         blank=True
     )
 
