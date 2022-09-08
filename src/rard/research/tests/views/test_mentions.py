@@ -133,7 +133,7 @@ class TestMentionsView(TestCase):
         # testimonia
         self.assertEqual(len(list(view.basic_search(view, "tt", ""))), 3)
         self.assertEqual(
-            list(view.basic_search(view, "tt", "an")), [self.tt1, self.tt2]
+            list(view.basic_search(view, "tt", "an")), [self.tt2, self.tt1]
         )
 
         # topics
