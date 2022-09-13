@@ -45,7 +45,7 @@ class TestMentionsView(TestCase):
 
         self.andropov = Work.objects.create(name="andropov")
         self.provisions = Work.objects.create(name="provisions")
-        self.rose = Work.objects.create(name="rose")
+        self.rose = Work.objects.create(name="prose")
 
         # create special search items
         self.af13 = AnonymousFragment.objects.create(id=12)
@@ -200,6 +200,39 @@ class TestMentionsView(TestCase):
         )
         self.assertEqual(len(list(view.get_queryset())), 1)
         self.assertEqual(view.get_queryset().first(), self.bi3)
+
+    def test_work_search(self):
+        view = self.view
+        view.request = self.request(
+            data={
+                "q": "wk",
+            }
+        )
+        # check correct method called
+        with mock.patch(
+            "rard.research.views.MentionSearchView.work_search"
+        ) as mock_search_method:
+            view.get_queryset()
+            mock_search_method.assert_called_with([])
+
+        # no search term
+        self.assertEqual(len(list(view.get_queryset())), 3)
+
+        # number as search: only applicable if number in authors/name
+        view.request = self.request(
+            data={
+                "q": "wk:2",
+            }
+        )
+        self.assertEqual(len(list(view.get_queryset())), 0)
+
+        # string as search
+        view.request = self.request(
+            data={
+                "q": "wk:ro",
+            }
+        )
+        self.assertEqual(len(list(view.get_queryset())), 3)
 
     def test_anonymous_fragment_search(self):
         view = self.view
