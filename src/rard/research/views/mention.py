@@ -3,6 +3,7 @@
 
 from django.apps import apps
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.postgres.aggregates import StringAgg
 from django.db.models import CharField, F, Q, Value
 from django.db.models.functions import Concat
 from django.http import JsonResponse
@@ -112,7 +113,10 @@ class MentionSearchView(LoginRequiredMixin, View):
     def work_search(cls, keywords):
         qs = Work.objects.annotate(
             author_title=Concat(
-                F("authors"), Value(" "), F("name"), output_field=CharField()
+                StringAgg("antiquarian__name", delimiter=","),
+                Value(" "),
+                F("name"),
+                output_field=CharField(),
             )
         )
         work_query = Q()
