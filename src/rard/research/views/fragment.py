@@ -300,8 +300,13 @@ class AnonymousFragmentListView(LoginRequiredMixin, PermissionRequiredMixin, Lis
         topics = []
         for i in topic_qs:
             topics.append([i.id, i.name])
+            context_data["object_list"] = context_data["object_list"].order_by("order")
+
         context_data["topics"] = topics
         context_data["selected_topic"] = self.get_selected_topic()
+        if self.request.GET.get("order_by" == "reference_number"):
+            topic_qs.order_by("reference_number")
+
         return context_data
 
     def get_queryset(self, topic=None):
