@@ -4,8 +4,8 @@
     <div class="form-row align-items-center">
         <div>
             <select class="submit-on-change form-control form-control-sm" name='order'>
-                <option value='' {% if not order %}selected{% endif %}>Default ordering</option>
-                <option value='by_ref' {% if order == 'by_ref' %}selected{% endif %}>By reference number</option>
+                <option value='' {% if not order_by %}selected{% endif %}>Default ordering</option>
+                <option value='reference_number' {% if order_by == 'reference_number' %}selected{% endif %}>By reference number</option>
             </select>
         </div>
     </div>
