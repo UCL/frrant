@@ -143,13 +143,6 @@ class TestMentionsView(TestCase):
             [self.pictures, self.coups, self.estates],
         )
 
-        # works
-        self.assertEqual(len(list(view.basic_search(view, "wk", ""))), 3)
-        self.assertEqual(
-            list(view.basic_search(view, "wk", "ro")),
-            [self.andropov, self.provisions, self.rose],
-        )
-
     def test_bibliography_search(self):
         view = self.view
         view.request = self.request(
