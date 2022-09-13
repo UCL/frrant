@@ -32,7 +32,6 @@ class MentionSearchView(LoginRequiredMixin, View):
             "aq": self.basic_search,
             "tt": self.basic_search,
             "tp": self.basic_search,
-            "wk": self.basic_search,
         }
 
     @property
@@ -45,7 +44,6 @@ class MentionSearchView(LoginRequiredMixin, View):
                 "antiquarian_testimoniumlinks__antiquarian__name",
             ],
             "tp": [Topic, "name__icontains", "order"],
-            "wk": [Work, "name__icontains", "name"],
         }
 
     @property
@@ -55,6 +53,7 @@ class MentionSearchView(LoginRequiredMixin, View):
             "fr": self.fragment_search,
             "bi": self.bibliography_search,
             "uf": self.unlinked_fragment_search,
+            "wk": self.work_search,
         }
 
     def order_number_search(keywords):
@@ -107,6 +106,20 @@ class MentionSearchView(LoginRequiredMixin, View):
             bib_query = bib_query & Q(author_title__icontains=kw)
 
         results = qs.filter(bib_query)
+        return results.distinct()
+
+    @classmethod
+    def work_search(cls, keywords):
+        qs = Work.objects.annotate(
+            author_title=Concat(
+                F("authors"), Value(" "), F("name"), output_field=CharField()
+            )
+        )
+        work_query = Q()
+        for kw in keywords:
+            work_query = work_query & Q(author_title__icontains=kw)
+
+        results = qs.filter(work_query)
         return results.distinct()
 
     @classmethod
