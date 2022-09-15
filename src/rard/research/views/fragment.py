@@ -1,11 +1,14 @@
+from http.client import HTTPResponse
 from django.contrib.auth.context_processors import PermWrapper
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.core.exceptions import BadRequest, ObjectDoesNotExist
-from django.http.response import (
+from django.db.models import F
+from django.http import (
     Http404,
     HttpResponseBadRequest,
     HttpResponseRedirect,
     JsonResponse,
+    HttpRequest,
 )
 from django.shortcuts import get_object_or_404, redirect
 from django.template.loader import render_to_string
@@ -293,19 +296,52 @@ class AnonymousFragmentListView(LoginRequiredMixin, PermissionRequiredMixin, Lis
             topic_id = Topic.objects.get(order=0).id
         return Topic.objects.get(id=topic_id)
 
-    def get_context_data(self, *args, **kwargs):
+    def order_object_list_by_reference(self, qs):
+        """When ordering by reference order, some of the fragments
+        have multiple original texts and therefore two reference_orders.
+        We want duplicate objects to appear in the queryset for each
+        original text and we want the citing info for each to be displayed
+        differently on the rendered page. This can be achieved by annotating
+        the queryset with related original text's citing authors, which can
+        then be passed to the show_citing_info template tag.
 
+
+        For example:
+        > anonymous_f1.get_citing_display(citing_author_1)
+        'Charisius, ars grammatica 1.2.3 (also = Aulus Gellius, Noctes Atticae 1.19.cap., 1-11)'
+        > anonymous_f1.get_citing_display(citing_author_2)
+        'Aulus Gellius, Noctes Atticae 1.19.cap., 1-11 (also = Charisius, ars grammatica 1.2.3)'
+        """
+
+        # Create duplicate entries for each original text
+        # with different citing_author annotations
+
+        qs = qs.annotate(
+            citing_author=F("fragment__original_texts__citing_work__author")
+        )
+        # Sort by reference order
+        return qs.order_by("fragment__original_texts__reference_order")
+
+    def get_context_data(self, *args, **kwargs):
         context_data = super().get_context_data(*args, **kwargs)
+
+        # Add list of all topics to context
         topic_qs = Topic.objects.all()
         topics = []
         for i in topic_qs:
             topics.append([i.id, i.name])
-            context_data["object_list"] = context_data["object_list"].order_by("order")
-
         context_data["topics"] = topics
         context_data["selected_topic"] = self.get_selected_topic()
-        if self.request.GET.get("order_by" == "reference_number"):
-            topic_qs.order_by("reference_number")
+
+        # Get display order: by_topic (default) or by_reference
+        display_order = self.request.GET.get("display_order", "by_topic")
+        context_data["display_order"] = display_order
+
+        # Reorder object list if displaying by reference order
+        if display_order == "by_reference":
+            context_data["object_list"] = self.order_object_list_by_reference(
+                context_data["object_list"]
+            )
 
         return context_data
 
@@ -316,7 +352,11 @@ class AnonymousFragmentListView(LoginRequiredMixin, PermissionRequiredMixin, Lis
         If no topic_id is given we'll get the topic from the request.
         If none given there, choose the topic with the lowest order
         as default."""
-        topic = topic or self.get_selected_topic()
+        topic = (
+            topic
+            or self.get_selected_topic()
+            or self.collect_topic_from_query(self.request.get_full_path())
+        )
         qs = (
             super()
             .get_queryset()
