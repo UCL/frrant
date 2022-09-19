@@ -3,18 +3,17 @@
 from django.db import migrations, models
 
 def move_bibliography_item_to_objects(apps,schema_editor):
-    Antiquarian = apps.get_model("research","Antiquarian")
-    for i in Antiquarian.objects.all():
-        for b in i.bibliography_items_temp.all():
-            i.bibligraphy_items.add(b)
-        i.save()
+    BibliographyItem = apps.get_model("research","BibliographyItem")
+    for b in BibliographyItem.objects.all():
+        # copying from GR to M2M, use parent
+        b.parent.bibliography_items2.add(b).save()
 
 
 def reverse_move_bibliography_item_to_objects(apps,schema_editor):
     Antiquarian = apps.get_model("research","Antiquarian")
     for i in Antiquarian.objects.all():
-        for b in i.bibliography_items.all():
-            i.bibliography_items_temp.add(b)
+        for b in i.bibliography_items2.all():
+            i.bibliography_items.add(b)
         i.save()
 
 class Migration(migrations.Migration):
@@ -24,20 +23,16 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RenameField(
-            model_name='antiquarian',
-            old_name='bibliography_items',
-            new_name='bibliography_items_temp',
-        ),
+        
         migrations.AddField(
             model_name='antiquarian',
-            name='bibliography_items',
-            field=models.ManyToManyField(blank=True, related_query_name='biblography_items', to='research.BibliographyItem'),
+            name='bibliography_items2',
+            field=models.ManyToManyField(blank=True, related_query_name='biblography_items2', to='research.BibliographyItem'),
         ),
         migrations.RunPython(move_bibliography_item_to_objects, reverse_move_bibliography_item_to_objects),
         migrations.RemoveField(
             model_name='antiquarian',
-            name='bibliography_items_temp',
+            name='bibliography_items',
             
         ),
 
