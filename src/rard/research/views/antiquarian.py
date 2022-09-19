@@ -34,20 +34,6 @@ class AntiquarianListView(
     model = Antiquarian
     permission_required = ("research.view_antiquarian",)
 
-    def get_queryset(self):
-        """
-        Override get_queryset() to filter on multiple antiquarian PKs
-        returns filtered queryset or unfiltered if no list provided
-        """
-        queryset = super().get_queryset()
-        # antiquarian_pk_list should be set to a list containing Antiquarian pk
-        antiquarian_pk_list = self.request.GET.get("antiquarian_pk_list")
-        if antiquarian_pk_list:
-            # return filtered queryset
-            queryset = self.request.GET.filter(pk__in = antiquarian_pk_list)
-
-        #return base queryset
-        return queryset
 
 class AntiquarianDetailView(
     CanLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DetailView
