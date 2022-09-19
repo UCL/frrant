@@ -14,7 +14,7 @@ class BibliographyItem(HistoryModelMixin, BaseModel, LockableModel):
     history = HistoricalRecords()
 
     def related_lock_object(self):
-        return self.parent
+        return self#.parent
 
     def __str__(self):
         r = self.author_surnames
