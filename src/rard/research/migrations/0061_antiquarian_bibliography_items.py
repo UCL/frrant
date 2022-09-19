@@ -4,9 +4,12 @@ from django.db import migrations, models
 
 def move_bibliography_item_to_objects(apps,schema_editor):
     BibliographyItem = apps.get_model("research","BibliographyItem")
+    Antiquarian = apps.get_model("research","Antiquarian")
+    antiquarians = Antiquarian.objects.all()
     for b in BibliographyItem.objects.all():
-        # copying from GR to M2M, use parent
-        b.parent.bibliography_items2.add(b).save()
+        a = antiquarians.get(pk=b.object_id)
+        a.bibliography_items2.add(b)
+        a.save()
 
 
 def reverse_move_bibliography_item_to_objects(apps,schema_editor):
@@ -23,17 +26,10 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        
         migrations.AddField(
             model_name='antiquarian',
             name='bibliography_items2',
             field=models.ManyToManyField(blank=True, related_query_name='biblography_items2', to='research.BibliographyItem'),
         ),
         migrations.RunPython(move_bibliography_item_to_objects, reverse_move_bibliography_item_to_objects),
-        migrations.RemoveField(
-            model_name='antiquarian',
-            name='bibliography_items',
-            
-        ),
-
     ]
