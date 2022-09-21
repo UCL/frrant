@@ -1,8 +1,9 @@
 {# for sorting lists of model objects derived from DatedBaseModel #}
-
-<form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='GET'>
+{% comment %} action="{% url 'anonymous_fragment:list' selected_topic=selected_topic.name display_order=display_order %}" {% endcomment %}
+<form novalidate enctype="multipart/form-data" autocomplete='off' action="{% url 'anonymous_fragment:list' %}"  class="form" method='get'>
     <div class="form-row align-items-center">
         <div>
+            <input type="hidden" name="selected_topic" value={{selected_topic.id}} />
             <select class="submit-on-change form-control form-control-sm" name='display_order'>
                 <option value='by_topic' {% if display_order == 'by_topic' %}selected{% endif %}>Default ordering</option>
                 <option value='by_reference' {% if display_order == 'by_reference' %}selected{% endif %}>By reference number</option>

@@ -25,7 +25,7 @@
             <small>
                 <span class='text-muted'>
 
-                    {% with citing_author=citing_author|default:None %}
+                    {% with citing_author=link.citing_author|default:None %}
                     {{ link.fragment|show_citing_info:citing_author|safe }}
                     {% endwith %}
 

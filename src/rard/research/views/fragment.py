@@ -291,7 +291,7 @@ class AnonymousFragmentListView(LoginRequiredMixin, PermissionRequiredMixin, Lis
     template_name = "research/anonymousfragment_list.html"
 
     def get_selected_topic(self):
-        topic_id = self.request.GET.get("topic-select", None)
+        topic_id = self.request.GET.get("selected_topic", None)
         if not topic_id:
             topic_id = Topic.objects.get(order=0).id
         return Topic.objects.get(id=topic_id)
@@ -352,11 +352,7 @@ class AnonymousFragmentListView(LoginRequiredMixin, PermissionRequiredMixin, Lis
         If no topic_id is given we'll get the topic from the request.
         If none given there, choose the topic with the lowest order
         as default."""
-        topic = (
-            topic
-            or self.get_selected_topic()
-            or self.collect_topic_from_query(self.request.get_full_path())
-        )
+        topic = topic or self.get_selected_topic()
         qs = (
             super()
             .get_queryset()

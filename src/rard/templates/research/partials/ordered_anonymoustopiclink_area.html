@@ -3,10 +3,6 @@
 
 <div class='ordered-list parent-ordering-group'>
     {% for object in object_list %}
-    {% comment %} {% if display_order == "by_topic"%}  {% endcomment %}
         {% include 'research/partials/anonymoustopiclink_list_item.html' with link=object can_edit=perms.research.change_fragment %}
-    {% comment %} {% else %}
-    {% include 'research/partials/anonymoustopiclink_list_item.html' with link=object can_edit=False %}
-    {% endif %} {% endcomment %}
     {% endfor %}
 </div>
