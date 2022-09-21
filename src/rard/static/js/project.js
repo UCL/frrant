@@ -284,7 +284,7 @@ function initRichTextEditor($item) {
       dataAttributes.push("parent"); // and the parent object e.g. fragment
     }
     config["modules"]["mention"] = {
-      allowedChars: /^[0-9A-Za-z\sÅÄÖåäö]*$/,
+      allowedChars: /^[0-9A-Za-z\sÅÄÖåäö:]*$/,
       mentionDenotationChars: delimiters,
       dataAttributes: dataAttributes,
       source: async function (searchTerm, renderList, mentionChar) {
@@ -564,7 +564,11 @@ $("body").on("click", 'button[name="fragment_down"]', function () {
   let new_pos = pos + 1;
   let anonymoustopiclink_id = $(this).data("anonymoustopiclink");
   let topic_id = $(this).data("topic");
-  let data = { anonymoustopiclink_id: anonymoustopiclink_id, move_to: new_pos, topic_id: topic_id };
+  let data = {
+    anonymoustopiclink_id: anonymoustopiclink_id,
+    move_to: new_pos,
+    topic_id: topic_id,
+  };
   moveAnonymousFragmentTo(data);
 });
 
@@ -574,7 +578,11 @@ $("body").on("click", 'button[name="fragment_up"]', function () {
   let new_pos = pos - 1;
   let anonymoustopiclink_id = $(this).data("anonymoustopiclink");
   let topic_id = $(this).data("topic");
-  let data = { anonymoustopiclink_id: anonymoustopiclink_id, move_to: new_pos, topic_id: topic_id };
+  let data = {
+    anonymoustopiclink_id: anonymoustopiclink_id,
+    move_to: new_pos,
+    topic_id: topic_id,
+  };
   moveAnonymousFragmentTo(data);
 });
 
