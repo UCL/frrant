@@ -1,4 +1,3 @@
-from http.client import HTTPResponse
 from django.contrib.auth.context_processors import PermWrapper
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.core.exceptions import BadRequest, ObjectDoesNotExist
@@ -8,7 +7,6 @@ from django.http import (
     HttpResponseBadRequest,
     HttpResponseRedirect,
     JsonResponse,
-    HttpRequest,
 )
 from django.shortcuts import get_object_or_404, redirect
 from django.template.loader import render_to_string
@@ -308,9 +306,11 @@ class AnonymousFragmentListView(LoginRequiredMixin, PermissionRequiredMixin, Lis
 
         For example:
         > anonymous_f1.get_citing_display(citing_author_1)
-        'Charisius, ars grammatica 1.2.3 (also = Aulus Gellius, Noctes Atticae 1.19.cap., 1-11)'
+        'Charisius, ars grammatica 1.2.3
+        (also = Aulus Gellius, Noctes Atticae 1.19.cap., 1-11)'
         > anonymous_f1.get_citing_display(citing_author_2)
-        'Aulus Gellius, Noctes Atticae 1.19.cap., 1-11 (also = Charisius, ars grammatica 1.2.3)'
+        'Aulus Gellius, Noctes Atticae 1.19.cap., 1-11
+        (also = Charisius, ars grammatica 1.2.3)'
         """
 
         # Create duplicate entries for each original text
