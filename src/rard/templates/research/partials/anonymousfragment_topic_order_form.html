@@ -1,0 +1,20 @@
+{# for selecting topic for anonymous fragment list page and choosing sorting order #}
+
+<form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form submit-on-change" method='GET'>
+    <div class="form-row form-inline align-items-center justify-content-between">
+        <div>
+            <select class="form-control form-control-sm" name='selected_topic'>
+                {% for i in topics %}
+                <option value={{ i.0 }} {% if i.1 == selected_topic.name %}selected{% endif %}>{{ i.1 }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="ml-4">
+            <label for="display_order"><div><span class="text-muted mr-1" style="font-size:60%">order by: </span></div>
+            <select class="form-control form-control-sm" name='display_order'>
+                <option value='by_topic' {% if display_order == 'by_topic' %}selected{% endif %}>Default ordering</option>
+                <option value='by_reference' {% if display_order == 'by_reference' %}selected{% endif %}>By reference number</option>
+            </select></label>
+        </div>
+    </div>
+</form>

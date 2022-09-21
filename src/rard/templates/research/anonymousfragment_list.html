@@ -3,8 +3,8 @@
 
 {% block heading %}
     {% trans 'Anonymous Fragments' %}
-     <div class="ml-3 mt-2">
-            {% include 'research/partials/anonymousfragment_topic_form.html' %}
+        <div class="ml-1 mt-2">
+            {% include 'research/partials/anonymousfragment_topic_order_form.html' %}
         </div>
 {% endblock %}
 
@@ -12,10 +12,6 @@
     {% if perms.research.add_fragment %}
     <a href='{% url "anonymous_fragment:create" %}'>{% trans 'Create New' %}</a>
     {% endif %}
-    <br>
-        <div>
-            {% include 'research/partials/anonymousfragment_order_form.html' %}
-        </div>
 {% endblock %}
 
 {% block inner %}
