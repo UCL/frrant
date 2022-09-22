@@ -44,8 +44,11 @@ class TestMentionsView(TestCase):
         self.estates = Topic.objects.create(name="estates")
 
         self.andropov = Work.objects.create(name="andropov")
+        self.antman.works.add(self.andropov)
         self.provisions = Work.objects.create(name="provisions")
-        self.rose = Work.objects.create(name="prose")
+        self.andrew.works.add(self.provisions)
+        self.prose = Work.objects.create(name="prose")
+        self.bixby.works.add(self.prose)
 
         # create special search items
         self.af13 = AnonymousFragment.objects.create(id=12)
@@ -78,7 +81,7 @@ class TestMentionsView(TestCase):
         self.bi3 = BibliographyItem.objects.create(
             authors="fie froe, tie twoe",
             author_surnames="Froe",
-            title="peppers 2 apples",
+            title="peppers two apples 2",
             parent=self.andrew,
         )
 
@@ -143,13 +146,6 @@ class TestMentionsView(TestCase):
             [self.pictures, self.coups, self.estates],
         )
 
-        # works
-        self.assertEqual(len(list(view.basic_search(view, "wk", ""))), 3)
-        self.assertEqual(
-            list(view.basic_search(view, "wk", "ro")),
-            [self.andropov, self.provisions, self.rose],
-        )
-
     def test_bibliography_search(self):
         view = self.view
         view.request = self.request(
@@ -183,6 +179,14 @@ class TestMentionsView(TestCase):
             }
         )
         self.assertEqual(len(list(view.get_queryset())), 2)
+
+        view.request = self.request(
+            data={
+                "q": "bi:two",
+            }
+        )
+        self.assertEqual(len(list(view.get_queryset())), 2)
+        self.assertCountEqual(list(view.get_queryset()), [self.bi3, self.bi2])
 
         # string and number as search, reversible
         view.request = self.request(
@@ -218,7 +222,7 @@ class TestMentionsView(TestCase):
         # no search term
         self.assertEqual(len(list(view.get_queryset())), 3)
 
-        # number as search: only applicable if number in authors/name
+        # number as search: only applicable if number in antiquarian/name
         view.request = self.request(
             data={
                 "q": "wk:2",
@@ -233,6 +237,16 @@ class TestMentionsView(TestCase):
             }
         )
         self.assertEqual(len(list(view.get_queryset())), 3)
+
+        view.request = self.request(
+            data={
+                "q": "wk:and",
+            }
+        )
+        self.assertEqual(len(list(view.get_queryset())), 2)
+        self.assertCountEqual(
+            list(view.get_queryset()), [self.andropov, self.provisions]
+        )
 
     def test_anonymous_fragment_search(self):
         view = self.view
