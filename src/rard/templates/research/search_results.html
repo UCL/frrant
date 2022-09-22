@@ -64,6 +64,10 @@
         <div class="form-row align-items-center">
             <div class="col-sm-7 my-1">
                 <input type="text" class="form-control alphabetum" name='q' {% if search_term %}value="{{ search_term }}"{% endif %} placeholder="Enter search terms">
+                <small id="searchHelpBlock" class="form-text text-muted">
+                  Match a single character with {{WILDCARD_SINGLE_CHAR}},
+                  or match zero or more characters with {{WILDCARD_MANY_CHAR}}
+                </small>
             </div>
             <div class='col-auto'>
                 <button type="submit" class="btn btn-block btn-primary">

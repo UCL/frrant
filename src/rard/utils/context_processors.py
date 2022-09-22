@@ -10,6 +10,8 @@ def settings_context(_request):
     return {
         "DEBUG": settings.DEBUG,
         "PRODUCTION_INSTANCE": settings.PRODUCTION_INSTANCE,
+        "WILDCARD_SINGLE_CHAR": settings.WILDCARD_SINGLE_CHAR,
+        "WILDCARD_MANY_CHAR": settings.WILDCARD_MANY_CHAR,
     }
 
 
