@@ -38,7 +38,7 @@ class MentionSearchView(LoginRequiredMixin, View):
     @property
     def BASIC_SEARCH_TYPES(self):
         return {
-            "aq": [Antiquarian, "name__icontains", "name"],
+            "aq": [Antiquarian, "name__icontains", "order_name"],
             "tt": [
                 Testimonium,
                 "antiquarian_testimoniumlinks__antiquarian__name__icontains",
@@ -88,7 +88,7 @@ class MentionSearchView(LoginRequiredMixin, View):
         qs = AnonymousFragment.objects.all()
         if order_number:
             order_number = order_number - 1
-            order_query = Q(id=order_number) | Q(order=order_number)
+            order_query = Q(order=order_number)
         else:
             order_query = Q()
 

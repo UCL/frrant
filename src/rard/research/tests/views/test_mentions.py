@@ -51,9 +51,9 @@ class TestMentionsView(TestCase):
         self.bixby.works.add(self.prose)
 
         # create special search items
-        self.af13 = AnonymousFragment.objects.create(id=12)
-        self.af15 = AnonymousFragment.objects.create(id=14)
-        self.af33 = AnonymousFragment.objects.create(id=32)
+        self.af0 = AnonymousFragment.objects.create()
+        self.af1 = AnonymousFragment.objects.create()
+        self.af2 = AnonymousFragment.objects.create()
 
         self.f1 = Fragment.objects.create()
         FragmentLink.objects.create(fragment=self.f1, antiquarian=self.antman)
@@ -268,11 +268,11 @@ class TestMentionsView(TestCase):
         # number as search
         view.request = self.request(
             data={
-                "q": "af:13",
+                "q": "af:1",
             }
         )
         self.assertEqual(len(list(view.get_queryset())), 1)
-        self.assertEqual(view.get_queryset().first(), self.af13)
+        self.assertEqual(view.get_queryset().first(), self.af0)
 
         # string as search: should ignore strings
         view.request = self.request(
@@ -285,19 +285,19 @@ class TestMentionsView(TestCase):
         # string and number as search, reversible
         view.request = self.request(
             data={
-                "q": "af:an:13",
+                "q": "af:an:3",
             }
         )
         self.assertEqual(len(list(view.get_queryset())), 1)
-        self.assertEqual(view.get_queryset().first(), self.af13)
+        self.assertEqual(view.get_queryset().first(), self.af2)
 
         view.request = self.request(
             data={
-                "q": "af:13:an",
+                "q": "af:3:an",
             }
         )
         self.assertEqual(len(list(view.get_queryset())), 1)
-        self.assertEqual(view.get_queryset().first(), self.af13)
+        self.assertEqual(view.get_queryset().first(), self.af2)
 
     def test_fragment_search(self):
         view = self.view
