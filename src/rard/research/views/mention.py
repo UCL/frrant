@@ -38,7 +38,7 @@ class MentionSearchView(LoginRequiredMixin, View):
     @property
     def BASIC_SEARCH_TYPES(self):
         return {
-            "aq": [Antiquarian, "name__icontains", "name"],
+            "aq": [Antiquarian, "name__icontains", "order_name"],
             "tt": [
                 Testimonium,
                 "antiquarian_testimoniumlinks__antiquarian__name__icontains",
