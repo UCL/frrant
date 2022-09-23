@@ -9,7 +9,7 @@ from rard.research.models.mixins import HistoryModelMixin
 from rard.utils.basemodel import BaseModel, LockableModel
 
 
-class BibliographyItem(HistoryModelMixin, BaseModel, LockableModel):
+class BibliographyItem(LockableModel, HistoryModelMixin, BaseModel ):
 
     history = HistoricalRecords()
 
