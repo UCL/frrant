@@ -6,6 +6,7 @@ from django.utils.translation import gettext_lazy as _
 from rard.research.models import (
     AnonymousFragment,
     Antiquarian,
+    BibliographyItem,
     Book,
     CitingAuthor,
     CitingWork,
@@ -571,6 +572,10 @@ class TestimoniumAntiquariansForm(HistoricalFormBase):
         model = Testimonium
         fields = ()
 
+class BibliographyItemForm(HistoricalFormBase):
+    class Meta:
+        model = BibliographyItem
+        fields = ()
 
 class FragmentForm(HistoricalFormBase):
     class Meta:

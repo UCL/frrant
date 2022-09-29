@@ -7,6 +7,7 @@ from django.views.generic.edit import DeleteView, UpdateView
 from rard.research.models import BibliographyItem
 from rard.research.views.mixins import CheckLockMixin
 
+from rard.research.forms import BibliographyItemForm
 
 class BibliographyListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     paginate_by = 10
@@ -24,6 +25,20 @@ class BibliographyDetailView(
         "title",
     )
     permission_required = ("research.view_bibliographyitem",)
+
+class BibliographyCreateView(
+    LoginRequiredMixin, PermissionRequiredMixin
+):
+    template_name = "research/bibliographyitem_form.html"
+    form_class = BibliographyItemForm
+    success_url_name = "bibligraphy:detail"
+    title = "Create Bibliography Item"
+    permission_required = ("research.add_bibliographyitem",)
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update({"title": self.title})
+        return context
 
 class BibliographyUpdateView(
     CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
