@@ -27,7 +27,7 @@ class BibliographyItem(LockableModel, HistoryModelMixin, BaseModel ):
         return r + ": " + re.sub(r"\s+", " ", title).strip()
 
     def get_absolute_url(self):
-        return reverse("bibliographyitem:detail", kwargs={"pk": self.pk})
+        return reverse("bibliography:detail", kwargs={"pk": self.pk})
 
     class Meta:
         ordering = ["author_surnames", "year"]

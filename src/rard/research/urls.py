@@ -151,6 +151,11 @@ urlpatterns = [
                         views.BibliographyDeleteView.as_view(),
                         name="delete",
                     ),
+                    path(
+                        "<pk>/",
+                        views.BibliographyDetailView.as_view(),
+                        name="detail",
+                        ),
                 ],
                 "research",
             ),
