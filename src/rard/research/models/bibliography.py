@@ -3,6 +3,8 @@ import re
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
+from django.urls import reverse
+
 from simple_history.models import HistoricalRecords
 
 from rard.research.models.mixins import HistoryModelMixin
@@ -14,7 +16,8 @@ class BibliographyItem(LockableModel, HistoryModelMixin, BaseModel ):
     history = HistoricalRecords()
 
     def related_lock_object(self):
-        return self#.parent
+        # overrides HistoryModelMixin.related_lock_object
+        return self
 
     def __str__(self):
         r = self.author_surnames
@@ -24,7 +27,7 @@ class BibliographyItem(LockableModel, HistoryModelMixin, BaseModel ):
         return r + ": " + re.sub(r"\s+", " ", title).strip()
 
     def get_absolute_url(self):
-        return self.parent.get_absolute_url()
+        return reverse("bibliographyitem:detail", kwargs={"pk": self.pk})
 
     class Meta:
         ordering = ["author_surnames", "year"]
