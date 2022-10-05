@@ -25,7 +25,7 @@
             <small>
                 <span class='text-muted'>
 
-                    {% with citing_author=citing_author|default:None %}
+                    {% with citing_author=link.citing_author|default:None %}
                     {{ link.fragment|show_citing_info:citing_author|safe }}
                     {% endwith %}
 
@@ -34,18 +34,20 @@
             </div>
         </div>
     </div>
-    <div class='rard-list-item-actions'>
-        {% if can_edit %}
-        <button type='button' class='drag-handle btn btn-light' style='cursor: move;' data-pos='{{ forloop.counter }}'><i class='fas fa-bars'></i></button>
-        <button data-anonymoustopiclink='{{ link.pk }}' data-topic='{{ link.topic.id }}' data-objecttype='anonymoustopiclink' data-pos='{{ forloop.counter }}' type='button' class='btn btn-light btn-sm' {% if forloop.first %}disabled{% endif %}
-            name='fragment_up'><i class='fas fa-caret-up'></i></button>
-        <button data-anonymoustopiclink='{{ link.pk }}' data-topic='{{ link.topic.id }}' data-objecttype='anonymoustopiclink' data-pos='{{ forloop.counter }}' type='button' class='btn btn-light btn-sm' {% if forloop.last %}disabled{% endif %}
-            name='fragment_down'><i class='fas fa-caret-down'></i></button>
+    {% if display_order == "by_topic"%}
+        <div class='rard-list-item-actions'>
+            {% if can_edit %}
+            <button type='button' class='drag-handle btn btn-light' style='cursor: move;' data-pos='{{ forloop.counter }}'><i class='fas fa-bars'></i></button>
+            <button data-anonymoustopiclink='{{ link.pk }}' data-topic='{{ link.topic.id }}' data-objecttype='anonymoustopiclink' data-pos='{{ forloop.counter }}' type='button' class='btn btn-light btn-sm' {% if forloop.first %}disabled{% endif %}
+                name='fragment_up'><i class='fas fa-caret-up'></i></button>
+            <button data-anonymoustopiclink='{{ link.pk }}' data-topic='{{ link.topic.id }}' data-objecttype='anonymoustopiclink' data-pos='{{ forloop.counter }}' type='button' class='btn btn-light btn-sm' {% if forloop.last %}disabled{% endif %}
+                name='fragment_down'><i class='fas fa-caret-down'></i></button>
+        {% endif %}
+        </div>
     {% endif %}
     </div>
-</div>
-{% if forloop.last %}
-{# add drop target at end #}
-<div class='drop-target' data-pos='{{ forloop.counter|add:1 }}' data-objecttype='anonymoustopiclink'>
-</div>
-{% endif %}
+    {% if forloop.last %}
+    {# add drop target at end #}
+    <div class='drop-target' data-pos='{{ forloop.counter|add:1 }}' data-objecttype='anonymoustopiclink'>
+    </div>
+    {% endif %}
