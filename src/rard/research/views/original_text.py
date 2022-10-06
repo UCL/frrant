@@ -1,4 +1,5 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.db import transaction
 from django.http import Http404
 from django.shortcuts import get_object_or_404
 from django.urls import resolve, reverse
@@ -10,6 +11,7 @@ from rard.research.forms import (
     OriginalTextAuthorForm,
     OriginalTextDetailsForm,
     OriginalTextForm,
+    ReferenceFormset,
 )
 from rard.research.models import (
     AnonymousFragment,
@@ -30,6 +32,11 @@ class OriginalTextCreateViewBase(PermissionRequiredMixin, OriginalTextCitingWork
 
     model = OriginalText
     form_class = OriginalTextForm
+
+    def get_forms(self):
+        forms = super().get_forms()
+        forms["references"] = ReferenceFormset(data=self.request.POST or None)
+        return forms
 
     def dispatch(self, request, *args, **kwargs):
         # need to ensure we have the lock object view attribute
@@ -67,6 +74,10 @@ class OriginalTextCreateViewBase(PermissionRequiredMixin, OriginalTextCitingWork
             self.original_text.citing_work = forms["new_citing_work"].save()
 
         self.original_text.save()
+
+        references = forms["references"]
+        references.instance = self.original_text
+        references.save()
 
         return super().forms_valid(forms)
 
@@ -186,6 +197,33 @@ class OriginalTextUpdateView(CheckLockMixin, UpdateView):
 
     def get_success_url(self, *args, **kwargs):
         return self.object.owner.get_absolute_url()
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context["forms"] = {}
+        if self.request.POST:
+            context["forms"]["references"] = ReferenceFormset(
+                data=self.request.POST, instance=self.object
+            )
+        else:
+            context["forms"]["references"] = ReferenceFormset(instance=self.object)
+        return context
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+        references = context["forms"]["references"]
+        # Not sure why but non-padded version of reference_order
+        # is saved if we don't call this method again
+        form._post_clean()
+        with transaction.atomic():
+            self.object = form.save()
+
+            if references.is_valid():
+                references.instance = self.object
+                references.save()
+            else:
+                return self.render_to_response(context)
+        return super(OriginalTextUpdateView, self).form_valid(form)
 
 
 @method_decorator(require_POST, name="dispatch")

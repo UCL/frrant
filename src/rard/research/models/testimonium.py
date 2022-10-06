@@ -87,5 +87,8 @@ class Testimonium(HistoryModelMixin, HistoricalBaseModel):
             self.plain_commentary = make_plain_text(self.commentary.content)
         super().save(*args, **kwargs)
 
+    def __str__(self):
+        return self.get_display_name_option_c()
+
 
 Testimonium.init_text_object_fields()

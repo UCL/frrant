@@ -1,0 +1,50 @@
+{% load i18n bootstrap4 %}
+
+{% load crispy_forms_tags %}
+
+{{ forms.references.management_form }}
+<legend style="font-family:alphabetum; font-size:large">References</legend>
+{% bootstrap_formset_errors forms.references %}
+
+<div id="reference-form-area" class="pr-3">
+  {% for form in forms.references %}
+  <div class="reference-form form-row justify-content-start">
+    {% for hidden in form.hidden_fields %}
+    {{ hidden|as_crispy_field }}
+    {% endfor %}
+    {% bootstrap_field form.editor show_label=False field_class="mr-5 col" %}
+    {% bootstrap_field form.reference_position show_label=False field_class="mr-3 pr-4 col" %}
+    {% bootstrap_field form.DELETE field_class="col-sm mt-1 form-check" %}
+  </div>
+  {% endfor %}
+
+        <button class='add-form btn btn-light btn-sm pr-2 float-right' id="add-reference-form">
+        + Add another reference
+        </button>
+</div>
+
+<br>
+
+
+<script>
+    let referenceForm = document.querySelectorAll(".reference-form")
+    let container = document.querySelector("#reference-form-area")
+    let addButton = document.querySelector("#add-reference-form")
+    let totalForms = document.querySelector("#id_references-TOTAL_FORMS")
+
+    let formNum = referenceForm.length-1
+    addButton.addEventListener('click', addForm)
+
+    function addForm(e){
+        e.preventDefault()
+        let newForm = referenceForm[0].cloneNode(true)
+        let formRegex = RegExp(`references-(\\d){1}-`,'g')
+        let valueRegex = RegExp(`value="[^"]+"`, 'g')
+
+        formNum++
+        newForm.innerHTML = newForm.innerHTML.replace(formRegex, `references-${formNum}-`).replace(valueRegex, "")
+        container.insertBefore(newForm, addButton)
+
+        totalForms.setAttribute('value', `${formNum+1}`)
+    }
+</script>

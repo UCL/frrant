@@ -7,6 +7,7 @@ from .history import HistoricalRecordLog
 from .image import Image
 from .linkable import ApparatusCriticusItem
 from .original_text import Concordance, OriginalText, Translation
+from .reference import Reference
 from .symbols import Symbol, SymbolGroup
 from .testimonium import Testimonium
 from .text_object_field import TextObjectField
@@ -28,6 +29,7 @@ __all__ = [
     "Image",
     "ApparatusCriticusItem",
     "OriginalText",
+    "Reference",
     "Symbol",
     "SymbolGroup",
     "Testimonium",

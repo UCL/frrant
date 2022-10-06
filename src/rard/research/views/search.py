@@ -2,6 +2,7 @@ import re
 from functools import partial
 from itertools import chain
 
+from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import ExpressionWrapper, Func, Q, TextField, Value
 from django.db.models.functions import Lower
@@ -62,9 +63,17 @@ rard_folds = [
     ["x", "xs"],
 ]
 
+WILDCARD_SINGLE_CHAR = settings.WILDCARD_SINGLE_CHAR
+WILDCARD_MANY_CHAR = settings.WILDCARD_MANY_CHAR
+WILDCARD_CHARS = [WILDCARD_SINGLE_CHAR, WILDCARD_MANY_CHAR]
 PUNCTUATION_BASE = r"!£$%^&*()_+-={}:@~;\'#|\\<>?,./`¬"
-PUNCTUATION_RE = re.compile(r"[\[\]{0}]".format(PUNCTUATION_BASE))
+# PUNCTUATION should include wildcard chars as it is used with content rather than
+# search terms
 PUNCTUATION = PUNCTUATION_BASE + r'[]"'
+# Remove wildcard characters from PUNCTUATION_BASE which is used to screen
+# out punctuation from search terms
+PUNCTUATION_BASE = PUNCTUATION_BASE.translate({ord(c): None for c in WILDCARD_CHARS})
+PUNCTUATION_RE = re.compile(r"[\[\]{0}]".format(PUNCTUATION_BASE))
 
 
 @method_decorator(require_GET, name="dispatch")
@@ -82,7 +91,19 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         def __init__(self, keywords):
             self.cleaned_number = 1
             self.folded_number = 1
+            # Remove all punctuation except wildcard characers
             self.keywords = PUNCTUATION_RE.sub("", keywords).lower()
+
+            # Using regex for everything doesn't seem to have a big impact
+            # But replace this line with the alternative code if you want to
+            # only use regex for search terms containing wildcards
+            self.lookup = "regex"
+            # # If wildcard characters appear in keywords, use regex lookup
+            # if any([char in self.keywords for char in WILDCARD_CHARS]):
+            #     self.lookup = "regex"
+            # else:
+            #     self.lookup = "contains"
+
             # The basic function query function will first eliminate html less than
             # and greater than character codes, then punctuation,
             # and lowercase the 'haystack' strings to be searched.
@@ -143,11 +164,40 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             """
             Turns a string into a series of keywords. This is mostly splittling
             by whitespace, but strings surrounded by double quotes are
-            returned verbatim.
+            returned verbatim. Each keywords is converted to a regular expression
+            if self.lookup is regex.
             """
             segments = search_string.split('"')
             single_keywords = " ".join(segments[::2]).split()
-            return segments[1::2] + single_keywords
+            keywords = segments[1::2] + single_keywords
+            if self.lookup == "regex":
+                keywords = self.transform_keywords_to_regex(keywords)
+            return keywords
+
+        def transform_keywords_to_regex(self, keywords):
+            """Takes a list of keywords which may include wildcard characters
+            and converts them into a list of equivalent regular expressions.
+            Example:
+            >>> transform_keywords_to_regex(["?ulius", "c*sar"])
+            ["\\m\\wulius\\M", "\\mc\\w*sar\\M"]
+
+            :param keywords: A list of strings to search
+            :type keywords: list
+            :return: list of regular expressions
+            :rtype: list
+            """
+            for i, kw in enumerate(keywords):
+                reg_kw = r"\m"  # \m matches start of word
+                for char in kw:
+                    if char == WILDCARD_SINGLE_CHAR:
+                        reg_kw += r"\w"  # a single word char (greek chars work here)
+                    elif char == WILDCARD_MANY_CHAR:
+                        reg_kw += r"\w*"  # zero or more word characters
+                    else:
+                        reg_kw += char
+                reg_kw += r"\M"  # \M matches end of word
+                keywords[i] = reg_kw
+            return keywords
 
         def do_match(
             self,
@@ -163,7 +213,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                 query(query_string), output_field=TextField()
             )
             annotated = query_set.annotate(**{annotation_name: expression})
-            matches = annotated.filter(matcher(annotation_name + "__contains"))
+            matches = annotated.filter(matcher(annotation_name + "__" + self.lookup))
             if add_snippet:
                 matches = self.annotate_with_snippet(matches, keywords, query_string)
             else:
@@ -214,7 +264,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             """
             keywords = self.get_keywords(keywords)
             words_before_group = rf"((?:\S+\s){{0,{before}}})"
-            keywords_group = "|".join([r"\S*" + kw + r"\S*" for kw in keywords])
+            keywords_group = "|".join(keywords)
             keywords_group = r"(" + keywords_group + r")"
             words_after_group = rf"(\s(?:\S+\s){{0,{after}}})"
             return words_before_group + keywords_group + words_after_group
@@ -397,7 +447,8 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                 ("original_texts__translation__plain_translated_text", terms.match),
                 ("plain_commentary", terms.match),
                 ("original_texts__translation__translator_name", terms.match),
-                ("original_texts__reference", terms.match),
+                ("original_texts__references__reference_position", terms.match),
+                ("original_texts__references__editor", terms.match),
             ]
         return cls.generic_content_search(qs, search_fields)
 

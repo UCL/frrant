@@ -73,6 +73,7 @@ DJANGO_APPS = [
 THIRD_PARTY_APPS = [
     "bootstrap4",
     "simple_history",
+    "crispy_forms",
 ]
 
 LOCAL_APPS = [
@@ -268,6 +269,10 @@ LOGGING = {
     "root": {"level": "INFO", "handlers": ["console"]},
 }
 
+# Search
+# ------------------------------------------------------------------------------
+WILDCARD_SINGLE_CHAR = "?"  # Matches exactly one word character
+WILDCARD_MANY_CHAR = "*"  # Matches zero or more word characters
 
 # Other Settings
 # ------------------------------------------------------------------------------

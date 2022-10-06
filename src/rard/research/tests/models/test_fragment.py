@@ -202,9 +202,6 @@ class TestAnonymousFragment(TestCase):
         atl_2 = AnonymousTopicLink.objects.filter(
             topic=self.t1, fragment=self.anon2
         ).first()
-        AnonymousTopicLink.objects.filter(
-            topic=self.t1, fragment=self.anon3
-        ).first()  # order 0 since appositum
         atl_4 = AnonymousTopicLink.objects.filter(
             topic=self.t2, fragment=self.anon1
         ).first()
