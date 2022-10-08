@@ -31,5 +31,4 @@ class Migration(migrations.Migration):
             model_name='historicalbibliographyitem',
             name='object_id',
         ),
-        
     ]
