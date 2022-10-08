@@ -145,6 +145,15 @@ The `-v` option will delete any volume data e.g. Postgres data
 
 ```docker-compose -f local.yml run django python manage.py shell```
 
+### Open a PostgreSQL shell in local:
+
+```docker compose -f local.yml exec postgres psql -d rard -U ftTUlBrLLgvsMhazNCenkVazbscHpykq```
+e.g.:
+- List all databases: \l
+- View all tables in the current database: \d
+- Describe a table: \d table_name
+- Quit psql: \q
+
 #### Run a general Django management command:
 
 (for example `createsuperuser`)
