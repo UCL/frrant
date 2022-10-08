@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RenameField(
             model_name='antiquarian',
-            old_name='bibliography_items2'
+            old_name='bibliography_items2',
             new_name='bibliography_items',
         ),
         migrations.RemoveField(
