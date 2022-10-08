@@ -32,12 +32,6 @@ class BibliographyItem(LockableModel, HistoryModelMixin, BaseModel ):
     class Meta:
         ordering = ["author_surnames", "year"]
 
-    '''# allow these to point at different object types
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-
-    object_id = models.PositiveIntegerField()
-
-    parent = GenericForeignKey()'''
 
     # string containing names of authors
     # e.g. Smith P, Jones M
