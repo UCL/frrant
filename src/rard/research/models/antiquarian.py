@@ -144,13 +144,9 @@ class Antiquarian(
         through="TestimoniumLink",
     )
 
-    bibliography_items = GenericRelation(
-        "BibliographyItem", related_query_name="bibliography_items"
-    )
-
-    bibliography_items2 = models.ManyToManyField(
+    bibliography_items = models.ManyToManyField(
         "BibliographyItem",
-        related_query_name="biblography_items2",
+        related_query_name="biblography_items",
         blank=True
     )
 
