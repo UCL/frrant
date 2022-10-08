@@ -4,12 +4,30 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
+    '''
+    Renaming bibliography_items2 to Bibliography_items is problematic, because migrations
+    doesn't create a migration for removing GRs so we need to do this manually
+    Hence using SeparateDatabaseAndState to run a SQL to remove the table which has the
+    same name as our new m2m table
+    '''
     dependencies = [
         ('research', '0061_antiquarian_bibliography_items'),
     ]
 
+    database_operations=[
+        migrations.RunSQL(
+            sql='DROP TABLE research_antiquarian_bibliography_items',
+        ),
+    ]
+
+    state_operations=[
+    ]
+    
     operations = [
+        migrations.SeparateDatabaseAndState(
+            database_operations=database_operations,
+            state_operations=state_operations,
+        ),
         migrations.RenameField(
             model_name='antiquarian',
             old_name='bibliography_items2',
@@ -31,4 +49,5 @@ class Migration(migrations.Migration):
             model_name='historicalbibliographyitem',
             name='object_id',
         ),
+    
     ]
