@@ -42,11 +42,12 @@ class BibliographyDetailView(
 class BibliographyCreateView(
     LoginRequiredMixin, PermissionRequiredMixin, TemplateView
 ):
+    model = BibliographyItem
     template_name = "research/bibliographyitem_form.html"
     form_class = BibliographyItemForm
     success_url_name = "bibligraphy:detail"
     title = "Create Bibliography Item"
-    # change_antiquarian only required when adding an Ant to a Bib
+    # change_antiquarian only required when adding an Antiquarian to a Bibliography
     permission_required = (
         "research.change_antiquarian",
         "research.add_bibliographyitem",
