@@ -25,6 +25,7 @@ from .bibliography import (
     BibliographyListView,
     BibliographyUpdateView,
     BibliographyDetailView,
+    BibliographyCreateView,
 )
 from .citing_work import (
     CitingAuthorCreateView,
