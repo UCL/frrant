@@ -29,6 +29,16 @@ class BibliographyDetailView(
     )
     permission_required = ("research.view_bibliographyitem",)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        bibliography = self.get_object()
+        antiquarians = bibliography.antiquarian_set.all()
+        context.update({
+            "bibliography": bibliography,
+            "antiquarians": antiquarians,
+        })
+        return super().get_context_data(**kwargs)
+
 class BibliographyCreateView(
     LoginRequiredMixin, PermissionRequiredMixin, TemplateView
 ):
