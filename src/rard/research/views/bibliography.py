@@ -94,10 +94,9 @@ class BibliographyCreateView(
     #    return super().dispatch(*args, **kwargs)
 
 class BibliographyUpdateView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
+    LoginRequiredMixin, CheckLockMixin, PermissionRequiredMixin, UpdateView
 ):
 
-    
     model = BibliographyItem
     fields = (
         "authors",
@@ -106,8 +105,11 @@ class BibliographyUpdateView(
         "title",
     )
     permission_required = ("research.change_bibliographyitem",)
+    form_class = BibliographyItemForm
 
-    
+    def get_success_url(self, *args, **kwargs):
+        return reverse("bibliography:detail", kwargs={"pk": self.object.pk})
+
 
 @method_decorator(require_POST, name="dispatch")
 class BibliographyDeleteView(
