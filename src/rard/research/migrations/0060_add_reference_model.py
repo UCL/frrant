@@ -40,7 +40,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("editor", models.CharField(blank=True, max_length=128)),
-                ("reference_position", models.CharField(max_length=50)),
+                ("reference_position", models.CharField(max_length=128)),
                 (
                     "original_text",
                     models.ForeignKey(
