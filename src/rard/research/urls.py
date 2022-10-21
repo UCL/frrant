@@ -111,7 +111,8 @@ urlpatterns = [
                     ),
                     path(
                         "<pk>/bibliography/create/",
-                        views.AntiquarianBibliographyCreateView.as_view(),
+                        # views.AntiquarianBibliographyCreateView.as_view(),
+                        views.BibliographyCreateView.as_view(),
                         name="create_bibliography",
                     ),
                     path(
@@ -142,25 +143,25 @@ urlpatterns = [
                 [
                     path("list/", views.BibliographyListView.as_view(), name="list"),
                     path(
-                        "<pk>/update/",
-                        views.BibliographyUpdateView.as_view(),
-                        name="update",
-                    ),
-                    path(
                         "create/",
                         views.BibliographyCreateView.as_view(),
                         name="create",
+                    ),
+                    path(
+                        "<pk>/",
+                        views.BibliographyDetailView.as_view(),
+                        name="detail",
+                    ),
+                    path(
+                        "<pk>/update/",
+                        views.BibliographyUpdateView.as_view(),
+                        name="update",
                     ),
                     path(
                         "<pk>/delete/",
                         views.BibliographyDeleteView.as_view(),
                         name="delete",
                     ),
-                    path(
-                        "<pk>/",
-                        views.BibliographyDetailView.as_view(),
-                        name="detail",
-                        ),
                 ],
                 "research",
             ),

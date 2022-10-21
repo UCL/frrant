@@ -1,17 +1,14 @@
 import re
 
-from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.urls import reverse
-
 from simple_history.models import HistoricalRecords
 
 from rard.research.models.mixins import HistoryModelMixin
 from rard.utils.basemodel import BaseModel, LockableModel
 
 
-class BibliographyItem(LockableModel, HistoryModelMixin, BaseModel ):
+class BibliographyItem(HistoryModelMixin, LockableModel, BaseModel):
 
     history = HistoricalRecords()
 
@@ -31,7 +28,6 @@ class BibliographyItem(LockableModel, HistoryModelMixin, BaseModel ):
 
     class Meta:
         ordering = ["author_surnames", "year"]
-
 
     # string containing names of authors
     # e.g. Smith P, Jones M

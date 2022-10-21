@@ -1,24 +1,24 @@
-from urllib import response
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.http.response import Http404
+from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
-from django.views.generic import ListView, DetailView, TemplateView
-from django.views.generic.edit import DeleteView, UpdateView
-from django.urls import reverse
-from django.http.response import Http404
-
-from rard.research.models import BibliographyItem, Antiquarian
-from rard.research.views.mixins import CheckLockMixin
+from django.views.generic import DetailView, ListView
+from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from rard.research.forms import BibliographyItemForm
+from rard.research.models import Antiquarian, BibliographyItem
+from rard.research.views.mixins import CanLockMixin, CheckLockMixin
+
 
 class BibliographyListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     paginate_by = 10
     model = BibliographyItem
     permission_required = ("research.view_bibliographyitem",)
 
+
 class BibliographyDetailView(
-    LoginRequiredMixin, PermissionRequiredMixin, DetailView
+    CanLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DetailView
 ):
     model = BibliographyItem
     fields = (
@@ -33,15 +33,16 @@ class BibliographyDetailView(
         context = super().get_context_data(**kwargs)
         bibliography = self.get_object()
         antiquarians = bibliography.antiquarian_set.all()
-        context.update({
-            "bibliography": bibliography,
-            "antiquarians": antiquarians,
-        })
+        context.update(
+            {
+                "bibliography": bibliography,
+                "antiquarians": antiquarians,
+            }
+        )
         return super().get_context_data(**kwargs)
 
-class BibliographyCreateView(
-    LoginRequiredMixin, PermissionRequiredMixin, TemplateView
-):
+
+class BibliographyCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = BibliographyItem
     template_name = "research/bibliographyitem_form.html"
     form_class = BibliographyItemForm
@@ -53,7 +54,7 @@ class BibliographyCreateView(
         "research.add_bibliographyitem",
     )
     # The following should be fine, even if get_antiquarian() returns None
-    check_lock_object = "antiquarian"
+    # check_lock_object = "antiquarian"
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
@@ -64,12 +65,15 @@ class BibliographyCreateView(
             }
         )
         return context
-    
+
     def get_success_url(self):
         return reverse("bibliography:detail", kwargs={"pk": self.object.pk})
 
     def form_valid(self, form):
-        data = form.cleaned_data
+        rtn = super().form_valid(form)
+        for a in form.cleaned_data["antiquarians"]:
+            a.bibliography_items.add(self.object)
+        return rtn
 
     def get_antiquarian(self, *args, **kwargs):
         # look for Antiquarian in the GET or POST parameters
@@ -86,29 +90,47 @@ class BibliographyCreateView(
             except Antiquarian.DoesNotExist:
                 raise Http404
         return self.antiquarian
-    
-    # def dispatch(self, request: http.HttpRequest, *args: Any, **kwargs: Any) -> HttpResponseBase:
-    #    return super().dispatch(request, *args, **kwargs)
-    #    # need to ensure the lock-checked attribute is initialised in dispatch
-    #    self.get_antiquarian()
-    #    return super().dispatch(*args, **kwargs)
+
 
 class BibliographyUpdateView(
-    LoginRequiredMixin, CheckLockMixin, PermissionRequiredMixin, UpdateView
+    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
 ):
 
     model = BibliographyItem
-    fields = (
-        "authors",
-        "author_surnames",
-        "year",
-        "title",
-    )
-    permission_required = ("research.change_bibliographyitem",)
+    template_name = "research/bibliographyitem_form.html"
     form_class = BibliographyItemForm
+    title = "Edit Bibliography Item"
+
+    permission_required = (
+        "research.change_bibliographyitem",
+        "research.change_antiquarian",
+    )
 
     def get_success_url(self, *args, **kwargs):
         return reverse("bibliography:detail", kwargs={"pk": self.object.pk})
+
+    def form_valid(self, form):
+        bibliography = form.save(commit=False)
+        updated = form.cleaned_data["antiquarians"]
+        existing = bibliography.antiquarian_set.all()
+        # get 2 lists of antiquarians, from which to add/remove this bibliography item
+        to_remove = [a for a in existing if a not in updated]
+        to_add = [a for a in updated if a not in existing]
+        for a in to_remove:
+            a.bibliography.remove(bibliography)
+        for a in to_add:
+            a.bibliography_items.add(bibliography)
+        return super().form_valid(form)
+
+    """def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update(
+            {
+                "title": self.title,
+                "antiquarians": self.instance.antiquarian_set.all(),
+            }
+        )
+        return context"""
 
 
 @method_decorator(require_POST, name="dispatch")
@@ -117,7 +139,5 @@ class BibliographyDeleteView(
 ):
 
     model = BibliographyItem
-
+    success_url = reverse_lazy("bibliography:list")
     permission_required = ("research.delete_bibliographyitem",)
-
-    

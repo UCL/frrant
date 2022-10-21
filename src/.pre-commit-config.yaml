@@ -11,7 +11,12 @@ repos:
       - id: check-yaml
 
   - repo: https://github.com/psf/black
-    rev: stable
+    rev: 22.10.0
+    # https://pre-commit.com/#using-the-latest-version-for-a-repository
+    # rev: stable is not supported, this file can be updated with
+    # pre-commit autoupdate, or just by updating individual repo revs
+    # as above
+    #    rev: stable
     hooks:
       - id: black
 

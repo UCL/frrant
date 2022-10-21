@@ -2,6 +2,7 @@
 {% load i18n bootstrap4 static humanize object_lock %}
 
 {% block heading %}
+{% comment %}
 {% if object.antiquarian_set.count %}
 <div class='mb-2'>
     <small>
@@ -9,7 +10,7 @@
     </small>
 </div>
 {% endif %}
-
+{% endcomment %}
 <div>{{ object.name }}</div>
 {% endblock %}
 
@@ -24,7 +25,7 @@
         <div class='d-flex justify-content-end'>
             {% if has_object_lock %}
                 {% if perms.research.delete_bibliographyitem %}
-                    <form novalidate class='form-inline' action='{% url "bibliography:delete" bibliography.pk %}' method='POST'>
+                    <form novalidate class='form-inline' action='{% url "bibliography:delete" object.pk %}' method='POST'>
                         {% csrf_token %}
                         <div class='form-group'>
                             <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
@@ -61,13 +62,13 @@
 
             <dt class="col-sm-3">{% trans 'Title' %}</dt>
             <dd class="col-sm-9">{{ object.title|safe }}</dd>
-            
+
 
             <dt class="col-sm-3">{% trans 'Antiquarian(s)' %}</dt>
             <dd class="col-sm-9">
                 {% if object.antiquarian_set.count > 0 %}
                     {% for antiquarian in object.antiquarian_set.all %}
-                        {% include 'research/partials/antiquarian_list_item.html' %}       
+                        {% include 'research/partials/antiquarian_list_item.html' %}
                     {% endfor %}
                 {% endif %}
             </dd>
@@ -83,5 +84,5 @@
     </section>
 
     {% endwith %}
-    
+
 {% endblock %}
