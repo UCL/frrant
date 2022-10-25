@@ -14,10 +14,10 @@ services:
     platform: linux/x86_64
     depends_on:
       - postgres
-      - elasticsearch
+      # - elasticsearch
     links:
       - postgres
-      - elasticsearch
+      # - elasticsearch
     volumes:
       - .:/app:z
     env_file:
@@ -40,15 +40,15 @@ services:
     env_file:
       - ./.envs/.local/.postgres
 
-  elasticsearch:
-    container_name: elasticsearch
-    platform: linux/x86_64
-    image: elasticsearch:7.4.0
-    environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-    ports:
-      - 9200:9200
+  # elasticsearch:
+  #   container_name: elasticsearch
+  #   platform: linux/x86_64
+  #   image: elasticsearch:7.4.0
+  #   environment:
+  #     - discovery.type=single-node
+  #     - xpack.security.enabled=false
+  #   ports:
+  #     - 9200:9200
 
   docs:
     image: rard_local_docs
