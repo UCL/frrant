@@ -1,5 +1,4 @@
-from .antiquarian import (
-    AntiquarianBibliographyCreateView,
+from .antiquarian import (  # AntiquarianBibliographyCreateView,
     AntiquarianConcordanceCreateView,
     AntiquarianConcordanceDeleteView,
     AntiquarianConcordanceUpdateView,
@@ -24,8 +23,6 @@ from .bibliography import (
     BibliographyDeleteView,
     BibliographyListView,
     BibliographyUpdateView,
-    BibliographyDetailView,
-    BibliographyCreateView,
 )
 from .citing_work import (
     CitingAuthorCreateView,
@@ -121,7 +118,7 @@ from .work import (
 __all__ = [
     "AddAppositumFragmentLinkView",
     "AddAppositumGeneralLinkView",
-    "AntiquarianBibliographyCreateView",
+    # "AntiquarianBibliographyCreateView",
     "AntiquarianConcordanceCreateView",
     "AntiquarianConcordanceDeleteView",
     "AntiquarianConcordanceUpdateView",

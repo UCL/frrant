@@ -180,13 +180,13 @@ class TestMentionsView(TestCase):
             authors="fee fie foe",
             author_surnames="Froe",
             title="apples and pears",
-            parent=a1,
+            # parent=a1,
         )
         bi2 = BibliographyItem.objects.create(
             authors="tee tie toe",
             author_surnames="Twoe",
             title="peppers and carrots",
-            parent=a2,
+            # parent=a2,
         )
         self.assertEqual(list(view.bibliography_search("fie")), [bi1])
         self.assertEqual(list(view.bibliography_search("toe")), [bi2])

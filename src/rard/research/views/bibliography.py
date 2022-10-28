@@ -1,5 +1,4 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.http.response import Http404
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
@@ -7,7 +6,7 @@ from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from rard.research.forms import BibliographyItemForm
-from rard.research.models import Antiquarian, BibliographyItem
+from rard.research.models import BibliographyItem
 from rard.research.views.mixins import CanLockMixin, CheckLockMixin
 
 
@@ -46,27 +45,24 @@ class BibliographyCreateView(LoginRequiredMixin, PermissionRequiredMixin, Create
     model = BibliographyItem
     template_name = "research/bibliographyitem_form.html"
     form_class = BibliographyItemForm
-    success_url_name = "bibligraphy:detail"
+    success_url_name = "bibliography:detail"
     title = "Create Bibliography Item"
     # change_antiquarian only required when adding an Antiquarian to a Bibliography
     permission_required = (
         "research.change_antiquarian",
         "research.add_bibliographyitem",
     )
-    # The following should be fine, even if get_antiquarian() returns None
-    # check_lock_object = "antiquarian"
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context.update(
             {
                 "title": self.title,
-                "antiquarian": self.get_antiquarian(),
             }
         )
         return context
 
-    def get_success_url(self):
+    def get_success_url(self, *args, **kwargs):
         return reverse("bibliography:detail", kwargs={"pk": self.object.pk})
 
     def form_valid(self, form):
@@ -75,7 +71,7 @@ class BibliographyCreateView(LoginRequiredMixin, PermissionRequiredMixin, Create
             a.bibliography_items.add(self.object)
         return rtn
 
-    def get_antiquarian(self, *args, **kwargs):
+    """def get_antiquarian(self, *args, **kwargs):
         # look for Antiquarian in the GET or POST parameters
         # in case this bibliography is created from there
         # use to add context
@@ -89,7 +85,7 @@ class BibliographyCreateView(LoginRequiredMixin, PermissionRequiredMixin, Create
                 self.antiquarian = Antiquarian.objects.get(pk=antiquarian_pk)
             except Antiquarian.DoesNotExist:
                 raise Http404
-        return self.antiquarian
+        return self.antiquarian"""
 
 
 class BibliographyUpdateView(

@@ -182,6 +182,14 @@ which prints a top-level summary to the console. Alternatively for more detail, 
 
 which creates a local folder `htmlcov`. Browse to the file `index.html` in that folder
 
+to run just one file e.g.:
+
+```docker compose -f local.yml run --rm django coverage run -m pytest -v ./rard/research/tests/views/test_bibliography.py```
+
+or just run the failing test or test class (marked with @pytest.mark.failingtest):
+
+```docker compose -f local.yml run --rm django coverage run -m pytest -m failingtest```
+
 #### Check code comprehensively:
 
 ```docker-compose -f local.yml run --rm django flake8```
@@ -294,6 +302,10 @@ The requirements file for local development includes pre-commit. To set this up 
 This will ensure the hooks specified in `.pre-commit-config.yaml` are run prior to every commit. Black should automatically correct most formatting errors, so you can just try the commit again in most cases.
 
 You can turn pre-commit off any time with `pre-commit uninstall` if you need to.
+
+If pre-commit is not working, such as causing version problems with black, you can bring black, isort, etc. up to date with
+
+```pre-commit auto-update```
 
 # Continuous Integration
 GitHub Actions are currently setup to run linter and pytest jobs on pull-requests and pushes to the development branch. For the linter tests we run the pre-commit hooks, and for pytest we build the docker stack and run the full set of pytest tests.

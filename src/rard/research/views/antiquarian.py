@@ -18,12 +18,7 @@ from rard.research.forms import (
     AntiquarianUpdateWorksForm,
     WorkForm,
 )
-from rard.research.models import (
-    Antiquarian,
-    AntiquarianConcordance,
-    BibliographyItem,
-    Work,
-)
+from rard.research.models import Antiquarian, AntiquarianConcordance, Work
 from rard.research.views.mixins import CanLockMixin, CheckLockMixin, DateOrderMixin
 
 
@@ -201,55 +196,6 @@ class AntiquarianDeleteView(
     model = Antiquarian
     permission_required = ("research.delete_antiquarian",)
     success_url = reverse_lazy("antiquarian:list")
-
-
-class AntiquarianBibliographyCreateView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, CreateView
-):
-
-    # the view attribute that needs to be checked for a lock
-    check_lock_object = "antiquarian"
-
-    model = BibliographyItem
-    fields = (
-        "authors",
-        "author_surnames",
-        "year",
-        "title",
-    )
-    permission_required = (
-        "research.change_antiquarian",
-        "research.add_bibliographyitem",
-    )
-
-    def get_success_url(self, *args, **kwargs):
-        return reverse("antiquarian:detail", kwargs={"pk": self.antiquarian.pk})
-
-    def dispatch(self, *args, **kwargs):
-        # need to ensure the lock-checked attribute is initialised in dispatch
-        self.get_antiquarian()
-        return super().dispatch(*args, **kwargs)
-
-    def form_valid(self, form):
-        # self.antiquarian = self.get_antiquarian()
-        item = form.save(commit=False)
-        item.parent = self.antiquarian
-        # self.antiquarian.bibliography_items.add(item)
-        return super().form_valid(form)
-
-    def get_antiquarian(self, *args, **kwargs):
-        if not getattr(self, "antiquarian", False):
-            self.antiquarian = get_object_or_404(Antiquarian, pk=self.kwargs.get("pk"))
-        return self.antiquarian
-
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
-        context.update(
-            {
-                "antiquarian": self.antiquarian,
-            }
-        )
-        return context
 
 
 class AntiquarianWorksUpdateView(

@@ -1,6 +1,5 @@
 import itertools
 
-from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.db.models.signals import m2m_changed, post_delete, post_save, pre_delete
 from django.urls import reverse
@@ -145,9 +144,7 @@ class Antiquarian(
     )
 
     bibliography_items = models.ManyToManyField(
-        "BibliographyItem",
-        related_query_name="biblography_items",
-        blank=True
+        "BibliographyItem", related_query_name="bibliography_items", blank=True
     )
 
     def __str__(self):
