@@ -32,10 +32,12 @@ class BibliographyDetailView(
         context = super().get_context_data(**kwargs)
         bibliography = self.get_object()
         antiquarians = bibliography.antiquarian_set.all()
+        citing_authors = bibliography.citingauthor_set.all()
         context.update(
             {
                 "bibliography": bibliography,
                 "antiquarians": antiquarians,
+                "citing_authors": citing_authors,
             }
         )
         return super().get_context_data(**kwargs)
@@ -47,10 +49,12 @@ class BibliographyCreateView(LoginRequiredMixin, PermissionRequiredMixin, Create
     form_class = BibliographyItemForm
     success_url_name = "bibliography:detail"
     title = "Create Bibliography Item"
-    # change_antiquarian only required when adding an Antiquarian to a Bibliography
+    # change_antiquarian only required when adding an Antiquarian to a Bibliography,
+    # sim CitingAuthor
     permission_required = (
         "research.change_antiquarian",
         "research.add_bibliographyitem",
+        "research.change_citingauthor",
     )
 
     def get_context_data(self, *args, **kwargs):
@@ -69,6 +73,8 @@ class BibliographyCreateView(LoginRequiredMixin, PermissionRequiredMixin, Create
         rtn = super().form_valid(form)
         for a in form.cleaned_data["antiquarians"]:
             a.bibliography_items.add(self.object)
+        for c in form.cleaned_data["citing_authors"]:
+            c.bibliography_items.add(self.object)
         return rtn
 
     """def get_antiquarian(self, *args, **kwargs):
@@ -100,6 +106,7 @@ class BibliographyUpdateView(
     permission_required = (
         "research.change_bibliographyitem",
         "research.change_antiquarian",
+        "research.change_citingauthor",
     )
 
     def get_success_url(self, *args, **kwargs):
@@ -116,6 +123,15 @@ class BibliographyUpdateView(
             a.bibliography.remove(bibliography)
         for a in to_add:
             a.bibliography_items.add(bibliography)
+        c_updated = form.cleaned_data["citing_authors"]
+        c_existing = bibliography.citingauthor_set.all()
+        # get 2 lists of citing_authors, from which to add/remove this bibliography item
+        to_remove = [c for c in c_existing if c not in updated]
+        to_add = [c for c in c_updated if c not in existing]
+        for c in to_remove:
+            c.bibliography.remove(bibliography)
+        for c in to_add:
+            c.bibliography_items.add(bibliography)
         return super().form_valid(form)
 
     """def get_context_data(self, *args, **kwargs):
