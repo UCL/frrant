@@ -120,7 +120,7 @@ class BibliographyUpdateView(
         to_remove = [a for a in existing if a not in updated]
         to_add = [a for a in updated if a not in existing]
         for a in to_remove:
-            a.bibliography.remove(bibliography)
+            a.bibliography_items.remove(bibliography)
         for a in to_add:
             a.bibliography_items.add(bibliography)
         c_updated = form.cleaned_data["citing_authors"]
@@ -129,7 +129,7 @@ class BibliographyUpdateView(
         to_remove = [c for c in c_existing if c not in updated]
         to_add = [c for c in c_updated if c not in existing]
         for c in to_remove:
-            c.bibliography.remove(bibliography)
+            c.bibliography_items.remove(bibliography)
         for c in to_add:
             c.bibliography_items.add(bibliography)
         return super().form_valid(form)

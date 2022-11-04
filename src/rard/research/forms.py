@@ -572,14 +572,21 @@ class TestimoniumAntiquariansForm(HistoricalFormBase):
         model = Testimonium
         fields = ()
 
+
 class BibliographyItemForm(HistoricalFormBase):
-    
+
     antiquarians = forms.ModelMultipleChoiceField(
         widget=forms.CheckboxSelectMultiple,
         queryset=Antiquarian.objects.all(),
         required=False,
     )
-    
+
+    citing_authors = forms.ModelMultipleChoiceField(
+        widget=forms.CheckboxSelectMultiple,
+        queryset=CitingAuthor.objects.all(),
+        required=False,
+    )
+
     class Meta:
         model = BibliographyItem
         fields = (
@@ -588,15 +595,16 @@ class BibliographyItemForm(HistoricalFormBase):
             "year",
             "title",
             "antiquarians",
+            "citing_authors",
         )
-    
+
     def __init__(self, *args, **kwargs):
-        super().__init__(*args,**kwargs)
+        super().__init__(*args, **kwargs)
         # if editing a bibliography item init the antiquarian set
         if self.instance and self.instance.pk:
             self.fields["antiquarians"].initial = self.instance.antiquarian_set.all()
-    
-    
+            self.fields["citing_authors"].initial = self.instance.citingauthor_set.all()
+
 
 class FragmentForm(HistoricalFormBase):
     class Meta:

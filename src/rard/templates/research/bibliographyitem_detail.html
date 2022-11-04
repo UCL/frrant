@@ -79,7 +79,7 @@
             <dd class="col-sm-9">
                 {% if object.citingauthor_set.count > 0 %}
                     {% for citingauthor in object.citingauthor_set.all %}
-                        {% include 'research/partials/citing_author_list_item.html' %}
+                        {% include 'research/partials/citingauthor_list_item.html' %}
                     {% endfor %}
                 {% endif %}
             </dd>
