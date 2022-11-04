@@ -20,7 +20,9 @@ from .apparatus_criticus import (
     UpdateApparatusCriticusLineView,
 )
 from .bibliography import (
+    BibliographyCreateView,
     BibliographyDeleteView,
+    BibliographyDetailView,
     BibliographyListView,
     BibliographyUpdateView,
 )
@@ -134,6 +136,8 @@ __all__ = [
     "ApparatusCriticusSearchView",
     "BibliographyDeleteView",
     "BibliographyListView",
+    "BibliographyDetailView",
+    "BibliographyCreateView",
     "BibliographyUpdateView",
     "BookCreateView",
     "BookUpdateView",
