@@ -471,20 +471,21 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
     def get_display_name(self):
         return self.get_display_name_option_b()
 
-    def _render_display_name(self, names):
+    def _render_display_name(self, names, add_also=True):
         # render the output in the format required
         first_line = None
         if len(names) == 0:
             first_line = "Unlinked {}".format(self.pk)
         else:
             first_line = names[0]
-            if len(names) > 1:
-                also = ", ".join([name for name in names[1:]])
-                if also:
-                    first_line = '%s <span class="also">' "(also = %s)</span>" % (
-                        first_line,
-                        also,
-                    )
+            if add_also:
+                if len(names) > 1:
+                    also = ", ".join([name for name in names[1:]])
+                    if also:
+                        first_line = '%s <span class="also">' "(also = %s)</span>" % (
+                            first_line,
+                            also,
+                        )
         return mark_safe(first_line)
 
     def get_citing_display(self, for_citing_author=None):
@@ -517,6 +518,11 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
         links = self.get_all_links().order_by("antiquarian", "order")
         names = [link.get_display_name() for link in links]
         return self._render_display_name(names)
+
+    def get_display_name_option_c(self):
+        # remove (also = )
+        names = self.get_link_names(show_certainty=False)
+        return self._render_display_name(names, add_also=False)
 
     def get_link_names(self, show_certainty=True):
         links = self.get_all_links().order_by("work", "antiquarian", "order")

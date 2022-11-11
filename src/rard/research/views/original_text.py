@@ -33,6 +33,11 @@ class OriginalTextCreateViewBase(PermissionRequiredMixin, OriginalTextCitingWork
     model = OriginalText
     form_class = OriginalTextForm
 
+    def get_forms(self):
+        forms = super().get_forms()
+        forms["references"] = ReferenceFormset(data=self.request.POST or None)
+        return forms
+
     def dispatch(self, request, *args, **kwargs):
         # need to ensure we have the lock object view attribute
         # initialised in dispatch
@@ -69,6 +74,10 @@ class OriginalTextCreateViewBase(PermissionRequiredMixin, OriginalTextCitingWork
             self.original_text.citing_work = forms["new_citing_work"].save()
 
         self.original_text.save()
+
+        references = forms["references"]
+        references.instance = self.original_text
+        references.save()
 
         return super().forms_valid(forms)
 

@@ -269,6 +269,10 @@ LOGGING = {
     "root": {"level": "INFO", "handlers": ["console"]},
 }
 
+# Search
+# ------------------------------------------------------------------------------
+WILDCARD_SINGLE_CHAR = "?"  # Matches exactly one word character
+WILDCARD_MANY_CHAR = "*"  # Matches zero or more word characters
 
 # Other Settings
 # ------------------------------------------------------------------------------
