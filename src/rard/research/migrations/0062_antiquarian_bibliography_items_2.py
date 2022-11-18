@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
 
     database_operations=[
         migrations.RunSQL(
-            sql='DROP TABLE research_antiquarian_bibliography_items',
+            sql='DROP TABLE IF EXISTS research_antiquarian_bibliography_items',
         ),
     ]
 
