@@ -519,8 +519,10 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         )
 
     @classmethod
-    def bibliography_search(cls, terms, ant_filter=None, **kwargs):
-        qs = cls.get_filtered_model_qs(BibliographyItem, ant_filter=ant_filter)
+    def bibliography_search(cls, terms, ant_filter=None, ca_filter=None, **kwargs):
+        qs = cls.get_filtered_model_qs(
+            BibliographyItem, ant_filter=ant_filter, ca_filter=ca_filter
+        )
         search_fields = [("authors", terms.match), ("title", terms.match)]
         return cls.generic_content_search(qs, search_fields)
 
@@ -558,6 +560,8 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                 qs = qs.filter(author__in=ca_filter)
             if model == CitingAuthor:
                 qs = qs.filter(id__in=ca_filter)
+            if model == BibliographyItem:
+                qs = qs.filter(bibliography_items__in=ca_filter)
         return qs
 
     def get(self, request, *args, **kwargs):
@@ -581,7 +585,10 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         (
             context["antiquarians"],
             context["authors"],
-        ) = self.antiquarians_and_authors_in_object_list(self.object_list)
+            context["bibliographies"],
+        ) = self.antiquarians_and_authors_and_bibliographies_in_object_list(
+            self.object_list
+        )
         context["ca_filter"] = self.request.GET.getlist("ca")
         context["search_term"] = keywords
         context["to_search"] = to_search
@@ -618,18 +625,21 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         # return a list...
         return sorted(queryset_chain, key=lambda instance: instance.pk, reverse=True)
 
-    def antiquarians_and_authors_in_object_list(self, object_list):
-        """Generate lists of Antiquarians and Citing Authors associated with
-        the list of objects provided.
+    def antiquarians_and_authors_and_bibliographies_in_object_list(self, object_list):
+        """Generate lists of Antiquarians, Citing Authors and Bibliographies
+        associated with the list of objects provided.
 
         Antiquarians can come from: Fragments, Testimonia, Anonymous Fragments,
-        Antiquarians, Bibliography Items, or Works.
+        Antiquarians, or Works.
 
         Citing Authors can come from: Fragments, Testimonia, Anonymous
         Fragments, Citing Works, or Citing Authors.
+
+        Bibliography items come only from themselves
         """
         antiquarians = []
         authors = []
+        bibliographies = []
         if object_list:
             for object in object_list:
                 obj_type = object.__class__
@@ -673,7 +683,8 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                 elif obj_type == Antiquarian:
                     antiquarians.append(object)
                 elif obj_type == BibliographyItem:
-                    antiquarians.extend(list(object.bibliography_items.all()))
+                    bibliographies.append(object)
+                    # antiquarians.extend(list(object.bibliography_items.all()))
                 elif obj_type == Work:
                     antiquarians.extend(list(object.antiquarian_set.all()))
                 elif obj_type == CitingWork:
@@ -685,8 +696,11 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             antiquarians.sort(key=lambda x: (x.order_name, x.re_code))
             authors = list(set(authors))
             authors.sort(key=lambda x: x.order_name)
+            bibliographies = list(set(bibliographies))
+            bibliographies.sort(key=lambda x: x.title)
         else:
             # Return all antiquarians and authors (already sorted)
             antiquarians = list(Antiquarian.objects.all())
             authors = list(CitingAuthor.objects.all())
-        return antiquarians, authors
+            bibliographies = list(BibliographyItem.objects.all())
+        return antiquarians, authors, bibliographies
