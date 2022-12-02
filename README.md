@@ -190,6 +190,13 @@ or just run the failing test or test class (marked with @pytest.mark.failingtest
 
 ```docker compose -f local.yml run --rm django coverage run -m pytest -m failingtest```
 
+#### Check all of the below together:
+
+```Git add .
+pre-commit```
+
+if you get a red Fail message, run both lines again until there are no Fails
+
 #### Check code comprehensively:
 
 ```docker-compose -f local.yml run --rm django flake8```
