@@ -143,9 +143,7 @@ class Antiquarian(
         through="TestimoniumLink",
     )
 
-    bibliography_items = models.ManyToManyField(
-        "BibliographyItem", related_query_name="bibliography_items", blank=True
-    )
+    bibliography_items = models.ManyToManyField("BibliographyItem", blank=True)
 
     def __str__(self):
         return self.name
