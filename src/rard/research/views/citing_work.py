@@ -49,6 +49,19 @@ class CitingAuthorUpdateView(
     def get_success_url(self, *args, **kwargs):
         return reverse("citingauthor:detail", kwargs={"pk": self.object.pk})
 
+    def form_valid(self, form):
+        citingauthor = form.save(commit=False)
+        updated = form.cleaned_data["bibliography_items"]
+        existing = citingauthor.bibliography_items.all()
+        # get 2 lists of bibliography items, from which to add/remove this citing_author
+        to_remove = [b for b in existing if b not in updated]
+        to_add = [b for b in updated if b not in existing]
+        for b in to_remove:
+            b.citingauthor_set.remove(citingauthor)
+        for b in to_add:
+            b.citingauthor_set.add(citingauthor)
+        return super().form_valid(form)
+
 
 class CitingAuthorListView(
     DateOrderMixin, LoginRequiredMixin, PermissionRequiredMixin, ListView

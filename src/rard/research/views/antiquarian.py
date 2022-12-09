@@ -167,6 +167,19 @@ class AntiquarianUpdateView(
     def get_success_url(self, *args, **kwargs):
         return reverse("antiquarian:detail", kwargs={"pk": self.object.pk})
 
+    def form_valid(self, form):
+        antiquarian = form.save(commit=False)
+        updated = form.cleaned_data["bibliography_items"]
+        existing = antiquarian.bibliography_items.all()
+        # get 2 lists of bibliography items, from which to add/remove this antiquarian
+        to_remove = [b for b in existing if b not in updated]
+        to_add = [b for b in updated if b not in existing]
+        for b in to_remove:
+            b.antiquarian_set.remove(antiquarian)
+        for b in to_add:
+            b.antiquarian_set.add(antiquarian)
+        return super().form_valid(form)
+
 
 class AntiquarianUpdateIntroductionView(
     LoginRequiredMixin, CheckLockMixin, PermissionRequiredMixin, UpdateView

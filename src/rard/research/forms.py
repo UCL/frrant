@@ -1,6 +1,8 @@
+import re
+
 from django import forms
 from django.core.exceptions import FieldDoesNotExist
-from django.forms import inlineformset_factory
+from django.forms import ModelMultipleChoiceField, inlineformset_factory
 from django.utils.translation import gettext_lazy as _
 
 from rard.research.models import (
@@ -38,6 +40,16 @@ def _validate_reference_order(ro):
         raise forms.ValidationError(
             "Reference order must contain only numbers.", code="ro-non-numeric"
         )
+
+
+class BibliographyModelMultipleChoiceField(ModelMultipleChoiceField):
+
+    CLEANR = re.compile("<.*?>")
+
+    def label_from_instance(self, obj):
+        # year is optional, leave it out and take tags out of title, trim if long
+        ttl = obj.author_surnames[:30] + ":- " + re.sub(self.CLEANR, "", obj.title)
+        return (ttl[:75] + "..") if len(ttl) > 75 else ttl
 
 
 class AntiquarianIntroductionForm(forms.ModelForm):
@@ -80,6 +92,20 @@ class AntiquarianDetailsForm(forms.ModelForm):
             "order_year",
         )
         labels = {"order_name": "Name for alphabetisation"}
+
+    bibliography_items = BibliographyModelMultipleChoiceField(
+        widget=forms.CheckboxSelectMultiple,
+        queryset=BibliographyItem.objects.all(),
+        required=False,
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # if editing a antiquarian item, init the bibliography_items set
+        if self.instance and self.instance.pk:
+            self.fields[
+                "bibliography_items"
+            ].initial = self.instance.bibliography_items.all()
 
 
 class AntiquarianCreateForm(forms.ModelForm):
@@ -796,7 +822,17 @@ class CitingAuthorUpdateForm(forms.ModelForm):
             "date_range",
         )
 
+    bibliography_items = BibliographyModelMultipleChoiceField(
+        widget=forms.CheckboxSelectMultiple,
+        queryset=BibliographyItem.objects.all(),
+        required=False,
+    )
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.instance and self.instance.is_anonymous_citing_author():
-            self.fields["order_name"].disabled = True
+        if self.instance:
+            self.fields[
+                "bibliography_items"
+            ].initial = self.instance.bibliography_items.all()
+            if self.instance.is_anonymous_citing_author():
+                self.fields["order_name"].disabled = True

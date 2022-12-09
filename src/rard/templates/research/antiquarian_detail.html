@@ -268,7 +268,8 @@
                 </div>
                 <div>
                     {% if perms.research.change_antiquarian and has_object_lock %}
-                    <a href='{% url "bibliography:create" %}'>{% trans 'Add' %}</a>
+                    <a href='{% url "bibliography:create" %}'>{% trans 'Add new' %}</a><p>
+                    <a href='{% url "antiquarian:update" object.pk %}'>{% trans 'Add existing' %}</a>
                     {% endif %}
                 </div>
             </div>
