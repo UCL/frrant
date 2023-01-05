@@ -19,8 +19,6 @@ class TextObjectField(HistoryModelMixin, BaseModel):
 
     comments = GenericRelation("Comment", related_query_name="text_fields")
 
-    references = GenericRelation("BibliographyItem", related_query_name="text_fields")
-
     def get_history_title(self):
         obj = self.get_related_object()
         if isinstance(obj, Antiquarian):
