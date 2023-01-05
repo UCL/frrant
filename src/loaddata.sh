@@ -13,8 +13,10 @@ then
 echo ${environment} environment
 docker cp $1 ${container}:/app/dump.json
 docker exec -it ${container} /bin/bash -c ". /entrypoint && LOADING=true ./manage.py loaddata /app/dump.json"
+docker exec ${container} /bin/bash -c "rm -rf /app/dump.json"
 exit 0
 fi
+
 done
 echo "Error: no RARD Django container running"
 exit 1

@@ -6,23 +6,29 @@
 {% endblock %}
 
 {% block action %}
-
+<div class='d-flex justify-content-between align-items-center'>
+    {%comment%}<div>
+        {% include 'research/partials/render_date_order_form.html' %}
+    </div>{%endcomment%}
+    {% if perms.research.add_bibliography %}
+        <div>
+            <a class='ml-3' href='{% url "bibliography:create" %}'>{% trans 'Create New' %}</a>
+        </div>
+    {% endif %}
+</div>
 {% endblock %}
 
 {% block inner %}
     {% for item in page_obj %}
+        <a href='{{ item.get_absolute_url }}' class='rard-list-item'>
+            <div class='row'>
 
-    <div class='rard-list-item'>
-        <div class='row'>
+                <div class="col-sm-3">{{ item.authors }}</div>
+                <div class="col-sm-2">{% if item.year %}{{ item.year }}{% endif %}</div>
+                <div class="col-sm-7">{{ item.title|safe }}</div>
 
-            <div class="col-sm-3">{{ item.authors }}</div>
-            <div class="col-sm-2">{% if item.year %}{{ item.year }}{% endif %}</div>
-            <div class="col-sm-5">{{ item.title|safe }}</div>
-            <div class="col-sm-2 actions">
-            <a href='{{ item.parent.get_absolute_url }}'>Cited Here</a>
             </div>
-        </div>
-    </div>
+        </a>
 
     {% endfor %}
 

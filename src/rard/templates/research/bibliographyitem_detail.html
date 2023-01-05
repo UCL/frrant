@@ -1,0 +1,100 @@
+{% extends "research/detail_base.html" %}
+{% load i18n bootstrap4 static humanize object_lock %}
+
+{% block heading %}
+{% comment %}
+{% if object.antiquarian_set.count %}
+<div class='mb-2'>
+    <small>
+        {% for b in object.antiquarian_set.all %}{% if not forloop.first %}, {% endif %}<a href='{{ b.get_absolute_url }}'>{{ b }}</a>{% endfor %}
+    </small>
+</div>
+{% endif %}
+{% endcomment %}
+<div>{{ object.name }}</div>
+{% endblock %}
+
+{% block last_modified %}{% endblock %}
+
+{% block action %}
+
+    {% with request.user|has_lock:object as has_object_lock %}
+
+        {% include 'research/partials/render_locked_info.html' %}
+
+        <div class='d-flex justify-content-end'>
+            {% if has_object_lock %}
+                {% if perms.research.delete_bibliographyitem %}
+                    <form novalidate class='form-inline' action='{% url "bibliography:delete" object.pk %}' method='POST'>
+                        {% csrf_token %}
+                        <div class='form-group'>
+                            <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+                                data-what='bibliography'>{% trans 'Delete' %}</button>
+                        </div>
+                    </form>
+                {% endif %}
+            {% endif %}
+        </div>
+    {% endwith %}
+{% endblock %}
+
+{% block inner %}
+    {% with request.user|has_lock:object as has_object_lock %}
+    <hr>
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Details' %}</h5>
+            </div>
+            <div>
+                {% if perms.research.change_bibliographyitem and has_object_lock %}
+                <a href='{% url "bibliography:update" object.pk %}'>{% trans 'Edit' %}</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <dl class="row mb-0">
+            <dt class="col-sm-3">{% trans 'Authors' %}</dt>
+            <dd class="col-sm-9">{{ object.authors }}</dd>
+
+            <dt class="col-sm-3">{% trans 'Year' %}</dt>
+            <dd class="col-sm-9">{{ object.year|default:'-' }}</dd>
+
+            <dt class="col-sm-3">{% trans 'Title' %}</dt>
+            <dd class="col-sm-9">{{ object.title|safe }}</dd>
+
+
+            <dt class="col-sm-3">{% trans 'Antiquarian(s)' %}</dt>
+            <dd class="col-sm-9">
+                {% if object.antiquarian_set.count > 0 %}
+                    {% for antiquarian in object.antiquarian_set.all %}
+                        {% include 'research/partials/antiquarian_list_item.html' %}
+                    {% endfor %}
+                {% endif %}
+            </dd>
+
+
+
+            <dt class="col-sm-3">{% trans 'Citing Author(s)' %}</dt>
+            <dd class="col-sm-9">
+                {% if object.citingauthor_set.count > 0 %}
+                    {% for citingauthor in object.citingauthor_set.all %}
+                        {% include 'research/partials/citingauthor_list_item.html' %}
+                    {% endfor %}
+                {% endif %}
+            </dd>
+
+        </dl>
+
+
+        <p>
+          <small>
+          {% include 'research/partials/render_last_modified_info.html' with object=object %}
+          </small>
+        </p>
+
+    </section>
+
+    {% endwith %}
+
+{% endblock %}

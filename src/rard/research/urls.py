@@ -110,8 +110,9 @@ urlpatterns = [
                         name="update_works",
                     ),
                     path(
-                        "<pk>/bibliograpny/create/",
-                        views.AntiquarianBibliographyCreateView.as_view(),
+                        "<pk>/bibliography/create/",
+                        # views.AntiquarianBibliographyCreateView.as_view(),
+                        views.BibliographyCreateView.as_view(),
                         name="create_bibliography",
                     ),
                     path(
@@ -141,6 +142,16 @@ urlpatterns = [
             (
                 [
                     path("list/", views.BibliographyListView.as_view(), name="list"),
+                    path(
+                        "create/",
+                        views.BibliographyCreateView.as_view(),
+                        name="create",
+                    ),
+                    path(
+                        "<pk>/",
+                        views.BibliographyDetailView.as_view(),
+                        name="detail",
+                    ),
                     path(
                         "<pk>/update/",
                         views.BibliographyUpdateView.as_view(),

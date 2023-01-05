@@ -12,6 +12,11 @@ repos:
 
   - repo: https://github.com/psf/black
     rev: 22.10.0
+    # https://pre-commit.com/#using-the-latest-version-for-a-repository
+    # rev: stable is not supported, this file can be updated with
+    # pre-commit autoupdate, or just by updating individual repo revs
+    # as above
+    #    rev: stable
     hooks:
       - id: black
 
@@ -20,7 +25,7 @@ repos:
     hooks:
       - id: isort
 
-  - repo: https://gitlab.com/pycqa/flake8
+  - repo: https://github.com/pycqa/flake8
     rev: 3.8.3
     hooks:
       - id: flake8

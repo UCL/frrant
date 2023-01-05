@@ -13,6 +13,7 @@ class BibliographyItem(HistoryModelMixin, LockableModel, BaseModel):
     history = HistoricalRecords()
 
     def related_lock_object(self):
+        # overrides HistoryModelMixin.related_lock_object
         return self
 
     def __str__(self):
