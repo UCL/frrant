@@ -467,6 +467,7 @@ class TestSearchView(TestCase):
         # Is the snippet correct?
         self.assertEqual(search_results[0].snippet, expected_snippet)
 
+    @pytest.mark.justthis
     def test_search_filters(self):
         # Antiquarians
         ant1 = Antiquarian.objects.create(name="John", re_code="1")

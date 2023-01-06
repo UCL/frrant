@@ -552,7 +552,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             if model == Work:
                 qs = qs.filter(antiquarian__in=ant_filter)
             if model == BibliographyItem:
-                qs = qs.filter(bibliography_items__in=ant_filter)
+                qs = qs.filter(antiquarians__in=ant_filter)
         if ca_filter:
             if model in [Fragment, AnonymousFragment, Testimonium]:
                 qs = qs.filter(original_texts__citing_work__author__in=ca_filter)
@@ -561,7 +561,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             if model == CitingAuthor:
                 qs = qs.filter(id__in=ca_filter)
             if model == BibliographyItem:
-                qs = qs.filter(bibliography_items__in=ca_filter)
+                qs = qs.filter(citing_authors__in=ca_filter)
         return qs
 
     def get(self, request, *args, **kwargs):
