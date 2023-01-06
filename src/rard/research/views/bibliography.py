@@ -31,8 +31,8 @@ class BibliographyDetailView(
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         bibliography = self.get_object()
-        antiquarians = bibliography.antiquarian_set.all()
-        citing_authors = bibliography.citingauthor_set.all()
+        antiquarians = bibliography.antiquarians.all()
+        citing_authors = bibliography.citing_authors.all()
         context.update(
             {
                 "bibliography": bibliography,
@@ -115,7 +115,7 @@ class BibliographyUpdateView(
     def form_valid(self, form):
         bibliography = form.save(commit=False)
         updated = form.cleaned_data["antiquarians"]
-        existing = bibliography.antiquarian_set.all()
+        existing = bibliography.antiquarians.all()
         # get 2 lists of antiquarians, from which to add/remove this bibliography item
         to_remove = [a for a in existing if a not in updated]
         to_add = [a for a in updated if a not in existing]
@@ -124,7 +124,7 @@ class BibliographyUpdateView(
         for a in to_add:
             a.bibliography_items.add(bibliography)
         c_updated = form.cleaned_data["citing_authors"]
-        c_existing = bibliography.citingauthor_set.all()
+        c_existing = bibliography.citing_authors.all()
         # get 2 lists of citing_authors, from which to add/remove this bibliography item
         to_remove = [c for c in c_existing if c not in updated]
         to_add = [c for c in c_updated if c not in existing]
@@ -139,7 +139,7 @@ class BibliographyUpdateView(
         context.update(
             {
                 "title": self.title,
-                "antiquarians": self.instance.antiquarian_set.all(),
+                "antiquarians": self.instance.antiquarians.all(),
             }
         )
         return context"""

@@ -3,10 +3,10 @@
 
 {% block heading %}
 {% comment %}
-{% if object.antiquarian_set.count %}
+{% if object.antiquarians.count %}
 <div class='mb-2'>
     <small>
-        {% for b in object.antiquarian_set.all %}{% if not forloop.first %}, {% endif %}<a href='{{ b.get_absolute_url }}'>{{ b }}</a>{% endfor %}
+        {% for b in object.antiquarians.all %}{% if not forloop.first %}, {% endif %}<a href='{{ b.get_absolute_url }}'>{{ b }}</a>{% endfor %}
     </small>
 </div>
 {% endif %}
@@ -66,8 +66,8 @@
 
             <dt class="col-sm-3">{% trans 'Antiquarian(s)' %}</dt>
             <dd class="col-sm-9">
-                {% if object.antiquarian_set.count > 0 %}
-                    {% for antiquarian in object.antiquarian_set.all %}
+                {% if object.antiquarians.count > 0 %}
+                    {% for antiquarian in object.antiquarians.all %}
                         {% include 'research/partials/antiquarian_list_item.html' %}
                     {% endfor %}
                 {% endif %}
@@ -77,8 +77,8 @@
 
             <dt class="col-sm-3">{% trans 'Citing Author(s)' %}</dt>
             <dd class="col-sm-9">
-                {% if object.citingauthor_set.count > 0 %}
-                    {% for citingauthor in object.citingauthor_set.all %}
+                {% if object.citing_authors.count > 0 %}
+                    {% for citingauthor in object.citing_authors.all %}
                         {% include 'research/partials/citingauthor_list_item.html' %}
                     {% endfor %}
                 {% endif %}

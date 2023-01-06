@@ -628,8 +628,8 @@ class BibliographyItemForm(HistoricalFormBase):
         super().__init__(*args, **kwargs)
         # if editing a bibliography item init the antiquarian set
         if self.instance and self.instance.pk:
-            self.fields["antiquarians"].initial = self.instance.antiquarian_set.all()
-            self.fields["citing_authors"].initial = self.instance.citingauthor_set.all()
+            self.fields["antiquarians"].initial = self.instance.antiquarians.all()
+            self.fields["citing_authors"].initial = self.instance.citing_authors.all()
 
 
 class FragmentForm(HistoricalFormBase):

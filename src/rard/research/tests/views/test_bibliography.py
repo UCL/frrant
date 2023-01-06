@@ -96,7 +96,7 @@ class TestBibliographyCreateView(TestCase):
         # should now be 1
         self.assertEqual(BibliographyItem.objects.count(), 1)
         # should get a list of 2 antiquarians attachec to the bibliography
-        self.assertEqual(BibliographyItem.objects.first().antiquarian_set.count(), 2)
+        self.assertEqual(BibliographyItem.objects.first().antiquarians.count(), 2)
 
     def test_success_url(self):
         view = BibliographyCreateView()
@@ -206,8 +206,8 @@ class TestBibliographyDetailView(TestCase):
         #    "antiquarians":[a1.pk,a2.pk]
         }
         bibliography = BibliographyItem(**data)
-        #bibliography.antiquarian_set.add(a1)
-        #bibliography.antiquarian_set.add(a2)
+        #bibliography.antiquarians.add(a1)
+        #bibliography.antiquarians.add(a2)
         url = reverse("bibliography:detail",kwargs = {"pk":bibliography.pk})
         request = RequestFactory().get(url)
         request.user = UserFactory.create()
