@@ -24,7 +24,7 @@ class CitingAuthor(HistoryModelMixin, LockableModel, DatedModel, BaseModel):
     ANONYMOUS_ORDERNAME = "anonymous_citing_author_order_name"
 
     bibliography_items = models.ManyToManyField(
-        "BibliographyItem", related_query_name="bibliography_items", blank=True
+        "BibliographyItem", related_name="citing_authors", blank=True
     )
 
     @classmethod

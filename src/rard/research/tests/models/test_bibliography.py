@@ -48,4 +48,4 @@ class TestBibliography(TestCase):
             )
             antiquarian.bibliography_items.add(self.bibliography)
 
-        self.assertEqual(self.bibliography.antiquarian_set.count(), length)
+        self.assertEqual(self.bibliography.antiquarians.count(), length)

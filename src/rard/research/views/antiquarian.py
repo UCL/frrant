@@ -175,9 +175,9 @@ class AntiquarianUpdateView(
         to_remove = [b for b in existing if b not in updated]
         to_add = [b for b in updated if b not in existing]
         for b in to_remove:
-            b.antiquarian_set.remove(antiquarian)
+            b.antiquarians.remove(antiquarian)
         for b in to_add:
-            b.antiquarian_set.add(antiquarian)
+            b.antiquarians.add(antiquarian)
         return super().form_valid(form)
 
 

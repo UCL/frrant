@@ -57,9 +57,9 @@ class CitingAuthorUpdateView(
         to_remove = [b for b in existing if b not in updated]
         to_add = [b for b in updated if b not in existing]
         for b in to_remove:
-            b.citingauthor_set.remove(citingauthor)
+            b.citing_authors.remove(citingauthor)
         for b in to_add:
-            b.citingauthor_set.add(citingauthor)
+            b.citing_authors.add(citingauthor)
         return super().form_valid(form)
 
 
