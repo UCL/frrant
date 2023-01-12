@@ -40,6 +40,15 @@ class TextObjectField(HistoryModelMixin, BaseModel):
                 pass
         return None
 
+    def save(self, *args, **kwargs):
+        """If related object is an Antiquarian, then parse content
+        for @mentions referencing Bibliography Items and create links
+        between them and the Antiquarian
+        """
+        if self.antiquarian:
+            self.link_bibliography_mentions_in_content(self.antiquarian)
+        super().save(*args, **kwargs)
+
     @property
     def fragment(self):
         from rard.research.models import Fragment
