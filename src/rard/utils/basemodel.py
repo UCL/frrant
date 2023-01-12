@@ -212,11 +212,35 @@ class DynamicTextField(TextField):
 
                 return str(soup)
 
+            def link_bibliography_mentions(self, antiquarian):
+                """Search for @mentions referencing bibliographyitems
+                within this field and create links with the antiquarian
+                provided."""
+
+                value = getattr(self, field_name)
+                soup = bs4.BeautifulSoup(value, features="html.parser")
+                links = soup.find_all("span", class_="mention")
+
+                for link in links:
+                    model_name = link.attrs.get("data-target", None)
+                    pkstr = link.attrs.get("data-id", None)
+                    if model_name == "bibliographyitem" and pkstr:
+                        model = apps.get_model(
+                            app_label="research", model_name=model_name
+                        )
+                        bib_item = model.objects.get(pk=int(pkstr))
+                        antiquarian.bibliography_items.add(bib_item)
+
             # here we add a method to the class. So if the dynamic field of
             # our class is called 'content' then the method will be
             # 'render_content' etc
             setattr(cls, "render_%s" % self.name, render_dynamic_content)
             setattr(cls, "update_%s_mentions" % self.name, update_editable_mentions)
+            setattr(
+                cls,
+                f"link_bibliography_mentions_in_{self.name}",
+                link_bibliography_mentions,
+            )
 
 
 class ObjectLock(models.Model):
