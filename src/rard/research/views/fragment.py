@@ -278,9 +278,57 @@ class AppositumCreateView(AnonymousFragmentCreateView):
 
 
 class FragmentListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
-    paginate_by = 10
+    # paginate_by = 10
     model = Fragment
     permission_required = ("research.view_fragment",)
+    template_name = "research/fragment_list.html"
+
+    def get_selected_topic(self):
+        topic_id = self.request.GET.get("selected_topic", None)
+        if not topic_id:
+            topic_id = Topic.objects.get(order=0).id
+        return Topic.objects.get(id=topic_id)
+
+    def get_context_data(self, *args, **kwargs):
+        context_data = super().get_context_data(*args, **kwargs)
+
+        # Add list of all topics to context
+        topic_qs = Topic.objects.all()
+        topics = []
+        for i in topic_qs:
+            topics.append([i.id, i.name])
+        context_data["topics"] = topics
+        context_data["selected_topic"] = self.get_selected_topic()
+
+        # Get display order: by_topic (default) or by_reference
+        display_order = self.request.GET.get("display_order", "by_topic")
+        context_data["display_order"] = display_order
+
+        # # Reorder object list if displaying by reference order
+        # if display_order == "by_reference":
+        #     context_data["object_list"] = self.order_object_list_by_reference(
+        #         context_data["object_list"]
+        #     )
+
+        return context_data
+
+    def get_queryset(self, topic=None):
+        """Queryset should include all anonymous topic links related
+        to a give topic and should not include apposita.
+
+        If no topic_id is given we'll get the topic from the request.
+        If none given there, choose the topic with the lowest order
+        as default."""
+        topic = topic or self.get_selected_topic()
+        qs = (
+            super()
+            # .get_queryset()
+            .get(Fragment.objects.all()).filter(
+                topics=topic,
+            )
+        )
+
+        return qs
 
 
 class AnonymousFragmentListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
