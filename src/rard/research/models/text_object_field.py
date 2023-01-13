@@ -41,12 +41,8 @@ class TextObjectField(HistoryModelMixin, BaseModel):
         return None
 
     def save(self, *args, **kwargs):
-        """If related object is an Antiquarian, then parse content
-        for @mentions referencing Bibliography Items and create links
-        between them and the Antiquarian
-        """
-        if self.antiquarian:
-            self.link_bibliography_mentions_in_content(self.antiquarian)
+        # Update links generated from mentions each time we save
+        self.link_bibliography_mentions_in_content()
         super().save(*args, **kwargs)
 
     @property

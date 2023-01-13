@@ -212,10 +212,12 @@ class DynamicTextField(TextField):
 
                 return str(soup)
 
-            def link_bibliography_mentions(self, antiquarian):
-                """Search for @mentions referencing bibliographyitems
-                within this field and create links with the antiquarian
-                provided."""
+            def link_bibliography_mentions(self):
+                """If this model has a related antiquarian, search content
+                for @mentions referencing bibliographyitems and add them
+                to antiquarian.bibliography_items."""
+                if not self.antiquarian:
+                    return
 
                 value = getattr(self, field_name)
                 soup = bs4.BeautifulSoup(value, features="html.parser")
@@ -229,7 +231,7 @@ class DynamicTextField(TextField):
                             app_label="research", model_name=model_name
                         )
                         bib_item = model.objects.get(pk=int(pkstr))
-                        antiquarian.bibliography_items.add(bib_item)
+                        self.antiquarian.bibliography_items.add(bib_item)
 
             # here we add a method to the class. So if the dynamic field of
             # our class is called 'content' then the method will be

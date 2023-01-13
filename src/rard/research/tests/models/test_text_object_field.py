@@ -66,10 +66,6 @@ class TestTextObjectField(TestCase):
         """When BibliographyItems are mentioned in an Antiquarian
         Introduction, a link between those items and the Antiquarian
         should be created when it is saved."""
-        mention_html = """
-            <span class="mention" data-id="1" data-target="bibliographyitem">
-                Test bibliography item
-            </span>"""
         antiquarian = Antiquarian.objects.create(name="name")
         # ID should equal 1
         bibliography_item = BibliographyItem.objects.create(
@@ -77,6 +73,10 @@ class TestTextObjectField(TestCase):
             author_surnames="Author1, Author2",
             year="888",
             title="There and back again",
+        )
+        mention_html = (
+            f"<span class='mention' data-id='{bibliography_item.id}'"
+            "data-target='bibliographyitem'>Test bibliography item</span>"
         )
         antiquarian.introduction.content = mention_html
         antiquarian.introduction.save()
