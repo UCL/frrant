@@ -96,11 +96,6 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
             antiquarian_testimoniumlinks__in=links
         ).distinct()
 
-    def unknown_book(self):
-        # if work link = true but book link = false?
-        # also needs to be last in the work
-        return self.possible_fragments.filter(book=False)
-
 
 class Book(HistoryModelMixin, DatedModel, BaseModel, OrderableModel):
 
