@@ -533,7 +533,7 @@ function drop(ev) {
     let link_id = $(item).data("link");
     data = { link_id: link_id, object_type: object_type };
     data["antiquarian_id"] = antiquarian_id;
-    data["move_to_by_work"] = new_pos;
+    data["move_to_by_book"] = new_pos;
     moveLinkTo(data);
   }
 
@@ -610,7 +610,7 @@ $("body").on("click", 'button[name="work_up"]', function () {
   moveLinkTo(data);
 });
 
-$("body").on("click", 'button[name="down_by_work"]', function () {
+$("body").on("click", 'button[name="down_by_book"]', function () {
   let pos = $(this).data("pos");
   let object_type = $(this).data("objecttype");
   let new_pos = pos + 1;
@@ -618,11 +618,11 @@ $("body").on("click", 'button[name="down_by_work"]', function () {
   let antiquarian_id = $(this).data("antiquarian");
   let data = { link_id: link_id, object_type: object_type };
   data["antiquarian_id"] = antiquarian_id;
-  data["move_to_by_work"] = new_pos;
+  data["move_to_by_book"] = new_pos;
   moveLinkTo(data);
 });
 
-$("body").on("click", 'button[name="up_by_work"]', function () {
+$("body").on("click", 'button[name="up_by_book"]', function () {
   let pos = $(this).data("pos");
   let object_type = $(this).data("objecttype");
   let new_pos = pos - 1;
@@ -630,7 +630,7 @@ $("body").on("click", 'button[name="up_by_work"]', function () {
   let antiquarian_id = $(this).data("antiquarian");
   let data = { link_id: link_id, object_type: object_type };
   data["antiquarian_id"] = antiquarian_id;
-  data["move_to_by_work"] = new_pos;
+  data["move_to_by_book"] = new_pos;
   moveLinkTo(data);
 });
 

@@ -958,7 +958,7 @@ class TestFragmentWorkOrderingScheme(TestCase):
             for link in self.work.antiquarian_work_fragmentlinks.order_by("work_order")
         ]
 
-    def test_up_by_work(self):
+    def test_up_by_book(self):
         fragment_names = self._get_fragment_names()
         self.assertEqual(len(fragment_names), 5)
         test_link = self.work.antiquarian_work_fragmentlinks.last()
@@ -967,59 +967,59 @@ class TestFragmentWorkOrderingScheme(TestCase):
             self._get_fragment_names(), [fragment_names[i] for i in (0, 1, 2, 3, 4)]
         )
 
-        test_link.up_by_work()
+        test_link.up_by_book()
         self.assertEqual(
             self._get_fragment_names(), [fragment_names[i] for i in (0, 1, 2, 4, 3)]
         )
 
-        test_link.up_by_work()
+        test_link.up_by_book()
         self.assertEqual(
             self._get_fragment_names(), [fragment_names[i] for i in (0, 1, 4, 2, 3)]
         )
 
-        test_link.up_by_work()
+        test_link.up_by_book()
         self.assertEqual(
             self._get_fragment_names(), [fragment_names[i] for i in (0, 4, 1, 2, 3)]
         )
 
-        test_link.up_by_work()
+        test_link.up_by_book()
         self.assertEqual(
             self._get_fragment_names(), [fragment_names[i] for i in (4, 0, 1, 2, 3)]
         )
 
         # attempt to move above pos 0 has no effect and does not barf
-        test_link.up_by_work()
+        test_link.up_by_book()
         self.assertEqual(
             self._get_fragment_names(), [fragment_names[i] for i in (4, 0, 1, 2, 3)]
         )
 
-    def test_down_by_work(self):
+    def test_down_by_book(self):
         fragment_names = self._get_fragment_names()
         self.assertEqual(len(fragment_names), 5)
         test_link = self.work.antiquarian_work_fragmentlinks.first()
 
-        test_link.down_by_work()
+        test_link.down_by_book()
         self.assertEqual(
             self._get_fragment_names(), [fragment_names[i] for i in (1, 0, 2, 3, 4)]
         )
 
-        test_link.down_by_work()
+        test_link.down_by_book()
         self.assertEqual(
             self._get_fragment_names(), [fragment_names[i] for i in (1, 2, 0, 3, 4)]
         )
 
-        test_link.down_by_work()
+        test_link.down_by_book()
         self.assertEqual(
             self._get_fragment_names(), [fragment_names[i] for i in (1, 2, 3, 0, 4)]
         )
 
-        test_link.down_by_work()
+        test_link.down_by_book()
         self.assertEqual(
             self._get_fragment_names(), [fragment_names[i] for i in (1, 2, 3, 4, 0)]
         )
 
         # attempt to move off the end has no effect and does not barf
-        test_link.down_by_work()
+        test_link.down_by_book()
         self.assertEqual(
             self._get_fragment_names(), [fragment_names[i] for i in (1, 2, 3, 4, 0)]
         )

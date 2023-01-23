@@ -78,9 +78,9 @@ class AntiquarianDetailView(
             try:
                 model_class = model_classes[object_type]
                 link = model_class.objects.get(pk=link_pk)
-                if "up_by_work" in self.request.POST:
+                if "up_by_book" in self.request.POST:
                     link.move_to_by_book(link.work_order - 1)
-                elif "down_by_work" in self.request.POST:
+                elif "down_by_book" in self.request.POST:
                     link.move_to_by_book(link.work_order + 1)
 
             except (ObjectDoesNotExist, KeyError):
