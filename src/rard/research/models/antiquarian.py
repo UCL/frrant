@@ -13,6 +13,8 @@ from rard.utils.text_processors import make_plain_text
 
 
 class WorkLink(OrderableModel, models.Model):
+    """Through-model for Work to Antiquarian, m2m"""
+
     class Meta:
         ordering = ["order"]
 
@@ -315,7 +317,7 @@ class Antiquarian(
 
             to_reorder = [
                 self.fragmentlinks.all()
-                .order_by("work__worklink__order", "work_order")
+                .order_by("work__worklink__order", "book__order", "order_in_book")
                 .distinct(),
                 # We want testimonium links without works to be ordered first
                 # but for some reason adding "-work__isnull" to the order_by
@@ -325,11 +327,11 @@ class Antiquarian(
                     self.testimoniumlinks.all().filter(work__isnull=True).distinct(),
                     self.testimoniumlinks.all()
                     .filter(work__isnull=False)
-                    .order_by("work__worklink__order", "work_order")
+                    .order_by("work__worklink__order", "book__order", "order_in_book")
                     .distinct(),
                 ),
                 self.appositumfragmentlinks.all()
-                .order_by("work__worklink__order", "work_order")
+                .order_by("work__worklink__order", "book__order", "order_in_book")
                 .distinct(),
             ]
 

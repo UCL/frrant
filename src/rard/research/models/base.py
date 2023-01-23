@@ -86,6 +86,7 @@ class WorkLinkBaseModel(LinkBaseModel):
     class Meta(LinkBaseModel.Meta):
         abstract = True
 
+    order_in_book = models.PositiveIntegerField(default=None, null=True, blank=True)
     # the order wrt the work
     work_order = models.PositiveIntegerField(default=None, null=True, blank=True)
 
@@ -107,77 +108,100 @@ class WorkLinkBaseModel(LinkBaseModel):
         except TypeError:
             return "ERR"
 
-    def related_work_queryset(self):
+    def related_book_queryset(self):
         try:
-            return self.__class__.objects.filter(work=self.work).order_by("work_order")
+            return self.__class__.objects.filter(book=self.book).order_by(
+                "order_in_book"
+            )
         except ObjectDoesNotExist:
             return self.__class__.objects.none()
 
-    def prev_by_work(self):
+    def prev_by_book(self):
         return (
-            self.related_work_queryset().filter(work_order__lt=self.work_order).last()
+            self.related_book_queryset()
+            .filter(order_in_book__lt=self.order_in_book)
+            .last()
         )
 
-    def next_by_work(self):
+    def next_by_book(self):
         return (
-            self.related_work_queryset().filter(work_order__gt=self.work_order).first()
+            self.related_book_queryset()
+            .filter(order_in_book__gt=self.order_in_book)
+            .first()
         )
 
-    def swap_by_work(self, replacement):
-        self.work_order, replacement.work_order = (
-            replacement.work_order,
-            self.work_order,
+    def swap_by_book(self, replacement):
+        self.order_in_book, replacement.order_in_book = (
+            replacement.order_in_book,
+            self.order_in_book,
         )
         self.save()
         replacement.save()
+        if self.work:
+            self.reindex_work_by_book()
         if self.antiquarian:
             self.antiquarian.reindex_fragment_and_testimonium_links()
 
-    def move_to_by_work(self, pos):
+    def move_to_by_book(self, pos):
         # move to a particular index in the set
-        old_pos = self.work_order
+        old_pos = self.order_in_book
         if pos == old_pos:
             return
 
         # if beyond the end, put it at the end (useful for UI)
-        pos = min(pos, self.related_work_queryset().count())
+        pos = min(pos, self.related_book_queryset().count())
 
         if pos < old_pos:
             to_reorder = (
-                self.related_work_queryset()
+                self.related_book_queryset()
                 .exclude(pk=self.pk)
-                .filter(work_order__gte=pos)
+                .filter(order_in_book__gte=pos)
             )
             reindex_start_pos = pos + 1
         else:
             to_reorder = (
-                self.related_work_queryset()
+                self.related_book_queryset()
                 .exclude(pk=self.pk)
-                .filter(work_order__lte=pos)
+                .filter(order_in_book__lte=pos)
             )
             reindex_start_pos = 0
 
         with transaction.atomic():
             for count, obj in enumerate(to_reorder):
-                obj.work_order = count + reindex_start_pos
+                obj.order_in_book = count + reindex_start_pos
                 obj.save()
 
-            self.work_order = pos
+            self.order_in_book = pos
             self.save()
 
+        self.reindex_work_by_book()
         self.antiquarian.reindex_fragment_and_testimonium_links()
 
         Antiquarian.reindex_null_fragment_and_testimonium_links()
 
-    def up_by_work(self):
-        previous = self.prev_by_work()
+    def up_by_book(self):
+        previous = self.prev_by_book()
         if previous:
-            self.swap_by_work(previous)
+            self.swap_by_book(previous)
 
-    def down_by_work(self):
-        next_ = self.next_by_work()
+    def down_by_book(self):
+        next_ = self.next_by_book()
         if next_:
-            self.swap_by_work(next_)
+            self.swap_by_book(next_)
+
+    def reindex_work_by_book(self):
+        from django.db import transaction
+
+        with transaction.atomic():
+            to_reorder = [
+                self.__class__.objects.filter(work=self.work)
+                .order_by("book__order", "order_in_book")
+                .distinct()
+            ]
+            for count, link in enumerate(to_reorder):
+                if link.work_order != count:
+                    link.work_order = count
+                    link.save()
 
     work = models.ForeignKey(
         "Work",
@@ -188,6 +212,7 @@ class WorkLinkBaseModel(LinkBaseModel):
     )
     # optional additional book information
     book = models.ForeignKey(
+        # this has book__order, not the same as order_in_book
         "Book",
         null=True,
         default=None,

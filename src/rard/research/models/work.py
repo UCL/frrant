@@ -5,7 +5,7 @@ from django.utils.text import slugify
 from simple_history.models import HistoricalRecords
 
 from rard.research.models.mixins import HistoryModelMixin
-from rard.utils.basemodel import BaseModel, DatedModel, LockableModel
+from rard.utils.basemodel import BaseModel, DatedModel, LockableModel, OrderableModel
 
 
 class WorkManager(models.Manager):
@@ -96,8 +96,13 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
             antiquarian_testimoniumlinks__in=links
         ).distinct()
 
+    def unknown_book(self):
+        # if work link = true but book link = false?
+        # also needs to be last in the work
+        return self.possible_fragments.filter(book=False)
 
-class Book(HistoryModelMixin, DatedModel, BaseModel):
+
+class Book(HistoryModelMixin, DatedModel, BaseModel, OrderableModel):
 
     history = HistoricalRecords()
 
@@ -105,7 +110,7 @@ class Book(HistoryModelMixin, DatedModel, BaseModel):
         return self.work
 
     class Meta:
-        ordering = ["number"]
+        ordering = ["order"]
 
     work = models.ForeignKey("Work", null=False, on_delete=models.CASCADE)
 
@@ -118,6 +123,9 @@ class Book(HistoryModelMixin, DatedModel, BaseModel):
         elif self.number:
             return "Book {}".format(self.number)
         return self.subtitle
+
+    def related_queryset(self):
+        return Book.objects.filter(work=self.work)
 
     def get_absolute_url(self):
         # link to its owning work

@@ -22,6 +22,7 @@ from rard.research.models import (
     Antiquarian,
     AntiquarianConcordance,
     BibliographyItem,
+    Book,
     Work,
 )
 from rard.research.views.mixins import CanLockMixin, CheckLockMixin, DateOrderMixin
@@ -78,9 +79,9 @@ class AntiquarianDetailView(
                 model_class = model_classes[object_type]
                 link = model_class.objects.get(pk=link_pk)
                 if "up_by_work" in self.request.POST:
-                    link.move_to_by_work(link.work_order - 1)
+                    link.move_to_by_book(link.work_order - 1)
                 elif "down_by_work" in self.request.POST:
-                    link.move_to_by_work(link.work_order + 1)
+                    link.move_to_by_book(link.work_order + 1)
 
             except (ObjectDoesNotExist, KeyError):
                 pass
@@ -103,13 +104,28 @@ class MoveLinkView(LoginRequiredMixin, View):
         return JsonResponse(data=ajax_data, safe=False)
 
     def post(self, *args, **kwargs):
-
+        """if passed a book pk and link pk, we'd want to see if there's an option to 'move to' and apply it to the book/link"""
         link_pk = self.request.POST.get("link_id", None)
         work_pk = self.request.POST.get("work_id", None)
+        book_pk = self.request.POST.get("book_id", None)
         antiquarian_pk = self.request.POST.get("antiquarian_id", None)
 
         antiquarian = Antiquarian.objects.get(pk=antiquarian_pk)
         object_type = self.request.POST.get("object_type", None)
+
+        if book_pk:
+            # moving a book wrt its work
+            try:
+                book = Book.objects.get(pk=book_pk)
+
+                if "move_to" in self.request.POST:
+                    pos = int(self.request.POST.get("move_to"))
+                    book.move_to(pos)
+
+            except (Book.DoesNotExist, KeyError):
+                raise Http404
+
+            return self.render_valid_response(antiquarian)
 
         if work_pk:
             # moving a work in the collection
@@ -141,9 +157,9 @@ class MoveLinkView(LoginRequiredMixin, View):
             try:
                 model_class = model_classes[object_type]
                 link = model_class.objects.get(pk=link_pk)
-                if "move_to_by_work" in self.request.POST:
-                    pos = int(self.request.POST.get("move_to_by_work"))
-                    link.move_to_by_work(pos)
+                if "move_to_by_book" in self.request.POST:
+                    pos = int(self.request.POST.get("move_to_by_book"))
+                    link.move_to_by_book(pos)
 
             except (ObjectDoesNotExist, KeyError):
                 raise Http404
