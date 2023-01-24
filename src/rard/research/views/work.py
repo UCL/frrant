@@ -1,7 +1,7 @@
 from itertools import groupby
 
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.db.models import F
+from django.db.models import F, Case, When
 from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
@@ -49,7 +49,7 @@ class WorkDetailView(
         # Empty structure with space for materials with unknown book
         ordered_materials = {
             book: {
-                material: {"definite": [], "possible": []}
+                material: {"all": [], "definite": [], "possible": []}
                 for material in ["fragments", "testimonia", "apposita"]
             }
             for book in list(books) + ["Unknown Book"]
@@ -80,6 +80,7 @@ class WorkDetailView(
             for k, v in groupby(query_list, lambda x: [x["book"], x["definite"]]):
                 grouped_dict.setdefault(k[0], {})
                 grouped_dict[k[0]][k[1]] = [f["object"] for f in v]
+
             return grouped_dict
 
         def add_to_ordered_materials(grouped_dict, material_type):
@@ -91,6 +92,13 @@ class WorkDetailView(
                     ordered_materials[book][material_type]["possible"] += materials.get(
                         False, []
                     )
+                    ordered_materials[book][material_type]["all"].extend(
+                        ordered_materials[book][material_type]["definite"]
+                    )
+                    ordered_materials[book][material_type]["all"].extend(
+                        ordered_materials[book][material_type]["possible"]
+                    )
+
                 else:  # If book is None it's unknown
                     ordered_materials["Unknown Book"][material_type][
                         "definite"
@@ -127,6 +135,8 @@ class WorkDetailView(
         fragments = make_grouped_dict(fragments)
         add_to_ordered_materials(fragments, "fragments")
 
+        print("frags", fragments)
+
         # Same for testimonia via work_testimoniumlinks
         testimonia = list(
             work.antiquarian_work_testimoniumlinks.values(
@@ -152,6 +162,8 @@ class WorkDetailView(
         add_to_ordered_materials(apposita, "apposita")
 
         ordered_materials = remove_empty_books(ordered_materials)
+
+        print(ordered_materials)
 
         context["ordered_materials"] = ordered_materials
         return context
