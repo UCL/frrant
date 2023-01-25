@@ -80,24 +80,23 @@ class WorkDetailView(
             for k, v in groupby(query_list, lambda x: [x["book"], x["definite"]]):
                 grouped_dict.setdefault(k[0], {})
                 grouped_dict[k[0]][k[1]] = [f["object"] for f in v]
-
             return grouped_dict
 
         def add_to_ordered_materials(grouped_dict, material_type):
             for book, materials in grouped_dict.items():
                 if book:
-                    ordered_materials[book][material_type]["definite"] += materials.get(
-                        True, []
-                    )
-                    ordered_materials[book][material_type]["possible"] += materials.get(
-                        False, []
-                    )
-                    ordered_materials[book][material_type]["all"].extend(
-                        ordered_materials[book][material_type]["definite"]
-                    )
-                    ordered_materials[book][material_type]["all"].extend(
-                        ordered_materials[book][material_type]["possible"]
-                    )
+                    definite_materials = [
+                        {"item": item, "definite": True}
+                        for item in materials.get(True, [])
+                    ]
+                    ordered_materials[book][material_type]["all"] += definite_materials
+
+                    possible_materials = [
+                        {"item": item, "definite": False}
+                        for item in materials.get(False, [])
+                    ]
+                    ordered_materials[book][material_type]["all"] += possible_materials
+                    ordered_materials[book][material_type]["all"]
 
                 else:  # If book is None it's unknown
                     ordered_materials["Unknown Book"][material_type][
@@ -135,8 +134,6 @@ class WorkDetailView(
         fragments = make_grouped_dict(fragments)
         add_to_ordered_materials(fragments, "fragments")
 
-        print("frags", fragments)
-
         # Same for testimonia via work_testimoniumlinks
         testimonia = list(
             work.antiquarian_work_testimoniumlinks.values(
@@ -162,8 +159,6 @@ class WorkDetailView(
         add_to_ordered_materials(apposita, "apposita")
 
         ordered_materials = remove_empty_books(ordered_materials)
-
-        print(ordered_materials)
 
         context["ordered_materials"] = ordered_materials
         return context
