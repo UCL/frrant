@@ -65,22 +65,11 @@ class WorkDetailView(
             return query_list
 
         def make_grouped_dict(query_list):
-            """Take a list of dictionaries each containing 'book' and 'definite' keys
-            and create a new dictionary where the keys are books, each value
-            is another dictionary containing separate object lists for definite
-            and possible links; e.g.:
-            query_list = [{'book':'book1','definite'true','object':F1},
-                          {'book':'book1','definite'false','object':F2},
-                          {'book':'book1','definite'true','object':F3},
-                          {'book':'book1','definite'false','object':F4},
-                          {'book':'book1','definite'true','object':F5},
-                          {'book':'book1','definite'false','object':F6}]
-            grouped_dict = {'book1': {'true': [F1,F3,F5],'false':[F2,F4,F6]}}
-            Take a"""
+            """Take an array of objects, each containing an array of objects, each object containing the item, the book it's linked to, its order and whether or not it's definitely linked to the book. If no book it will be assigned to 'Unknown Book'
+            eg.:
+            query_list = [{'book':'Book 1', 'object': F2,'definite': True, 'order': 88},{'book':'Book 1', 'object': F5,'definite': false, 'order': 90}]
+            grouped_dict = {'book':'Book 1':[{'item': F2,'definite': True, 'order': 88},{'item': F5,'definite': false, 'order': 90}]}"""
             grouped_dict = {}
-            # for k, v in groupby(query_list, lambda x: [x["book"], x["definite"]]):
-            #     grouped_dict.setdefault(k[0], {})
-            #     grouped_dict[k[0]][k[1]] = [f["object"] for f in v]
             for k, v in groupby(query_list, lambda x: x["book"]):
                 grouped_dict.setdefault(k, {})
                 grouped_dict[k] = [
@@ -91,35 +80,15 @@ class WorkDetailView(
                     }
                     for f in v
                 ]
-                print("GROUPED DICT", grouped_dict)
             return grouped_dict
 
         def add_to_ordered_materials(grouped_dict, material_type):
             for book, materials in grouped_dict.items():
-                print(book, materials)
                 if book:
                     ordered_materials[book][material_type]["all"] += materials
-                    # {"item": item, "definite": True}
-                    # for item in materials.get(True, [])
-
-                    # ordered_materials[book][material_type]["all"] += [
-                    #     {"item": item, "definite": False}
-                    #     for item in materials.get(False, [])
-                    # ]
 
                 else:  # If book is None it's unknown
                     ordered_materials["Unknown Book"][material_type]["all"] += materials
-                    # [
-                    #     {"item": item, "definite": True}
-                    #     for item in materials.get(True, [])
-                    # ]
-
-                    # ordered_materials["Unknown Book"][material_type]["all"] += [
-                    #     {"item": item, "definite": False}
-                    #     for item in materials.get(False, [])
-                    # ]
-
-                print("ORDEREDMATERIALS", ordered_materials)
 
         def remove_empty_books(ordered_materials):
             """Check each book and delete it if there's no material"""
@@ -136,8 +105,7 @@ class WorkDetailView(
                     del ordered_materials[book]
             return ordered_materials
 
-        # For each fragmentlink, get definite, book (can be None), and fragment pk
-        # Needs to be ordered by book then definite for make_grouped_dict to work
+        # For each fragmentlink, get definite, book (can be None), order, and fragment pk
         fragments = list(
             work.antiquarian_work_fragmentlinks.values(
                 "definite", "book", "order", pk=F("fragment__pk")
