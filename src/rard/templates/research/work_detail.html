@@ -138,41 +138,26 @@
           <div id="{{ book.get_anchor_id }}" class="pb-4">
             <h5>{{ book }}</h5>
 
-{% for entry in content.fragments.all %}
+      {% for fragment in content.fragments.all %}
 
-      {% include 'research/partials/fragment_list_item.html' with fragment=entry.item definite=entry.definite %}
+        {% include 'research/partials/fragment_list_item.html' with fragment=fragment.item definite=fragment.definite %}
       {% endfor %}
 
 
-<hr>old</hr>
-            {% if content.testimonia %}
-              {% if content.testimonia.definite %}
-                <h7>{% trans 'Definite Testimonia' %}</h7>
-                {% for testimonium in content.testimonia.definite %}
-                  {% include 'research/partials/testimonium_list_item.html' with testimonium=testimonium %}
-                {% endfor %}
-              {% endif %}
-              {% if content.testimonia.possible %}
-                <h7>{% trans 'Possible Testimonia' %}</h7>
-                {% for testimonium in content.testimonia.possible %}
-                  {% include 'research/partials/testimonium_list_item.html' with testimonium=testimonium %}
-                {% endfor %}
-              {% endif %}
-            {% endif %}
-            {% if content.apposita %}
-              {% if content.apposita.definite %}
-                <h7>{% trans 'Definite Apposita' %}</h7>
-                {% for appositum in content.apposita.definite %}
-                  {% include 'research/partials/anonymousfragment_list_item.html' with fragment=appositum %}
-                {% endfor %}
-              {% endif %}
-              {% if content.apposita.possible %}
-                <h7>{% trans 'Possible Apposita' %}</h7>
-                {% for appositum in content.apposita.possible %}
-                  {% include 'research/partials/anonymousfragment_list_item.html' with fragment=appositum %}
-                {% endfor %}
-              {% endif %}
-            {% endif %}
+      {% if content.testimonia.all %}
+      <h7>{% trans 'Testimonia' %}</h7>
+      {% for testimonium in content.testimonia.all %}
+        {% include 'research/partials/testimonium_list_item.html' with testimonium=testimonium.item definite=testimonium.definite %}
+      {% endfor %}
+      {% endif %}
+
+      {% if content.apposita.all %}
+       <h7>{% trans 'Apposita' %}</h7>
+      {% for appositum in content.apposita.all %}
+            {% include 'research/partials/anonymousfragment_list_item.html' with fragment=appositum.item definite=appositum.definite %}
+          {% endfor %}
+      {% endif %} 
+
           </div>
       {% endfor %}
     </section>
