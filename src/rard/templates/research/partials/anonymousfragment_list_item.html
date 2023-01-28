@@ -6,20 +6,22 @@
 </div>
 <div id='fragment_{{ fragment.pk }}' data-fragment='{{ fragment.pk }}' draggable='false' data-objecttype='fragment' data-pos='{{ forloop.counter0 }}' class='drag-item ordered-list-item rard-list-item d-flex justify-content-between'>
     <div>
-        <li style="list-style-type:none">
+        <li class="unstyled">
             <span>
                 {% with fragment.get_display_name as link_text %}
                     {% if perms.research.view_fragment %}
+                    
+                    {% if definite %}
+                        <i title='Definite appositum' data-placement="top" data-toggle='tooltip' class='fa fa-check-circle fa-xs text-muted'></i>
+                    {% else %}
+                        <i title='Possible appositum' data-placement="top" data-toggle='tooltip' class='fa fa-question-circle fa-xs text-muted'></i>
+                    {% endif %}
+
                     <a href='{% url "anonymous_fragment:detail" fragment.pk %}'>{{ link_text }}</a>
                     {% else %}
                         {{ link_text }}
                     {% endif %}
 
-                    {% if definite %}
-                            <i title='Definite Appositum' data-placement="top" data-toggle='tooltip' class='fa fa-check-circle fa-xs text-muted'></i>
-                            {% else %}
-                            <i title='Possible Appositum' data-placement="top" data-toggle='tooltip' class='fa fa-question-circle fa-xs text-muted'></i>
-                    {% endif %}
                 {% endwith %}
                 {% include 'research/partials/render_inline_lock_icon.html' with object=fragment %}
 

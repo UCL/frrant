@@ -7,7 +7,7 @@
 </div>
 <div id='anonymous_fragmentlink_{{ link.pk }}' data-link='{{ link.pk }}' data-antiquarian='{{ link.antiquarian.pk }}' draggable='false' data-objecttype='anonymous_fragment' data-pos='{{ forloop.counter0 }}' class='drag-item ordered-list-item rard-list-item d-flex justify-content-between'>
     <div>
-        <li>
+        <li class="unstyled">
                 {% if perms.research.view_fragment %}
                 <a href='{% url "anonymous_fragment:detail" fragment.pk %}'>{{ link_text }}</a>
                 {% else %}

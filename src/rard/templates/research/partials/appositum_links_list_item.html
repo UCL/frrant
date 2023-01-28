@@ -4,7 +4,7 @@
 
 <div class='rard-list-item d-flex justify-content-between'>
   <div>
-      <li>
+      <li class="unstyled">
           {% if link.linked_to %}
               {% with fragment=link.linked_to %}
 
@@ -82,7 +82,7 @@
                       {% else %}
                       <ul class='pl-3'>
                           {% for name in fragment.get_all_names %}
-                          <li>
+                          <li class="unstyled">
                               {{ name }}
                           </li>
                           {% endfor %}

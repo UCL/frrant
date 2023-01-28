@@ -7,17 +7,20 @@
 </div>
 <div id='fragmentlink_{{ link.pk }}' data-link='{{ link.pk }}' data-antiquarian='{{ link.antiquarian.pk }}' draggable='false' data-objecttype='fragment' data-pos='{{ forloop.counter0 }}' class='drag-item ordered-list-item rard-list-item d-flex justify-content-between'>
     <div>
-        <li>
+        <li class="unstyled">
                 {% if perms.research.view_fragment %}
+
+                {% if link.definite %}
+                    <i title='Definite link' data-placement="top" data-toggle='tooltip' class='fa fa-check-circle fa-xs text-muted'></i>
+                {% else %}
+                    <i title='Possible link' data-placement="top" data-toggle='tooltip' class='fa fa-question-circle fa-xs text-muted'></i>
+                {% endif %}
+
                 <a href='{% url "fragment:detail" fragment.pk %}'>{{ link_text }}</a>
                 {% else %}
                     {{ link_text }}
                 {% endif %}
-                {% if link.definite %}
-                <i title='Definite link' data-placement="top" data-toggle='tooltip' class='fa fa-check-circle fa-xs text-muted'></i>
-                {% else %}
-                <i title='Possible link' data-placement="top" data-toggle='tooltip' class='fa fa-question-circle fa-xs text-muted'></i>
-                {% endif %}
+                
                 <button class="btn btn-link toggle-element-button" type="button" data-toggles="fragmentlink_{{ link.pk }}"></button>
 
             <br>

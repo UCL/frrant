@@ -4,20 +4,22 @@
 
 <div class='rard-list-item d-flex justify-content-between'>
     <div>
-        <li>
+        <li class="unstyled">
             <span>
                 {% with testimonium.get_display_name as link_text %}
                     {% if perms.research.view_testimonium %}
+
+                    {% if definite %}
+                        <i title='Definite testimonium' data-placement="top" data-toggle='tooltip' class='fa fa-check-circle fa-xs text-muted'></i>
+                    {% else %}
+                        <i title='Possible testimonium' data-placement="top" data-toggle='tooltip' class='fa fa-question-circle fa-xs text-muted'></i>
+                    {% endif %}
+
                     <a href='{% url "testimonium:detail" testimonium.pk %}'>{{ link_text }}</a>
                     {% else %}
                         {{ link_text }}
                     {% endif %}
                 
-                    {% if definite %}
-                        <i title='Definite Testimonium' data-placement="top" data-toggle='tooltip' class='fa fa-check-circle fa-xs text-muted'></i>
-                        {% else %}
-                        <i title='Possible Testimonium' data-placement="top" data-toggle='tooltip' class='fa fa-question-circle fa-xs text-muted'></i>
-                    {% endif %}
                     {% endwith %}
                 {% include 'research/partials/render_inline_lock_icon.html' with object=testimonium %}
 
