@@ -25,8 +25,7 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
     history = HistoricalRecords()
 
     def related_lock_object(self):
-        fragments = self.all_fragments()
-        return self, fragments
+        return self
 
     class Meta:
         ordering = ["name"]
@@ -103,8 +102,7 @@ class Book(HistoryModelMixin, DatedModel, BaseModel, OrderableModel):
     history = HistoricalRecords()
 
     def related_lock_object(self):
-
-        return self.work, self
+        return self.work
 
     class Meta:
         ordering = ["order"]

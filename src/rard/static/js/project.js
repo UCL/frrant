@@ -610,14 +610,35 @@ $("body").on("click", 'button[name="work_up"]', function () {
   moveLinkTo(data);
 });
 
+// book up/down buttons are only used to order books within works, they should not pass any antiquarian information
+$("body").on("click", 'button[name="book_down"]', function () {
+  let pos = $(this).data("pos");
+  // let object_type = $(this).data('objecttype');
+  let new_pos = pos + 1;
+  let book_id = $(this).data("book");
+  let data = { book_id: book_id };
+  data["move_to"] = new_pos;
+  moveLinkTo(data);
+});
+
+$("body").on("click", 'button[name="book_up"]', function () {
+  let pos = $(this).data("pos");
+  // let object_type = $(this).data('objecttype');
+  let new_pos = pos - 1;
+  let book_id = $(this).data("book");
+  let data = { book_id: book_id };
+  data["move_to"] = new_pos;
+  moveLinkTo(data);
+});
+
 $("body").on("click", 'button[name="down_by_book"]', function () {
   let pos = $(this).data("pos");
   let object_type = $(this).data("objecttype");
   let new_pos = pos + 1;
   let link_id = $(this).data("link");
-  let antiquarian_id = $(this).data("antiquarian");
+  // let antiquarian_id = $(this).data("antiquarian");
   let data = { link_id: link_id, object_type: object_type };
-  data["antiquarian_id"] = antiquarian_id;
+  // data["antiquarian_id"] = antiquarian_id;
   data["move_to_by_book"] = new_pos;
   moveLinkTo(data);
 });
@@ -627,9 +648,9 @@ $("body").on("click", 'button[name="up_by_book"]', function () {
   let object_type = $(this).data("objecttype");
   let new_pos = pos - 1;
   let link_id = $(this).data("link");
-  let antiquarian_id = $(this).data("antiquarian");
+  // let antiquarian_id = $(this).data("antiquarian");
   let data = { link_id: link_id, object_type: object_type };
-  data["antiquarian_id"] = antiquarian_id;
+  // data["antiquarian_id"] = antiquarian_id;
   data["move_to_by_book"] = new_pos;
   moveLinkTo(data);
 });

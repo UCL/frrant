@@ -93,13 +93,26 @@ class MoveLinkView(LoginRequiredMixin, View):
     render_partial_template = "research/partials/ordered_work_area.html"
 
     def render_valid_response(self, antiquarian):
+        template = self.render_partial_template
         context = {
             "antiquarian": antiquarian,
             "has_object_lock": True,
             "can_edit": True,
             "perms": PermWrapper(self.request.user),
         }
-        html = render_to_string(self.render_partial_template, context)
+        html = render_to_string(template, context)
+        ajax_data = {"status": 200, "html": html}
+        return JsonResponse(data=ajax_data, safe=False)
+
+    def render_valid_work_response(self, work):
+        template = "research/partials/ordered_book_area.html"
+        context = {
+            "work": work,
+            "has_object_lock": True,
+            "can_edit": True,
+            "perms": PermWrapper(self.request.user),
+        }
+        html = render_to_string(template, context)
         ajax_data = {"status": 200, "html": html}
         return JsonResponse(data=ajax_data, safe=False)
 
@@ -109,8 +122,12 @@ class MoveLinkView(LoginRequiredMixin, View):
         work_pk = self.request.POST.get("work_id", None)
         book_pk = self.request.POST.get("book_id", None)
         antiquarian_pk = self.request.POST.get("antiquarian_id", None)
-
-        antiquarian = Antiquarian.objects.get(pk=antiquarian_pk)
+        if antiquarian_pk:
+            antiquarian = Antiquarian.objects.get(pk=antiquarian_pk)
+            template = self.render_partial_template
+        else:
+            # template = "research/partials/ordered_book_area.html"
+            template = "research/work_detail_view.html"
         object_type = self.request.POST.get("object_type", None)
 
         if book_pk:
@@ -125,7 +142,7 @@ class MoveLinkView(LoginRequiredMixin, View):
             except (Book.DoesNotExist, KeyError):
                 raise Http404
 
-            return self.render_valid_response(antiquarian)
+            return self.render_valid_work_response(book.work)
 
         if work_pk:
             # moving a work in the collection
