@@ -1,0 +1,47 @@
+{% load i18n %}
+
+<span>test</span>
+{% with ordered_materials=ordered_materials %}
+<span>test</span>
+
+{% for book, content in ordered_materials.items %}
+        <div id="{{ book.get_anchor_id }}" class="pb-4">
+        <h5>{{ book }}
+
+        {% if can_edit and has_object_lock %}
+        <button data-book='{{ book.pk }}' data-work='{{ book.work.pk }}' data-objecttype='book' data-pos='{{ forloop.counter0 }}' type='button' class='btn btn-light btn-sm' {% if forloop.first or disable_link_controls %}disabled{% endif %} name='book_up'><i class='fas fa-caret-up'></i></button>
+        <button data-book='{{ book.pk }}' data-work='{{ book.work.pk }}' data-objecttype='book' data-pos='{{ forloop.counter0 }}' type='button' class='btn btn-light btn-sm' {% if forloop.last or disable_link_controls %}disabled{% endif %} name='book_down'><i class='fas fa-caret-down'></i></button>
+        </h5> 
+        
+        {% endif %} 
+<span>test</span>
+
+    <div class="ordered-list">
+    {% for fragment in content.fragments.all %}
+    {% include 'research/partials/fragment_list_item.html' with fragment=fragment.item definite=fragment.definite can_edit=can_edit has_object_lock=has_object_lock %}
+    {% endfor %}
+    </div>
+
+    <div class="ordered-list">
+    {% if content.testimonia.all %}
+    
+        <h7>{% trans 'Testimonia' %}</h7>
+        {% for testimonium in content.testimonia.all %}
+        {% include 'research/partials/testimonium_list_item.html' with testimonium=testimonium.item definite=testimonium.definite can_edit=can_edit has_object_lock=has_object_lock %}
+        {% endfor %}
+    {% endif %}
+    </div>
+    
+    <div class="ordered-list">
+    {% if content.apposita.all %}
+        <h7>{% trans 'Apposita' %}</h7>
+        {% for appositum in content.apposita.all %}
+            {% include 'research/partials/anonymousfragment_list_item.html' with fragment=appositum.item definite=appositum.definite can_edit=can_edit has_object_lock=has_object_lock %}
+            {% endfor %}
+    {% endif %} 
+    </div>
+
+
+        </div>
+{% endfor %} 
+{% endwith %}
