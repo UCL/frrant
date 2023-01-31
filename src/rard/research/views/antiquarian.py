@@ -111,6 +111,7 @@ class MoveLinkView(LoginRequiredMixin, View):
             "has_object_lock": True,
             "can_edit": True,
             "perms": PermWrapper(self.request.user),
+            "ordered_materials": work.get_ordered_materials(),
         }
         html = render_to_string(template, context)
         ajax_data = {"status": 200, "html": html}
@@ -124,10 +125,6 @@ class MoveLinkView(LoginRequiredMixin, View):
         antiquarian_pk = self.request.POST.get("antiquarian_id", None)
         if antiquarian_pk:
             antiquarian = Antiquarian.objects.get(pk=antiquarian_pk)
-            template = self.render_partial_template
-        else:
-            # template = "research/partials/ordered_book_area.html"
-            template = "research/work_detail_view.html"
         object_type = self.request.POST.get("object_type", None)
 
         if book_pk:
