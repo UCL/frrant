@@ -1,7 +1,7 @@
 from itertools import groupby
 
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.db.models import F, Case, When
+from django.db.models import F
 from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
@@ -45,77 +45,80 @@ class WorkDetailView(
         """
         context = super().get_context_data(**kwargs)
         work = self.get_object()
-        books = work.book_set.all()
+        # books = work.book_set.all()
         # Empty structure with space for materials with unknown book
-        ordered_materials = {
-            book: {
-                material: {"all": []}
-                for material in ["fragments", "testimonia", "apposita"]
-            }
-            for book in list(books) + ["Unknown Book"]
-        }
+        # ordered_materials = {
+        #     book: {
+        #         material: {"all": []}
+        #         for material in ["fragments", "testimonia", "apposita"]
+        #     }
+        #     for book in list(books) + ["Unknown Book"]
+        # }
 
-        def inflate(query_list, pk_field, model, new_key):
-            """For each item in the query list, use the field value and the model
-            to add the actual object to the dictionary"""
-            for item in query_list:
-                item[new_key] = (
-                    model.objects.get(pk=item[pk_field]) if item[pk_field] else None
-                )
-            return query_list
+        # def inflate(query_list, pk_field, model, new_key):
+        #     """For each item in the query list, use the field value and the model
+        #     to add the actual object to the dictionary"""
+        #     for item in query_list:
+        #         item[new_key] = (
+        #             model.objects.get(pk=item[pk_field]) if item[pk_field] else None
+        #         )
+        #     return query_list
 
-        def make_grouped_dict(query_list):
-            """Take an array of objects, each containing an array of objects, each object containing the item, the book it's linked to, its order and whether or not it's definitely linked to the book. If no book it will be assigned to 'Unknown Book'
-            eg.:
-            query_list = [{'book':'Book 1', 'object': F2,'definite': True, 'order': 88},{'book':'Book 1', 'object': F5,'definite': false, 'order': 90}]
-            grouped_dict = {'book':'Book 1':[{'item': F2,'definite': True, 'order': 88},{'item': F5,'definite': false, 'order': 90}]}"""
-            grouped_dict = {}
-            for k, v in groupby(query_list, lambda x: x["book"]):
-                grouped_dict.setdefault(k, {})
-                grouped_dict[k] = [
-                    {
-                        "item": f["object"],
-                        "definite": f["definite"],
-                        "order": f["order"],
-                    }
-                    for f in v
-                ]
-            return grouped_dict
+        # def make_grouped_dict(query_list):
+        #     """Take an array of objects, each containing an array of objects, each object containing the item, the book it's linked to, its order and whether or not it's definitely linked to the book. If no book it will be assigned to 'Unknown Book'
+        #     eg.:
+        #     query_list = [{'book':'Book 1', 'object': F2,'definite': True, 'order': 88},{'book':'Book 1', 'object': F5,'definite': false, 'order': 90}]
+        #     grouped_dict = {'book':'Book 1':[{'item': F2,'definite': True, 'order': 88},{'item': F5,'definite': false, 'order': 90}]}"""
+        #     grouped_dict = {}
+        #     for k, v in groupby(query_list, lambda x: x["book"]):
+        #         grouped_dict.setdefault(k, {})
+        #         grouped_dict[k] = [
+        #             {
+        #                 "item": f["object"],
+        #                 "definite": f["definite"],
+        #                 "order": f["order"],
+        #             }
+        #             for f in v
+        #         ]
+        #     return grouped_dict
 
-        def add_to_ordered_materials(grouped_dict, material_type):
-            for book, materials in grouped_dict.items():
-                if book:
-                    ordered_materials[book][material_type]["all"] += materials
+        # def add_to_ordered_materials(grouped_dict, material_type):
+        #     for book, materials in grouped_dict.items():
+        #         if book:
+        #             ordered_materials[book][material_type]["all"] += materials
 
-                else:  # If book is None it's unknown
-                    ordered_materials["Unknown Book"][material_type]["all"] += materials
+        #         else:  # If book is None it's unknown
+        #             ordered_materials["Unknown Book"][material_type]["all"] += materials
 
-        def remove_empty_books(ordered_materials):
-            """Check each book and delete it if there's no material"""
-            for book in list(ordered_materials.keys()):
-                content = ordered_materials[book]
-                has_material = any(
-                    [
-                        bool(item_list)
-                        for material in content.values()
-                        for item_list in material.values()
-                    ]
-                )
-                if not has_material:
-                    del ordered_materials[book]
-            return ordered_materials
+        # def remove_empty_books(ordered_materials):
+        #     """Check each book and delete it if there's no material"""
+        #     for book in list(ordered_materials.keys()):
+        #         content = ordered_materials[book]
+        #         has_material = any(
+        #             [
+        #                 bool(item_list)
+        #                 for material in content.values()
+        #                 for item_list in material.values()
+        #             ]
+        #         )
+        #         if not has_material:
+        #             del ordered_materials[book]
+        #     return ordered_materials
 
         # For each fragmentlink, get definite, book (can be None), order, and fragment pk
+        ordered_materials = {}
         fragments = list(
             work.antiquarian_work_fragmentlinks.values(
                 "definite", "book", "order", pk=F("fragment__pk")
             ).order_by("book", "order")
         )
-        fragments = inflate(
-            inflate(fragments, "pk", Fragment, "object"), "book", Book, "book"
-        )
-        fragments = make_grouped_dict(fragments)
-        add_to_ordered_materials(fragments, "fragments")
+        ordered_materials["fragments"] = work.get_ordered_materials(fragments)
+
+        # fragments = inflate(
+        #     inflate(fragments, "pk", Fragment, "object"), "book", Book, "book"
+        # )
+        # fragments = make_grouped_dict(fragments)
+        # add_to_ordered_materials(fragments, "fragments")
 
         # Same for testimonia via work_testimoniumlinks
         testimonia = list(
@@ -123,11 +126,12 @@ class WorkDetailView(
                 "definite", "book", "order", pk=F("testimonium__pk")
             ).order_by("book", "-definite", "order")
         )
-        testimonia = inflate(
-            inflate(testimonia, "pk", Testimonium, "object"), "book", Book, "book"
-        )
-        testimonia = make_grouped_dict(testimonia)
-        add_to_ordered_materials(testimonia, "testimonia")
+        ordered_materials["testimonia"] = work.get_ordered_materials(testimonia)
+        # testimonia = inflate(
+        #     inflate(testimonia, "pk", Testimonium, "object"), "book", Book, "book"
+        # )
+        # testimonia = make_grouped_dict(testimonia)
+        # add_to_ordered_materials(testimonia, "testimonia")
 
         # Finally for apposita
         apposita = list(
@@ -135,14 +139,23 @@ class WorkDetailView(
                 "definite", "book", "order", pk=F("anonymous_fragment__pk")
             ).order_by("book", "-definite", "order")
         )
-        apposita = inflate(
-            inflate(apposita, "pk", AnonymousFragment, "object"), "book", Book, "book"
-        )
-        apposita = make_grouped_dict(apposita)
-        add_to_ordered_materials(apposita, "apposita")
+        ordered_materials["apposita"] = work.get_ordered_materials(apposita)
+
+        # apposita = inflate(
+        #     inflate(apposita, "pk", AnonymousFragment, "object"), "book", Book, "book"
+        # )
+        # apposita = make_grouped_dict(apposita)
+        # add_to_ordered_materials(apposita, "apposita")
+        def remove_empty_books(ordered_materials):
+            """Check each book and delete it if there's no material"""
+            for type in list(ordered_materials.keys()):
+                content = ordered_materials[type]
+                has_material = any([bool(item_list) for item_list in content.values()])
+                if not has_material:
+                    del ordered_materials[type]
+            return ordered_materials
 
         ordered_materials = remove_empty_books(ordered_materials)
-
         context["ordered_materials"] = ordered_materials
         return context
 

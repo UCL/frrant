@@ -1,3 +1,5 @@
+from itertools import groupby
+
 from django.contrib.postgres.aggregates import StringAgg
 from django.db import models
 from django.urls import reverse
@@ -95,6 +97,31 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
         return Testimonium.objects.filter(
             antiquarian_testimoniumlinks__in=links
         ).distinct()
+
+    def get_ordered_materials(self, query_list):
+        books = self.book_set.all()
+        ordered_materials = {book: [] for book in list(books) + ["Unknown Book"]}
+        grouped_dict = {}
+        for k, v in groupby(query_list, lambda x: x["book"]):
+            b = books.get(id=k)
+
+            grouped_dict.setdefault(b, {})
+            grouped_dict[b] = [
+                {
+                    "item": f["pk"],
+                    "definite": f["definite"],
+                    "order": f["order"],
+                }
+                for f in v
+            ]
+
+        for book, materials in grouped_dict.items():
+            if book:
+                ordered_materials[book] += materials
+
+            else:  # If book is None it's unknown
+                ordered_materials["Unknown Book"] += materials
+        return ordered_materials
 
 
 class Book(HistoryModelMixin, DatedModel, BaseModel, OrderableModel):
