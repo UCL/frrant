@@ -79,9 +79,9 @@ class AntiquarianDetailView(
                 model_class = model_classes[object_type]
                 link = model_class.objects.get(pk=link_pk)
                 if "up_by_book" in self.request.POST:
-                    link.move_to_by_book(link.work_order - 1)
+                    link.move_to_by_book(link.order_in_book - 1)
                 elif "down_by_book" in self.request.POST:
-                    link.move_to_by_book(link.work_order + 1)
+                    link.move_to_by_book(link.order_in_book + 1)
 
             except (ObjectDoesNotExist, KeyError):
                 pass
