@@ -2,6 +2,7 @@ from itertools import groupby
 
 from django.contrib.postgres.aggregates import StringAgg
 from django.db import models
+from django.db.models import F
 from django.urls import reverse
 from django.utils.text import slugify
 from simple_history.models import HistoricalRecords
@@ -98,29 +99,61 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
             antiquarian_testimoniumlinks__in=links
         ).distinct()
 
-    def get_ordered_materials(self, query_list):
+    def get_ordered_materials(self):
+        from rard.research.models import Fragment, Testimonium, AnonymousFragment
+
+        fragments = list(
+            self.antiquarian_work_fragmentlinks.values(
+                "definite", "book", "order", pk=F("fragment__pk")
+            ).order_by("book", "order")
+        )
+        testimonia = list(
+            self.antiquarian_work_testimoniumlinks.values(
+                "definite", "book", "order", pk=F("testimonium__pk")
+            ).order_by("book", "-definite", "order")
+        )
+        apposita = list(
+            self.antiquarian_work_appositumfragmentlinks.values(
+                "definite", "book", "order", pk=F("anonymous_fragment__pk")
+            ).order_by("book", "-definite", "order")
+        )
+
+        materials = {
+            "fragments": (fragments, Fragment),
+            "testimonia": (testimonia, Testimonium),
+            "apposita": (apposita, AnonymousFragment),
+        }
+
         books = self.book_set.all()
-        ordered_materials = {book: [] for book in list(books) + ["Unknown Book"]}
+        ordered_materials = {
+            book: {material: [] for material in materials.keys()}
+            for book in list(books) + ["Unknown Book"]
+        }
         grouped_dict = {}
-        for k, v in groupby(query_list, lambda x: x["book"]):
-            b = books.get(id=k)
 
-            grouped_dict.setdefault(b, {})
-            grouped_dict[b] = [
-                {
-                    "item": f["pk"],
-                    "definite": f["definite"],
-                    "order": f["order"],
-                }
-                for f in v
-            ]
-
-        for book, materials in grouped_dict.items():
+        for material_type in materials.keys():
+            query_list = materials[material_type][0]
+            model = materials[material_type][1]
+            for k, v in groupby(query_list, lambda x: x["book"]):
+                if k:
+                    b = books.get(id=k)
+                else:
+                    b = "Unknown Book"
+                grouped_dict.setdefault(b, {})
+                grouped_dict[b][material_type] = [
+                    {
+                        "item": model.objects.get(id=f["pk"]),
+                        "definite": f["definite"],
+                        "order": f["order"],
+                    }
+                    for f in v
+                ]
+        for book, material in grouped_dict.items():
             if book:
-                ordered_materials[book] += materials
+                ordered_materials[book] = material
 
             else:  # If book is None it's unknown
-                ordered_materials["Unknown Book"] += materials
+                ordered_materials["Unknown Book"] = material
         return ordered_materials
 
 

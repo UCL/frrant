@@ -32,40 +32,21 @@ class WorkDetailView(
         For each book in this work, add the book and a list of associated material
         ordered by material type, then by definite/possible boolean; e.g.:
         ordered_materials = {'book1': {
-                                'fragments':{
-                                    'definite':[F1,F2,F3],
-                                    'possible':[F4,F5,F6]},
-                                'testimonia':{
-                                    'definite':[T1,T2],
-                                    'possible':[T3,T4]
-                                },
-                                'apposita':{...}
-                            }
-                        }
+        'fragments':{
+            'definite':[F1,F2,F3],
+            'possible':[F4,F5,F6]},
+        'testimonia':{
+            'definite':[T1,T2],
+            'possible':[T3,T4]
+        },
+        'apposita':{...}
+            }
+        }
         """
         context = super().get_context_data(**kwargs)
         work = self.get_object()
-        ordered_materials = {}
-        fragments = list(
-            work.antiquarian_work_fragmentlinks.values(
-                "definite", "book", "order", pk=F("fragment__pk")
-            ).order_by("book", "order")
-        )
-        ordered_materials["fragments"] = work.get_ordered_materials(fragments)
 
-        testimonia = list(
-            work.antiquarian_work_testimoniumlinks.values(
-                "definite", "book", "order", pk=F("testimonium__pk")
-            ).order_by("book", "-definite", "order")
-        )
-        ordered_materials["testimonia"] = work.get_ordered_materials(testimonia)
-
-        apposita = list(
-            work.antiquarian_work_appositumfragmentlinks.values(
-                "definite", "book", "order", pk=F("anonymous_fragment__pk")
-            ).order_by("book", "-definite", "order")
-        )
-        ordered_materials["apposita"] = work.get_ordered_materials(apposita)
+        ordered_materials = work.get_ordered_materials()
 
         def remove_empty_books(ordered_materials):
             """Check each book and delete it if there's no material"""
@@ -76,7 +57,7 @@ class WorkDetailView(
                     del ordered_materials[type]
             return ordered_materials
 
-        ordered_materials = remove_empty_books(ordered_materials)
+        remove_empty_books(ordered_materials)
         context["ordered_materials"] = ordered_materials
         return context
 

@@ -131,40 +131,9 @@
 
     {% endcomment %}
 
-    <section class="ordered-list ordered-list-parent-ordering-group"> 
-      {% for book, content in ordered_materials.items %}
-          <div id="{{ book.get_anchor_id }}" class="pb-4">
-            <h5>{{ book }}</h5> 
-            {% if perms.research.change_work and has_object_lock %}{% include 'research/partials/ordered_book_area.html' with book=book %}{% endif %}
+    <section class="ordered-list  parent-ordering-group"> 
             
-       <div class="ordered-list">
-      {% for fragment in content.fragments.all %}
-        {% include 'research/partials/fragment_list_item.html' with fragment=fragment.item definite=fragment.definite %}
-      {% endfor %}
-      </div>
-
-      <div class="ordered-list">
-      {% if content.testimonia.all %}
-      
-      <h7>{% trans 'Testimonia' %}</h7>
-      {% for testimonium in content.testimonia.all %}
-        {% include 'research/partials/testimonium_list_item.html' with testimonium=testimonium.item definite=testimonium.definite %}
-      {% endfor %}
-      {% endif %}
-      </div>
-      
-      <div class="ordered-list">
-      {% if content.apposita.all %}
-       <h7>{% trans 'Apposita' %}</h7>
-      {% for appositum in content.apposita.all %}
-            {% include 'research/partials/anonymousfragment_list_item.html' with fragment=appositum.item definite=appositum.definite %}
-          {% endfor %}
-      {% endif %} 
-      </div>
-
-
-          </div>
-      {% endfor %}
+            {% include 'research/partials/ordered_book_area.html' with ordered_materials=ordered_materials can_edit=perms.research.change_work has_object_lock=has_object_lock %}
     </section>
 
 
