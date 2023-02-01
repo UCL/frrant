@@ -39,7 +39,7 @@
 {% block inner %}
     {% with request.user|has_lock:object as has_object_lock %}
     <hr>
-    <section>
+    <section id="work-info">
         <div class='d-flex justify-content-between mb-3'>
             <div>
                 <h5>{% trans 'Details' %}</h5>
@@ -131,9 +131,8 @@
 
     {% endcomment %}
 
-    <section class="ordered-list  parent-ordering-group"> 
-            
-            {% include 'research/partials/ordered_book_area.html' with ordered_materials=ordered_materials can_edit=perms.research.change_work has_object_lock=has_object_lock %}
+    <section> 
+      {% include 'research/partials/ordered_book_area.html' with ordered_materials=ordered_materials can_edit=perms.research.change_work has_object_lock=has_object_lock %}
     </section>
 
 

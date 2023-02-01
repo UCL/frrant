@@ -1,7 +1,6 @@
 from itertools import groupby
 
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.db.models import F
 from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
@@ -11,7 +10,7 @@ from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from rard.research.forms import BookForm, WorkForm
-from rard.research.models import AnonymousFragment, Book, Fragment, Testimonium, Work
+from rard.research.models import Book, Work
 from rard.research.views.mixins import CanLockMixin, CheckLockMixin
 
 
@@ -28,28 +27,13 @@ class WorkDetailView(
     permission_required = ("research.view_work",)
 
     def get_context_data(self, **kwargs):
-        """Add a dictionary to context data called ordered materials.
-        For each book in this work, add the book and a list of associated material
-        ordered by material type, then by definite/possible boolean; e.g.:
-        ordered_materials = {'book1': {
-        'fragments':{
-            'definite':[F1,F2,F3],
-            'possible':[F4,F5,F6]},
-        'testimonia':{
-            'definite':[T1,T2],
-            'possible':[T3,T4]
-        },
-        'apposita':{...}
-            }
-        }
-        """
+        """use work model method get_ordered_materials to retrieve a dictionary of all fragments, testimonia and apposita grouped by book and add it to the context"""
         context = super().get_context_data(**kwargs)
         work = self.get_object()
 
         ordered_materials = work.get_ordered_materials()
 
         context["ordered_materials"] = ordered_materials
-        print("WKCON", context)
         return context
 
 

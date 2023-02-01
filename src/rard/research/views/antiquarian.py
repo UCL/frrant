@@ -113,7 +113,6 @@ class MoveLinkView(LoginRequiredMixin, View):
             "perms": PermWrapper(self.request.user),
             "ordered_materials": work.get_ordered_materials(),
         }
-        print("ANTCON", context)
         html = render_to_string(template, context)
         ajax_data = {"status": 200, "html": html}
         return JsonResponse(data=ajax_data, safe=False)
@@ -132,7 +131,6 @@ class MoveLinkView(LoginRequiredMixin, View):
             # moving a book wrt its work
             try:
                 book = Book.objects.get(pk=book_pk)
-
                 if "move_to" in self.request.POST:
                     pos = int(self.request.POST.get("move_to"))
                     book.move_to(pos)
