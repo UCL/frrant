@@ -125,22 +125,14 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
         }
 
         books = self.book_set.all()
-        ordered_materials = {
-            book: {material: [] for material in materials.keys()}
-            for book in list(books) + ["Unknown Book"]
-        }
-        grouped_dict = {}
+        ordered_materials = {book: {} for book in books}
+        ordered_materials["Unknown Book"] = {}
 
-        for material_type in materials.keys():
-            query_list = materials[material_type][0]
-            model = materials[material_type][1]
+        for material_type, (query_list, model) in materials.items():
             for k, v in groupby(query_list, lambda x: x["book"]):
-                if k:
-                    b = books.get(id=k)
-                else:
-                    b = "Unknown Book"
-                grouped_dict.setdefault(b, {})
-                grouped_dict[b][material_type] = [
+                book = books.get(id=k) if k else "Unknown Book"
+                content = ordered_materials[book]
+                content[material_type] = [
                     {
                         "item": model.objects.get(id=f["pk"]),
                         "definite": f["definite"],
@@ -148,18 +140,13 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
                     }
                     for f in v
                 ]
-        for book, material in grouped_dict.items():
-            if book:
-                ordered_materials[book] = material
 
-            else:  # If book is None it's unknown
-                ordered_materials["Unknown Book"] = material
+        ordered_materials = {
+            book: materials
+            for book, materials in ordered_materials.items()
+            if any([bool(item_list) for item_list in materials.values()])
+        }
 
-        for type in list(ordered_materials.keys()):
-            content = ordered_materials[type]
-            has_material = any([bool(item_list) for item_list in content.values()])
-            if not has_material:
-                del ordered_materials[type]
         return ordered_materials
 
 
