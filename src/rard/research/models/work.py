@@ -154,6 +154,12 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
 
             else:  # If book is None it's unknown
                 ordered_materials["Unknown Book"] = material
+
+        for type in list(ordered_materials.keys()):
+            content = ordered_materials[type]
+            has_material = any([bool(item_list) for item_list in content.values()])
+            if not has_material:
+                del ordered_materials[type]
         return ordered_materials
 
 

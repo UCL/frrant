@@ -48,17 +48,18 @@ class WorkDetailView(
 
         ordered_materials = work.get_ordered_materials()
 
-        def remove_empty_books(ordered_materials):
-            """Check each book and delete it if there's no material"""
-            for type in list(ordered_materials.keys()):
-                content = ordered_materials[type]
-                has_material = any([bool(item_list) for item_list in content.values()])
-                if not has_material:
-                    del ordered_materials[type]
-            return ordered_materials
+        # def remove_empty_books(ordered_materials):
+        #     """Check each book and delete it if there's no material"""
+        #     for type in list(ordered_materials.keys()):
+        #         content = ordered_materials[type]
+        #         has_material = any([bool(item_list) for item_list in content.values()])
+        #         if not has_material:
+        #             del ordered_materials[type]
+        #     return ordered_materials
 
-        remove_empty_books(ordered_materials)
+        # remove_empty_books(ordered_materials)
         context["ordered_materials"] = ordered_materials
+        print("WKCON", context)
         return context
 
 

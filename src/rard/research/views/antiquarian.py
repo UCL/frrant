@@ -113,6 +113,7 @@ class MoveLinkView(LoginRequiredMixin, View):
             "perms": PermWrapper(self.request.user),
             "ordered_materials": work.get_ordered_materials(),
         }
+        print("ANTCON", context)
         html = render_to_string(template, context)
         ajax_data = {"status": 200, "html": html}
         return JsonResponse(data=ajax_data, safe=False)
