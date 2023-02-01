@@ -533,7 +533,7 @@ function drop(ev) {
     let link_id = $(item).data("link");
     data = { link_id: link_id, object_type: object_type };
     data["antiquarian_id"] = antiquarian_id;
-    data["move_to_by_book"] = new_pos;
+    data["move_to_by_work"] = new_pos;
     moveLinkTo(data);
   }
 
@@ -588,11 +588,11 @@ $("body").on("click", 'button[name="fragment_up"]', function () {
 
 $("body").on("click", 'button[name="work_down"]', function () {
   let pos = $(this).data("pos");
-  // let object_type = $(this).data('objecttype');
+  let object_type = $(this).data("objecttype");
   let new_pos = pos + 1;
   let work_id = $(this).data("work");
   let antiquarian_id = $(this).data("antiquarian");
-  let data = { work_id: work_id };
+  let data = { work_id: work_id, object_type: object_type };
   data["antiquarian_id"] = antiquarian_id;
   data["move_to"] = new_pos;
   moveLinkTo(data);
@@ -600,11 +600,11 @@ $("body").on("click", 'button[name="work_down"]', function () {
 
 $("body").on("click", 'button[name="work_up"]', function () {
   let pos = $(this).data("pos");
-  // let object_type = $(this).data('objecttype');
+  let object_type = $(this).data("objecttype");
   let new_pos = pos - 1;
   let work_id = $(this).data("work");
   let antiquarian_id = $(this).data("antiquarian");
-  let data = { work_id: work_id };
+  let data = { work_id: work_id, object_type: object_type };
   data["antiquarian_id"] = antiquarian_id;
   data["move_to"] = new_pos;
   moveLinkTo(data);
@@ -613,7 +613,6 @@ $("body").on("click", 'button[name="work_up"]', function () {
 // book up/down buttons are only used to order books within works, they should not pass any antiquarian information
 $("body").on("click", 'button[name="book_down"]', function () {
   let pos = $(this).data("pos");
-  // let object_type = $(this).data('objecttype');
   let new_pos = pos + 1;
   let book_id = $(this).data("book");
   let data = { book_id: book_id };
@@ -623,7 +622,6 @@ $("body").on("click", 'button[name="book_down"]', function () {
 
 $("body").on("click", 'button[name="book_up"]', function () {
   let pos = $(this).data("pos");
-  // let object_type = $(this).data('objecttype');
   let new_pos = pos - 1;
   let book_id = $(this).data("book");
   let data = { book_id: book_id };
@@ -631,6 +629,7 @@ $("body").on("click", 'button[name="book_up"]', function () {
   moveLinkTo(data);
 });
 
+// up/down by book is for ordering frags etc within books
 $("body").on("click", 'button[name="down_by_book"]', function () {
   let pos = $(this).data("pos");
   let object_type = $(this).data("objecttype");
@@ -652,6 +651,31 @@ $("body").on("click", 'button[name="up_by_book"]', function () {
   let data = { link_id: link_id, object_type: object_type };
   // data["antiquarian_id"] = antiquarian_id;
   data["move_to_by_book"] = new_pos;
+  moveLinkTo(data);
+});
+
+// frags etc can be linked to a work without a book and are ordered only by work on the antiquarian page
+$("body").on("click", 'button[name="down_by_work"]', function () {
+  let pos = $(this).data("pos");
+  let object_type = $(this).data("objecttype");
+  let new_pos = pos + 1;
+  let link_id = $(this).data("link");
+  let antiquarian_id = $(this).data("antiquarian");
+  let data = { link_id: link_id, object_type: object_type };
+  data["antiquarian_id"] = antiquarian_id;
+  data["move_to_by_work"] = new_pos;
+  moveLinkTo(data);
+});
+
+$("body").on("click", 'button[name="up_by_work"]', function () {
+  let pos = $(this).data("pos");
+  let object_type = $(this).data("objecttype");
+  let new_pos = pos - 1;
+  let link_id = $(this).data("link");
+  let antiquarian_id = $(this).data("antiquarian");
+  let data = { link_id: link_id, object_type: object_type };
+  data["antiquarian_id"] = antiquarian_id;
+  data["move_to_by_work"] = new_pos;
   moveLinkTo(data);
 });
 

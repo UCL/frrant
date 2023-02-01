@@ -170,13 +170,44 @@ class WorkLinkBaseModel(LinkBaseModel):
             for count, obj in enumerate(to_reorder):
                 obj.order_in_book = count + reindex_start_pos
                 obj.save()
-
             self.order_in_book = pos
             self.save()
 
         self.reindex_work_by_book()
         self.antiquarian.reindex_fragment_and_testimonium_links()
+        Antiquarian.reindex_null_fragment_and_testimonium_links()
 
+    def move_to_by_work(self, pos):
+        # move to a particular index in the set
+        old_pos = self.work_order
+        if pos == old_pos:
+            return
+
+        # if beyond the end, put it at the end (useful for UI)
+        pos = min(pos, self.related_work_queryset().count())
+
+        if pos < old_pos:
+            to_reorder = (
+                self.related_work_queryset()
+                .exclude(pk=self.pk)
+                .filter(work_order__gte=pos)
+            )
+            reindex_start_pos = pos + 1
+        else:
+            to_reorder = (
+                self.related_work_queryset()
+                .exclude(pk=self.pk)
+                .filter(work_order__lte=pos)
+            )
+            reindex_start_pos = 0
+
+        with transaction.atomic():
+            for count, obj in enumerate(to_reorder):
+                obj.work_order = count + reindex_start_pos
+                obj.save()
+            self.work_order = pos
+            self.save()
+        self.antiquarian.reindex_fragment_and_testimonium_links()
         Antiquarian.reindex_null_fragment_and_testimonium_links()
 
     def up_by_book(self):
@@ -199,8 +230,8 @@ class WorkLinkBaseModel(LinkBaseModel):
                 .distinct()
             ]
             for count, link in enumerate(to_reorder):
-                if link.work_order != count:
-                    link.work_order = count
+                if link.order_in_book != count:
+                    link.order_in_book = count
                     link.save()
 
     work = models.ForeignKey(
