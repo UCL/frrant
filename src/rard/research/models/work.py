@@ -141,11 +141,11 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
                     for f in v
                 ]
 
-        ordered_materials = {
-            book: materials
-            for book, materials in ordered_materials.items()
-            if any([bool(item_list) for item_list in materials.values()])
-        }
+        # ordered_materials = {
+        #     book: materials
+        #     for book, materials in ordered_materials.items()
+        #     if any([bool(item_list) for item_list in materials.values()])
+        # }
 
         return ordered_materials
 
