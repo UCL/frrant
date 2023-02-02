@@ -22,7 +22,7 @@
 
             <div>
             {% if content.testimonia %}
-                <h7>{% trans 'Testimonia' %}</h7>
+                <h6>{% trans 'Testimonia' %}</h6>
                 {% for testimonium in content.testimonia %}
                     {% include 'research/partials/testimonium_list_item.html' with testimonium=testimonium.item definite=testimonium.definite can_edit=can_edit has_object_lock=has_object_lock %}
                 {% endfor %}
@@ -31,7 +31,7 @@
             
             <div>
             {% if content.apposita %}
-                <h7>{% trans 'Apposita' %}</h7>
+                <h6>{% trans 'Apposita' %}</h6>
                 {% for appositum in content.apposita %}
                     {% include 'research/partials/anonymousfragment_list_item.html' with fragment=appositum.item definite=appositum.definite can_edit=can_edit has_object_lock=has_object_lock %}
                     {% endfor %}
