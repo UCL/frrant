@@ -4,13 +4,17 @@
 
     <div id="{{ book.get_anchor_id }}" class="pb-4">
 
+    {% if book == "Unknown Book" %}
+    <h5>{{ book }}</h5>
+    {% else %}
     <h5>{{ book }}
     {% if can_edit and has_object_lock %}
         <button data-book='{{ book.pk }}' data-work='{{ book.work.pk }}' data-objecttype='book' data-pos='{{ forloop.counter0 }}' type='button' class='btn btn-light btn-sm' {% if forloop.first or disable_link_controls %}disabled{% endif %} name='book_up'><i class='fas fa-caret-up'></i></button>
         <button data-book='{{ book.pk }}' data-work='{{ book.work.pk }}' data-objecttype='book' data-pos='{{ forloop.counter0 }}' type='button' class='btn btn-light btn-sm' {% if forloop.last or disable_link_controls %}disabled{% endif %} name='book_down'><i class='fas fa-caret-down'></i></button>
         </h5> 
     
-    {% endif %} 
+    {% endif %} {% endif %}
+
         <div class="ordered-list">
             <div>
             {% if content.fragments %}
