@@ -198,12 +198,6 @@
         {% trans 'Testimonia' %}
       </a>
       {% endif %}
-      {% if perms.research.view_fragment %}
-      <a class='nav-link {% if "fragment" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
-        href='{% url "fragment:list" %}'>
-        {% trans 'Fragments' %}
-      </a>
-      {% endif %}
       {% endcomment %}
 
       {% if perms.research.view_fragment %}
@@ -212,6 +206,12 @@
         {% trans 'Anonymous Fragments' %}
       </a>
       {% endif %}
+      {% comment %} {% if perms.research.view_fragment %}
+      <a class='nav-link {% if "unlinked_fragment" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
+        href='{% url "unlinked_fragment:list" %}'>
+        {% trans 'Unlinked Fragments' %}
+      </a>
+      {% endif %} {% endcomment %}
       {% if perms.research.view_citingauthor %}
       <a class='nav-link {% if "citingauthor" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
         href='{% url "citingauthor:list" %}'>

@@ -365,6 +365,29 @@ class AnonymousFragmentListView(LoginRequiredMixin, PermissionRequiredMixin, Lis
         return qs
 
 
+class UnlinkedFragmentListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    model = Fragment
+    permission_required = "research.view_fragment"
+    template_name = "research/fragment_list.html"
+
+    def get_queryset(self, topic=None):
+        """Queryset should include all unlinked fragments."""
+        # topic = topic or self.get_selected_topic()
+        qs = Fragment.objects.all().filter(
+            fragment__is_unlilnked=True,
+        )
+        # qs = (
+        #     super()
+        #     .get_queryset()
+        #     .filter(
+        #         fragment__is_unlilnked=True,
+        #         # topic=topic,
+        #     )
+        # ).order_by("order")
+
+        return qs
+
+
 class AddAppositumGeneralLinkView(
     CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, FormView
 ):

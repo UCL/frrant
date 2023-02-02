@@ -154,6 +154,14 @@
           height: 30px;
           margin: 5px 5px 5px 5px;
       }
+      .non-prod-column{
+          position:fixed;
+          left:0;
+          width:1vw;
+          height:100vh;
+          background-color:#ffff00;
+
+      }
     </style>
 
     {% endblock %}
@@ -173,6 +181,7 @@
           {% trans "Roman Republican Antiquarians Research Database" %}
           {% if not PRODUCTION_INSTANCE %}
             (NON PRODUCTION VERSION)
+            <div class="non-prod-column"></div>
           {% endif %}
         </a>
 
