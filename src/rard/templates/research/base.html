@@ -206,12 +206,12 @@
         {% trans 'Anonymous Fragments' %}
       </a>
       {% endif %}
-      {% comment %} {% if perms.research.view_fragment %}
+      {% if perms.research.view_fragment %}
       <a class='nav-link {% if "unlinked_fragment" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
         href='{% url "unlinked_fragment:list" %}'>
         {% trans 'Unlinked Fragments' %}
       </a>
-      {% endif %} {% endcomment %}
+      {% endif %} 
       {% if perms.research.view_citingauthor %}
       <a class='nav-link {% if "citingauthor" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
         href='{% url "citingauthor:list" %}'>

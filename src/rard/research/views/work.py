@@ -39,7 +39,6 @@ class WorkDetailView(
         }
         context["books"] = books
         context["ordered_materials"] = ordered_materials
-        print(context)
         return context
 
 
