@@ -4,7 +4,7 @@
 {% block heading %}
     {% trans 'Unlinked Fragments' %}
         <div class="ml-1 mt-2">
-            {% include 'research/partials/fragment_form.html' %}
+            {% comment %} {% include 'research/fragment_form.html' %} {% endcomment %}
         </div>
 {% endblock %}
 
@@ -17,7 +17,8 @@
 {% block inner %}
 
     <h5 class='mt-3 alphabetum'>{{ selected_topic.name }}</h5>
-
-    {% include 'research/partials/fragment_list_item.html' with fragment=object %}
+    {% for unlinked in fragment_list %}
+    {% include 'research/partials/anonymousfragment_list_item.html' with fragment=unlinked %}
+    {% endfor %}
 
 {% endblock %}

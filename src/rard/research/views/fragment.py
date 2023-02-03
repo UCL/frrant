@@ -368,22 +368,13 @@ class AnonymousFragmentListView(LoginRequiredMixin, PermissionRequiredMixin, Lis
 class UnlinkedFragmentListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     model = Fragment
     permission_required = "research.view_fragment"
-    template_name = "research/fragment_list.html"
+    template_name = "research/unlinkedfragment_list.html"
 
     def get_queryset(self, topic=None):
         """Queryset should include all unlinked fragments."""
-        # topic = topic or self.get_selected_topic()
         qs = Fragment.objects.all().filter(
-            fragment__is_unlilnked=True,
+            linked_antiquarians=None,
         )
-        # qs = (
-        #     super()
-        #     .get_queryset()
-        #     .filter(
-        #         fragment__is_unlilnked=True,
-        #         # topic=topic,
-        #     )
-        # ).order_by("order")
 
         return qs
 
