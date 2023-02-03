@@ -192,8 +192,10 @@ or just run the failing test or test class (marked with @pytest.mark.failingtest
 
 #### Check all of the below together:
 
-```Git add .
-pre-commit```
+```
+Git add .
+pre-commit
+```
 
 if you get a red Fail message, run both lines again until there are no Fails
 
@@ -312,7 +314,7 @@ You can turn pre-commit off any time with `pre-commit uninstall` if you need to.
 
 If pre-commit is not working, such as causing version problems with black, you can bring black, isort, etc. up to date with
 
-```pre-commit auto-update```
+```pre-commit autoupdate```
 
 # Continuous Integration
 GitHub Actions are currently setup to run linter and pytest jobs on pull-requests and pushes to the development branch. For the linter tests we run the pre-commit hooks, and for pytest we build the docker stack and run the full set of pytest tests.
