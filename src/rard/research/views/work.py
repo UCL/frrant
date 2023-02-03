@@ -29,7 +29,6 @@ class WorkDetailView(
         """use work model method get_ordered_materials to retrieve a dictionary of all fragments, testimonia and apposita grouped by book and add it to the context"""
         context = super().get_context_data(**kwargs)
         work = self.get_object()
-        books = list(work.book_set.all()) + ["Unknown Book"]
 
         ordered_materials = work.get_ordered_materials()
 
@@ -38,7 +37,6 @@ class WorkDetailView(
             for book, materials in ordered_materials.items()
             if any([bool(item_list) for item_list in materials.values()])
         }
-        context["books"] = books
         context["ordered_materials"] = ordered_materials
         context["cleaned_materials"] = cleaned_ordered_materials
         return context
