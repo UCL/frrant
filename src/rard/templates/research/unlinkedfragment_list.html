@@ -20,5 +20,5 @@
     {% for unlinked in fragment_list %}
     {% include 'research/partials/anonymousfragment_list_item.html' with fragment=unlinked %}
     {% endfor %}
-
+    {{ block.super }}
 {% endblock %}
