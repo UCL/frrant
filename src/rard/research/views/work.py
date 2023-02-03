@@ -32,13 +32,15 @@ class WorkDetailView(
         books = list(work.book_set.all()) + ["Unknown Book"]
 
         ordered_materials = work.get_ordered_materials()
-        ordered_materials = {
+
+        cleaned_ordered_materials = {
             book: materials
             for book, materials in ordered_materials.items()
             if any([bool(item_list) for item_list in materials.values()])
         }
         context["books"] = books
         context["ordered_materials"] = ordered_materials
+        context["cleaned_materials"] = cleaned_ordered_materials
         return context
 
 
