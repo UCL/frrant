@@ -43,7 +43,6 @@ class AntiquarianDetailView(
     permission_required = ("research.view_antiquarian",)
 
     def post(self, *args, **kwargs):
-
         link_pk = self.request.POST.get("link_id", None)
         work_pk = self.request.POST.get("work_id", None)
         antiquarian_pk = self.request.POST.get("antiquarian_id", None)
@@ -82,6 +81,11 @@ class AntiquarianDetailView(
                     link.move_to_by_book(link.order_in_book - 1)
                 elif "down_by_book" in self.request.POST:
                     link.move_to_by_book(link.order_in_book + 1)
+                # for ordering fragments within works
+                elif "up_by_work" in self.request.POST:
+                    link.move_to_by_work(link.work_order - 1)
+                elif "down_by_work" in self.request.POST:
+                    link.move_to_by_work(link.work_order + 1)
 
             except (ObjectDoesNotExist, KeyError):
                 pass
@@ -89,7 +93,6 @@ class AntiquarianDetailView(
 
 
 class MoveLinkView(LoginRequiredMixin, View):
-
     render_partial_template = "research/partials/ordered_work_area.html"
 
     def render_valid_response(self, antiquarian):
@@ -235,7 +238,6 @@ class AntiquarianDeleteView(
 class AntiquarianBibliographyCreateView(
     CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, CreateView
 ):
-
     # the view attribute that needs to be checked for a lock
     check_lock_object = "antiquarian"
 
@@ -296,7 +298,6 @@ class AntiquarianWorksUpdateView(
 class AntiquarianWorkCreateView(
     CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, CreateView
 ):
-
     # the view attribute that needs to be checked for a lock
     check_lock_object = "antiquarian"
 
@@ -338,7 +339,6 @@ class AntiquarianWorkCreateView(
 class AntiquarianConcordanceCreateView(
     CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, CreateView
 ):
-
     check_lock_object = "antiquarian"
 
     # create a concordance for an original text
@@ -378,7 +378,6 @@ class AntiquarianConcordanceCreateView(
 class AntiquarianConcordanceUpdateView(
     CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
 ):
-
     check_lock_object = "antiquarian"
 
     model = AntiquarianConcordance

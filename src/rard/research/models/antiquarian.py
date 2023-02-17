@@ -31,7 +31,6 @@ class WorkLink(OrderableModel, models.Model):
 
 @disable_for_loaddata
 def handle_deleted_work_link(sender, instance, **kwargs):
-
     if instance.work and instance.work.antiquarian_set.count() == 0:
         work = instance.work
         # prevent multiple anon links
@@ -107,7 +106,6 @@ post_save.connect(handle_reordered_works, sender=WorkLink)
 class Antiquarian(
     HistoryModelMixin, TextObjectFieldMixin, LockableModel, DatedModel, BaseModel
 ):
-
     history = HistoricalRecords(excluded_fields=[])
 
     def related_lock_object(self):
@@ -229,7 +227,6 @@ class Antiquarian(
         )
 
         with transaction.atomic():
-
             to_ensure = [
                 FragmentLink.objects.filter(work=work).exclude(antiquarian=self),
                 TestimoniumLink.objects.filter(work=work).exclude(antiquarian=self),
@@ -260,14 +257,12 @@ class Antiquarian(
                 qs.delete()
 
     def reindex_fragment_and_testimonium_links(self):
-
         # when the order of works changes wrt to this antiquarian we need to
         # reflect these changes in all of our linked fragments and testimonia
 
         from django.db import transaction
 
         with transaction.atomic():
-
             # for any works that were linked to this antiquarian but still have
             # other authors, we need to delete our links to those works
             deleteable = [
@@ -317,7 +312,12 @@ class Antiquarian(
 
             to_reorder = [
                 self.fragmentlinks.all()
-                .order_by("work__worklink__order", "book__order", "order_in_book")
+                .order_by(
+                    "work__worklink__order",
+                    "work_order",
+                    "book__order",
+                    "order_in_book",
+                )
                 .distinct(),
                 # We want testimonium links without works to be ordered first
                 # but for some reason adding "-work__isnull" to the order_by
@@ -327,11 +327,21 @@ class Antiquarian(
                     self.testimoniumlinks.all().filter(work__isnull=True).distinct(),
                     self.testimoniumlinks.all()
                     .filter(work__isnull=False)
-                    .order_by("work__worklink__order", "book__order", "order_in_book")
+                    .order_by(
+                        "work__worklink__order",
+                        "work_order",
+                        "book__order",
+                        "order_in_book",
+                    )
                     .distinct(),
                 ),
                 self.appositumfragmentlinks.all()
-                .order_by("work__worklink__order", "book__order", "order_in_book")
+                .order_by(
+                    "work__worklink__order",
+                    "work_order",
+                    "book__order",
+                    "order_in_book",
+                )
                 .distinct(),
             ]
 
@@ -374,7 +384,6 @@ Antiquarian.init_text_object_fields()
 
 
 class AntiquarianConcordance(HistoryModelMixin, BaseModel):
-
     history = HistoricalRecords()
 
     def related_lock_object(self):
