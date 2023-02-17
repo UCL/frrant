@@ -211,7 +211,7 @@
         href='{% url "unlinked_fragment:list" %}'>
         {% trans 'Unlinked Fragments' %}
       </a>
-      {% endif %} 
+      {% endif %}
       {% if perms.research.view_citingauthor %}
       <a class='nav-link {% if "citingauthor" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
         href='{% url "citingauthor:list" %}'>

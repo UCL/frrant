@@ -14,7 +14,7 @@
                 {% else %}
                     <i title='Possible link' data-placement="top" data-toggle='tooltip' class='fa fa-question-circle fa-xs text-muted'></i>
                 {% endif %}
-                
+
                 <a href='{% url "anonymous_fragment:detail" fragment.pk %}'>{{ link_text }}</a>
                 {% else %}
                     {{ link_text }}
