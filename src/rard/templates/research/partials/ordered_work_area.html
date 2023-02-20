@@ -53,11 +53,11 @@
                     {% with alinks=object|appositum_links_for_work:work %}
 
                         {% for link in tlinks %}
-                            {% include 'research/partials/testimonium_link_list_item.html' with link=link link_text=link.get_work_display_name_full|safe can_edit=can_edit has_object_lock=has_object_lock %}
+                            {% include 'research/partials/testimonium_link_list_item.html' with link=link link_text=link.get_work_display_name_full|safe can_edit=False has_object_lock=has_object_lock %}
                         {% endfor %}
 
                         {% for link in flinks %}
-                            {% include 'research/partials/fragment_link_list_item.html' with link=link  link_text=link.get_work_display_name_full|safe can_edit=can_edit has_object_lock=has_object_lock %}
+                            {% include 'research/partials/fragment_link_list_item.html' with link=link  link_text=link.get_work_display_name_full|safe can_edit=False has_object_lock=has_object_lock %}
                         {% endfor %}
 
                         {% for link in alinks %}
