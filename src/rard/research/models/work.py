@@ -24,7 +24,6 @@ class WorkManager(models.Manager):
 
 
 class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
-
     history = HistoricalRecords()
 
     def related_lock_object(self):
@@ -100,28 +99,46 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
         ).distinct()
 
     def get_ordered_materials(self):
-        from rard.research.models import Fragment, Testimonium, AnonymousFragment
+        from rard.research.models import AnonymousFragment, Fragment, Testimonium
+        from rard.research.models.base import (
+            AppositumFragmentLink,
+            FragmentLink,
+            TestimoniumLink,
+        )
 
         fragments = list(
             self.antiquarian_work_fragmentlinks.values(
-                "definite", "book", "order", pk=F("fragment__pk")
+                "definite", "book", "order", pk=F("fragment__pk"), link_id=F("id")
             ).order_by("book", "order")
         )
         testimonia = list(
             self.antiquarian_work_testimoniumlinks.values(
-                "definite", "book", "order", pk=F("testimonium__pk")
+                "definite",
+                "book",
+                "order",
+                pk=F("testimonium__pk"),
+                link_id=F("id"),
             ).order_by("book", "-definite", "order")
         )
         apposita = list(
             self.antiquarian_work_appositumfragmentlinks.values(
-                "definite", "book", "order", pk=F("anonymous_fragment__pk")
+                "definite",
+                "book",
+                "order",
+                pk=F("anonymous_fragment__pk"),
+                link_id=F("id"),
             ).order_by("book", "-definite", "order")
         )
-
         materials = {
             "fragments": (fragments, Fragment),
             "testimonia": (testimonia, Testimonium),
             "apposita": (apposita, AnonymousFragment),
+        }
+        # need to also add the link id for the move function
+        links = {
+            "fragments": FragmentLink,
+            "testimonia": TestimoniumLink,
+            "apposita": AppositumFragmentLink,
         }
 
         books = self.book_set.all()
@@ -132,20 +149,20 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
             for k, v in groupby(query_list, lambda x: x["book"]):
                 book = books.get(id=k) if k else "Unknown Book"
                 content = ordered_materials[book]
+
                 content[material_type] = [
                     {
                         "item": model.objects.get(id=f["pk"]),
+                        "link": links[material_type].objects.get(id=f["link_id"]),
                         "definite": f["definite"],
                         "order": f["order"],
                     }
                     for f in v
                 ]
-
         return ordered_materials
 
 
 class Book(HistoryModelMixin, DatedModel, BaseModel, OrderableModel):
-
     history = HistoricalRecords()
 
     def related_lock_object(self):
