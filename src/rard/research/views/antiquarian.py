@@ -81,11 +81,6 @@ class AntiquarianDetailView(
                     link.move_to_by_book(link.order_in_book - 1)
                 elif "down_by_book" in self.request.POST:
                     link.move_to_by_book(link.order_in_book + 1)
-                # for ordering fragments within works
-                elif "up_by_work" in self.request.POST:
-                    link.move_to_by_work(link.work_order - 1)
-                elif "down_by_work" in self.request.POST:
-                    link.move_to_by_work(link.work_order + 1)
 
             except (ObjectDoesNotExist, KeyError):
                 pass
@@ -126,6 +121,7 @@ class MoveLinkView(LoginRequiredMixin, View):
         work_pk = self.request.POST.get("work_id", None)
         book_pk = self.request.POST.get("book_id", None)
         antiquarian_pk = self.request.POST.get("antiquarian_id", None)
+
         if antiquarian_pk:
             antiquarian = Antiquarian.objects.get(pk=antiquarian_pk)
         object_type = self.request.POST.get("object_type", None)
@@ -177,6 +173,9 @@ class MoveLinkView(LoginRequiredMixin, View):
                 work = link.work
                 if "move_to_by_book" in self.request.POST:
                     pos = int(self.request.POST.get("move_to_by_book"))
+                    print(type(work))
+                    if work is None:
+                        return link.move_to_by_antiquarian(pos)
                     link.move_to_by_book(pos)
 
             except (ObjectDoesNotExist, KeyError):

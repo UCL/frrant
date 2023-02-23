@@ -660,31 +660,6 @@ $("body").on("click", 'button[name="up_by_book"]', function () {
   moveLinkTo(data);
 });
 
-// frags etc can be linked to a work without a book and are ordered only by work on the antiquarian page
-$("body").on("click", 'button[name="down_by_work"]', function () {
-  let pos = $(this).data("pos");
-  let object_type = $(this).data("objecttype");
-  let new_pos = pos + 1;
-  let link_id = $(this).data("link");
-  let antiquarian_id = $(this).data("antiquarian");
-  let data = { link_id: link_id };
-  data["antiquarian_id"] = antiquarian_id;
-  data["move_to_by_work"] = new_pos;
-  moveLinkTo(data);
-});
-
-$("body").on("click", 'button[name="up_by_work"]', function () {
-  let pos = $(this).data("pos");
-  let object_type = $(this).data("objecttype");
-  let new_pos = pos - 1;
-  let link_id = $(this).data("link");
-  let antiquarian_id = $(this).data("antiquarian");
-  let data = { link_id: link_id, object_type: object_type };
-  data["antiquarian_id"] = antiquarian_id;
-  data["move_to_by_work"] = new_pos;
-  moveLinkTo(data);
-});
-
 $("body").on("drop", ".drop-target", function (event) {
   drop(event);
 });
