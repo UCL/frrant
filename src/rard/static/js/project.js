@@ -633,11 +633,14 @@ $("body").on("click", 'button[name="book_up"]', function () {
 $("body").on("click", 'button[name="down_by_book"]', function () {
   let pos = $(this).data("pos");
   let object_type = $(this).data("objecttype");
+  let antiquarian = $(this).data("antiquarian");
   let new_pos = pos + 1;
   let link_id = $(this).data("link");
-  // let antiquarian_id = $(this).data("antiquarian");
-  let data = { link_id: link_id, object_type: object_type };
-  // data["antiquarian_id"] = antiquarian_id;
+  let data = {
+    link_id: link_id,
+    object_type: object_type,
+    antiquarian: antiquarian,
+  };
   data["move_to_by_book"] = new_pos;
   moveLinkTo(data);
 });
@@ -645,11 +648,14 @@ $("body").on("click", 'button[name="down_by_book"]', function () {
 $("body").on("click", 'button[name="up_by_book"]', function () {
   let pos = $(this).data("pos");
   let object_type = $(this).data("objecttype");
+  let antiquarian = $(this).data("antiquarian");
   let new_pos = pos - 1;
   let link_id = $(this).data("link");
-  // let antiquarian_id = $(this).data("antiquarian");
-  let data = { link_id: link_id, object_type: object_type };
-  // data["antiquarian_id"] = antiquarian_id;
+  let data = {
+    link_id: link_id,
+    object_type: object_type,
+    antiquarian: antiquarian,
+  };
   data["move_to_by_book"] = new_pos;
   moveLinkTo(data);
 });
@@ -661,7 +667,7 @@ $("body").on("click", 'button[name="down_by_work"]', function () {
   let new_pos = pos + 1;
   let link_id = $(this).data("link");
   let antiquarian_id = $(this).data("antiquarian");
-  let data = { link_id: link_id, object_type: object_type };
+  let data = { link_id: link_id };
   data["antiquarian_id"] = antiquarian_id;
   data["move_to_by_work"] = new_pos;
   moveLinkTo(data);

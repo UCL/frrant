@@ -147,7 +147,6 @@ class WorkLinkBaseModel(LinkBaseModel):
         old_pos = self.order_in_book
         if pos == old_pos:
             return
-
         # if beyond the end, put it at the end (useful for UI)
         pos = min(pos, self.related_book_queryset().count())
 
@@ -165,7 +164,6 @@ class WorkLinkBaseModel(LinkBaseModel):
                 .filter(order_in_book__lte=pos)
             )
             reindex_start_pos = 0
-
         with transaction.atomic():
             for count, obj in enumerate(to_reorder):
                 obj.order_in_book = count + reindex_start_pos
@@ -221,17 +219,19 @@ class WorkLinkBaseModel(LinkBaseModel):
             self.swap_by_book(next_)
 
     def reindex_work_by_book(self):
+        """Update order of links with respect to work, taking into account book__order and order_in_book"""
         from django.db import transaction
 
         with transaction.atomic():
-            to_reorder = [
+            to_reorder = (
                 self.__class__.objects.filter(work=self.work)
                 .order_by("book__order", "order_in_book")
                 .distinct()
-            ]
+            )
+
             for count, link in enumerate(to_reorder):
-                if link.order_in_book != count:
-                    link.order_in_book = count
+                if link.work_order != count:
+                    link.work_order = count
                     link.save()
 
     work = models.ForeignKey(
@@ -260,7 +260,6 @@ class WorkLinkBaseModel(LinkBaseModel):
 
 
 class TestimoniumLink(WorkLinkBaseModel):
-
     linked_field = "testimonium"
     display_stub = "T"
 
@@ -274,7 +273,6 @@ class TestimoniumLink(WorkLinkBaseModel):
 
 
 class FragmentLink(WorkLinkBaseModel):
-
     linked_field = "fragment"
     display_stub = "F"
 
@@ -297,7 +295,6 @@ class FragmentLink(WorkLinkBaseModel):
 
 
 class AppositumFragmentLink(WorkLinkBaseModel):
-
     linked_field = "anonymous_fragment"
     display_stub = "A"
 
@@ -376,7 +373,6 @@ class AppositumFragmentLink(WorkLinkBaseModel):
 
 @disable_for_loaddata
 def check_order_info(sender, instance, action, model, pk_set, **kwargs):
-
     from rard.research.models import Antiquarian, Fragment, Testimonium
 
     if action not in ["post_add", "post_remove"]:
@@ -410,7 +406,6 @@ def reindex_order_info(sender, instance, **kwargs):
     # when we delete a fragmentlink we need to:
     # reindex all work_links for the work it pointed to
     with transaction.atomic():
-
         qs = instance.related_work_queryset()
         for count, item in enumerate(qs.all()):
             if item.work_order != count:
@@ -438,7 +433,6 @@ post_delete.connect(reindex_order_info, sender=TestimoniumLink)
 
 
 class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
-
     # abstract base class for shared properties of fragments and testimonia
     class Meta:
         abstract = True
@@ -545,7 +539,6 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
         return mark_safe(first_line)
 
     def get_citing_display(self, for_citing_author=None):
-
         # if citing author passed as arg we need to put their original texts
         # first when displaying info
         if for_citing_author:

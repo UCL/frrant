@@ -40,5 +40,13 @@
         </div>
     </div>
     <div class='rard-list-item-actions'>
+        {% if can_edit and has_object_lock %}
+                <button data-link='{{ link.pk }}'
+                data-antiquarian='{{ link.antiquarian.pk }}'  data-objecttype='fragment' data-pos='{{ forloop.counter0 }}' type='button' class='btn btn-light'  {% if forloop.first or disable_link_controls %}disabled{% endif %}
+                name='up_by_book'><i class='fas fa-caret-up'></i></button>
+            <button data-link='{{ link.pk }}' data-antiquarian='{{ link.antiquarian.pk }}'  data-objecttype='fragment' data-pos='{{ forloop.counter0 }}' type='button' class='btn btn-light'  {% if forloop.last or disable_link_controls %}disabled{% endif %}
+                name='down_by_book'><i class='fas fa-caret-down'></i></button>
+
+                {% endif %}
     </div>
 </div>

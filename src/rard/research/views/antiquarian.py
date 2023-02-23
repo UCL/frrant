@@ -170,9 +170,11 @@ class MoveLinkView(LoginRequiredMixin, View):
                 "anonymous_fragment": AppositumFragmentLink,
                 "testimonium": TestimoniumLink,
             }
+
             try:
                 model_class = model_classes[object_type]
                 link = model_class.objects.get(pk=link_pk)
+                work = link.work
                 if "move_to_by_book" in self.request.POST:
                     pos = int(self.request.POST.get("move_to_by_book"))
                     link.move_to_by_book(pos)
@@ -180,7 +182,7 @@ class MoveLinkView(LoginRequiredMixin, View):
             except (ObjectDoesNotExist, KeyError):
                 raise Http404
 
-            return self.render_valid_response(antiquarian)
+            return self.render_valid_work_response(work)
 
         raise Http404
 
