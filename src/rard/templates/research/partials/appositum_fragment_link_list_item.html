@@ -8,6 +8,7 @@
 <div id='anonymous_fragmentlink_{{ link.pk }}' data-link='{{ link.pk }}' data-antiquarian='{{ link.antiquarian.pk }}' draggable='false' data-objecttype='anonymous_fragment' data-pos='{{ forloop.counter0 }}' class='drag-item ordered-list-item rard-list-item d-flex justify-content-between'>
     <div>
         <li class="unstyled">
+                {% with fragment.get_display_name as link_text %}
                 {% if perms.research.view_fragment %}
                 {% if link.definite %}
                     <i title='Definite link' data-placement="top" data-toggle='tooltip' class='fa fa-check-circle fa-xs text-muted'></i>
@@ -19,6 +20,7 @@
                 {% else %}
                     {{ link_text }}
                 {% endif %}
+                {% endwith %}
                 <button class="btn btn-link toggle-element-button" type="button" data-toggles="appositumlink_{{ link.pk }}"></button>
             <br>
             <div id='appositumlink_{{ link.pk }}' class='toggle-element'>
