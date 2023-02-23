@@ -150,15 +150,14 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
                 book = books.get(id=k) if k else "Unknown Book"
                 content = ordered_materials[book]
 
-                content[material_type] = [
-                    {
-                        "item": model.objects.get(id=f["pk"]),
-                        "link": links[material_type].objects.get(id=f["link_id"]),
+                content[material_type] = {
+                    links[material_type].objects.get(id=f["link_id"]): {
+                        "linked": model.objects.get(id=f["pk"]),
                         "definite": f["definite"],
                         "order": f["order"],
                     }
                     for f in v
-                ]
+                }
         return ordered_materials
 
 
