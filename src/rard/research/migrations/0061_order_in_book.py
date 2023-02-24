@@ -9,6 +9,31 @@ class Migration(migrations.Migration):
         ("research", "0060_add_reference_model"),
     ]
 
+    def create_unknown_work(apps, schema_editor):
+        Antiquarian = apps.get_model("research", "Antiquarian")
+        antiquarians = Antiquarian.objects.all()
+        for ant in antiquarians:
+            ant.add_work(name="Unknown Work", unknown=True)
+
+    def create_unknown_book(apps, schema_editor):
+        Work = apps.get_model("research", "Work")
+        works = Work.objects.all()
+        for work in works:
+            work.add_book(name="Unknown Book", unknown=True)
+
+    def assign_links_to_unknown(apps, schema_editor):
+        worklinks = ["FragmentLink", "TestimoniumLink", "AppositumFragmentLink"]
+
+        for link_type in worklinks:
+            links = link_type.object.all()
+            for link in links:
+                ant = link.antiquarian
+                if link.work == None:
+                    link.work = ant.works.get(unknown=True)
+                work = link.work
+                if link.book == None:
+                    link.book = work.books.get(unknown=True)
+
     def give_books_order(apps, schema_editor):
         Work = apps.get_model("research", "Work")
         for work in Work.objects.all():
@@ -51,6 +76,11 @@ class Migration(migrations.Migration):
             field=models.PositiveIntegerField(blank=True, default=None, null=True),
         ),
         migrations.AddField(
+            model_name="book",
+            name="unknown",
+            field=models.BooleanField(blank=False, default=False, null=False),
+        ),
+        migrations.AddField(
             model_name="fragmentlink",
             name="order_in_book",
             field=models.PositiveIntegerField(blank=True, default=None, null=True),
@@ -65,6 +95,14 @@ class Migration(migrations.Migration):
             name="order_in_book",
             field=models.PositiveIntegerField(blank=True, default=None, null=True),
         ),
+        migrations.AddField(
+            model_name="work",
+            name="unknown",
+            field=models.BooleanField(blank=False, default=False, null=False),
+        ),
+        migrations.RunPython(create_unknown_work),
+        migrations.RunPython(create_unknown_book),
+        migrations.RunPython(assign_links_to_unknown),
         migrations.RunPython(give_books_order),
         migrations.RunPython(give_links_order_in_book),
     ]

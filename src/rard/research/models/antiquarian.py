@@ -173,6 +173,10 @@ class Antiquarian(
             "worklink__order"
         )
 
+    # @property
+    # def unknown_work(self):
+    #     return self.work_set.filter(unknown=True)
+
     def reindex_work_links(self):
         # where there has been a change, ensure the
         # ordering of works is correct (zero-indexed)
