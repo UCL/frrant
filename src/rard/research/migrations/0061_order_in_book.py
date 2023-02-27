@@ -25,19 +25,20 @@ class Migration(migrations.Migration):
         worklinks = ["FragmentLink", "TestimoniumLink", "AppositumFragmentLink"]
 
         for link_type in worklinks:
-            links = link_type.object.all()
+            link_class = apps.get("research", link_type)
+            links = link_class.object.all()
             for link in links:
                 ant = link.antiquarian
                 if link.work == None:
                     link.work = ant.works.get(unknown=True)
                 work = link.work
                 if link.book == None:
-                    link.book = work.books.get(unknown=True)
+                    link.book = work.book_set.get(unknown=True)
 
     def give_books_order(apps, schema_editor):
         Work = apps.get_model("research", "Work")
         for work in Work.objects.all():
-            books = work.book_set.all().order_by("number")
+            books = work.book_set.all().order_by("number", "-unknown")
             for count, book in enumerate(books):
                 book.order = count
                 book.save()
@@ -51,7 +52,7 @@ class Migration(migrations.Migration):
             link_class = apps.get_model("research", link_classname)
             for work in Work.objects.all():
                 related_links = link_class.objects.filter(work=work).order_by(
-                    "book__order", "work_order"
+                    "work_order"
                 )
                 for count, link in enumerate(related_links):
                     link.order_in_book = count
