@@ -67,6 +67,16 @@ class Migration(migrations.Migration):
             options={"ordering": ["order"]},
         ),
         migrations.AddField(
+            model_name="work",
+            name="unknown",
+            field=models.BooleanField(default=False),
+        ),
+        migrations.AddField(
+            model_name="book",
+            name="unknown",
+            field=models.BooleanField(default=False),
+        ),
+        migrations.AddField(
             model_name="appositumfragmentlink",
             name="order_in_book",
             field=models.PositiveIntegerField(blank=True, default=None, null=True),
@@ -75,11 +85,6 @@ class Migration(migrations.Migration):
             model_name="book",
             name="order",
             field=models.PositiveIntegerField(blank=True, default=None, null=True),
-        ),
-        migrations.AddField(
-            model_name="book",
-            name="unknown",
-            field=models.BooleanField(blank=False, default=False, null=False),
         ),
         migrations.AddField(
             model_name="fragmentlink",
@@ -95,11 +100,6 @@ class Migration(migrations.Migration):
             model_name="testimoniumlink",
             name="order_in_book",
             field=models.PositiveIntegerField(blank=True, default=None, null=True),
-        ),
-        migrations.AddField(
-            model_name="work",
-            name="unknown",
-            field=models.BooleanField(blank=False, default=False, null=False),
         ),
         migrations.RunPython(create_unknown_work),
         migrations.RunPython(create_unknown_book),

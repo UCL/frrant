@@ -162,6 +162,7 @@ class Antiquarian(
             self.order_name = self.name
         if self.introduction:
             self.plain_introduction = make_plain_text(self.introduction.content)
+        # self.works.add(name="Unknown Work", unknown=True)
         super().save(*args, **kwargs)
 
     @property
