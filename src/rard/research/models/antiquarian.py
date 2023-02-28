@@ -158,11 +158,13 @@ class Antiquarian(
         return self.fragments.distinct()
 
     def save(self, *args, **kwargs):
+        from rard.research.models import Work
+
         if not self.order_name:
             self.order_name = self.name
         if self.introduction:
             self.plain_introduction = make_plain_text(self.introduction.content)
-        self.works.add(name="Unknown Work", unknown=True)
+        self.works.add(Work.objects.create(name="Unknown Work", unknown=True))
         super().save(*args, **kwargs)
 
     @property

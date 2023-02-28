@@ -11,15 +11,17 @@ class Migration(migrations.Migration):
 
     def create_unknown_work(apps, schema_editor):
         Antiquarian = apps.get_model("research", "Antiquarian")
+        Work = apps.get_model("research", "Work")
+
         antiquarians = Antiquarian.objects.all()
         for ant in antiquarians:
-            ant.add_work(name="Unknown Work", unknown=True)
+            ant.works.add(Work.objects.create(name="Unknown Work", unknown=True))
 
     def create_unknown_book(apps, schema_editor):
         Work = apps.get_model("research", "Work")
         works = Work.objects.all()
         for work in works:
-            work.add_book(name="Unknown Book", unknown=True)
+            work.book_set.create(subtitle="Unknown Book", unknown=True)
 
     def assign_links_to_unknown(apps, schema_editor):
         worklinks = ["FragmentLink", "TestimoniumLink", "AppositumFragmentLink"]
