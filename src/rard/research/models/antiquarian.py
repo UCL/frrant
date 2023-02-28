@@ -162,7 +162,7 @@ class Antiquarian(
             self.order_name = self.name
         if self.introduction:
             self.plain_introduction = make_plain_text(self.introduction.content)
-        # self.works.add(name="Unknown Work", unknown=True)
+        self.works.add(name="Unknown Work", unknown=True)
         super().save(*args, **kwargs)
 
     @property
@@ -174,9 +174,9 @@ class Antiquarian(
             "worklink__order"
         )
 
-    # @property
-    # def unknown_work(self):
-    #     return self.work_set.filter(unknown=True)
+    @property
+    def unknown_work(self):
+        return self.work_set.filter(unknown=True)
 
     def reindex_work_links(self):
         # where there has been a change, ensure the

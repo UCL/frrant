@@ -40,11 +40,11 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
 
     number_of_books = models.CharField(max_length=128, blank=True)
 
-    # unknown = models.BooleanField(default=False)
+    unknown = models.BooleanField(default=False)
 
-    # @property
-    # def unknown_book(self):
-    #     return self.book_set.filter(unknown=True)
+    @property
+    def unknown_book(self):
+        return self.book_set.filter(unknown=True)
 
     # antiquarians = models.ManyToManyField('Antiquarian', blank=True,
     #     through='WorkLink'
@@ -62,9 +62,8 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
     def get_absolute_url(self):
         return reverse("work:detail", kwargs={"pk": self.pk})
 
-    # def save(self, *args, **kwargs):
-    #     Book.objects.create(subtitle="Unknown Book", work=self, unknown=True)
-    #     self.book_set.create
+    def save(self, *args, **kwargs):
+        self.book_set.create(subtitle="Unknown Book", work=self, unknown=True)
 
     def all_fragments(self):
         from rard.research.models import Fragment
@@ -185,7 +184,7 @@ class Book(HistoryModelMixin, DatedModel, BaseModel, OrderableModel):
     number = models.PositiveSmallIntegerField(default=None, null=True, blank=True)
     subtitle = models.CharField(max_length=128, blank=True)
 
-    # unknown = models.BooleanField(default=False)
+    unknown = models.BooleanField(default=False)
 
     def __str__(self):
         if self.subtitle and self.number:
