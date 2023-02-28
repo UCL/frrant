@@ -25,8 +25,8 @@ class Migration(migrations.Migration):
         worklinks = ["FragmentLink", "TestimoniumLink", "AppositumFragmentLink"]
 
         for link_type in worklinks:
-            link_class = apps.get("research", link_type)
-            links = link_class.object.all()
+            link_class = apps.get_model("research", link_type)
+            links = link_class.objects.all()
             for link in links:
                 ant = link.antiquarian
                 if link.work == None:
