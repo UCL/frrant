@@ -158,13 +158,10 @@ class Antiquarian(
         return self.fragments.distinct()
 
     def save(self, *args, **kwargs):
-        from rard.research.models import Work
-
         if not self.order_name:
             self.order_name = self.name
         if self.introduction:
             self.plain_introduction = make_plain_text(self.introduction.content)
-        self.works.add(Work.objects.create(name="Unknown Work", unknown=True))
         super().save(*args, **kwargs)
 
     @property
@@ -362,6 +359,15 @@ class Antiquarian(
 
 
 @disable_for_loaddata
+def create_unknown_work(sender, instance, **kwargs):
+    from rard.research.models import Work
+
+    unknown_work = Work.objects.create(name="Unknown Work", unknown=True)
+    unknown_work.save()
+    instance.works.add(unknown_work)
+
+
+@disable_for_loaddata
 def remove_stale_antiquarian_links(sender, instance, **kwargs):
     # when deleting an antiquarian,
     # any fragment or testimonium links to the antiquarian
@@ -385,6 +391,8 @@ def remove_stale_antiquarian_links(sender, instance, **kwargs):
 
 
 pre_delete.connect(remove_stale_antiquarian_links, sender=Antiquarian)
+
+post_save.connect(create_unknown_work, sender=Antiquarian)
 
 
 Antiquarian.init_text_object_fields()

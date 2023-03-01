@@ -69,6 +69,16 @@ class Migration(migrations.Migration):
             options={"ordering": ["order"]},
         ),
         migrations.AddField(
+            model_name="historicalbook",
+            name="unknown",
+            field=models.BooleanField(default=False),
+        ),
+        migrations.AddField(
+            model_name="historicalwork",
+            name="unknown",
+            field=models.BooleanField(default=False),
+        ),
+        migrations.AddField(
             model_name="work",
             name="unknown",
             field=models.BooleanField(default=False),

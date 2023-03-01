@@ -3,12 +3,14 @@ from itertools import groupby
 from django.contrib.postgres.aggregates import StringAgg
 from django.db import models
 from django.db.models import F
+from django.db.models.signals import post_save
 from django.urls import reverse
 from django.utils.text import slugify
 from simple_history.models import HistoricalRecords
 
 from rard.research.models.mixins import HistoryModelMixin
 from rard.utils.basemodel import BaseModel, DatedModel, LockableModel, OrderableModel
+from rard.utils.decorators import disable_for_loaddata
 
 
 class WorkManager(models.Manager):
@@ -61,9 +63,6 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
 
     def get_absolute_url(self):
         return reverse("work:detail", kwargs={"pk": self.pk})
-
-    def save(self, *args, **kwargs):
-        self.book_set.create(subtitle="Unknown Book", work=self, unknown=True)
 
     def all_fragments(self):
         from rard.research.models import Fragment
@@ -205,3 +204,13 @@ class Book(HistoryModelMixin, DatedModel, BaseModel, OrderableModel):
 
     def get_anchor_id(self):
         return slugify(self.__str__())
+
+
+@disable_for_loaddata
+def create_unknown_book(sender, instance, **kwargs):
+    unknown_book = Book.objects.create(name="Unknown Book", unknown=True)
+    unknown_book.save()
+    instance.book_set.add(unknown_book)
+
+
+post_save.connect(create_unknown_book, sender=Work)
