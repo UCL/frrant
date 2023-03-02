@@ -4,7 +4,7 @@
 
     <div id="{{ book.get_anchor_id }}" class="pb-4">
 
-    {% if book == "Unknown Book" %}
+    {% if book.unknown == True %}
     <h5>{{ book }}</h5>
     {% else %}
     <h5>{{ book }}
