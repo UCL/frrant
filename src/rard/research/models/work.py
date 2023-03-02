@@ -150,12 +150,13 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
         }
 
         books = self.book_set.all()
+        unknown_book = self.book_set.get(unknown=True)
+
         ordered_materials = {book: {} for book in books}
-        ordered_materials["Unknown Book"] = {}
 
         for material_type, (query_list, model) in materials.items():
             for k, v in groupby(query_list, lambda x: x["book"]):
-                book = books.get(id=k) if k else "Unknown Book"
+                book = books.get(id=k) if k else unknown_book
                 content = ordered_materials[book]
 
                 content[material_type] = {
