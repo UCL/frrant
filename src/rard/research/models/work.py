@@ -46,7 +46,7 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
 
     @property
     def unknown_book(self):
-        return self.book_set.filter(unknown=True)
+        return self.book_set.filter(unknown=True).first()
 
     # antiquarians = models.ManyToManyField('Antiquarian', blank=True,
     #     through='WorkLink'

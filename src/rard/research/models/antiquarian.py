@@ -170,12 +170,12 @@ class Antiquarian(
         from rard.research.models import Work
 
         return Work.objects.filter(worklink__antiquarian=self).order_by(
-            "worklink__order"
+            "worklink__order", "-unknown"
         )
 
     @property
     def unknown_work(self):
-        return self.work_set.filter(unknown=True)
+        return self.works.filter(unknown=True).first()
 
     def reindex_work_links(self):
         # where there has been a change, ensure the
