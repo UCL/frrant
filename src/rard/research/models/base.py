@@ -398,6 +398,12 @@ def handle_new_link(sender, instance, created, **kwargs):
     if created:
         if isinstance(instance, FragmentLink):
             AppositumFragmentLink.ensure_apposita_links(instance)
+        if instance.work is None:
+            instance.work = instance.antiquarian.unknown_work
+        work = instance.work
+        if instance.book is None:
+            instance.book = work.unknown_book
+        instance.save()
         reindex_order_info(sender, instance, **kwargs)
 
 
