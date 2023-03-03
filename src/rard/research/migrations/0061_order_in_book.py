@@ -30,11 +30,9 @@ class Migration(migrations.Migration):
             link_class = apps.get_model("research", link_type)
             links = link_class.objects.all()
             for link in links:
-                print(link)
                 ant = link.antiquarian
                 if link.work == None:
                     link.work = ant.works.get(unknown=True)
-                    print(ant.works.get(unknown=True))
                 work = link.work
                 if link.book == None:
                     link.book = work.book_set.get(unknown=True)
