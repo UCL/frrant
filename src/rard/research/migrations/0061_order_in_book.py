@@ -31,17 +31,17 @@ class Migration(migrations.Migration):
             links = link_class.objects.all()
             for link in links:
                 ant = link.antiquarian
-                if link.work == None:
+                if link.work is None:
                     link.work = ant.works.get(unknown=True)
                 work = link.work
-                if link.book == None:
+                if link.book is None:
                     link.book = work.book_set.get(unknown=True)
                 link.save()
 
     def give_books_order(apps, schema_editor):
         Work = apps.get_model("research", "Work")
         for work in Work.objects.all():
-            books = work.book_set.all().order_by("number", "-unknown")
+            books = work.book_set.all().order_by("unknown", "number")
             for count, book in enumerate(books):
                 book.order = count
                 book.save()
