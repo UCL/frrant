@@ -48,10 +48,6 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
     def unknown_book(self):
         return self.book_set.filter(unknown=True).first()
 
-    # antiquarians = models.ManyToManyField('Antiquarian', blank=True,
-    #     through='WorkLink'
-    # )
-
     # @property
     # def antiquarians(self):
     #     from rard.research.models import Antiquarian
@@ -194,7 +190,7 @@ class Book(HistoryModelMixin, DatedModel, BaseModel, OrderableModel):
         return self.subtitle
 
     def related_queryset(self):
-        return Book.objects.filter(work=self.work)
+        return Book.objects.filter(work=self.work).exclude(unknown=True)
 
     def get_absolute_url(self):
         # link to its owning work

@@ -63,6 +63,7 @@ class Migration(migrations.Migration):
 
         for link in worklinks:
             order_in_book_for_link_class(link)
+            link.reindex_work_by_book()
 
     operations = [
         migrations.AlterModelOptions(

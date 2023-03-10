@@ -170,7 +170,7 @@ class Antiquarian(
         from rard.research.models import Work
 
         return Work.objects.filter(worklink__antiquarian=self).order_by(
-            "worklink__order", "-unknown"
+            "unknown", "worklink__order"
         )
 
     @property

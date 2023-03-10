@@ -108,6 +108,14 @@ class WorkLinkBaseModel(LinkBaseModel):
         except TypeError:
             return "ERR"
 
+    def related_work_queryset(self):
+        try:
+            return self.__class__.objects.filter(work=self.work).order_by(
+                "book__order", "order_in_book"
+            )
+        except ObjectDoesNotExist:
+            return self.__class__.objects.none()
+
     def related_book_queryset(self):
         try:
             return self.__class__.objects.filter(book=self.book).order_by(
@@ -233,6 +241,12 @@ class WorkLinkBaseModel(LinkBaseModel):
                 if link.work_order != count:
                     link.work_order = count
                     link.save()
+            # request that the antiquarian involved reindex their fragment links
+            if self.antiquarian:
+                self.antiquarian.reindex_fragment_and_testimonium_links()
+        # also check order of unattached links it
+        # works for null antiquarian also
+        Antiquarian.reindex_null_fragment_and_testimonium_links()
 
     work = models.ForeignKey(
         "Work",
@@ -409,22 +423,23 @@ def handle_new_link(sender, instance, created, **kwargs):
 
 @disable_for_loaddata
 def reindex_order_info(sender, instance, **kwargs):
-    # when we delete a fragmentlink we need to:
-    # reindex all work_links for the work it pointed to
-    with transaction.atomic():
-        qs = instance.related_work_queryset()
-        for count, item in enumerate(qs.all()):
-            if item.work_order != count:
-                item.work_order = count
-                item.save()
+    instance.reindex_work_by_book()
+    # # when we delete a fragmentlink we need to:
+    # # reindex all work_links for the work it pointed to
+    # with transaction.atomic():
+    #     qs = instance.related_work_queryset()
+    #     for count, item in enumerate(qs.all()):
+    #         if item.work_order != count:
+    #             item.work_order = count
+    #             item.save()
 
-        # request that the antiquarian involved reindex their fragment links
-        if instance.antiquarian:
-            instance.antiquarian.reindex_fragment_and_testimonium_links()
+    #     # request that the antiquarian involved reindex their fragment links
+    #     if instance.antiquarian:
+    #         instance.antiquarian.reindex_fragment_and_testimonium_links()
 
-        # also check order of unattached links it
-        # works for null antiquarian also
-        Antiquarian.reindex_null_fragment_and_testimonium_links()
+    #     # also check order of unattached links it
+    #     # works for null antiquarian also
+    # Antiquarian.reindex_null_fragment_and_testimonium_links()
 
 
 m2m_changed.connect(check_order_info, sender=FragmentLink)

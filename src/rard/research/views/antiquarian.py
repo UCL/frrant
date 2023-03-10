@@ -173,9 +173,6 @@ class MoveLinkView(LoginRequiredMixin, View):
                 work = link.work
                 if "move_to_by_book" in self.request.POST:
                     pos = int(self.request.POST.get("move_to_by_book"))
-                    print(type(work))
-                    if work is None:
-                        return link.move_to_by_antiquarian(pos)
                     link.move_to_by_book(pos)
 
             except (ObjectDoesNotExist, KeyError):
