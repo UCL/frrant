@@ -40,6 +40,11 @@ class TextObjectField(HistoryModelMixin, BaseModel):
                 pass
         return None
 
+    def save(self, *args, **kwargs):
+        # Update links generated from mentions each time we save
+        self.link_bibliography_mentions_in_content()
+        super().save(*args, **kwargs)
+
     @property
     def fragment(self):
         from rard.research.models import Fragment

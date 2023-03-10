@@ -1,7 +1,13 @@
 import pytest
 from django.test import TestCase
 
-from rard.research.models import Antiquarian, Fragment, Testimonium, TextObjectField
+from rard.research.models import (
+    Antiquarian,
+    BibliographyItem,
+    Fragment,
+    Testimonium,
+    TextObjectField,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -55,3 +61,25 @@ class TestTextObjectField(TestCase):
         self.assertEqual(related.commentary.testimonium, related)
         self.assertIsNone(related.commentary.antiquarian)
         self.assertIsNone(related.commentary.fragment)
+
+    def test_bibliography_mentions_in_introduction_linked_to_antiquarian(self):
+        """When BibliographyItems are mentioned in an Antiquarian
+        Introduction, a link between those items and the Antiquarian
+        should be created when it is saved."""
+        antiquarian = Antiquarian.objects.create(name="name")
+        # ID should equal 1
+        bibliography_item = BibliographyItem.objects.create(
+            authors="The authors",
+            author_surnames="Author1, Author2",
+            year="888",
+            title="There and back again",
+        )
+        mention_html = (
+            f"<span class='mention' data-id='{bibliography_item.id}'"
+            "data-target='bibliographyitem'>Test bibliography item</span>"
+        )
+        antiquarian.introduction.content = mention_html
+        antiquarian.introduction.save()
+        # After saving the introduction, the bibliography item should have been
+        # added to the antiquarian.bibliography_items
+        self.assertEqual(antiquarian.bibliography_items.first(), bibliography_item)
