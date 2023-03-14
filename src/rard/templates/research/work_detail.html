@@ -77,7 +77,7 @@
               {% for book in object.book_set.all %}
                 <div class='d-flex justify-content-between mb-3'>
                   <div>
-                    {% if book in ordered_materials %}
+                    {% if book in cleaned_materials %}
                       <a href="#{{book.get_anchor_id}}">{{book}}</a>
                     {% else %}
                       {{ book }}
