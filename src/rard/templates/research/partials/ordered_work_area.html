@@ -27,6 +27,10 @@
             <div id='work_{{ work.pk }}' class='parent-ordering-group drag-item ordered-list-item' draggable='false' data-work='{{ work.pk }}' data-antiquarian='{{ object.pk }}' data-objecttype='work' data-pos='{{ forloop.counter0 }}'>
                 <div class='d-flex justify-content-between w-100'>
                     <div>
+                        {% if work.unknown == True %}
+                        <b class='my-3 mr-3'><a href='{% url "work:detail" work.pk %}'>{{ work.name }}</a></b>
+
+                        {% else %}
                         <b class='my-3 mr-3'><a href='{% url "work:detail" work.pk %}'>{{ work.name }}</a></b>
 
                         {% if can_edit and has_object_lock %}
@@ -36,6 +40,7 @@
                             data-pos='{{ forloop.counter0 }}' type='button' class='btn btn-light btn-sm' {% if forloop.first or disable_link_controls %}disabled{% endif %} name='work_up'><i class='fas fa-caret-up'></i></button>
                         <button data-work='{{ work.pk }}' data-antiquarian='{{ object.pk }}' data-objecttype='work'
                             data-pos='{{ forloop.counter0 }}' type='button' class='btn btn-light btn-sm' {% if forloop.last or disable_link_controls %}disabled{% endif %} name='work_down'><i class='fas fa-caret-down'></i></button>
+                        {% endif %}
                         {% endif %}
 
                     </div>
