@@ -205,7 +205,9 @@ class Book(HistoryModelMixin, DatedModel, BaseModel, OrderableModel):
 
 @disable_for_loaddata
 def create_unknown_book(sender, instance, **kwargs):
-    unknown_book = Book.objects.create(name="Unknown Book", unknown=True)
+    unknown_book = Book.objects.create(
+        work=instance, subtitle="Unknown Book", unknown=True
+    )
     unknown_book.save()
     instance.book_set.add(unknown_book)
 
