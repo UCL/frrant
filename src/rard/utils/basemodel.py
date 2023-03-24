@@ -213,12 +213,25 @@ class DynamicTextField(TextField):
                 return str(soup)
 
             def link_bibliography_mentions(self):
-                """If this model has a related antiquarian, search content
+                """
+                If this model has a related antiquarian, search content
                 for @mentions referencing bibliographyitems and add them
-                to antiquarian.bibliography_items."""
-                if not self.antiquarian:
-                    return
-
+                to antiquarian.bibliography_items.
+                If there is a related (anonymous)fragment or testimonium,
+                do the same for any related antiquarians
+                """
+                if self.fragment:
+                    antiquarians = [ant for link.antiquarian in self.fragment.get_all_links() if link.antiquarian is not None]
+                    
+                if self.anonymousfragment:
+                    antiquarians = [ant for link.antiquarian in self.anonymousfragment.get_all_links() if link.antiquarian is not None]
+                    
+                if self.testimonium:
+                    antiquarians = [ant for link.antiquarian in self.testimonium.get_all_links() if link.antiquarian is not None]
+                    
+                if self.antiquarian:
+                    antiquarians = [self.antiquarian]
+                
                 value = getattr(self, field_name)
                 soup = bs4.BeautifulSoup(value, features="html.parser")
                 links = soup.find_all("span", class_="mention")
@@ -227,11 +240,18 @@ class DynamicTextField(TextField):
                     model_name = link.attrs.get("data-target", None)
                     pkstr = link.attrs.get("data-id", None)
                     if model_name == "bibliographyitem" and pkstr:
-                        model = apps.get_model(
-                            app_label="research", model_name=model_name
-                        )
-                        bib_item = model.objects.get(pk=int(pkstr))
-                        self.antiquarian.bibliography_items.add(bib_item)
+                        try:
+                            model = apps.get_model(
+                                app_label="research", model_name=model_name
+                            )
+                            bib_item = model.objects.get(pk=int(pkstr))
+                            for ant in antiquarians:
+                                ant.bibliography_items.add(bib_item)
+                            
+                        except ObjectDoesNotExist:
+                            # If bibliography item has been deleted, we want to ignore,
+                            # as it should still be rendered as unlinked
+                            pass
 
             # here we add a method to the class. So if the dynamic field of
             # our class is called 'content' then the method will be

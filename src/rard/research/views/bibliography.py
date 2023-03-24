@@ -6,7 +6,7 @@ from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from rard.research.forms import BibliographyItemForm
-from rard.research.models import BibliographyItem
+from rard.research.models import BibliographyItem, Antiquarian, Fragment, AnonymousFragment, Testimonium
 from rard.research.views.mixins import CanLockMixin, CheckLockMixin
 
 
@@ -27,6 +27,16 @@ class BibliographyDetailView(
         "title",
     )
     permission_required = ("research.view_bibliographyitem",)
+
+    #def mentions(self):
+    #    '''
+    #    return a list/queryset of objects with @mentions of this bibliograph item
+    #    '''
+    #    q1 = Antiquarian.objects.values_list('introduction')
+    #    q2 = Fragment.objects.values_list('commentary')
+    #    q3 = AnonymousFragment.objects.values_list('commentary')
+    #    q4 = Testimonium.objects.values_list('commentary')
+    #    q1.union(q2, q3, q4)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

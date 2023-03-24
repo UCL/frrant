@@ -53,6 +53,13 @@ class TextObjectField(HistoryModelMixin, BaseModel):
         return related if isinstance(related, Fragment) else None
 
     @property
+    def anonymousfragment(self):
+        from rard.research.models import AnonymousFragment
+
+        related = self.get_related_object()
+        return related if isinstance(related, AnonymousFragment) else None
+
+    @property
     def testimonium(self):
         from rard.research.models import Testimonium
 
