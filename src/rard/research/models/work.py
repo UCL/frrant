@@ -145,7 +145,7 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
             "apposita": AppositumFragmentLink,
         }
 
-        books = self.book_set.all()
+        books = self.book_set.order_by("unknown", "order")
         unknown_book = self.book_set.get(unknown=True)
 
         ordered_materials = {book: {} for book in books}
@@ -173,7 +173,7 @@ class Book(HistoryModelMixin, DatedModel, BaseModel, OrderableModel):
         return self.work
 
     class Meta:
-        ordering = ["order"]
+        ordering = ["unknown", "order"]
 
     work = models.ForeignKey("Work", null=False, on_delete=models.CASCADE)
 
@@ -205,7 +205,9 @@ class Book(HistoryModelMixin, DatedModel, BaseModel, OrderableModel):
 
 @disable_for_loaddata
 def create_unknown_book(sender, instance, **kwargs):
-    unknown_book = Book.objects.create(name="Unknown Book", unknown=True)
+    unknown_book = Book.objects.create(
+        subtitle="Unknown Book", unknown=True, work=instance
+    )
     unknown_book.save()
     instance.book_set.add(unknown_book)
 

@@ -16,10 +16,12 @@ class WorkLink(OrderableModel, models.Model):
     """Through-model for Work to Antiquarian, m2m"""
 
     class Meta:
-        ordering = ["order"]
+        ordering = ["work__unknown", "order"]
 
     def related_queryset(self):
-        return self.__class__.objects.filter(antiquarian=self.antiquarian)
+        return self.__class__.objects.filter(
+            antiquarian=self.antiquarian, work__unknown=False
+        )
 
     antiquarian = models.ForeignKey("Antiquarian", null=False, on_delete=models.CASCADE)
 
@@ -185,7 +187,7 @@ class Antiquarian(
         # single db update
         with transaction.atomic():
             links = WorkLink.objects.filter(antiquarian=self).order_by(
-                models.F(("order")).asc(nulls_first=False)
+                "work__unknown", models.F(("order")).asc(nulls_first=False)
             )
             for count, link in enumerate(links):
                 if link.order != count:
@@ -362,9 +364,18 @@ class Antiquarian(
 def create_unknown_work(sender, instance, **kwargs):
     from rard.research.models import Work
 
-    unknown_work = Work.objects.create(name="Unknown Work", unknown=True)
-    unknown_work.save()
-    instance.works.add(unknown_work)
+    if not instance.unknown_work:
+        # create unknown work if doesn't exist
+        unknown_work = Work.objects.create(
+            name="Unknown Work",
+            unknown=True,
+        )
+        unknown_work.antiquarian_set.add(instance)
+        unknown_work.save()
+    else:
+        # update existing
+        instance.unknown_work.antiquarian_set.add(instance)
+        instance.unknown_work.save()
 
 
 @disable_for_loaddata
