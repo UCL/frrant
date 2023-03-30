@@ -112,7 +112,11 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
 
         fragments = list(
             self.antiquarian_work_fragmentlinks.values(
-                "definite", "book", "order", pk=F("fragment__pk"), link_id=F("id")
+                "definite",
+                "book",
+                "order",
+                pk=F("fragment__pk"),
+                link_id=F("id"),
             ).order_by("book", "order")
         )
         testimonia = list(
@@ -122,7 +126,7 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
                 "order",
                 pk=F("testimonium__pk"),
                 link_id=F("id"),
-            ).order_by("book", "-definite", "order")
+            ).order_by("book", "order")
         )
         apposita = list(
             self.antiquarian_work_appositumfragmentlinks.values(
@@ -131,7 +135,7 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
                 "order",
                 pk=F("anonymous_fragment__pk"),
                 link_id=F("id"),
-            ).order_by("book", "-definite", "order")
+            ).order_by("book", "order")
         )
         materials = {
             "fragments": (fragments, Fragment),
@@ -151,8 +155,8 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
         ordered_materials = {book: {} for book in books}
 
         for material_type, (query_list, model) in materials.items():
-            for k, v in groupby(query_list, lambda x: x["book"]):
-                book = books.get(id=k) if k else unknown_book
+            for num, itr in groupby(query_list, lambda x: x["book"]):
+                book = books.get(id=num) if num else unknown_book
                 content = ordered_materials[book]
 
                 content[material_type] = {
@@ -161,7 +165,7 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
                         "definite": f["definite"],
                         "order": f["order"],
                     }
-                    for f in v
+                    for f in itr
                 }
         return ordered_materials
 
