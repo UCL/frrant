@@ -150,7 +150,7 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
         }
 
         books = self.book_set.order_by("unknown", "order")
-        unknown_book = self.book_set.get(unknown=True)
+        unknown_book = self.unknown_book
 
         ordered_materials = {book: {} for book in books}
 
