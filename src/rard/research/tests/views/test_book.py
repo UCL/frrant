@@ -79,7 +79,6 @@ class TestBookCreateView(TestCase):
             self.assertEqual(
                 getattr(work.book_set.exclude(unknown=True).first(), key), val
             )
-        print(work.book_set.all())
         self.assertIn(work.unknown_book, work.book_set.all())
 
 

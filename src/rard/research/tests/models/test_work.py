@@ -1,5 +1,4 @@
 import pytest
-from django.db.utils import IntegrityError
 from django.test import TestCase
 from django.urls import reverse
 
@@ -351,7 +350,7 @@ class TestBook(TestCase):
             "number": "1",
             "subtitle": "Subtitle",
         }
-        with self.assertRaises(IntegrityError):
+        with self.assertRaises(Book.work.RelatedObjectDoesNotExist):
             Book.objects.create(**data_no_work)
 
     def test_required_fields(self):

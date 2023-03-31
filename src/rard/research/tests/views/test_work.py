@@ -93,20 +93,20 @@ class TestWorkCreateView(TestCase):
         WorkCreateView.as_view()(request)
         a = Antiquarian.objects.get(pk=a.pk)
         self.assertEqual(a.works.exclude(unknown=True).count(), 1)
-        w = a.works.all()[0]
+        w = a.works.first()
         self.assertEqual(Book.objects.filter(work=w, unknown=False).count(), 2)
         self.assertEqual(w.book_set.exclude(unknown=True).count(), 2)
 
         self.assertIn(w.unknown_book, w.book_set.all())
-        bs = w.book_set.filter(unknown=False)
-        # TODO: unknown books have no number and are put first
-        # Books are sorted by number
-        self.assertEqual(bs[0].number, 1)
-        self.assertEqual(bs[0].subtitle, "un")
-        self.assertEqual(bs[1].number, 2)
-        self.assertEqual(bs[1].subtitle, "deux")
-        self.assertEqual(bs[1].order_year, -150)
-        self.assertEqual(bs[1].date_range, "somewhen")
+        bs = w.book_set.all()
+        # Books are sorted by unknown, then order, then number
+        self.assertTrue(bs.last().unknown)
+        self.assertEqual(bs[0].number, 2)
+        self.assertEqual(bs[0].subtitle, "deux")
+        self.assertEqual(bs[0].order_year, -150)
+        self.assertEqual(bs[0].date_range, "somewhen")
+        self.assertEqual(bs[1].number, 1)
+        self.assertEqual(bs[1].subtitle, "un")
 
 
 class TestWorkUpdateView(TestCase):

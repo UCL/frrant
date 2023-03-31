@@ -316,6 +316,7 @@ class TestWorkLinkScheme(TestCase):
         ):
             self.assertEqual(count, link.order)
 
+    @pytest.mark.skip("the opposite of this would be true now")
     def test_testimonia_without_work_ordered_first(self):
         """TestimoniaLinks with no work specified should be ordered before
         those with a linked work"""
