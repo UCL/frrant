@@ -44,6 +44,9 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
 
     unknown = models.BooleanField(default=False)
 
+    def book_set(self):
+        return super().book_set().order_by("unknown", "order", "number")
+
     @property
     def unknown_book(self):
         return self.book_set.filter(unknown=True).first()
@@ -149,7 +152,7 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
             "apposita": AppositumFragmentLink,
         }
 
-        books = self.book_set.order_by("unknown", "order")
+        books = self.book_set.all()
         unknown_book = self.unknown_book
 
         ordered_materials = {book: {} for book in books}
@@ -177,7 +180,7 @@ class Book(HistoryModelMixin, DatedModel, BaseModel, OrderableModel):
         return self.work
 
     class Meta:
-        ordering = ["unknown", "order"]
+        ordering = ["unknown", "order", "number"]
 
     work = models.ForeignKey("Work", null=False, on_delete=models.CASCADE)
 
