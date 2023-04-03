@@ -247,7 +247,9 @@ class Antiquarian(
                         "antiquarian": self,
                         "work": link.work,
                         "book": link.book,
-                        "definite": link.definite,
+                        "definite_antiquarian": link.definite_antiquarian,
+                        "definite_work": link.definite_work,
+                        "definite_book": link.definite_book,
                         link.linked_field: getattr(link, link.linked_field),
                     }
                     link.__class__.objects.get_or_create(**data)

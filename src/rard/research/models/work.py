@@ -72,13 +72,13 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
     def definite_fragments(self):
         from rard.research.models import Fragment
 
-        links = self.antiquarian_work_fragmentlinks.filter(definite=True)
+        links = self.antiquarian_work_fragmentlinks.filter(definite_work=True)
         return Fragment.objects.filter(antiquarian_fragmentlinks__in=links).distinct()
 
     def possible_fragments(self):
         from rard.research.models import Fragment
 
-        links = self.antiquarian_work_fragmentlinks.filter(definite=False)
+        links = self.antiquarian_work_fragmentlinks.filter(definite_work=False)
         return Fragment.objects.filter(antiquarian_fragmentlinks__in=links).distinct()
 
     def all_testimonia(self):
@@ -92,7 +92,7 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
     def definite_testimonia(self):
         from rard.research.models import Testimonium
 
-        links = self.antiquarian_work_testimoniumlinks.filter(definite=True)
+        links = self.antiquarian_work_testimoniumlinks.filter(definite_work=True)
         return Testimonium.objects.filter(
             antiquarian_testimoniumlinks__in=links
         ).distinct()
@@ -100,7 +100,7 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
     def possible_testimonia(self):
         from rard.research.models import Testimonium
 
-        links = self.antiquarian_work_testimoniumlinks.filter(definite=False)
+        links = self.antiquarian_work_testimoniumlinks.filter(definite_work=False)
         return Testimonium.objects.filter(
             antiquarian_testimoniumlinks__in=links
         ).distinct()
@@ -115,7 +115,9 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
 
         fragments = list(
             self.antiquarian_work_fragmentlinks.values(
-                "definite",
+                "definite_antiquarian",
+                "definite_work",
+                "definite_book",
                 "book",
                 "order",
                 pk=F("fragment__pk"),
@@ -124,7 +126,9 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
         )
         testimonia = list(
             self.antiquarian_work_testimoniumlinks.values(
-                "definite",
+                "definite_antiquarian",
+                "definite_work",
+                "definite_book",
                 "book",
                 "order",
                 pk=F("testimonium__pk"),
@@ -133,7 +137,9 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
         )
         apposita = list(
             self.antiquarian_work_appositumfragmentlinks.values(
-                "definite",
+                "definite_antiquarian",
+                "definite_work",
+                "definite_book",
                 "book",
                 "order",
                 pk=F("anonymous_fragment__pk"),
@@ -165,7 +171,9 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
                 content[material_type] = {
                     links[material_type].objects.get(id=f["link_id"]): {
                         "linked": model.objects.get(id=f["pk"]),
-                        "definite": f["definite"],
+                        "definite_antiquarian": f["definite_antiquarian"],
+                        "definite_work": f["definite_work"],
+                        "definite_book": f["definite_book"],
                         "order": f["order"],
                     }
                     for f in itr

@@ -55,7 +55,6 @@ post_delete.connect(handle_deleted_topic_link, sender=TopicLink)
 
 
 class Fragment(HistoryModelMixin, HistoricalBaseModel, DatedModel):
-
     history = HistoricalRecords(
         excluded_fields=[
             "topics",
@@ -71,31 +70,47 @@ class Fragment(HistoryModelMixin, HistoricalBaseModel, DatedModel):
 
     original_texts = GenericRelation("OriginalText", related_query_name="fragments")
 
-    def definite_work_and_book_links(self):
+    def definite_book_links(self):
         return (
             self.antiquarian_fragmentlinks.filter(
-                definite=True,
-                work__isnull=False,
+                definite_book=True,
             )
             .order_by("work", "-book")
             .distinct()
         )
 
-    def possible_work_and_book_links(self):
+    def possible_book_links(self):
         return (
             self.antiquarian_fragmentlinks.filter(
-                definite=False,
-                work__isnull=False,
+                definite_book=False,
+            )
+            .order_by("work", "-book")
+            .distinct()
+        )
+
+    def definite_work_links(self):
+        return (
+            self.antiquarian_fragmentlinks.filter(
+                definite_work=True,
+            )
+            .order_by("work", "-book")
+            .distinct()
+        )
+
+    def possible_work_links(self):
+        return (
+            self.antiquarian_fragmentlinks.filter(
+                definite_work=False,
             )
             .order_by("work", "-book")
             .distinct()
         )
 
     def definite_antiquarian_links(self):
-        return self.antiquarian_fragmentlinks.filter(definite=True, work__isnull=True)
+        return self.antiquarian_fragmentlinks.filter(definite_antiquarian=True)
 
     def possible_antiquarian_links(self):
-        return self.antiquarian_fragmentlinks.filter(definite=False, work__isnull=True)
+        return self.antiquarian_fragmentlinks.filter(definite_antiquarian=False)
 
     def get_absolute_url(self):
         return reverse("fragment:detail", kwargs={"pk": self.pk})
@@ -136,7 +151,6 @@ class Fragment(HistoryModelMixin, HistoricalBaseModel, DatedModel):
 
 
 class AnonymousTopicLink(OrderableModel):
-
     # need a different class for anonymous topics so they can
     # vary independently
 
@@ -166,7 +180,6 @@ class AnonymousTopicLink(OrderableModel):
 class AnonymousFragment(
     HistoryModelMixin, OrderableModel, HistoricalBaseModel, DatedModel
 ):
-
     history = HistoricalRecords(
         excluded_fields=[
             "topics",

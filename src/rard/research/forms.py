@@ -242,7 +242,6 @@ class BooksField(forms.Field):
 
 
 class WorkForm(forms.ModelForm):
-
     antiquarians = forms.ModelMultipleChoiceField(
         widget=forms.CheckboxSelectMultiple,
         queryset=Antiquarian.objects.all(),
@@ -322,7 +321,6 @@ class CommentForm(forms.ModelForm):
 
 
 class CitingWorkForm(forms.ModelForm):
-
     new_citing_work = forms.BooleanField(required=False)
     new_author = forms.BooleanField(required=False)
     new_author_name = forms.CharField(
@@ -410,7 +408,6 @@ class OriginalTextAuthorForm(forms.ModelForm):
 
 
 class OriginalTextDetailsForm(forms.ModelForm):
-
     new_apparatus_criticus_line = forms.CharField(
         widget=forms.Textarea(attrs={"rows": 2}),
         required=False,
@@ -427,7 +424,6 @@ class OriginalTextDetailsForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-
         original_text = kwargs.get("instance", None)
         if original_text and original_text.pk:
             original_text.update_content_mentions()
@@ -460,7 +456,6 @@ class OriginalTextDetailsForm(forms.ModelForm):
 
 
 class OriginalTextForm(OriginalTextAuthorForm):
-
     new_apparatus_criticus_line = forms.CharField(
         widget=forms.Textarea(attrs={"rows": 2}),
         required=False,
@@ -482,7 +477,6 @@ class OriginalTextForm(OriginalTextAuthorForm):
         }
 
     def __init__(self, *args, **kwargs):
-
         original_text = kwargs.get("instance", None)
         if original_text and original_text.pk:
             original_text.update_content_mentions()
@@ -644,9 +638,15 @@ class BaseLinkWorkForm(forms.ModelForm):
             "antiquarian",
             "work",
             "book",
-            "definite",
+            "definite_antiquarian",
+            "definite_work",
+            "definite_book",
         )
-        labels = {"definite": _("Definite Link")}
+        labels = {
+            "definite_antiquarian": _("Definite link to Antiquarian"),
+            "definite_work": _("Definite link to Work"),
+            "definite_book": _("Definite link to Book"),
+        }
 
     def __init__(self, *args, **kwargs):
         antiquarian = kwargs.pop("antiquarian")
@@ -693,7 +693,6 @@ class TestimoniumLinkWorkForm(BaseLinkWorkForm):
 
 
 class AppositumGeneralLinkForm(forms.ModelForm):
-
     # for linking to antiquarian, work or book
     # mechanism is different for fragment
 
@@ -707,7 +706,6 @@ class AppositumGeneralLinkForm(forms.ModelForm):
         )
 
     def __init__(self, *args, **kwargs):
-
         antiquarian = kwargs.pop("antiquarian")
         work = kwargs.pop("work")
 
@@ -735,7 +733,6 @@ class AppositumGeneralLinkForm(forms.ModelForm):
 
 
 class AppositumFragmentLinkForm(forms.ModelForm):
-
     # for linking to antiquarian, work or book
     # mechanism is different for fragment
 
@@ -744,7 +741,6 @@ class AppositumFragmentLinkForm(forms.ModelForm):
         fields = ("linked_to",)
 
     def __init__(self, *args, **kwargs):
-
         super().__init__(*args, **kwargs)
 
         self.fields["linked_to"].initial = Fragment.objects.all()

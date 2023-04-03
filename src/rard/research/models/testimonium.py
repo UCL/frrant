@@ -9,7 +9,6 @@ from .base import HistoricalBaseModel, TestimoniumLink
 
 
 class Testimonium(HistoryModelMixin, HistoricalBaseModel):
-
     history = HistoricalRecords(
         excluded_fields=[
             "original_texts",
@@ -23,35 +22,47 @@ class Testimonium(HistoryModelMixin, HistoricalBaseModel):
 
     original_texts = GenericRelation("OriginalText", related_query_name="testimonia")
 
-    def definite_work_and_book_links(self):
+    def definite_book_links(self):
         return (
             self.antiquarian_testimoniumlinks.filter(
-                definite=True,
-                work__isnull=False,
+                definite_book=True,
             )
             .order_by("work", "-book")
             .distinct()
         )
 
-    def possible_work_and_book_links(self):
+    def possible_book_links(self):
         return (
             self.antiquarian_testimoniumlinks.filter(
-                definite=False,
-                work__isnull=False,
+                definite_book=False,
+            )
+            .order_by("work", "-book")
+            .distinct()
+        )
+
+    def definite_work_links(self):
+        return (
+            self.antiquarian_testimoniumlinks.filter(
+                definite_work=True,
+            )
+            .order_by("work", "-book")
+            .distinct()
+        )
+
+    def possible_work_links(self):
+        return (
+            self.antiquarian_testimoniumlinks.filter(
+                definite_work=False,
             )
             .order_by("work", "-book")
             .distinct()
         )
 
     def definite_antiquarian_links(self):
-        return self.antiquarian_testimoniumlinks.filter(
-            definite=True, work__isnull=True
-        )
+        return self.antiquarian_testimoniumlinks.filter(definite_antiquarian=True)
 
     def possible_antiquarian_links(self):
-        return self.antiquarian_testimoniumlinks.filter(
-            definite=False, work__isnull=True
-        )
+        return self.antiquarian_testimoniumlinks.filter(definite_antiquarian=False)
 
     def get_absolute_url(self):
         return reverse("testimonium:detail", kwargs={"pk": self.pk})
