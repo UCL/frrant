@@ -35,12 +35,14 @@ table.books-widget .book-order {
   background-color: yellow;
 }
 
-.fa.fa-check-circle {
-  color: #038b03 !important;
+.fa.fa-user,
+.fa.fa-book,
+.fa.fa-bookmark {
+  padding-right: 0.1rem;
 }
-.fa.fa-question-circle,
-.fa.fa-check-circle {
-  padding-right: 0.5rem;
+
+.definite-indicators {
+  padding-right: 0.3rem;
 }
 
 .unstyled {
