@@ -54,7 +54,7 @@ class Migration(migrations.Migration):
 
         worklinks = ["FragmentLink", "TestimoniumLink", "AppositumFragmentLink"]
 
-        Work = apps.get_model("research", "Work")
+        Book = apps.get_model("research", "Book")
 
         def order_in_book_for_link_class(link_classname):
             link_class = apps.get_model("research", link_classname)
