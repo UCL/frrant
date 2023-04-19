@@ -11,11 +11,25 @@
                 {% with fragment.get_display_name as link_text %}
                 {% if perms.research.view_fragment %}
 
-                {% if link.definite %}
-                    <i title='Definite link' data-placement="top" data-toggle='tooltip' class='fa fa-check-circle fa-xs text-muted'></i>
+            <span class="definite-indicators">
+                {% if link.definite_antiquarian %}
+                    <i title='Definite antiquarian link' data-placement="top" data-toggle='tooltip' class='fa fa-solid fa-user fa-xs text-success'></i>
                 {% else %}
-                    <i title='Possible link' data-placement="top" data-toggle='tooltip' class='fa fa-question-circle fa-xs text-muted'></i>
+                    <i title='Possible antiquarian link' data-placement="top" data-toggle='tooltip' class='fa fa-user fa-xs text-muted'></i>
                 {% endif %}
+
+                {% if link.definite_work %}
+                    <i title='Definite work link' data-placement="top" data-toggle='tooltip' class='fa fa-solid fa-book fa-xs text-success'></i>
+                {% else %}
+                    <i title='Possible work link' data-placement="top" data-toggle='tooltip' class='fa fa-solid fa-book fa-xs text-muted'></i>
+                {% endif %}
+
+                {% if link.definite_book %}
+                    <i title='Definite book link' data-placement="top" data-toggle='tooltip' class='fa fa-solid fa-bookmark fa-xs text-success'></i>
+                {% else %}
+                    <i title='Possible book link' data-placement="top" data-toggle='tooltip' class='fa fa-solid fa-bookmark fa-xs text-muted'></i>
+                {% endif %}
+            </span>
 
                 <a href='{% url "fragment:detail" fragment.pk %}'>{{ link_text }}</a>
                 {% else %}
