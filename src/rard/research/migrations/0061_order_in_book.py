@@ -109,7 +109,7 @@ class Migration(migrations.Migration):
                 to_reorder = (
                     link_class.objects.filter(antiquarian=antiquarian)
                     .order_by("work__unknown", "work__worklink__order","work_order")
-                    .ditinct()
+                    .distinct()
                 )
 
                 for count, link in enumerate(to_reorder):
