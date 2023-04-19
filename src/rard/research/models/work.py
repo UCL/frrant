@@ -63,48 +63,6 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
     def get_absolute_url(self):
         return reverse("work:detail", kwargs={"pk": self.pk})
 
-    def all_fragments(self):
-        from rard.research.models import Fragment
-
-        links = self.antiquarian_work_fragmentlinks.all()
-        return Fragment.objects.filter(antiquarian_fragmentlinks__in=links).distinct()
-
-    def definite_fragments(self):
-        from rard.research.models import Fragment
-
-        links = self.antiquarian_work_fragmentlinks.filter(definite_work=True)
-        return Fragment.objects.filter(antiquarian_fragmentlinks__in=links).distinct()
-
-    def possible_fragments(self):
-        from rard.research.models import Fragment
-
-        links = self.antiquarian_work_fragmentlinks.filter(definite_work=False)
-        return Fragment.objects.filter(antiquarian_fragmentlinks__in=links).distinct()
-
-    def all_testimonia(self):
-        from rard.research.models import Testimonium
-
-        links = self.antiquarian_work_testimoniumlinks.all()
-        return Testimonium.objects.filter(
-            antiquarian_testimoniumlinks__in=links
-        ).distinct()
-
-    def definite_testimonia(self):
-        from rard.research.models import Testimonium
-
-        links = self.antiquarian_work_testimoniumlinks.filter(definite_work=True)
-        return Testimonium.objects.filter(
-            antiquarian_testimoniumlinks__in=links
-        ).distinct()
-
-    def possible_testimonia(self):
-        from rard.research.models import Testimonium
-
-        links = self.antiquarian_work_testimoniumlinks.filter(definite_work=False)
-        return Testimonium.objects.filter(
-            antiquarian_testimoniumlinks__in=links
-        ).distinct()
-
     def get_ordered_materials(self):
         from rard.research.models import AnonymousFragment, Fragment, Testimonium
         from rard.research.models.base import (
