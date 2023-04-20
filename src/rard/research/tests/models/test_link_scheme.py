@@ -293,7 +293,8 @@ class TestWorkLinkScheme(TestCase):
                 definite_antiquarian=True,
             )
             # Only create work links for half the testimonia
-            work = self.work if i % 2 == 0 else None
+            unknown_work = self.antiquarian.unknown_work
+            work = self.work if i % 2 == 0 else unknown_work
             TestimoniumLink.objects.create(
                 antiquarian=self.antiquarian,
                 work=work,
@@ -318,18 +319,20 @@ class TestWorkLinkScheme(TestCase):
         ):
             self.assertEqual(count, link.order)
 
-    @pytest.mark.skip("the opposite of this would be true now")
-    def test_testimonia_without_work_ordered_first(self):
-        """TestimoniaLinks with no work specified should be ordered before
-        those with a linked work"""
-        # Odd numbered testimonia were not linked to works so we expect them to be first
-        names_order = [f"name{i}" for i in [1, 3, 5, 7, 9, 0, 2, 4, 6, 8]]
+    def test_testimonia_without_work_ordered_last(self):
+        """TestimoniaLinks with no work specified should be ordered after
+        those with a linked work; they are assigned to Unknown Work"""
+        # Odd numbered testimonia were linked to unknown work so we expect them to be last
+        names_order = [f"name{i}" for i in [0, 2, 4, 6, 8, 1, 3, 5, 7, 9]]
         for count, name in enumerate(names_order):
             testimonium = Testimonium.objects.get(name=name)
             self.assertEqual(
-                TestimoniumLink.objects.filter(testimonium=testimonium).first().order,
+                TestimoniumLink.objects.filter(testimonium=testimonium).last().order,
                 count,
             )
+        self.assertTrue(
+            TestimoniumLink.objects.filter(testimonium=testimonium).last().work.unknown
+        )
 
     def test_ordered_fragments_method(self):
         ordered_fragments = [f.pk for f in self.antiquarian.ordered_fragments()]
@@ -807,23 +810,23 @@ class TestLinkScheme(TestCase):
         self.assertEqual(0, self.testimonium.definite_antiquarian_links().count())
         self.assertEqual(1, self.testimonium.possible_antiquarian_links().count())
 
-    @pytest.mark.skip(
-        "This can be revisited when definite status is broken down into ant/wk/bk"
-    )
     def test_add_antiquarian_fragment_ignores_work(self):
         FragmentLink.objects.create(
             antiquarian=self.antiquarian,
             work=self.work,
             fragment=self.fragment,
-            definite=True,
+            definite_antiquarian=True,
+            definite_work=True,
         )
-        self.assertEqual(len(self.fragment.definite_work_and_book_links()), 1)
+        self.assertEqual(len(self.fragment.definite_work_links()), 1)
         # add more links to the antiquarian and the work should be unaffected
         for i in range(0, 10):
             FragmentLink.objects.create(
-                antiquarian=self.antiquarian, fragment=self.fragment, definite=True
+                antiquarian=self.antiquarian,
+                fragment=self.fragment,
+                definite_antiquarian=True,
             )
-        self.assertEqual(len(self.fragment.definite_work_and_book_links()), 1)
+        self.assertEqual(len(self.fragment.definite_work_links()), 1)
 
     def test_get_all_names(self):
         # all names that this fragment is known by according to the
