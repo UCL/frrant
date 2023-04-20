@@ -24,7 +24,9 @@
     <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
         {% csrf_token %}
         {% bootstrap_field form.book %}
-        {% bootstrap_field form.definite %}
+        {% bootstrap_field form.definite_book %}
+        {% bootstrap_field form.definite_work %}
+        {% bootstrap_field form.definite_antiquarian %}
 
         <input type='hidden' name='antiquarian' value='{{ antiquarian.pk }}' />
         <input type='hidden' name='work' value='{{ work.pk }}' />

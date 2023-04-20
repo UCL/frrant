@@ -193,8 +193,11 @@
             </div>
         </div>
 
-        {% for link in object.definite_work_and_book_links %}
-            {% include 'research/partials/linked_work.html' with link=link can_edit=perms.research.change_testimonium has_object_lock=has_object_lock %}
+        {% for link in object.definite_work_links %}
+            {% include 'research/partials/linked_work.html' with link=link can_edit=perms.research.change_fragment has_object_lock=has_object_lock %}
+        {% endfor %}
+        {% for link in object.definite_book_links %}
+            {% include 'research/partials/linked_work.html' with link=link can_edit=perms.research.change_fragment has_object_lock=has_object_lock %}
         {% endfor %}
 
     </section>
@@ -213,8 +216,11 @@
             </div>
         </div>
 
-        {% for link in object.possible_work_and_book_links %}
-            {% include 'research/partials/linked_work.html' with link=link can_edit=perms.research.change_testimonium has_object_lock=has_object_lock %}
+        {% for link in object.possible_work_links %}
+            {% include 'research/partials/linked_work.html' with link=link can_edit=perms.research.change_fragment has_object_lock=has_object_lock %}
+        {% endfor %}
+        {% for link in object.possible_book_links %}
+            {% include 'research/partials/linked_work.html' with link=link can_edit=perms.research.change_fragment has_object_lock=has_object_lock %}
         {% endfor %}
 
     </section>

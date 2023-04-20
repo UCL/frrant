@@ -4,9 +4,16 @@
 {% with antiquarian=link.antiquarian linked_field=link.linked_field %}
 <div class='rard-list-item d-flex justify-content-between'>
     <div>
-        <li>
+        <li class="unstyled">
             {% with antiquarian.name as link_text %}
                 {% if perms.research.view_antiquarian %}
+                <span class="definite-indicators">
+                    {% if link.definite_antiquarian %}
+                        <i title='Definite antiquarian link' data-placement="top" data-toggle='tooltip' class='fa fa-solid fa-user fa-xs text-success'></i>
+                    {% else %}
+                        <i title='Possible antiquarian link' data-placement="top" data-toggle='tooltip' class='fa fa-user fa-xs text-muted'></i>
+                    {% endif %}
+                </span>
                 <a href='{% url "antiquarian:detail" antiquarian.pk %}'>{{ link_text }}</a>
                 {% else %}
                     {{ link_text }}
