@@ -180,7 +180,7 @@ class Book(HistoryModelMixin, DatedModel, BaseModel, OrderableModel):
         return self.work
 
     class Meta:
-        ordering = ["unknown", "order", "number"]
+        ordering = ["unknown", "order"]
 
     work = models.ForeignKey("Work", null=False, on_delete=models.CASCADE)
 
