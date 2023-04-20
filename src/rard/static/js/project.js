@@ -73,7 +73,9 @@ $(".submit-on-change").change(function (e) {
 $(".work-form").submit(function (e) {
   // disable any book/volume/submit controls on the page
   $('[name="book"]').prop("disabled", true);
-  $('[name="definite"]').prop("disabled", true);
+  $('[name="definite_antiquarian"]').prop("disabled", true);
+  $('[name="definite_work"]').prop("disabled", true);
+  $('[name="definite_book"]').prop("disabled", true);
   $('button[type="submit"]').prop("disabled", true);
 });
 
