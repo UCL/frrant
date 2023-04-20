@@ -655,6 +655,10 @@ class BaseLinkWorkForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["book"].required = False
         self.fields["work"].required = False
+        self.fields["definite_antiquarian"] = forms.BooleanField(required=False)
+        self.fields["definite_work"] = forms.BooleanField(required=False)
+        self.fields["definite_book"] = forms.BooleanField(required=False)
+
         if antiquarian:
             self.fields["antiquarian"].initial = antiquarian
             self.fields["work"].queryset = antiquarian.works.all()
