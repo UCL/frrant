@@ -211,7 +211,7 @@ class TestWork(TestCase):
             FragmentLink.objects.create(
                 work=work1,
                 fragment=fragment,
-                definite=True,
+                definite_work=True,
             )
         # shoud appear in work1's definite fragments only
         self.assertEqual(
@@ -224,7 +224,7 @@ class TestWork(TestCase):
         self.assertEqual(0, len(work2.possible_fragments()))
 
         # make these links possible...
-        FragmentLink.objects.update(definite=False)
+        FragmentLink.objects.update(definite_work=False)
         # shoud appear in work1's possible fragments only
         self.assertEqual(
             [x.pk for x in work1.possible_fragments()],
@@ -236,7 +236,7 @@ class TestWork(TestCase):
         self.assertEqual(0, len(work2.possible_fragments()))
 
         # switch all fragment links to work2 and make definite...
-        FragmentLink.objects.update(work=work2, definite=True)
+        FragmentLink.objects.update(work=work2, definite_work=True)
 
         # shoud appear in work2's definite fragments only
         self.assertEqual(
@@ -249,7 +249,7 @@ class TestWork(TestCase):
         self.assertEqual(0, len(work1.possible_fragments()))
 
         # finally make possible and check...
-        FragmentLink.objects.update(definite=False)
+        FragmentLink.objects.update(definite_work=False)
         # shoud appear in work2's possible fragments only
         self.assertEqual(
             [x.pk for x in work2.possible_fragments()],
@@ -284,7 +284,7 @@ class TestWork(TestCase):
             TestimoniumLink.objects.create(
                 work=work1,
                 testimonium=testimonium,
-                definite=True,
+                definite_work=True,
             )
         # shoud appear in work1's definite testimonia only
         self.assertEqual(
@@ -297,7 +297,7 @@ class TestWork(TestCase):
         self.assertEqual(0, len(work2.possible_testimonia()))
 
         # make these links possible...
-        TestimoniumLink.objects.update(definite=False)
+        TestimoniumLink.objects.update(definite_work=False)
         # shoud appear in work1's possible testimonia only
         self.assertEqual(
             [x.pk for x in work1.possible_testimonia()],
@@ -309,7 +309,7 @@ class TestWork(TestCase):
         self.assertEqual(0, len(work2.possible_testimonia()))
 
         # switch all testimonium links to work2 and make definite...
-        TestimoniumLink.objects.update(work=work2, definite=True)
+        TestimoniumLink.objects.update(work=work2, definite_work=True)
 
         # shoud appear in work2's definite testimonia only
         self.assertEqual(
@@ -322,7 +322,7 @@ class TestWork(TestCase):
         self.assertEqual(0, len(work1.possible_testimonia()))
 
         # finally make possible and check...
-        TestimoniumLink.objects.update(definite=False)
+        TestimoniumLink.objects.update(definite_work=False)
         # shoud appear in work2's possible testimonia only
         self.assertEqual(
             [x.pk for x in work2.possible_testimonia()],
