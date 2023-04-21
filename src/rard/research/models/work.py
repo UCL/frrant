@@ -8,6 +8,11 @@ from django.urls import reverse
 from django.utils.text import slugify
 from simple_history.models import HistoricalRecords
 
+from rard.research.models.base import (
+    AppositumFragmentLink,
+    FragmentLink,
+    TestimoniumLink,
+)
 from rard.research.models.mixins import HistoryModelMixin
 from rard.utils.basemodel import BaseModel, DatedModel, LockableModel, OrderableModel
 from rard.utils.decorators import disable_for_loaddata
@@ -172,6 +177,38 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
                 }
         return ordered_materials
 
+    def reindex_related_links(self):
+        """When the order of books changes with respect to this work,
+        we need to recalculate work_order for each FragmentLink,
+        TestimoniumLink and AppositumFragmentLink. Then call
+        equivalent reindex_fragment_and_testimonium_links method
+        on the related Antiquarian"""
+
+        from django.db import transaction
+
+        with transaction.atomic():
+            to_reorder = [
+                FragmentLink.objects.filter(work=self).order_by(
+                    "book__unknown", "book__order", "order_in_book"
+                ),
+                TestimoniumLink.objects.filter(work=self).order_by(
+                    "book__unknown", "book__order", "order_in_book"
+                ),
+                AppositumFragmentLink.objects.filter(work=self).order_by(
+                    "book__unknown", "book__order", "order_in_book"
+                ),
+            ]
+
+            for qs in to_reorder:
+                for count, link in enumerate(qs):
+                    if link.work_order != count:
+                        link.work_order = count
+                        link.save()
+
+        # There should only ever be one antiquarian, but no harm in covering all eventualities
+        for antiquarian in self.antiquarian_set.all():
+            antiquarian.reindex_fragment_and_testimonium_links()
+
 
 class Book(HistoryModelMixin, DatedModel, BaseModel, OrderableModel):
     history = HistoricalRecords()
@@ -219,4 +256,11 @@ def create_unknown_book(sender, instance, **kwargs):
     instance.book_set.add(unknown_book)
 
 
+@disable_for_loaddata
+def handle_reordered_books(sender, instance, **kwargs):
+    # reindex links for antiquarian
+    instance.work.reindex_related_links()
+
+
 post_save.connect(create_unknown_book, sender=Work)
+post_save.connect(handle_reordered_books, sender=Book)
