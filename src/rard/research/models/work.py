@@ -118,62 +118,55 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
             TestimoniumLink,
         )
 
-        fragments = list(
+        fragment_links = list(
             self.antiquarian_work_fragmentlinks.values(
                 "definite",
                 "book",
-                "order",
+                "order_in_book",
                 pk=F("fragment__pk"),
                 link_id=F("id"),
-            ).order_by("book", "order")
+            ).order_by("book", "order_in_book")
         )
-        testimonia = list(
+        testimonium_links = list(
             self.antiquarian_work_testimoniumlinks.values(
                 "definite",
                 "book",
-                "order",
+                "order_in_book",
                 pk=F("testimonium__pk"),
                 link_id=F("id"),
-            ).order_by("book", "order")
+            ).order_by("book", "order_in_book")
         )
-        apposita = list(
+        appositum_links = list(
             self.antiquarian_work_appositumfragmentlinks.values(
                 "definite",
                 "book",
-                "order",
+                "order_in_book",
                 pk=F("anonymous_fragment__pk"),
                 link_id=F("id"),
-            ).order_by("book", "order")
+            ).order_by("book", "order_in_book")
         )
         materials = {
-            "fragments": (fragments, Fragment),
-            "testimonia": (testimonia, Testimonium),
-            "apposita": (apposita, AnonymousFragment),
-        }
-        # need to also add the link id for the move function
-        links = {
-            "fragments": FragmentLink,
-            "testimonia": TestimoniumLink,
-            "apposita": AppositumFragmentLink,
+            "fragments": (fragment_links, Fragment, FragmentLink),
+            "testimonia": (testimonium_links, Testimonium, TestimoniumLink),
+            "apposita": (appositum_links, AnonymousFragment, AppositumFragmentLink),
         }
 
-        books = self.book_set.all()
-        unknown_book = self.unknown_book
+        books = self.book_set.all()  # Unknown should be last by default
 
         ordered_materials = {book: {} for book in books}
 
-        for material_type, (query_list, model) in materials.items():
-            for num, itr in groupby(query_list, lambda x: x["book"]):
-                book = books.get(id=num) if num else unknown_book
+        for material_type, (query_list, model, link_model) in materials.items():
+            for book_id, links in groupby(query_list, lambda x: x["book"]):
+                book = books.get(id=book_id)
                 content = ordered_materials[book]
 
                 content[material_type] = {
-                    links[material_type].objects.get(id=f["link_id"]): {
-                        "linked": model.objects.get(id=f["pk"]),
-                        "definite": f["definite"],
-                        "order": f["order"],
+                    link_model.objects.get(id=link["link_id"]): {
+                        "linked": model.objects.get(id=link["pk"]),
+                        "definite": link["definite"],
+                        "order_in_book": link["order_in_book"],
                     }
-                    for f in itr
+                    for link in links
                 }
         return ordered_materials
 
