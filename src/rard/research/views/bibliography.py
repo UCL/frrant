@@ -1,4 +1,7 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.contrib import messages
+from django.shortcuts import render
+
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
@@ -6,7 +9,7 @@ from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from rard.research.forms import BibliographyItemForm
-from rard.research.models import BibliographyItem, Antiquarian, Fragment, AnonymousFragment, Testimonium
+from rard.research.models import BibliographyItem, TextObjectField, Antiquarian, Fragment, AnonymousFragment, Testimonium
 from rard.research.views.mixins import CanLockMixin, CheckLockMixin
 
 
@@ -163,3 +166,30 @@ class BibliographyDeleteView(
     model = BibliographyItem
     success_url = reverse_lazy("bibliography:list")
     permission_required = ("research.delete_bibliographyitem",)
+
+    def delete(self, request, *args, **kwargs):
+        '''
+        if a TextObjectField contains a mention of a BibilographyItem, it will contain this string:
+        
+        <span class="mention" data-denotation-char="@" data-id="20" data-index="1" data-target="bibliographyitem"
+
+        data-index is the order within the TextObjectField, so we can ignore
+        data-id is the bibliography_item.pk
+
+        '''
+        bibliography = self.get_object()
+        bib_pk = bibliography.pk
+        # the following line is split because of the clash between the {} in f string and regex
+        pattern_to_find = fr'<span class="mention" data-denotation-char="@" data-id="{bib_pk}" ' + r'data-index="[0-9]{1,4}" data-target="bibliographyitem"'
+                        # turns out this won't work, because sometimes it's saved like this:
+                        # r'<span class="mention" data-index="[0-9]{1,4}" data-denotation-char="@" ' + fr'data-id="{bib_pk}" data-target="bibliographyitem"'
+                        # perhaps there are other possible inconsistencies?
+        bib_mention_count = TextObjectField.objects.filter(content__regex = pattern_to_find).count()
+        print(bib_mention_count)
+        if bib_mention_count > 0:
+            # There are @mentions of this bibliography_item, so do something:
+            #raise IntegrityError - not this
+            messages.error("This Bibliography item has " + str(bib_mention_count) + " mentions elsewhere in the database, deletion not successful")
+            return render(request, self.template_name, self.get_context_data() , messages)
+        else:
+            return super().delete(self, request, *args, **kwargs)
