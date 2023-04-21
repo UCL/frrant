@@ -658,13 +658,14 @@ class BaseLinkWorkForm(forms.ModelForm):
         self.fields["definite_antiquarian"] = forms.BooleanField(required=False)
         self.fields["definite_work"] = forms.BooleanField(required=False)
         self.fields["definite_book"] = forms.BooleanField(required=False)
-
+        # TODO: definite value not carried over when forms reload
         if antiquarian:
             self.fields["antiquarian"].initial = antiquarian
             self.fields["work"].queryset = antiquarian.works.all()
         else:
             self.fields["work"].queryset = Work.objects.none()
             self.fields["work"].disabled = True
+            self.fields["definite_work"].disabled = True
 
         if work:
             if antiquarian:
@@ -676,6 +677,7 @@ class BaseLinkWorkForm(forms.ModelForm):
         else:
             self.fields["book"].queryset = Book.objects.none()
             self.fields["book"].disabled = True
+            self.fields["definite_book"].disabled = True
 
     def clean(self):
         cleaned_data = super().clean()
