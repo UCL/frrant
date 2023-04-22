@@ -239,7 +239,9 @@ class Book(HistoryModelMixin, DatedModel, BaseModel, OrderableModel):
     def get_anchor_id(self):
         return slugify(self.__str__())
 
-    def make_link_order_distinct(self):
+    def reindex_related_links(self):
+        """Following a change, ensure all links to this book have a distinct
+        zero-indexed order in this book."""
         to_reorder = [
             self.antiquarian_book_fragmentlinks.all().order_by("order_in_book"),
             self.antiquarian_book_testimoniumlinks.all().order_by("order_in_book"),
@@ -285,7 +287,7 @@ def handle_deleted_book(sender, instance, **kwargs):
         if link.book is None:
             link.book = link.work.unknown_book
             link.save()
-    work.unknown_book.make_link_order_distinct()
+    work.unknown_book.reindex_related_links()
     work.reindex_related_links()
 
 
