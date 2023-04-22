@@ -1,9 +1,9 @@
-from itertools import groupby
+from itertools import chain, groupby
 
 from django.contrib.postgres.aggregates import StringAgg
 from django.db import models
 from django.db.models import F
-from django.db.models.signals import post_save
+from django.db.models.signals import post_delete, post_save
 from django.urls import reverse
 from django.utils.text import slugify
 from simple_history.models import HistoricalRecords
@@ -171,10 +171,10 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
         return ordered_materials
 
     def reindex_related_links(self):
-        """When the order of books changes with respect to this work,
-        we need to recalculate work_order for each FragmentLink,
-        TestimoniumLink and AppositumFragmentLink. Then call
-        equivalent reindex_fragment_and_testimonium_links method
+        """When links are reordered within a book, or the order of books
+        changes with respect to this work, we need to recalculate work_order
+        for each FragmentLink, TestimoniumLink and AppositumFragmentLink.
+        Then call equivalent reindex_fragment_and_testimonium_links method
         on the related Antiquarian"""
 
         from django.db import transaction
@@ -239,6 +239,21 @@ class Book(HistoryModelMixin, DatedModel, BaseModel, OrderableModel):
     def get_anchor_id(self):
         return slugify(self.__str__())
 
+    def make_link_order_distinct(self):
+        to_reorder = [
+            self.antiquarian_book_fragmentlinks.all().order_by("order_in_book"),
+            self.antiquarian_book_testimoniumlinks.all().order_by("order_in_book"),
+            self.antiquarian_book_appositumfragmentlinks.all().order_by(
+                "order_in_book"
+            ),
+        ]
+
+        for qs in to_reorder:
+            for count, link in enumerate(qs):
+                if link.order_in_book != count:
+                    link.order_in_book = count
+                    link.save()
+
 
 @disable_for_loaddata
 def create_unknown_book(sender, instance, **kwargs):
@@ -255,5 +270,25 @@ def handle_reordered_books(sender, instance, **kwargs):
     instance.work.reindex_related_links()
 
 
+@disable_for_loaddata
+def handle_deleted_book(sender, instance, **kwargs):
+    """When a book is deleted, any links should be updated to point to
+    the work's unknown book."""
+    print(f"Handling deleted book {instance}")
+    work = instance.work
+    related_links = chain(
+        work.antiquarian_work_fragmentlinks.all(),
+        work.antiquarian_work_testimoniumlinks.all(),
+        work.antiquarian_work_appositumfragmentlinks.all(),
+    )
+    for link in related_links:
+        if link.book is None:
+            link.book = link.work.unknown_book
+            link.save()
+    work.unknown_book.make_link_order_distinct()
+    work.reindex_related_links()
+
+
 post_save.connect(create_unknown_book, sender=Work)
 post_save.connect(handle_reordered_books, sender=Book)
+post_delete.connect(handle_deleted_book, sender=Book)
