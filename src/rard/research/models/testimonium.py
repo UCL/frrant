@@ -26,6 +26,7 @@ class Testimonium(HistoryModelMixin, HistoricalBaseModel):
         return (
             self.antiquarian_testimoniumlinks.filter(
                 definite=True,
+                work__unknown=False,
                 work__isnull=False,
             )
             .order_by("work", "-book")
@@ -36,6 +37,7 @@ class Testimonium(HistoryModelMixin, HistoricalBaseModel):
         return (
             self.antiquarian_testimoniumlinks.filter(
                 definite=False,
+                work__unknown=False,
                 work__isnull=False,
             )
             .order_by("work", "-book")

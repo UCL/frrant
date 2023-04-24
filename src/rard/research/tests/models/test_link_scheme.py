@@ -773,9 +773,6 @@ class TestLinkScheme(TestCase):
         self.assertEqual(0, self.testimonium.definite_antiquarian_links().count())
         self.assertEqual(1, self.testimonium.possible_antiquarian_links().count())
 
-    @pytest.mark.skip(
-        "This can be revisited when definite status is broken down into ant/wk/bk"
-    )
     def test_add_antiquarian_fragment_ignores_work(self):
         FragmentLink.objects.create(
             antiquarian=self.antiquarian,
