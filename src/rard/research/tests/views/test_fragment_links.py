@@ -26,7 +26,6 @@ class TestFragmentAddWorkLinkView(TestCase):
         )
 
     def test_create_link_post(self):
-
         fragment = Fragment.objects.create(name="name")
         antiquarian = Antiquarian.objects.create(name="name", re_code=1)
         work = Work.objects.create(name="name")
@@ -58,7 +57,6 @@ class TestFragmentAddWorkLinkView(TestCase):
         self.assertEqual(response.context_data["fragment"], fragment)
 
     def test_bad_data(self):
-
         fragment = Fragment.objects.create(name="name")
         work = Work.objects.create(name="name")
         url = reverse("fragment:add_work_link", kwargs={"pk": fragment.pk})
@@ -96,7 +94,6 @@ class TestFragmentRemoveWorkLinkView(TestCase):
         )
 
     def test_delete_link_post(self):
-
         fragment = Fragment.objects.create(name="name")
         work = Work.objects.create(name="name")
         link = FragmentLink.objects.create(work=work, fragment=fragment)

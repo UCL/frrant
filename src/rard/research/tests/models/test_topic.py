@@ -109,7 +109,6 @@ class TestTopic(TestCase):
         )
 
     def test_move_up(self):
-
         names = [
             "Science",
             "Art",
@@ -135,7 +134,6 @@ class TestTopic(TestCase):
         )
 
     def test_move_down(self):
-
         names = [
             "Science",
             "Art",

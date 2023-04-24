@@ -15,7 +15,6 @@ class TestWorkForm(TestCase):
         self.assertFalse(form.fields["antiquarians"].required)
 
     def test_antiquarian_queryset(self):
-
         data = {
             "name": "Work Name",
             "subtitle": "Subtitle",

@@ -24,7 +24,6 @@ class DateOrderMixin:
 
 
 class CheckLockMixin:
-
     check_lock_object = None
 
     def dispatch(self, request, *args, **kwargs):

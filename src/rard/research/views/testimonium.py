@@ -67,7 +67,6 @@ class TestimoniumUpdateView(
 
 
 class TestimoniumUpdateAntiquariansView(TestimoniumUpdateView):
-
     model = Testimonium
     form_class = TestimoniumAntiquariansForm
     permission_required = ("research.change_testimonium",)
@@ -75,7 +74,6 @@ class TestimoniumUpdateAntiquariansView(TestimoniumUpdateView):
 
 
 class TestimoniumUpdateCommentaryView(TestimoniumUpdateView):
-
     model = Testimonium
     form_class = TestimoniumCommentaryForm
     permission_required = ("research.change_testimonium",)
@@ -94,7 +92,6 @@ class TestimoniumUpdateCommentaryView(TestimoniumUpdateView):
 class TestimoniumAddWorkLinkView(
     CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, FormView
 ):
-
     check_lock_object = "testimonium"
 
     def dispatch(self, request, *args, **kwargs):
@@ -182,7 +179,6 @@ class TestimoniumAddWorkLinkView(
 class RemoveTestimoniumLinkView(
     CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
 ):
-
     check_lock_object = "testimonium"
     model = TestimoniumLink
 

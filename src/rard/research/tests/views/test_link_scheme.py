@@ -15,7 +15,6 @@ pytestmark = pytest.mark.django_db
 @skip("Indexing scheme has changed")
 class TestLinkSchemeViews(TestCase):
     def test_post_up_down(self):
-
         a = Antiquarian.objects.create(name="name", re_code="name")
         fragment = Fragment.objects.create(name="name")
         link1 = FragmentLink.objects.create(fragment=fragment, antiquarian=a)

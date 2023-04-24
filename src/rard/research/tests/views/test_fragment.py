@@ -165,7 +165,6 @@ class TestFragmentSuccessUrls(TestCase):
 
 class TestFragmentDeleteView(TestCase):
     def test_post_only(self):
-
         fragment = Fragment.objects.create(name="name")
         url = reverse("fragment:delete", kwargs={"pk": fragment.pk})
         request = RequestFactory().get(url)
@@ -176,7 +175,6 @@ class TestFragmentDeleteView(TestCase):
 
 class TestFragmentViewPermissions(TestCase):
     def test_permissions(self):
-
         self.assertIn("research.add_fragment", FragmentCreateView.permission_required)
         self.assertIn(
             "research.change_fragment", FragmentUpdateView.permission_required

@@ -26,7 +26,6 @@ from rard.research.views.mixins import CheckLockMixin
 
 
 class OriginalTextCreateViewBase(PermissionRequiredMixin, OriginalTextCitingWorkView):
-
     template_name = "research/originaltext_form.html"
     check_lock_object = "parent_object"
 
@@ -180,7 +179,6 @@ class OriginalTextUpdateAuthorView(CheckLockMixin, UpdateView):
 
 
 class OriginalTextUpdateView(CheckLockMixin, UpdateView):
-
     model = OriginalText
     form_class = OriginalTextDetailsForm
     permission_required = ("research.change_originaltext",)
@@ -228,7 +226,6 @@ class OriginalTextUpdateView(CheckLockMixin, UpdateView):
 
 @method_decorator(require_POST, name="dispatch")
 class OriginalTextDeleteView(CheckLockMixin, LoginRequiredMixin, DeleteView):
-
     check_lock_object = "parent_object"
 
     model = OriginalText
