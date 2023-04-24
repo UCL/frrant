@@ -413,17 +413,19 @@ def handle_new_link(sender, instance, created, **kwargs):
         if isinstance(instance, FragmentLink):
             AppositumFragmentLink.ensure_apposita_links(instance)
 
-        if instance.work is None:
-            if instance.antiquarian is not None:
-                instance.work = instance.antiquarian.unknown_work
+        if not isinstance(instance, TestimoniumLink):
+            # Links should be assigned to unknown book unless Testimonia
+            if instance.work is None:
+                if instance.antiquarian is not None:
+                    instance.work = instance.antiquarian.unknown_work
+                    if instance.book is None:
+                        instance.book = instance.antiquarian.unknown_work.unknown_book
+            else:
+                work = instance.work
                 if instance.book is None:
-                    instance.book = instance.antiquarian.unknown_work.unknown_book
-        else:
-            work = instance.work
-            if instance.book is None:
-                instance.book = work.unknown_book
-        instance.save()
-        reindex_order_info(sender, instance, **kwargs)
+                    instance.book = work.unknown_book
+            instance.save()
+            reindex_order_info(sender, instance, **kwargs)
 
 
 @disable_for_loaddata
@@ -603,7 +605,7 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
         links = self.get_all_links().order_by("work", "antiquarian", "order")
         names = []
         for link in links:
-            if link.work:
+            if link.work and not link.work.unknown:
                 name = "%s [= %s]" % (
                     link.get_work_display_name(),
                     link.get_display_name(),

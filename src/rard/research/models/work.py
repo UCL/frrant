@@ -49,9 +49,6 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
 
     unknown = models.BooleanField(default=False)
 
-    def book_set(self):
-        return super().book_set().order_by("unknown", "order", "number")
-
     @property
     def unknown_book(self):
         return self.book_set.filter(unknown=True).first()
@@ -275,20 +272,22 @@ def handle_reordered_books(sender, instance, **kwargs):
 @disable_for_loaddata
 def handle_deleted_book(sender, instance, **kwargs):
     """When a book is deleted, any links should be updated to point to
-    the work's unknown book."""
+    the work's unknown book, except where this is the unknown book
+    (in which case the whole work is presumably being deleted."""
     print(f"Handling deleted book {instance}")
-    work = instance.work
-    related_links = chain(
-        work.antiquarian_work_fragmentlinks.all(),
-        work.antiquarian_work_testimoniumlinks.all(),
-        work.antiquarian_work_appositumfragmentlinks.all(),
-    )
-    for link in related_links:
-        if link.book is None:
-            link.book = link.work.unknown_book
-            link.save()
-    work.unknown_book.reindex_related_links()
-    work.reindex_related_links()
+    if not instance.unknown:
+        work = instance.work
+        related_links = chain(
+            work.antiquarian_work_fragmentlinks.all(),
+            work.antiquarian_work_testimoniumlinks.all(),
+            work.antiquarian_work_appositumfragmentlinks.all(),
+        )
+        for link in related_links:
+            if link.book is None:
+                link.book = link.work.unknown_book
+                link.save()
+        work.unknown_book.reindex_related_links()
+        work.reindex_related_links()
 
 
 post_save.connect(create_unknown_book, sender=Work)

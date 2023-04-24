@@ -332,6 +332,7 @@ class Antiquarian(
                     self.testimoniumlinks.all()
                     .filter(work__isnull=False)
                     .order_by(
+                        "-work__unknown",
                         "work__worklink__order",
                         "work_order",
                     )

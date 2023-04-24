@@ -316,10 +316,10 @@ class TestWorkLinkScheme(TestCase):
         ):
             self.assertEqual(count, link.order)
 
-    @pytest.mark.skip("the opposite of this would be true now")
     def test_testimonia_without_work_ordered_first(self):
         """TestimoniaLinks with no work specified should be ordered before
         those with a linked work"""
+        self.antiquarian.reindex_fragment_and_testimonium_links()
         # Odd numbered testimonia were not linked to works so we expect them to be first
         names_order = [f"name{i}" for i in [1, 3, 5, 7, 9, 0, 2, 4, 6, 8]]
         for count, name in enumerate(names_order):
