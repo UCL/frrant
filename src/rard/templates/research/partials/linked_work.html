@@ -47,7 +47,7 @@
                     {% csrf_token %}
                     <div class='form-group'>
                         <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
-                            data-what='link'>{% trans 'Remove Link' %}</button>
+                            data-what='link'><small>{% trans 'remove this link' %}</small></button>
                     </div>
                 </form>
         {% endif %}
