@@ -44,9 +44,6 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
 
     unknown = models.BooleanField(default=False)
 
-    def book_set(self):
-        return super().book_set().order_by("unknown", "order", "number")
-
     @property
     def unknown_book(self):
         return self.book_set.filter(unknown=True).first()
