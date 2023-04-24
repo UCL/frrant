@@ -10,21 +10,24 @@
 {% block inner %}
 
 
-    {# Use a GET form to select the work and antiquarian #}
+    {# antiquarian form #}
     <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form work-form" method='GET'>
         {% bootstrap_field form.antiquarian field_class='submit-on-change' %}
-        {% bootstrap_field form.definite_antiquarian field_class='submit-on-change' %}
+        <span class="toggle-definite">
+        {% bootstrap_field form.definite_antiquarian %}</span>
 
     </form>
 
+    {# work form #}
     <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form work-form" method='GET'>
         {% bootstrap_field form.work field_class='submit-on-change' %}
-        {% bootstrap_field form.definite_work  field_class='submit-on-change'%}
+        <span class="toggle-definite">
+        {% bootstrap_field form.definite_work %}</span>
         <input type='hidden' name='antiquarian' value='{{ antiquarian.pk }}' />
-        <input type='hidden' name='definite_antiquarian' value='{{ definite_antiquarian }}' />
+        <input type='hidden' name='definite_antiquarian' {% if definite_antiquarian %} value={{ definite_antiquarian }} {% endif %} />
 
     </form>
-
+{# book form #}
     {# where a work has been specified add it as a hidden control and show the relevant books (if any) #}
     <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
         {% csrf_token %}
@@ -33,10 +36,10 @@
         {% bootstrap_field form.definite_book %}
 
         <input type='hidden' name='antiquarian' value='{{ antiquarian.pk }}' />
-        <input type='hidden' name='definite_antiquarian' value='{{ definite_antiquarian }}' />
-        hello{{definite_antiquarian}}
+        <input type='hidden' name='definite_antiquarian' {% if definite_antiquarian %} value={{ definite_antiquarian }} {% endif %} />
         <input type='hidden' name='work' value='{{ work.pk }}' />
-        <input type='hidden' name='definite_work' value='{{ definite_work }}' />
+        <input type='hidden' name='definite_work' {% if definite_work %} value={{ definite_work }} {% endif %}/>
+
         <button type="submit" class="btn btn-primary">
             {% trans 'Create' %}
         </button>
@@ -45,4 +48,21 @@
         </button>
 
     </form>
+
+    <script type="text/javascript">
+        // This script will update the submission with the values from the checkboxes
+        window.onload = () => {
+            const definiteFieldElems = document.querySelectorAll(".toggle-definite");
+            definiteFieldElems.forEach((elem) => {
+              elem.onclick = (e) => {
+                var checkboxValue = e.target.closest("input[type='checkbox']").value;
+                var fieldName = e.target.name;
+
+                document.querySelectorAll(`input[name=${fieldName}]`).forEach((input) => {
+                  input.value = checkboxValue;
+                });
+              };
+            });
+          };
+    </script>
 {% endblock %}

@@ -651,6 +651,8 @@ class BaseLinkWorkForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         antiquarian = kwargs.pop("antiquarian")
         work = kwargs.pop("work")
+        definite_antiquarian = kwargs.pop("definite_antiquarian")
+        definite_work = kwargs.pop("definite_work")
 
         super().__init__(*args, **kwargs)
         self.fields["book"].required = False
@@ -658,10 +660,10 @@ class BaseLinkWorkForm(forms.ModelForm):
         self.fields["definite_antiquarian"] = forms.BooleanField(required=False)
         self.fields["definite_work"] = forms.BooleanField(required=False)
         self.fields["definite_book"] = forms.BooleanField(required=False)
-        # TODO: definite value not carried over when forms reload
         if antiquarian:
             self.fields["antiquarian"].initial = antiquarian
             self.fields["work"].queryset = antiquarian.works.all()
+            self.fields["definite_antiquarian"].initial = definite_antiquarian
         else:
             self.fields["work"].queryset = Work.objects.none()
             self.fields["work"].disabled = True
@@ -670,6 +672,7 @@ class BaseLinkWorkForm(forms.ModelForm):
         if work:
             if antiquarian:
                 self.fields["work"].initial = work
+                self.fields["definite_work"].initial = definite_work
             else:
                 self.fields["work"].initial = None
 

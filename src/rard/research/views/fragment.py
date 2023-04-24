@@ -74,7 +74,6 @@ class OriginalTextCitingWorkView(LoginRequiredMixin, TemplateView):
         return redirect(self.get_success_url())
 
     def post(self, request, *args, **kwargs):
-
         context = self.get_context_data()
         forms = context["forms"]
 
@@ -83,7 +82,6 @@ class OriginalTextCitingWorkView(LoginRequiredMixin, TemplateView):
             or "then_add_links" in self.request.POST
             or "then_add_apparatus_criticus" in self.request.POST
         ):
-
             # now check the forms using the form validation
             forms_valid = all([x.is_bound and x.is_valid() for x in forms.values()])
             if forms_valid:
@@ -125,7 +123,6 @@ class OriginalTextCitingWorkView(LoginRequiredMixin, TemplateView):
 
 
 class HistoricalBaseCreateView(OriginalTextCitingWorkView):
-
     template_name = "research/base_create_form.html"
 
     def get_forms(self):
@@ -140,7 +137,6 @@ class HistoricalBaseCreateView(OriginalTextCitingWorkView):
         pass
 
     def forms_valid(self, forms):
-
         # save the objects here
         object_form = forms["object"]
         self.saved_object = object_form.save()
@@ -225,7 +221,6 @@ class AnonymousFragmentCreateView(FragmentCreateView):
 
 
 class AppositumCreateView(AnonymousFragmentCreateView):
-
     title = "Create Appositum"
 
     def get_context_data(self, *args, **kwargs):
@@ -382,7 +377,6 @@ class UnlinkedFragmentListView(LoginRequiredMixin, PermissionRequiredMixin, List
 class AddAppositumGeneralLinkView(
     CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, FormView
 ):
-
     check_lock_object = "anonymous_fragment"
 
     def dispatch(self, request, *args, **kwargs):
@@ -484,7 +478,6 @@ class AddAppositumGeneralLinkView(
 class AddAppositumFragmentLinkView(
     CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, FormView
 ):
-
     check_lock_object = "anonymous_fragment"
 
     def dispatch(self, request, *args, **kwargs):
@@ -537,7 +530,6 @@ class AddAppositumFragmentLinkView(
 class RemoveAppositumLinkView(
     CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, RedirectView
 ):
-
     check_lock_object = "anonymous_fragment"
     permission_required = ("research.change_anonymousfragment",)
 
@@ -722,7 +714,6 @@ class AnonymousFragmentUpdateCommentaryView(AnonymousFragmentUpdateView):
 class FragmentAddWorkLinkView(
     CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, FormView
 ):
-
     check_lock_object = "fragment"
 
     def dispatch(self, request, *args, **kwargs):
@@ -773,6 +764,15 @@ class FragmentAddWorkLinkView(
                 raise Http404
         return self.antiquarian
 
+    def get_definite_antiquarian(self, *args, **kwargs):
+        # look for definite_antiquarian in the GET or POST parameters
+        if self.request.method == "GET":
+            return self.request.GET.get("definite_antiquarian", None)
+        elif self.request.method == "POST":
+            return self.request.POST.get("definite_antiquarian", None)
+        else:
+            return False
+
     def get_work(self, *args, **kwargs):
         # look for work in the GET or POST parameters
         self.work = None
@@ -787,6 +787,15 @@ class FragmentAddWorkLinkView(
                 raise Http404
         return self.work
 
+    def get_definite_work(self, *args, **kwargs):
+        # look for definite_work in the GET or POST parameters
+        if self.request.method == "GET":
+            return self.request.GET.get("definite_work", None)
+        elif self.request.method == "POST":
+            return self.request.POST.get("definite_work", None)
+        else:
+            return False
+
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context.update(
@@ -794,6 +803,8 @@ class FragmentAddWorkLinkView(
                 "fragment": self.get_fragment(),
                 "work": self.get_work(),
                 "antiquarian": self.get_antiquarian(),
+                "definite_antiquarian": self.get_definite_antiquarian(),
+                "definite_work": self.get_definite_work(),
             }
         )
         return context
@@ -802,6 +813,9 @@ class FragmentAddWorkLinkView(
         values = super().get_form_kwargs()
         values["antiquarian"] = self.get_antiquarian()
         values["work"] = self.get_work()
+        values["definite_antiquarian"] = self.get_definite_antiquarian()
+        values["definite_work"] = self.get_definite_work()
+
         return values
 
 
@@ -809,7 +823,6 @@ class FragmentAddWorkLinkView(
 class RemoveFragmentLinkView(
     CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
 ):
-
     check_lock_object = "fragment"
     model = FragmentLink
 
@@ -833,12 +846,33 @@ class RemoveFragmentLinkView(
         return self.fragment
 
 
-class MoveAnonymousTopicLinkView(LoginRequiredMixin, View):
+@method_decorator(require_POST, name="dispatch")
+class UpdateFragmentLinkView(
+    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
+):
+    check_lock_object = "fragment"
+    model = FragmentLink
 
+    def dispatch(self, request, *args, **kwargs):
+        # need to ensure we have the lock object view attribute
+        # initialised in dispatch
+        self.get_fragment()
+        self.reassign_to_unknown()
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_fragment(self, *args, **kwargs):
+        if not getattr(self, "fragment", False):
+            self.fragment = self.get_object().fragment
+        return self.fragment
+
+    def reassign_to_unknown(self, *args, **kwargs):
+        self.fragment = self.get_object().fragment
+
+
+class MoveAnonymousTopicLinkView(LoginRequiredMixin, View):
     render_partial_template = "research/partials/ordered_anonymoustopiclink_area.html"
 
     def render_valid_response(self, topic_id):
-
         view = AnonymousFragmentListView()
         topic = Topic.objects.get(id=topic_id)
         qs = view.get_queryset(topic=topic)
@@ -853,7 +887,6 @@ class MoveAnonymousTopicLinkView(LoginRequiredMixin, View):
         return JsonResponse(data=ajax_data, safe=False)
 
     def post(self, *args, **kwargs):
-
         anonymoustopiclink_pk = self.request.POST.get("anonymoustopiclink_id", None)
         topic_id = self.request.POST.get("topic_id", None)
         if anonymoustopiclink_pk and topic_id:
