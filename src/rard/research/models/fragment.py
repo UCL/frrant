@@ -70,6 +70,19 @@ class Fragment(HistoryModelMixin, HistoricalBaseModel, DatedModel):
 
     original_texts = GenericRelation("OriginalText", related_query_name="fragments")
 
+    def all_links(self):
+        return (
+            self.antiquarian_fragmentlinks.all()
+            .order_by(
+                "antiquarian__name",
+                "work__worklink__order",
+                "book__unknown",
+                "book__order",
+            )
+            .distinct()
+        )
+
+    # these definite/possible querysets are only used in tests...
     def definite_book_links(self):
         return (
             self.antiquarian_fragmentlinks.filter(

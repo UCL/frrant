@@ -22,6 +22,11 @@ class Testimonium(HistoryModelMixin, HistoricalBaseModel):
 
     original_texts = GenericRelation("OriginalText", related_query_name="testimonia")
 
+    def all_links(self):
+        return (
+            self.antiquarian_testimoniumlinks.all().order_by("work", "-book").distinct()
+        )
+
     def definite_book_links(self):
         return (
             self.antiquarian_testimoniumlinks.filter(
