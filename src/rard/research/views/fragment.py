@@ -845,6 +845,12 @@ class RemoveFragmentLinkView(
             self.fragment = self.get_object().fragment
         return self.fragment
 
+    def reassign_to_unknown(self, *args, **kwargs):
+        # if book in request...?
+        self.book = self.work.unknown_book
+        # if work in request...?
+        self.work = self.antiquarian.unknown_work
+
 
 @method_decorator(require_POST, name="dispatch")
 class UpdateFragmentLinkView(
@@ -852,6 +858,7 @@ class UpdateFragmentLinkView(
 ):
     check_lock_object = "fragment"
     model = FragmentLink
+    template_name = "update_link.html"
 
     def dispatch(self, request, *args, **kwargs):
         # need to ensure we have the lock object view attribute
@@ -864,9 +871,6 @@ class UpdateFragmentLinkView(
         if not getattr(self, "fragment", False):
             self.fragment = self.get_object().fragment
         return self.fragment
-
-    def reassign_to_unknown(self, *args, **kwargs):
-        self.fragment = self.get_object().fragment
 
 
 class MoveAnonymousTopicLinkView(LoginRequiredMixin, View):
