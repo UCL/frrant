@@ -425,7 +425,7 @@ def handle_new_link(sender, instance, created, **kwargs):
                 if instance.book is None:
                     instance.book = work.unknown_book
             instance.save()
-            reindex_order_info(sender, instance, **kwargs)
+        reindex_order_info(sender, instance, **kwargs)
 
 
 @disable_for_loaddata
