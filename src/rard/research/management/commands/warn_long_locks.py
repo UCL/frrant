@@ -7,7 +7,6 @@ from rard.utils.basemodel import ObjectLock
 
 
 class Command(BaseCommand):
-
     help = "Checks for indefinite locks that have been held for a long time"
 
     def handle(self, *args, **options):

@@ -9,7 +9,6 @@ from .base import HistoricalBaseModel, TestimoniumLink
 
 
 class Testimonium(HistoryModelMixin, HistoricalBaseModel):
-
     history = HistoricalRecords(
         excluded_fields=[
             "original_texts",

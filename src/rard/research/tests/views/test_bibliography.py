@@ -15,7 +15,6 @@ pytestmark = pytest.mark.django_db
 
 class TestBibliographyViews(TestCase):
     def test_update_delete_create_top_level_object(self):
-
         # dispatch method creates an attribute used by the
         # locking mechanism so here we ensure it is created
         antiquarian = Antiquarian.objects.create(name="bob")
@@ -41,7 +40,6 @@ class TestBibliographyViews(TestCase):
 
 class TestBibliographyUpdateView(TestCase):
     def test_success_url(self):
-
         antiquarian = Antiquarian.objects.create(name="bob")
         bibitem = BibliographyItem.objects.create(
             authors="author name",
@@ -63,7 +61,6 @@ class TestBibliographyUpdateView(TestCase):
 
 class TestBibliographyDeleteView(TestCase):
     def test_post_only(self):
-
         antiquarian = Antiquarian.objects.create(name="bob")
         bibitem = BibliographyItem.objects.create(
             authors="author name",
@@ -78,7 +75,6 @@ class TestBibliographyDeleteView(TestCase):
         self.assertEqual(response.status_code, 405)
 
     def test_delete_success_url(self):
-
         antiquarian = Antiquarian.objects.create(name="bob")
         bibitem = BibliographyItem.objects.create(
             authors="author name",
@@ -112,7 +108,6 @@ class TestBibliographyViewPermissions(TestCase):
 
 class TestAntiquarianBibliographyCreateView(TestCase):
     def test_context_data(self):
-
         antiquarian = Antiquarian.objects.create()
         url = reverse("antiquarian:create_bibliography", kwargs={"pk": antiquarian.pk})
         request = RequestFactory().get(url)
@@ -125,7 +120,6 @@ class TestAntiquarianBibliographyCreateView(TestCase):
         self.assertEqual(response.context_data["antiquarian"], antiquarian)
 
     def test_success_url(self):
-
         view = AntiquarianBibliographyCreateView()
         request = RequestFactory().get("/")
         request.user = UserFactory.create()
@@ -136,7 +130,6 @@ class TestAntiquarianBibliographyCreateView(TestCase):
         self.assertEqual(view.get_success_url(), view.antiquarian.get_absolute_url())
 
     def test_create(self):
-
         antiquarian = Antiquarian.objects.create()
         data = {"authors": "name", "author_surnames": "name", "title": "bib title"}
         url = reverse("antiquarian:create_bibliography", kwargs={"pk": antiquarian.pk})

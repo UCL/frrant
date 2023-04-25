@@ -55,7 +55,6 @@ post_delete.connect(handle_deleted_topic_link, sender=TopicLink)
 
 
 class Fragment(HistoryModelMixin, HistoricalBaseModel, DatedModel):
-
     history = HistoricalRecords(
         excluded_fields=[
             "topics",
@@ -136,7 +135,6 @@ class Fragment(HistoryModelMixin, HistoricalBaseModel, DatedModel):
 
 
 class AnonymousTopicLink(OrderableModel):
-
     # need a different class for anonymous topics so they can
     # vary independently
 
@@ -166,7 +164,6 @@ class AnonymousTopicLink(OrderableModel):
 class AnonymousFragment(
     HistoryModelMixin, OrderableModel, HistoricalBaseModel, DatedModel
 ):
-
     history = HistoricalRecords(
         excluded_fields=[
             "topics",

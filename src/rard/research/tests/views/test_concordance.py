@@ -77,7 +77,6 @@ class TestConcordanceViews(TestCase):
         )
 
     def test_post_delete_only(self):
-
         concordance = Concordance.objects.create(
             original_text=self.original_text,
             source="source",
@@ -234,7 +233,6 @@ class TestConcordanceViews(TestCase):
         self.assertEqual(self.original_text.concordances.count(), 1)
 
     def test_create_view_dispatch_creates_top_level_object(self):
-
         # dispatch method creates an attribute used by the
         # locking mechanism so here we ensure it is created
         request = RequestFactory().get("/")
@@ -247,7 +245,6 @@ class TestConcordanceViews(TestCase):
             self.assertEqual(view.top_level_object, self.original_text.owner)
 
     def test_update_delete_create_top_level_object(self):
-
         # dispatch method creates an attribute used by the
         # locking mechanism so here we ensure it is created
 
@@ -272,7 +269,6 @@ class TestConcordanceViews(TestCase):
 
 class TestConcordanceViewPermissions(TestCase):
     def test_permissions(self):
-
         self.assertIn(
             "research.add_concordance", ConcordanceCreateView.permission_required
         )

@@ -8,7 +8,6 @@ from rard.utils.decorators import disable_for_loaddata
 
 
 class Antiquarian(TextObjectFieldMixin, BaseModel):
-
     YEAR_RANGE = "range"
     YEAR_BEFORE = "before"
     YEAR_AFTER = "after"

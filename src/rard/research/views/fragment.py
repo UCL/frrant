@@ -74,7 +74,6 @@ class OriginalTextCitingWorkView(LoginRequiredMixin, TemplateView):
         return redirect(self.get_success_url())
 
     def post(self, request, *args, **kwargs):
-
         context = self.get_context_data()
         forms = context["forms"]
 
@@ -83,7 +82,6 @@ class OriginalTextCitingWorkView(LoginRequiredMixin, TemplateView):
             or "then_add_links" in self.request.POST
             or "then_add_apparatus_criticus" in self.request.POST
         ):
-
             # now check the forms using the form validation
             forms_valid = all([x.is_bound and x.is_valid() for x in forms.values()])
             if forms_valid:
@@ -125,7 +123,6 @@ class OriginalTextCitingWorkView(LoginRequiredMixin, TemplateView):
 
 
 class HistoricalBaseCreateView(OriginalTextCitingWorkView):
-
     template_name = "research/base_create_form.html"
 
     def get_forms(self):
@@ -140,7 +137,6 @@ class HistoricalBaseCreateView(OriginalTextCitingWorkView):
         pass
 
     def forms_valid(self, forms):
-
         # save the objects here
         object_form = forms["object"]
         self.saved_object = object_form.save()
@@ -225,7 +221,6 @@ class AnonymousFragmentCreateView(FragmentCreateView):
 
 
 class AppositumCreateView(AnonymousFragmentCreateView):
-
     title = "Create Appositum"
 
     def get_context_data(self, *args, **kwargs):
@@ -382,7 +377,6 @@ class UnlinkedFragmentListView(LoginRequiredMixin, PermissionRequiredMixin, List
 class AddAppositumGeneralLinkView(
     CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, FormView
 ):
-
     check_lock_object = "anonymous_fragment"
 
     def dispatch(self, request, *args, **kwargs):
@@ -484,7 +478,6 @@ class AddAppositumGeneralLinkView(
 class AddAppositumFragmentLinkView(
     CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, FormView
 ):
-
     check_lock_object = "anonymous_fragment"
 
     def dispatch(self, request, *args, **kwargs):
@@ -537,7 +530,6 @@ class AddAppositumFragmentLinkView(
 class RemoveAppositumLinkView(
     CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, RedirectView
 ):
-
     check_lock_object = "anonymous_fragment"
     permission_required = ("research.change_anonymousfragment",)
 
@@ -722,7 +714,6 @@ class AnonymousFragmentUpdateCommentaryView(AnonymousFragmentUpdateView):
 class FragmentAddWorkLinkView(
     CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, FormView
 ):
-
     check_lock_object = "fragment"
 
     def dispatch(self, request, *args, **kwargs):
@@ -809,7 +800,6 @@ class FragmentAddWorkLinkView(
 class RemoveFragmentLinkView(
     CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
 ):
-
     check_lock_object = "fragment"
     model = FragmentLink
 
@@ -834,11 +824,9 @@ class RemoveFragmentLinkView(
 
 
 class MoveAnonymousTopicLinkView(LoginRequiredMixin, View):
-
     render_partial_template = "research/partials/ordered_anonymoustopiclink_area.html"
 
     def render_valid_response(self, topic_id):
-
         view = AnonymousFragmentListView()
         topic = Topic.objects.get(id=topic_id)
         qs = view.get_queryset(topic=topic)
@@ -853,7 +841,6 @@ class MoveAnonymousTopicLinkView(LoginRequiredMixin, View):
         return JsonResponse(data=ajax_data, safe=False)
 
     def post(self, *args, **kwargs):
-
         anonymoustopiclink_pk = self.request.POST.get("anonymoustopiclink_id", None)
         topic_id = self.request.POST.get("topic_id", None)
         if anonymoustopiclink_pk and topic_id:

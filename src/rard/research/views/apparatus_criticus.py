@@ -18,7 +18,6 @@ from rard.research.models import (
 
 
 class ApparatusCriticusLineViewBase(View):
-
     render_partial_template = "research/partials/apparatus_criticus_builder.html"
 
     def process_content(self, content_html):
@@ -46,7 +45,6 @@ class CreateApparatusCriticusLineView(
     LoginRequiredMixin, ApparatusCriticusLineViewBase
 ):
     def post(self, *args, **kwargs):
-
         if not self.request.is_ajax():
             raise Http404
 
@@ -77,7 +75,6 @@ class DeleteApparatusCriticusLineView(
     LoginRequiredMixin, ApparatusCriticusLineViewBase
 ):
     def post(self, *args, **kwargs):
-
         if not self.request.is_ajax():
             raise Http404
 
@@ -103,7 +100,6 @@ class UpdateApparatusCriticusLineView(
     LoginRequiredMixin, ApparatusCriticusLineViewBase
 ):
     def post(self, *args, **kwargs):
-
         if not self.request.is_ajax():
             raise Http404
 
@@ -130,11 +126,9 @@ class UpdateApparatusCriticusLineView(
 
 @method_decorator(require_GET, name="dispatch")
 class ApparatusCriticusSearchView(LoginRequiredMixin, View):
-
     context_object_name = "results"
 
     def get(self, request, *args, **kwargs):
-
         if not request.is_ajax():
             raise Http404
 
@@ -215,7 +209,6 @@ class ApparatusCriticusSearchView(LoginRequiredMixin, View):
         self.parent_object = None
 
         if object_class != "originaltext":
-
             self.is_parent_model = True
 
             # if we are editing a parent item that has several original texts
@@ -272,7 +265,6 @@ class RefreshOriginalTextContentView(LoginRequiredMixin, View):
     # links within it and return to the client
 
     def post(self, *args, **kwargs):
-
         if not self.request.is_ajax():
             raise Http404
 
