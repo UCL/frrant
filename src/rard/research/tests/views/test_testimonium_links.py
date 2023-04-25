@@ -28,7 +28,6 @@ class TestTestimoniumAddWorkLinkView(TestCase):
         )
 
     def test_create_link_post(self):
-
         testimonium = Testimonium.objects.create(name="name")
         antiquarian = Antiquarian.objects.create(name="name", re_code=1)
         work = Work.objects.create(name="name")
@@ -62,7 +61,6 @@ class TestTestimoniumAddWorkLinkView(TestCase):
         self.assertEqual(response.context_data["testimonium"], testimonium)
 
     def test_bad_data(self):
-
         testimonium = Testimonium.objects.create(name="name")
         work = Work.objects.create(name="name")
         url = reverse("testimonium:add_work_link", kwargs={"pk": testimonium.pk})
@@ -101,7 +99,6 @@ class TestTestimoniumRemoveWorkLinkView(TestCase):
         )
 
     def test_delete_link_post(self):
-
         testimonium = Testimonium.objects.create(name="name")
         work = Work.objects.create(name="name")
         link = TestimoniumLink.objects.create(work=work, testimonium=testimonium)

@@ -17,7 +17,6 @@ class BibliographyListView(LoginRequiredMixin, PermissionRequiredMixin, ListView
 class BibliographyUpdateView(
     CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
 ):
-
     # the view attribute that needs to be checked for a lock
     check_lock_object = "parent"
 
@@ -44,7 +43,6 @@ class BibliographyUpdateView(
 class BibliographyDeleteView(
     CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
 ):
-
     check_lock_object = "parent"
 
     model = BibliographyItem

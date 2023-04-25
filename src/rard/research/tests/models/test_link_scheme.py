@@ -319,6 +319,7 @@ class TestWorkLinkScheme(TestCase):
     def test_testimonia_without_work_ordered_first(self):
         """TestimoniaLinks with no work specified should be ordered before
         those with a linked work"""
+        self.antiquarian.reindex_fragment_and_testimonium_links()
         # Odd numbered testimonia were not linked to works so we expect them to be first
         names_order = [f"name{i}" for i in [1, 3, 5, 7, 9, 0, 2, 4, 6, 8]]
         for count, name in enumerate(names_order):
@@ -344,15 +345,14 @@ class TestWorkLinkScheme(TestCase):
         )
         self.assertEqual(ordered_fragments, ground_truth)
 
-    def test_remove_work_removes_links(self):
-        # removing the antiquarian as work author should deassociated all
-        # linked fragments
+    def test_remove_work_moves_links(self):
+        # removing the antiquarian as work author should move links to unknown work
         self.antiquarian.works.remove(self.work)
 
-        # we should now have only links directly to the antiquarian
+        # we should now have only links directly to the antiquarian - i.e unknown work
         self.assertEqual(self.antiquarian.fragmentlinks.count(), self.NUM)
         for link in self.antiquarian.fragmentlinks.all():
-            self.assertIsNone(link.work)
+            self.assertTrue(link.work.unknown)
 
         # the antiquarian links have been reordered
         for count, link in enumerate(
@@ -414,7 +414,9 @@ class TestWorkLinkScheme(TestCase):
         for name in names:
             a.works.add(Work.objects.create(name=name))
 
-        self.assertEqual([w.name for w in a.ordered_works.all()], names)
+        self.assertEqual(
+            [w.name for w in a.ordered_works.all()], names + ["Unknown Work"]
+        )
         # try moving a work down in the order
         link = a.worklink_set.first()
         link.down()
@@ -426,10 +428,11 @@ class TestWorkLinkScheme(TestCase):
                 "work two",
                 "work one",
                 "work three",
+                "Unknown Work",
             ],
         )
 
-        link = a.worklink_set.last()
+        link = a.worklink_set.exclude(work__unknown=True).last()
         link.up()
 
         # should have reordered
@@ -439,11 +442,11 @@ class TestWorkLinkScheme(TestCase):
                 "work two",
                 "work three",
                 "work one",
+                "Unknown Work",
             ],
         )
 
     def test_remove_author_removes_link(self):
-
         # remove all existing objects
         Antiquarian.objects.all().delete()
         Work.objects.all().delete()
@@ -494,16 +497,17 @@ class TestWorkLinkScheme(TestCase):
         self.assertEqual(FragmentLink.objects.count(), 1)
         self.assertEqual(FragmentLink.objects.first().antiquarian, a0)
 
-    def test_delete_work_removes_links(self):
-        # removing the antiquarian as work author should deassociated all
-        # linked fragments
+    def test_delete_work_moves_links(self):
+        """When a work is removed, the links should assign themselves to the Unknown Work of the Antiquarian"""
+        # removing the antiquarian as work author should move
+        # linked fragments to Unknown Work
         work_pk = self.work.pk
         self.work.delete()
 
-        # we should now have only links directly to the antiquarian
+        # we should now have only links directly to the antiquarian - put in Unknown Work
         self.assertEqual(self.antiquarian.fragments.count(), self.NUM)
         for link in self.antiquarian.fragmentlinks.all():
-            self.assertIsNone(link.work)
+            self.assertEqual(link.work, link.antiquarian.unknown_work)
 
         # fragment links via work should be deleted
         self.assertEqual(
@@ -546,13 +550,18 @@ class TestWorkLinkScheme(TestCase):
         self.assertEqual(antiquarian.fragmentlinks.count(), Fragment.objects.count())
 
     def test_add_delete_single_work_updates_links(self):
+        """After adding a work to an Antiquarian, its links should then be associated with that Antiquarian.
+        Even when the work is deleted, those links should point to Unknown Work for that Antiquarian
+        """
         self._run_test_add_del_multi_works_updates_links(self.REMOVE_SINGLE)
 
     def test_add_delete_multi_work_updates_links(self):
         self._run_test_add_del_multi_works_updates_links(self.REMOVE_MULTI)
 
     def test_add_clear_works_updates_links(self):
-        self._run_test_add_del_multi_works_updates_links(self.REMOVE_CLEAR)
+        self._run_test_add_del_multi_works_updates_links(
+            self.REMOVE_CLEAR,
+        )
 
     def test_add_set_blank_works_updates_links(self):
         self._run_test_add_del_multi_works_updates_links(self.REMOVE_SET_BLANK)
@@ -560,6 +569,7 @@ class TestWorkLinkScheme(TestCase):
     def _run_test_add_del_multi_works_updates_links(self, method):
         # removing the antiquarian as work author should deassociated all
         # linked fragments when multiple works removed at once
+        starting_fragmentlinks_count = self.antiquarian.fragmentlinks.all().count()
 
         ADD = 4
         # with transaction.atomic():
@@ -574,30 +584,39 @@ class TestWorkLinkScheme(TestCase):
                     work=work,
                     definite=True,
                 )
-        self.assertEqual(ADD + 1, Work.objects.count())
+
+        works = Work.objects.all()
+
+        # set up creates a work called 'work', we've created
+        # four others here called 'another' and there is a default Unknown Work
+        self.assertEqual(ADD + 2, works.count())
+
         # set the antiquarian works all at once
-        self.antiquarian.works.set(Work.objects.all())
+        self.antiquarian.works.set(works)
+
+        ant_works = self.antiquarian.works.all()
+        ant_fragmentlinks = self.antiquarian.fragmentlinks.all()
+
         # check it worked - we should have 5 works in total
-        self.assertEqual(Work.objects.count(), self.antiquarian.works.count())
+        self.assertEqual(works.count(), ant_works.count())
 
         # we should at this point have 5 sets
-        # linked via the work and one directly = 6
-        expected = (Work.objects.count() + 1) * self.NUM
-        self.assertEqual(self.antiquarian.fragmentlinks.count(), expected)
+        # 4 linked via the work 'another' and one other work = 5
+        expected = (self.NUM * ADD) + starting_fragmentlinks_count
+        self.assertEqual(ant_fragmentlinks.count(), expected)
 
         if method == self.REMOVE_SINGLE:
-            self.antiquarian.works.remove(Work.objects.first())  # one only
+            self.antiquarian.works.remove(works.first())  # one only
         elif method == self.REMOVE_MULTI:
-            self.antiquarian.works.remove(*Work.objects.all()[:2])  # subset
+            self.antiquarian.works.remove(*works.all()[:2])  # subset
         elif method == self.REMOVE_CLEAR:
             self.antiquarian.works.clear()  # has different signal behaviour
         elif method == self.REMOVE_SET_BLANK:
             self.antiquarian.works.set(Work.objects.none())  # set to empty
 
         # antiquarian should now have fewer links directly to it
-        expected = (self.antiquarian.works.count() + 1) * self.NUM
-        self.assertEqual(self.antiquarian.fragmentlinks.count(), expected)
-
+        expected = (ant_works.count()) * self.NUM
+        self.assertEqual(ant_fragmentlinks.count(), expected)
         # the antiquarian links have been reordered
         for count, link in enumerate(
             FragmentLink.objects.filter(antiquarian=self.antiquarian)
@@ -609,9 +628,7 @@ class TestWorkLinkScheme(TestCase):
         nworks = Work.objects.count()
 
         # there should be no stray links lying around
-        self.assertEqual(
-            FragmentLink.objects.all().count(), self.NUM + nfragments * nworks
-        )
+        self.assertEqual(FragmentLink.objects.all().count(), nfragments * nworks)
 
         for work in Work.objects.all():
             self.assertEqual(FragmentLink.objects.filter(work=work).count(), nfragments)
@@ -848,7 +865,7 @@ class TestWorkLinkUpdateScheme(TestCase):
                 work=self.work,
                 fragment=self.fragment,
             )
-            # now independently set for the antiquarian
+            # now independently set for the antiquarian - these will be in Unknown Work
             FragmentLink.objects.create(
                 antiquarian=self.antiquarian,
                 fragment=self.fragment,
@@ -856,8 +873,9 @@ class TestWorkLinkUpdateScheme(TestCase):
 
         # work_order should be set wrt links with a work link
         qs = FragmentLink.objects.filter(antiquarian=self.antiquarian)
+
         for count, link in enumerate(
-            qs.filter(work__isnull=False).order_by("work_order")
+            qs.filter(work__unknown=False).order_by("work_order")
         ):
             self.assertEqual(link.work_order, count)
             self.assertEqual(link.display_work_order_one_indexed(), count + 1)
@@ -921,7 +939,11 @@ class TestWorkLinkUpdateScheme(TestCase):
             link_pks.append(link.pk)
 
         # delete some of them
-        FragmentLink.objects.filter(pk__in=(8, 6, 3)).delete()
+        to_delete = [3, 6, 8]
+        for count, pk in enumerate(link_pks):
+            if count in to_delete:
+                TestimoniumLink.objects.get(pk=pk).delete()
+                link_pks.remove(pk)
 
         # indexes should have been patched
         for count, pk in enumerate(link_pks):
@@ -950,15 +972,18 @@ class TestFragmentWorkOrderingScheme(TestCase):
                 fragment=fragment,
                 work=self.work,
                 definite=True,
+                order_in_book=i,
             )
 
     def _get_fragment_names(self):
         return [
             link.fragment.name
-            for link in self.work.antiquarian_work_fragmentlinks.order_by("work_order")
+            for link in self.work.antiquarian_work_fragmentlinks.order_by(
+                "work_order", "order_in_book"
+            )
         ]
 
-    def test_up_by_work(self):
+    def test_up_by_book(self):
         fragment_names = self._get_fragment_names()
         self.assertEqual(len(fragment_names), 5)
         test_link = self.work.antiquarian_work_fragmentlinks.last()
@@ -967,66 +992,65 @@ class TestFragmentWorkOrderingScheme(TestCase):
             self._get_fragment_names(), [fragment_names[i] for i in (0, 1, 2, 3, 4)]
         )
 
-        test_link.up_by_work()
+        test_link.up_by_book()
         self.assertEqual(
             self._get_fragment_names(), [fragment_names[i] for i in (0, 1, 2, 4, 3)]
         )
 
-        test_link.up_by_work()
+        test_link.up_by_book()
         self.assertEqual(
             self._get_fragment_names(), [fragment_names[i] for i in (0, 1, 4, 2, 3)]
         )
 
-        test_link.up_by_work()
+        test_link.up_by_book()
         self.assertEqual(
             self._get_fragment_names(), [fragment_names[i] for i in (0, 4, 1, 2, 3)]
         )
 
-        test_link.up_by_work()
+        test_link.up_by_book()
         self.assertEqual(
             self._get_fragment_names(), [fragment_names[i] for i in (4, 0, 1, 2, 3)]
         )
 
         # attempt to move above pos 0 has no effect and does not barf
-        test_link.up_by_work()
+        test_link.up_by_book()
         self.assertEqual(
             self._get_fragment_names(), [fragment_names[i] for i in (4, 0, 1, 2, 3)]
         )
 
-    def test_down_by_work(self):
+    def test_down_by_book(self):
         fragment_names = self._get_fragment_names()
         self.assertEqual(len(fragment_names), 5)
         test_link = self.work.antiquarian_work_fragmentlinks.first()
 
-        test_link.down_by_work()
+        test_link.down_by_book()
         self.assertEqual(
             self._get_fragment_names(), [fragment_names[i] for i in (1, 0, 2, 3, 4)]
         )
 
-        test_link.down_by_work()
+        test_link.down_by_book()
         self.assertEqual(
             self._get_fragment_names(), [fragment_names[i] for i in (1, 2, 0, 3, 4)]
         )
 
-        test_link.down_by_work()
+        test_link.down_by_book()
         self.assertEqual(
             self._get_fragment_names(), [fragment_names[i] for i in (1, 2, 3, 0, 4)]
         )
 
-        test_link.down_by_work()
+        test_link.down_by_book()
         self.assertEqual(
             self._get_fragment_names(), [fragment_names[i] for i in (1, 2, 3, 4, 0)]
         )
 
         # attempt to move off the end has no effect and does not barf
-        test_link.down_by_work()
+        test_link.down_by_book()
         self.assertEqual(
             self._get_fragment_names(), [fragment_names[i] for i in (1, 2, 3, 4, 0)]
         )
 
 
 class TestReindexCollection(TestCase):
-
     # as the nature of the values is tbd, this test will only check
     # that the collection id is actually set to some non
     # blank/null value on all fragments etc.
@@ -1164,7 +1188,6 @@ class TestAppositaLinkScheme(TestCase):
         self.assertEqual(AppositumFragmentLink.objects.count(), 0)
 
     def test_remove_author_removes_appositum_links(self):
-
         # remove all existing objects
         Antiquarian.objects.all().delete()
         Work.objects.all().delete()
@@ -1248,7 +1271,6 @@ class TestAppositaLinkScheme(TestCase):
         self.assertFalse(link.exclusive)
 
     def test_non_exclusive_appositum_link(self):
-
         Antiquarian.objects.all().delete()
         Work.objects.all().delete()
         FragmentLink.objects.all().delete()
@@ -1278,7 +1300,6 @@ class TestAppositaLinkScheme(TestCase):
         self.assertEqual(AppositumFragmentLink.objects.count(), 2)
 
     def test_exclusive_appositum_link_not_auto_created(self):
-
         Antiquarian.objects.all().delete()
         Work.objects.all().delete()
         FragmentLink.objects.all().delete()
@@ -1374,7 +1395,7 @@ class TestAppositaLinkScheme(TestCase):
         # exclusive links should be deleted when this happens
         self.assertEqual(AppositumFragmentLink.objects.count(), 0)
 
-    def test_linked_book_deletion_adds_work_deletion(self):
+    def test_deleting_linked_book_falls_back_to_unknown_book(self):
         # Remove a book-fragment link and get a work-fragment link
         a = Antiquarian.objects.create(name="aq1", re_code="aq1")
         w = Work.objects.create(name="w1")
@@ -1385,4 +1406,4 @@ class TestAppositaLinkScheme(TestCase):
         b.delete()
         fls = list(FragmentLink.objects.filter(fragment=f, work=w))
         self.assertEqual(len(fls), 1)
-        self.assertEqual(fls[0].book, None)
+        self.assertEqual(fls[0].book, w.unknown_book)

@@ -50,12 +50,15 @@ class TestFragmentLinkWorkForm(TestCase):
         self.assertEqual(form.fields["antiquarian"].initial, antiquarian)
         self.assertIsNone(form.fields["work"].initial)
         self.assertFalse(form.fields["work"].disabled)
-        self.assertEqual(form.fields["work"].queryset.count(), 1)
+        self.assertEqual(
+            form.fields["work"].queryset.count(), 2
+        )  # includes unknown work
         self.assertTrue(form.fields["book"].disabled)
         self.assertEqual(form.fields["book"].queryset.count(), 0)
 
     def test_required_fields_with_work_selected(self):
         antiquarian = Antiquarian.objects.create(name="Me", re_code=1)
+        # this will automatically create an Unknown Book
         work = Work.objects.create(name="foo")
         NUM_BOOKS = 5
         for i in range(0, NUM_BOOKS):
@@ -65,4 +68,4 @@ class TestFragmentLinkWorkForm(TestCase):
         self.assertEqual(form.fields["antiquarian"].initial, antiquarian)
         self.assertEqual(form.fields["work"].initial, work)
         self.assertFalse(form.fields["book"].disabled)
-        self.assertEqual(form.fields["book"].queryset.count(), NUM_BOOKS)
+        self.assertEqual(form.fields["book"].queryset.count(), NUM_BOOKS + 1)

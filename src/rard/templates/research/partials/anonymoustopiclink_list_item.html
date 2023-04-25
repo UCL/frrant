@@ -6,7 +6,7 @@
 </div>
 <div id='link_{{ link.pk }}' data-anonymoustopiclink='{{ link.pk }}' data-topic='{{ link.topic.id }}' draggable='false' data-objecttype='anonymoustopiclink' data-pos='{{ forloop.counter }}' class='drag-item ordered-list-item rard-list-item d-flex justify-content-between'>
     <div>
-        <li style="list-style-type:none">
+        <li class="unstyled">
             <span>
                 {% with link.fragment.get_display_name as link_text %}
                     {% if perms.research.view_fragment %}

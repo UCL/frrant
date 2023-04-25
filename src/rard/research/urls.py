@@ -428,6 +428,20 @@ urlpatterns = [
         ),
     ),
     path(
+        "unlinked/",
+        include(
+            (
+                [
+                    path(
+                        "list/", views.UnlinkedFragmentListView.as_view(), name="list"
+                    ),
+                ],
+                "research",
+            ),
+            namespace="unlinked_fragment",
+        ),
+    ),
+    path(
         "",
         include(
             (

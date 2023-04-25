@@ -91,7 +91,6 @@ class TestFragment(TestCase):
 class TestAnonymousFragment(TestCase):
     @classmethod
     def setUpTestData(cls):
-
         cls.anon1 = AnonymousFragment.objects.create(name="anon1")
         cls.anon2 = AnonymousFragment.objects.create(name="anon2")
         cls.anon3 = AnonymousFragment.objects.create(name="anon3")
@@ -100,8 +99,10 @@ class TestAnonymousFragment(TestCase):
         cls.t2 = Topic.objects.create(name="Law", order=1)
 
         cls.f1 = Fragment.objects.create(name="frag1")
+        cls.ant = Antiquarian.objects.create(name="antman", re_code="abc")
+
         AppositumFragmentLink.objects.create(
-            anonymous_fragment=cls.anon3, linked_to=cls.f1
+            anonymous_fragment=cls.anon3, linked_to=cls.f1, antiquarian=cls.ant
         )
 
         cls.anon1.topics.add(cls.t1)
@@ -229,7 +230,6 @@ class TestAnonymousFragment(TestCase):
 class TestAnonymousTopicLink(TestCase):
     @classmethod
     def setUpTestData(cls):
-
         cls.anon1 = AnonymousFragment.objects.create(name="anon1")
         cls.anon2 = AnonymousFragment.objects.create(name="anon2")
         cls.anon3 = AnonymousFragment.objects.create(name="anon3")

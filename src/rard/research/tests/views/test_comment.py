@@ -27,7 +27,6 @@ class TestCommentListView(TestCase):
         self.assertEqual(view.get_parent_object(), fragment.commentary)
 
     def test_queryset(self):
-
         # create comments on two fragments and check our list view
         # only shows the relevant set
         fragment1 = Fragment.objects.create(name="fragment1")
@@ -56,7 +55,6 @@ class TestCommentListView(TestCase):
             self.assertEqual(comment.parent.pk, fragment1.commentary.pk)
 
     def test_context_data(self):
-
         fragment = Fragment.objects.create(name="fragment1")
         url = reverse("list_comments_on_text", kwargs={"pk": fragment.commentary.pk})
         request = RequestFactory().get(url)

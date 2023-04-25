@@ -39,7 +39,7 @@
 {% block inner %}
     {% with request.user|has_lock:object as has_object_lock %}
     <hr>
-    <section>
+    <section id="work-info">
         <div class='d-flex justify-content-between mb-3'>
             <div>
                 <h5>{% trans 'Details' %}</h5>
@@ -77,7 +77,7 @@
               {% for book in object.book_set.all %}
                 <div class='d-flex justify-content-between mb-3'>
                   <div>
-                    {% if book in ordered_materials %}
+                    {% if book in cleaned_materials %}
                       <a href="#{{book.get_anchor_id}}">{{book}}</a>
                     {% else %}
                       {{ book }}
@@ -131,54 +131,11 @@
 
     {% endcomment %}
 
-    <hr>
-
-    <section>
-      {% for book, content in ordered_materials.items %}
-          <div id="{{ book.get_anchor_id }}" class="pb-4">
-            <h5>{{ book }}</h5>
-            {% if content.fragments.definite %}
-              <h7>{% trans 'Definite Fragments' %}</h7>
-              {% for fragment in content.fragments.definite %}
-                {% include 'research/partials/fragment_list_item.html' with fragment=fragment %}
-              {% endfor %}
-            {% endif %}
-            {% if content.fragments.possible %}
-              <h7>{% trans 'Possible Fragments' %}</h7>
-              {% for fragment in content.fragments.possible %}
-                {% include 'research/partials/fragment_list_item.html' with fragment=fragment %}
-              {% endfor %}
-            {% endif %}
-            {% if content.testimonia %}
-              {% if content.testimonia.definite %}
-                <h7>{% trans 'Definite Testimonia' %}</h7>
-                {% for testimonium in content.testimonia.definite %}
-                  {% include 'research/partials/testimonium_list_item.html' with testimonium=testimonium %}
-                {% endfor %}
-              {% endif %}
-              {% if content.testimonia.possible %}
-                <h7>{% trans 'Possible Testimonia' %}</h7>
-                {% for testimonium in content.testimonia.possible %}
-                  {% include 'research/partials/testimonium_list_item.html' with testimonium=testimonium %}
-                {% endfor %}
-              {% endif %}
-            {% endif %}
-            {% if content.apposita %}
-              {% if content.apposita.definite %}
-                <h7>{% trans 'Definite Apposita' %}</h7>
-                {% for appositum in content.apposita.definite %}
-                  {% include 'research/partials/anonymousfragment_list_item.html' with fragment=appositum %}
-                {% endfor %}
-              {% endif %}
-              {% if content.apposita.possible %}
-                <h7>{% trans 'Possible Apposita' %}</h7>
-                {% for appositum in content.apposita.possible %}
-                  {% include 'research/partials/anonymousfragment_list_item.html' with fragment=appositum %}
-                {% endfor %}
-              {% endif %}
-            {% endif %}
-          </div>
-      {% endfor %}
+    <section> {% if perms.research.change_work and has_object_lock %}
+      {% include 'research/partials/ordered_book_area.html' with ordered_materials=ordered_materials can_edit=perms.research.change_work has_object_lock=has_object_lock %}
+      {% else %}
+      {% include 'research/partials/ordered_book_area.html' with ordered_materials=cleaned_materials %}
+      {% endif %}
     </section>
 
 

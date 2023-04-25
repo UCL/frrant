@@ -48,7 +48,6 @@ class TestAntiquarianSuccessUrls(TestCase):
 class TestAntiquarianWorkCreateView(TestCase):
     # we combine detail view and form mixin
     def test_context_data(self):
-
         antiquarian = Antiquarian.objects.create()
         url = reverse("antiquarian:create_work", kwargs={"pk": antiquarian.pk})
         request = RequestFactory().get(url)
@@ -69,7 +68,6 @@ class TestAntiquarianWorkCreateView(TestCase):
         self.assertEqual(view.get_success_url(), f"/antiquarian/{view.antiquarian.pk}/")
 
     def test_create(self):
-
         antiquarian = Antiquarian.objects.create()
         data = {"name": "name", "subtitle": "subtitle"}
         url = reverse("antiquarian:create_work", kwargs={"pk": antiquarian.pk})
@@ -79,7 +77,7 @@ class TestAntiquarianWorkCreateView(TestCase):
         antiquarian.lock(request.user)
 
         AntiquarianWorkCreateView.as_view()(request, pk=antiquarian.pk)
-        self.assertEqual(antiquarian.works.count(), 1)
+        self.assertEqual(antiquarian.works.exclude(unknown=True).count(), 1)
         for key, val in data.items():
             self.assertEqual(getattr(antiquarian.works.first(), key), val)
 
@@ -94,12 +92,11 @@ class TestAntiquarianWorkCreateView(TestCase):
 
         AntiquarianWorkCreateView.as_view()(request, pk=antiquarian.pk)
         # no work created
-        self.assertEqual(antiquarian.works.count(), 0)
+        self.assertEqual(antiquarian.works.exclude(unknown=True).count(), 0)
 
 
 class TestAntiquarianDeleteView(TestCase):
     def test_post_only(self):
-
         antiquarian = Antiquarian.objects.create()
         url = reverse("antiquarian:delete", kwargs={"pk": antiquarian.pk})
         request = RequestFactory().get(url)
@@ -139,7 +136,6 @@ class TestAntiquarianViewPermissions(TestCase):
 
 class TestAntiquarianListView(TestCase):
     def test_context_data_default_ordering_off(self):
-
         Antiquarian.objects.create()
         order = "earliest"
         url = reverse("antiquarian:list")
@@ -150,7 +146,6 @@ class TestAntiquarianListView(TestCase):
         self.assertIsNone(response.context_data["order"], order)
 
     def test_context_data_has_ordering(self):
-
         Antiquarian.objects.create()
         order = "earliest"
         url = reverse("antiquarian:list") + "?order={}".format(order)

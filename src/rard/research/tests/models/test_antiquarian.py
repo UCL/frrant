@@ -37,7 +37,7 @@ class TestAntiquarian(TestCase):
     def test_no_initial_works(self):
         data = {"name": "John Smith", "re_code": "smitre001"}
         a = Antiquarian.objects.create(**data)
-        self.assertEqual(a.works.count(), 0)
+        self.assertEqual(a.works.filter(unknown=False).count(), 0)
 
     def test_can_have_multiple_works(self):
         data = {"name": "John Smith", "re_code": "smitre001"}
@@ -45,7 +45,7 @@ class TestAntiquarian(TestCase):
         length = 10
         for _ in range(0, length):
             a.works.create(name="name")
-        self.assertEqual(a.works.count(), length)
+        self.assertEqual(a.works.filter(unknown=False).count(), length)
 
     def test_introduction_created_with_antiquarian(self):
         data = {"name": "John Smith", "re_code": "smitre001"}
@@ -132,7 +132,6 @@ class TestAntiquarian(TestCase):
 
 class TestWorkLink(TestCase):
     def test_related_queryset(self):
-
         a1 = Antiquarian.objects.create(name="John", re_code="001")
         a2 = Antiquarian.objects.create(name="John", re_code="002")
 

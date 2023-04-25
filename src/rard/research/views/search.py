@@ -125,7 +125,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             # Now we call add_fold repeatedly to add more
             # folds to self.query
             k = self.keywords
-            for (fold_to, fold_from) in rard_folds:
+            for fold_to, fold_from in rard_folds:
                 if fold_from in k:
                     k = k.replace(fold_from, fold_to)
                     self.add_fold(fold_from, fold_to)

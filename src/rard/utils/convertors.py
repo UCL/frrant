@@ -52,7 +52,6 @@ def convert_appositum_link_to_fragment_link(appositum_link, fragment):
 
 
 def convert_unlinked_fragment_to_anonymous_fragment(fragment):
-
     # Only allow for unlinked fragments
     if not fragment.is_unlinked:
         raise FragmentIsNotConvertible

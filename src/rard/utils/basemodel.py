@@ -17,10 +17,8 @@ from rard.research.templatetags.entity_escape import entity_escape
 
 
 class DynamicTextField(TextField):
-
     # class to search for dynamic links in text fields
     def contribute_to_class(self, cls, name, **kwargs):
-
         super().contribute_to_class(cls, name, **kwargs)
         if not self.null:
             field_name = self.name
@@ -249,7 +247,6 @@ class ObjectLockRequest(TimeStampedModel, models.Model):
 
 
 class BaseModel(TimeStampedModel, models.Model):
-
     # defines a base model with any required
     # additional common functionality
     class Meta:
@@ -274,7 +271,6 @@ class LockableModel(models.Model):
         )
 
     def break_lock(self, broken_by_user):
-
         if not broken_by_user.can_break_locks:
             return
 
@@ -334,7 +330,6 @@ class LockableModel(models.Model):
         )
 
     def unlock(self):
-
         object_lock = self.get_object_lock()
 
         if not object_lock:
@@ -347,7 +342,6 @@ class LockableModel(models.Model):
 
         # notify anyone with a lock request of the event
         for lock_request in object_lock.objectlockrequest_set.all():
-
             html_email_template = "research/emails/item_unlocked.html"
             current_site = get_current_site(None)
             context = {
@@ -377,7 +371,6 @@ class LockableModel(models.Model):
             send_mail(*args, **kwargs)
 
     def check_lock_expired(self):
-
         object_lock = self.get_object_lock()
         if not object_lock:
             return

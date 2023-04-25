@@ -94,7 +94,6 @@ class TestUserDetailView(TestCase):
 
 
 class TestUserAdminCreateView(TestCase):
-
     # Test creation of new user via the admin interface
 
     def test_admin_create_user(self):
