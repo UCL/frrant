@@ -30,15 +30,15 @@
             </div>
         </li>
     </div>
-    <div class='rard-list-item-actions'>
+    <div class='rard-list-item-actions col-3 row align-items-start justify-content-end'>
 
         {% if can_edit and has_object_lock %}
                 <button type='button' class='drag-handle btn btn-light' style='cursor: move;' data-pos='{{ forloop.counter0 }}'><i class='fas fa-bars'></i></button>
 
                 <button data-link='{{ link.pk }}' data-antiquarian='{{ link.antiquarian.pk }}' data-objecttype='anonymous_fragment' data-pos='{{ forloop.counter0 }}' type='button' class='btn btn-light'  {% if forloop.first or disable_link_controls %}disabled{% endif %}
-                    name='up_by_work'><i class='fas fa-caret-up'></i></button>
+                    name='up_by_book'><i class='fas fa-caret-up'></i></button>
                 <button data-link='{{ link.pk }}' data-antiquarian='{{ link.antiquarian.pk }}' data-objecttype='anonymous_fragment' data-pos='{{ forloop.counter0 }}' type='button' class='btn btn-light'  {% if forloop.last or disable_link_controls %}disabled{% endif %}
-                    name='down_by_work'><i class='fas fa-caret-down'></i></button>
+                    name='down_by_book'><i class='fas fa-caret-down'></i></button>
 
         {% endif %}
 

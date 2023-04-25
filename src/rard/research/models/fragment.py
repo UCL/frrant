@@ -74,6 +74,7 @@ class Fragment(HistoryModelMixin, HistoricalBaseModel, DatedModel):
         return (
             self.antiquarian_fragmentlinks.filter(
                 definite=True,
+                work__unknown=False,
                 work__isnull=False,
             )
             .order_by("work", "-book")
@@ -84,6 +85,7 @@ class Fragment(HistoryModelMixin, HistoricalBaseModel, DatedModel):
         return (
             self.antiquarian_fragmentlinks.filter(
                 definite=False,
+                work__unknown=False,
                 work__isnull=False,
             )
             .order_by("work", "-book")

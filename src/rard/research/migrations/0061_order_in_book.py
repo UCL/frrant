@@ -125,10 +125,6 @@ class Migration(migrations.Migration):
 
 
     operations = [
-        migrations.AlterModelOptions(
-            name="book",
-            options={"ordering": ["order"]},
-        ),
         migrations.AddField(
             model_name="historicalbook",
             name="unknown",
@@ -180,4 +176,12 @@ class Migration(migrations.Migration):
         migrations.RunPython(give_books_order),
         migrations.RunPython(give_links_order_in_book),
         migrations.RunPython(reindex_links),
+        migrations.AlterModelOptions(
+            name='book',
+            options={'ordering': ['unknown', 'order']},
+        ),
+        migrations.AlterModelOptions(
+            name='worklink',
+            options={'ordering': ['work__unknown', 'order']},
+        ),
     ]

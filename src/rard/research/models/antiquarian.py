@@ -321,8 +321,6 @@ class Antiquarian(
                 .order_by(
                     "work__worklink__order",
                     "work_order",
-                    "book__order",
-                    "order_in_book",
                 )
                 .distinct(),
                 # We want testimonium links without works to be ordered first
@@ -334,10 +332,9 @@ class Antiquarian(
                     self.testimoniumlinks.all()
                     .filter(work__isnull=False)
                     .order_by(
+                        "-work__unknown",
                         "work__worklink__order",
                         "work_order",
-                        "book__order",
-                        "order_in_book",
                     )
                     .distinct(),
                 ),
@@ -345,8 +342,6 @@ class Antiquarian(
                 .order_by(
                     "work__worklink__order",
                     "work_order",
-                    "book__order",
-                    "order_in_book",
                 )
                 .distinct(),
             ]
