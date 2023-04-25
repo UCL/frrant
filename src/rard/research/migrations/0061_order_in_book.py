@@ -78,7 +78,10 @@ class Migration(migrations.Migration):
         We now need to loop through each Work and recalculate work_order from the new
         order_in_book and book__order properties that have been added. Then we can
         loop through each Antiquarian and recalculate each related link's order based on
-        work__worklink__order and work_order."""
+        work__worklink__order and work_order.
+
+        Note: Testimonia belonging to unknown works are ordered before those belonging to
+        known works; however the opposite is true for all other link classes."""
 
         worklinks = ["FragmentLink", "TestimoniumLink", "AppositumFragmentLink"]
 
@@ -89,7 +92,7 @@ class Migration(migrations.Migration):
             for class_name in worklinks:
                 link_class = apps.get_model("research", class_name)
 
-                # Unknown book's links should always be last
+                # Unknown book's links should always be last unless
                 # Then order by book order, then order in book
                 to_reorder = (
                     link_class.objects.filter(work=work)
@@ -106,11 +109,18 @@ class Migration(migrations.Migration):
             for class_name in worklinks:
                 link_class = apps.get_model("research", class_name)
 
-                to_reorder = (
-                    link_class.objects.filter(antiquarian=antiquarian)
-                    .order_by("work__unknown", "work__worklink__order","work_order")
-                    .distinct()
-                )
+                if class_name == "TestimoniumLink":
+                    to_reorder = (
+                        link_class.objects.filter(antiquarian=antiquarian)
+                        .order_by("-work__unknown", "work__worklink__order","work_order")
+                        .distinct()
+                    )
+                else:
+                    to_reorder = (
+                        link_class.objects.filter(antiquarian=antiquarian)
+                        .order_by("work__unknown", "work__worklink__order","work_order")
+                        .distinct()
+                    )
 
                 for count, link in enumerate(to_reorder):
                     if link.order != count:
