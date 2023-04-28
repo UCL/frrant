@@ -610,22 +610,6 @@ ReferenceFormset = inlineformset_factory(
 )
 
 
-# class InlineFragmentForm(forms.ModelForm):
-#     class Meta:
-#         model = antiquarian
-#         fields = ("book", "work")
-
-
-# FragmentInlineUpdateFormset = inlineformset_factory(
-#     Book,
-#     Work,
-#     form=InlineFragmentForm,
-#     fields=("book", "work"),
-#     labels={"book": "Book", "work": "Work"},
-#     can_delete=False,
-# )
-
-
 class TestimoniumForm(HistoricalFormBase):
     class Meta:
         model = Testimonium
