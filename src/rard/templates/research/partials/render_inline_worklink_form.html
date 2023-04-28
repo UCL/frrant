@@ -1,0 +1,20 @@
+{% load i18n bootstrap4 %}
+
+{% comment %} selects contain the books and works of the antiquarian and will work by displaying the work first and then display the books in that work? {% endcomment %}
+<div>
+    <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form work-form" method='POST'>
+    {% csrf_token %}
+        {{antiquarian}} {#this returns a pk#}
+        {% bootstrap_field form.definite_antiquarian %}
+        {{work}}
+        {% bootstrap_field form.definite_work %}
+
+        {% bootstrap_field form.book %}
+        {% bootstrap_field form.definite_book %}
+
+    <button class="btn btn-sm" type="submit" value="Update">{% trans 'Update' %}
+    </button>
+    </form>
+</div>
+
+{% endif %}

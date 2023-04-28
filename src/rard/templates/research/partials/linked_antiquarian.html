@@ -1,7 +1,7 @@
 {# Assumes context objects named link object named 'link' also 'can_edit' and 'has_object_lock' #}
 
 {% load i18n %}
-{% with antiquarian=link.antiquarian linked_field=link.linked_field %}
+{% with antiquarian=link linked_field=link.linked_field %}
 <div class='rard-list-item d-flex justify-content-between'>
     <div>
         <li class="unstyled">

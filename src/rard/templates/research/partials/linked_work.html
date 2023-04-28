@@ -38,16 +38,30 @@
         </div>
         <div class='rard-list-item-actions'>
         {% if can_edit and has_object_lock %}
+{# put edit button for inline form here #}
+        {% if linked_field == 'fragment' %}
+            <form novalidate class='form-inline' action='{% url "fragment:update_fragment_link" link.pk %}' method='POST'>
+            {% else %}
+            {% comment %} <form novalidate class='form-inline' action='{% url "testimonium:update_testimonium_link" link.pk %}' method='POST'> {% endcomment %}
+            {% endif %}
+        {% csrf_token %}
+        <div class='form-group'>
+            <button type='button' class='btn  text-primary p-0 ml-2'
+                data-what='link'><i title='Edit this link' data-placement="top" data-toggle='tooltip' class='fa fa-solid fa-pen-nib fa-s '></i></button>
+        </div>
+    </form>
 
                 {% if linked_field == 'fragment' %}
+                {#TODO: update removal so antiquarian not removed and fields set to unknown#}
                 <form novalidate class='form-inline' action='{% url "fragment:remove_fragment_link" link.pk %}' method='POST'>
                 {% else %}
                 <form novalidate class='form-inline' action='{% url "testimonium:remove_testimonium_link" link.pk %}' method='POST'>
                 {% endif %}
                     {% csrf_token %}
                     <div class='form-group'>
+                        {# TODO:why doesn't confirm-delete work?#}
                         <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
-                            data-what='link'><small>{% trans 'remove this link' %}</small></button>
+                            data-what='link'><i title='Remove this link' data-placement="top" data-toggle='tooltip' class='fa fa-solid fa-trash fa-s confirm-delete '></i></button>
                     </div>
                 </form>
         {% endif %}
