@@ -201,6 +201,11 @@ urlpatterns = [
                         name="update",
                     ),
                     path(
+                        "<pk>/update/",
+                        views.FragmentUpdateWorkLinkView.as_view(),
+                        name="update_fragment_link",
+                    ),
+                    path(
                         "<pk>/update/commentary/",
                         views.FragmentUpdateCommentaryView.as_view(),
                         name="update_commentary",
