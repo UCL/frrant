@@ -1,5 +1,6 @@
 {
     "githubPullRequests.ignoredPullRequestBranches": [
         "development"
-    ]
+    ],
+    "esbonio.sphinx.confDir": ""
 }
