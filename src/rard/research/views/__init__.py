@@ -93,6 +93,7 @@ from .testimonium import (
     TestimoniumUpdateAntiquariansView,
     TestimoniumUpdateCommentaryView,
     TestimoniumUpdateView,
+    TestimoniumUpdateWorkLinkView,
 )
 from .topic import (
     MoveTopicView,
@@ -201,6 +202,7 @@ __all__ = [
     "TestimoniumUpdateView",
     "TestimoniumUpdateAntiquariansView",
     "TestimoniumUpdateCommentaryView",
+    "TestimoniumUpdateWorkLinkView",
     "TextObjectFieldCommentListView",
     "TestimoniumOriginalTextCreateView",
     "TopicCreateView",
