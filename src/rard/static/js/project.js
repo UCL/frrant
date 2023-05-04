@@ -87,32 +87,34 @@ $("form").click(function (event) {
 
 // confirm delete/convert of objects when forms submitted
 $("body").on("submit", "form", function (e) {
-  var $clicked = $(this).data("clicked");
-  if ($clicked.hasClass("confirm-delete")) {
-    let what = $clicked.data("what") || "object";
-    return confirm(
-      "Are you sure you want to delete this " +
-        what +
-        "? This cannot be undone."
-    );
-  }
-  if ($clicked.hasClass("confirm-convert")) {
-    let what = $clicked.data("what") || "object";
-    let confirmMsg = "Are you sure you want to convert this " + what + "?";
-    if (what == "fragment") {
-      confirmMsg += " Any links to apposita will be lost.";
-    } else {
-      if ($clicked.hasClass("has-links")) {
-        confirmMsg +=
-          " This " +
+  if ($(this).data("clicked")) {
+    var $clicked = $(this).data("clicked");
+    if ($clicked.hasClass("confirm-delete")) {
+      let what = $clicked.data("what") || "object";
+      return confirm(
+        "Are you sure you want to delete this " +
           what +
-          " has existing links to antiquarians or works which will also be converted.";
-      }
+          "? This cannot be undone."
+      );
     }
-    confirmMsg += " This cannot be undone.";
-    return confirm(confirmMsg);
+    if ($clicked.hasClass("confirm-convert")) {
+      let what = $clicked.data("what") || "object";
+      let confirmMsg = "Are you sure you want to convert this " + what + "?";
+      if (what == "fragment") {
+        confirmMsg += " Any links to apposita will be lost.";
+      } else {
+        if ($clicked.hasClass("has-links")) {
+          confirmMsg +=
+            " This " +
+            what +
+            " has existing links to antiquarians or works which will also be converted.";
+        }
+      }
+      confirmMsg += " This cannot be undone.";
+      return confirm(confirmMsg);
+    }
+    return true; // proceed as normal
   }
-  return true; // proceed as normal
 });
 
 // Uncomment this block if you want alert re app crit existence on initial fragment create form submit

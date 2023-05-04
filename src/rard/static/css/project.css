@@ -210,7 +210,7 @@ table.books-widget .book-order {
 }
 @font-face {
   font-family: Alphabetum;
-  src: url("{% static 'fonts/ALPHABETUM_v_12.00.otf' %}") format("opentype");
+  src: url("/static/fonts/ALPHABETUM_v_12.00.otf") format("opentype");
 }
 
 @font-face {
@@ -257,11 +257,14 @@ dd,
 .rard-list-item {
   font-family: "Alphabetum";
 }
-*/ .rard-list-item-actions {
+/* .rard-list-item-actions {
   visibility: hidden;
 }
 .rard-list-item:hover .rard-list-item-actions {
   visibility: visible;
+} */
+.rard-list-item-actions {
+  display: flex;
 }
 .rard-list-item {
   padding-top: 10px;
@@ -328,7 +331,20 @@ button.insert {
 .unstyled {
   list-style-type: none;
 }
+.inline-worklink__form {
+  border: 1px solid #dfdddd;
+  border-radius: 5px;
+  padding: 1rem;
+}
+.inline-worklink__form-field label {
+  font-size: 97%;
+}
 
-.rard-list-item-actions {
+.inline-worklink__form-field p {
+  font-family: "Alphabetum";
+}
+
+.inline-worklink__form-field {
   display: flex;
+  justify-content: space-between;
 }
