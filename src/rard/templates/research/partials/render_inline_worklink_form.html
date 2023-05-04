@@ -1,20 +1,21 @@
 {% load i18n bootstrap4 %}
 
-{% comment %} selects contain the books and works of the antiquarian and will work by displaying the work first and then display the books in that work? {% endcomment %}
-<div>
-    <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form work-form" method='POST'>
+<div class="inline-worklink__form" hx-target="this" hx-swap="outerHTML">
+    <form novalidate enctype="form-data" autocomplete='off' action='{{ request.path }}' hx-post="{% url 'fragment:update_fragment_link' link.pk %}">
     {% csrf_token %}
-        {{antiquarian}} {#this returns a pk#}
-        {% bootstrap_field form.definite_antiquarian %}
-        {{work}}
-        {% bootstrap_field form.definite_work %}
-
+    <div class="inline-worklink__form-field">
+       <p> {{form.instance.antiquarian}}</p>
+        {% bootstrap_field form.definite_antiquarian field_class="toggle-definite" %}
+    </div>
+    <div class="inline-worklink__form-field">
+        <p>{{form.instance.work.name}}</p>
+        {% bootstrap_field form.definite_work field_class="toggle-definite" %}
+    </div>
+    <div>
         {% bootstrap_field form.book %}
-        {% bootstrap_field form.definite_book %}
-
-    <button class="btn btn-sm" type="submit" value="Update">{% trans 'Update' %}
+        {% bootstrap_field form.definite_book  field_class="toggle-definite" %}
+    </div>
+    <button class="btn btn-sm btn-outline-success" type="submit" value="Update">{% trans 'Update' %}
     </button>
     </form>
 </div>
-
-{% endif %}

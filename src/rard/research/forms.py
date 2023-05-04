@@ -637,6 +637,7 @@ class BaseLinkWorkForm(forms.ModelForm):
         work = kwargs.pop("work")
         definite_antiquarian = kwargs.pop("definite_antiquarian")
         definite_work = kwargs.pop("definite_work")
+        update = kwargs.pop("update")
 
         super().__init__(*args, **kwargs)
         self.fields["book"].required = False
@@ -644,14 +645,16 @@ class BaseLinkWorkForm(forms.ModelForm):
         self.fields["definite_antiquarian"] = forms.BooleanField(required=False)
         self.fields["definite_work"] = forms.BooleanField(required=False)
         self.fields["definite_book"] = forms.BooleanField(required=False)
+
         if antiquarian:
             self.fields["antiquarian"].initial = antiquarian
             self.fields["work"].queryset = antiquarian.works.all()
             self.fields["definite_antiquarian"].initial = definite_antiquarian
         else:
             self.fields["work"].queryset = Work.objects.none()
-            self.fields["work"].disabled = True
-            self.fields["definite_work"].disabled = True
+            if not update:
+                self.fields["work"].disabled = True
+                self.fields["definite_work"].disabled = True
 
         if work:
             if antiquarian:
@@ -663,8 +666,9 @@ class BaseLinkWorkForm(forms.ModelForm):
             self.fields["book"].queryset = work.book_set.all()
         else:
             self.fields["book"].queryset = Book.objects.none()
-            self.fields["book"].disabled = True
-            self.fields["definite_book"].disabled = True
+            if not update:
+                self.fields["book"].disabled = True
+                self.fields["definite_book"].disabled = True
 
     def clean(self):
         cleaned_data = super().clean()

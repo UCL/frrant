@@ -53,14 +53,14 @@
     <script type="text/javascript">
         // This script will update the submission with the values from the checkboxes
         window.onload = () => {
-            const definiteFieldElems = document.querySelectorAll(".toggle-definite");
+            var definiteFieldElems = document.querySelectorAll(".toggle-definite");
             definiteFieldElems.forEach((elem) => {
               elem.onclick = (e) => {
                 var checkboxValue = e.target.closest("input[type='checkbox']").value;
                 var fieldName = e.target.name;
 
                 document.querySelectorAll(`input[name=${fieldName}]`).forEach((input) => {
-                  input.value = checkboxValue;
+                  input.checked = checkboxValue;
                 });
               };
             });

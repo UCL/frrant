@@ -8,7 +8,7 @@ from django.http import (
     HttpResponseRedirect,
     JsonResponse,
 )
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import resolve, reverse, reverse_lazy
 from django.utils.decorators import method_decorator
@@ -41,7 +41,11 @@ from rard.research.models import (
 )
 from rard.research.models.base import AppositumFragmentLink, FragmentLink
 from rard.research.models.fragment import AnonymousTopicLink
-from rard.research.views.mixins import CanLockMixin, CheckLockMixin
+from rard.research.views.mixins import (
+    CanLockMixin,
+    CheckLockMixin,
+    GetWorkLinkRequestDataMixin,
+)
 from rard.utils.convertors import (
     convert_anonymous_fragment_to_fragment,
     convert_unlinked_fragment_to_anonymous_fragment,
@@ -720,60 +724,12 @@ class AnonymousFragmentUpdateCommentaryView(AnonymousFragmentUpdateView):
         return context
 
 
-class GetRequestDataMixin:
-    def get_antiquarian(self, *args, **kwargs):
-        # look for antiquarian in the GET or POST parameters
-        self.antiquarian = None
-        if self.request.method == "GET":
-            antiquarian_pk = self.request.GET.get("antiquarian", None)
-        elif self.request.method == "POST":
-            antiquarian_pk = self.request.POST.get("antiquarian", None)
-        if antiquarian_pk:
-            try:
-                self.antiquarian = Antiquarian.objects.get(pk=antiquarian_pk)
-            except Antiquarian.DoesNotExist:
-                raise Http404
-        return self.antiquarian
-
-    def get_definite_antiquarian(self, *args, **kwargs):
-        # look for definite_antiquarian in the GET or POST parameters
-        if self.request.method == "GET":
-            return self.request.GET.get("definite_antiquarian", None)
-        elif self.request.method == "POST":
-            return self.request.POST.get("definite_antiquarian", None)
-        else:
-            return False
-
-    def get_work(self, *args, **kwargs):
-        # look for work in the GET or POST parameters
-        self.work = None
-        if self.request.method == "GET":
-            work_pk = self.request.GET.get("work", None)
-        elif self.request.method == "POST":
-            work_pk = self.request.POST.get("work", None)
-        if work_pk not in ("", None):
-            try:
-                self.work = Work.objects.get(pk=work_pk)
-            except Work.DoesNotExist:
-                raise Http404
-        return self.work
-
-    def get_definite_work(self, *args, **kwargs):
-        # look for definite_work in the GET or POST parameters
-        if self.request.method == "GET":
-            return self.request.GET.get("definite_work", None)
-        elif self.request.method == "POST":
-            return self.request.POST.get("definite_work", None)
-        else:
-            return False
-
-
 class FragmentAddWorkLinkView(
     CheckLockMixin,
     LoginRequiredMixin,
     PermissionRequiredMixin,
+    GetWorkLinkRequestDataMixin,
     FormView,
-    GetRequestDataMixin,
 ):
     check_lock_object = "fragment"
 
@@ -789,6 +745,7 @@ class FragmentAddWorkLinkView(
         "research.change_fragment",
         "research.add_fragmentlink",
     )
+    is_update = False
 
     def get_success_url(self, *args, **kwargs):
         if "another" in self.request.POST:
@@ -811,52 +768,6 @@ class FragmentAddWorkLinkView(
 
         return super().form_valid(form)
 
-    # def get_antiquarian(self, *args, **kwargs):
-    #     # look for antiquarian in the GET or POST parameters
-    #     self.antiquarian = None
-    #     if self.request.method == "GET":
-    #         antiquarian_pk = self.request.GET.get("antiquarian", None)
-    #     elif self.request.method == "POST":
-    #         antiquarian_pk = self.request.POST.get("antiquarian", None)
-    #     if antiquarian_pk:
-    #         try:
-    #             self.antiquarian = Antiquarian.objects.get(pk=antiquarian_pk)
-    #         except Antiquarian.DoesNotExist:
-    #             raise Http404
-    #     return self.antiquarian
-
-    # def get_definite_antiquarian(self, *args, **kwargs):
-    #     # look for definite_antiquarian in the GET or POST parameters
-    #     if self.request.method == "GET":
-    #         return self.request.GET.get("definite_antiquarian", None)
-    #     elif self.request.method == "POST":
-    #         return self.request.POST.get("definite_antiquarian", None)
-    #     else:
-    #         return False
-
-    # def get_work(self, *args, **kwargs):
-    #     # look for work in the GET or POST parameters
-    #     self.work = None
-    #     if self.request.method == "GET":
-    #         work_pk = self.request.GET.get("work", None)
-    #     elif self.request.method == "POST":
-    #         work_pk = self.request.POST.get("work", None)
-    #     if work_pk not in ("", None):
-    #         try:
-    #             self.work = Work.objects.get(pk=work_pk)
-    #         except Work.DoesNotExist:
-    #             raise Http404
-    #     return self.work
-
-    # def get_definite_work(self, *args, **kwargs):
-    #     # look for definite_work in the GET or POST parameters
-    #     if self.request.method == "GET":
-    #         return self.request.GET.get("definite_work", None)
-    #     elif self.request.method == "POST":
-    #         return self.request.POST.get("definite_work", None)
-    #     else:
-    #         return False
-
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context.update(
@@ -869,15 +780,6 @@ class FragmentAddWorkLinkView(
             }
         )
         return context
-
-    def get_form_kwargs(self):
-        values = super().get_form_kwargs()
-        values["antiquarian"] = self.get_antiquarian()
-        values["work"] = self.get_work()
-        values["definite_antiquarian"] = self.get_definite_antiquarian()
-        values["definite_work"] = self.get_definite_work()
-
-        return values
 
 
 @method_decorator(require_POST, name="dispatch")
@@ -892,6 +794,7 @@ class RemoveFragmentLinkView(
         # need to ensure we have the lock object view attribute
         # initialised in dispatch
         self.get_fragment()
+        # self.reassign_to_unknown()
         return super().dispatch(request, *args, **kwargs)
 
     # base class for both remove work and remove book from a fragment
@@ -914,31 +817,70 @@ class RemoveFragmentLinkView(
         self.work = self.antiquarian.unknown_work
 
 
-@method_decorator(require_POST, name="dispatch")
 class FragmentUpdateWorkLinkView(
     CheckLockMixin,
     LoginRequiredMixin,
     PermissionRequiredMixin,
+    GetWorkLinkRequestDataMixin,
     UpdateView,
-    GetRequestDataMixin,
 ):
     # TODO: write this for updating work/book assignments to links
     check_lock_object = "fragment"
     model = FragmentLink
-    template_name = "render_inline_worklink_form.html"
+    template_name = "research/partials/render_inline_worklink_form.html"
+    form_class = FragmentLinkWorkForm
+    is_update = True
+    permission_required = "research.change_fragment"
+
+    def get_fragment(self, *args, **kwargs):
+        if not getattr(self, "fragment", False):
+            self.fragment = self.get_object().fragment
+        return self.fragment
 
     def dispatch(self, request, *args, **kwargs):
         # need to ensure we have the lock object view attribute
         # initialised in dispatch
         self.get_fragment()
-        self.reassign_to_unknown()
+
         return super().dispatch(request, *args, **kwargs)
 
-    def get_form_kwargs(self):
-        values = super().get_form_kwargs()
-        values["antiquarian"] = self.get_antiquarian()
-        values["work"] = self.get_work()
-        return values
+    def form_valid(self, form):
+        data = form.cleaned_data
+        self.object = self.get_object()
+
+        self.object.definite_antiquarian = data["definite_antiquarian"]
+        self.object.definite_work = data["definite_work"]
+        self.object.definite_book = data["definite_book"]
+        self.object.book = data["book"]
+
+        self.object.save()
+
+        return super().form_valid(form)
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update(
+            {
+                "link": self.object,
+                "definite_antiquarian": self.get_definite_antiquarian(),
+                "definite_work": self.get_definite_work(),
+                "can_edit": True,
+                "has_object_lock": True,
+            }
+        )
+        return context
+
+    def get_success_url(self, *args, **kwargs):
+        return self.request.META.get(
+            "HTTP_REFERER", reverse("fragment:detail", kwargs={"pk": self.fragment.pk})
+        )
+
+    def post(self, request, *args, **kwargs):
+        super().post(request, *args, **kwargs)
+        self.object.save()
+        context = self.get_context_data()
+
+        return render(request, "research/partials/linked_work.html", context)
 
 
 class MoveAnonymousTopicLinkView(LoginRequiredMixin, View):
