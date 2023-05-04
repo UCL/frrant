@@ -213,16 +213,17 @@
                 {% endif %}
             </div>
         </div>
-        <h6 class="mt-3 mb-0">{% trans 'Antiquarians' %} </h6>
-        {% for link in all_antiquarians %}
-            {% include 'research/partials/linked_antiquarian.html' with link=link can_edit=perms.research.change_fragment has_object_lock=has_object_lock %}
+        {% for ant_link in all_antiquarians %}
+        {#TODO: ant_link doesn't have definite attr#}
+            {% include 'research/partials/linked_antiquarian.html' with link=ant_link can_edit=perms.research.change_fragment has_object_lock=has_object_lock %}
+            <div class="pl-4 mb-4 mt-0">
+                {% for link in object.all_links %}
+                {% if link.antiquarian == ant_link %}
+                {% include 'research/partials/linked_work.html' with link=link can_edit=perms.research.change_fragment has_object_lock=has_object_lock %}
+                {% endif %}
+            {% endfor %}
+        </div>
         {% endfor %}
-
-        <h6 class="mt-3 mb-0">{% trans 'Works and Books' %} </h6>
-        {% for link in object.all_links %}
-            {% include 'research/partials/linked_work.html' with link=link can_edit=perms.research.change_fragment has_object_lock=has_object_lock %}
-        {% endfor %}
-
     </section>
 
     <hr>

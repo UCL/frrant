@@ -8,7 +8,8 @@
             {% with antiquarian.name as link_text %}
                 {% if perms.research.view_antiquarian %}
                 <span class="definite-indicators">
-                    {% if link.definite_antiquarian %}
+                    {{link.definite_antiquarian}}
+                    {% if link in definite_antiquarians %}
                         <i title='Definite antiquarian link' data-placement="top" data-toggle='tooltip' class='fa fa-solid fa-user fa-xs text-success'></i>
                     {% else %}
                         <i title='Possible antiquarian link' data-placement="top" data-toggle='tooltip' class='fa fa-user fa-xs text-muted'></i>
