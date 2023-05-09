@@ -1,6 +1,11 @@
 {% extends "research/base.html" %}
 {% load i18n bootstrap4 %}
 
+
+{% block title %}
+{{form.instance.linked_field}}: add new link
+{% endblock %}
+
 {% block heading %}
     {% blocktrans with name=form.instance.linked_field %}
         Link {{ name }} to antiquarian, work or book
@@ -8,7 +13,6 @@
 {% endblock %}
 
 {% block inner %}
-
 
     {# antiquarian form #}
     <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form work-form" method='GET'>
