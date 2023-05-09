@@ -589,7 +589,7 @@ class FragmentDetailView(
                 "antiquarian": link.antiquarian,
                 "definite_antiquarian": link.definite_antiquarian,
             }
-            for link in fragment.all_links()
+            for link in fragment.get_all_links()
         ]
         # TODO: still need to make ant list distinct
         return context
@@ -891,7 +891,6 @@ class FragmentUpdateWorkLinkView(
         super().post(request, *args, **kwargs)
         self.object.save()
         context = self.get_context_data()
-        print(context)
 
         return render(request, "research/partials/linked_work.html", context)
 

@@ -70,18 +70,6 @@ class Fragment(HistoryModelMixin, HistoricalBaseModel, DatedModel):
 
     original_texts = GenericRelation("OriginalText", related_query_name="fragments")
 
-    def all_links(self):
-        return (
-            self.antiquarian_fragmentlinks.all()
-            .order_by(
-                "antiquarian__name",
-                "work__worklink__order",
-                "book__unknown",
-                "book__order",
-            )
-            .distinct()
-        )
-
     # these definite/possible querysets are only used in tests...
     def definite_book_links(self):
         return (
@@ -129,18 +117,17 @@ class Fragment(HistoryModelMixin, HistoricalBaseModel, DatedModel):
         return reverse("fragment:detail", kwargs={"pk": self.pk})
 
     def get_all_names(self):
-        return [
-            link.get_display_name()
-            # for link in self.get_all_links().order_by(
-            #     'antiquarian', 'order'
-            # ).distinct()
-            for link in self.get_all_links()
-        ]
+        return [link.get_display_name() for link in self.get_all_links()]
 
     def get_all_links(self):
         return (
             FragmentLink.objects.filter(fragment=self)
-            .order_by("antiquarian", "order")
+            .order_by(
+                "antiquarian__name",
+                "work__worklink__order",
+                "book__unknown",
+                "book__order",
+            )
             .distinct()
         )
 
@@ -233,7 +220,12 @@ class AnonymousFragment(
     def get_all_links(self):
         return (
             AppositumFragmentLink.objects.filter(anonymous_fragment=self)
-            .order_by("antiquarian", "order")
+            .order_by(
+                "antiquarian__name",
+                "work__worklink__order",
+                "book__unknown",
+                "book__order",
+            )
             .distinct()
         )
 

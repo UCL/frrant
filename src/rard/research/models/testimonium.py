@@ -22,11 +22,6 @@ class Testimonium(HistoryModelMixin, HistoricalBaseModel):
 
     original_texts = GenericRelation("OriginalText", related_query_name="testimonia")
 
-    def all_links(self):
-        return (
-            self.antiquarian_testimoniumlinks.all().order_by("work", "-book").distinct()
-        )
-
     def definite_book_links(self):
         return (
             self.antiquarian_testimoniumlinks.filter(
@@ -73,28 +68,21 @@ class Testimonium(HistoryModelMixin, HistoricalBaseModel):
         return reverse("testimonium:detail", kwargs={"pk": self.pk})
 
     def get_all_names(self):
-        return [
-            link.get_display_name()
-            for link in self.get_all_links()
-            # for link in self.get_all_links().order_by(
-            #     'antiquarian', 'order'
-            # ).distinct()
-        ]
+        return [link.get_display_name() for link in self.get_all_links()]
 
     def get_all_work_names(self):
         # all the names wrt works
-        return [
-            link.get_work_display_name()
-            for link in self.get_all_links()
-            # # for link in self.get_all_links().order_by(
-            # #     'work', 'work_order'
-            # ).distinct()
-        ]
+        return [link.get_work_display_name() for link in self.get_all_links()]
 
     def get_all_links(self):
         return (
             TestimoniumLink.objects.filter(testimonium=self)
-            .order_by("antiquarian", "order")
+            .order_by(
+                "antiquarian__name",
+                "work__worklink__order",
+                "book__unknown",
+                "book__order",
+            )
             .distinct()
         )
 

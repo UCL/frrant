@@ -197,7 +197,7 @@
         {#TODO: ant_link doesn't have definite attr#}
             {% include 'research/partials/linked_antiquarian.html' with link=ant_link can_edit=perms.research.change_testimonium has_object_lock=has_object_lock %}
             <div class="pl-4 mb-4 mt-0">
-                {% for link in object.all_links %}
+                {% for link in object.get_all_links %}
                 {% if link.antiquarian == ant_link.antiquarian %}
                 {% include 'research/partials/linked_work.html' with link=link can_edit=perms.research.change_testimonium has_object_lock=has_object_lock %}
                 {% endif %}

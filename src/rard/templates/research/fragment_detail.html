@@ -1,6 +1,6 @@
 {% extends "research/detail_base.html" %}
 {% load i18n bootstrap4 static humanize object_lock %}
-
+{% block title %}Fragment {{object.pk}} {% endblock %}
 {% block heading %}
     {{ object.get_display_name }}
 {% endblock %}
@@ -214,11 +214,10 @@
             </div>
         </div>
         {% for ant_link in all_antiquarians %}
-        {#TODO: ant_link doesn't have definite attr#}
             {% include 'research/partials/linked_antiquarian.html' with link=ant_link can_edit=perms.research.change_fragment has_object_lock=has_object_lock %}
             <div class="pl-4 mb-4 mt-0">
-                {% for link in object.all_links %}
-                {% if link.antiquarian == ant_link %}
+                {% for link in object.get_all_links %}
+                {% if link.antiquarian == ant_link.antiquarian %}
                 {% include 'research/partials/linked_work.html' with link=link can_edit=perms.research.change_fragment has_object_lock=has_object_lock %}
                 {% endif %}
             {% endfor %}
