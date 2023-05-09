@@ -120,6 +120,7 @@ class TestimoniumAddWorkLinkView(
     FormView,
 ):
     check_lock_object = "testimonium"
+    is_update = False
 
     def dispatch(self, request, *args, **kwargs):
         # need to ensure we have the lock object view attribute
