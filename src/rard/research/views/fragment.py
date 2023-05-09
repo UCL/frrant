@@ -582,10 +582,16 @@ class FragmentDetailView(
     def get_context_data(self, **kwargs):
         fragment = self.get_object()
         context = super().get_context_data(**kwargs)
-        context["all_antiquarians"] = Antiquarian.objects.filter(
-            fragments=fragment
-        ).distinct()
 
+        context["inline_update_url"] = "fragment:update_fragment_link"
+        context["all_antiquarians"] = [
+            {
+                "antiquarian": link.antiquarian,
+                "definite_antiquarian": link.definite_antiquarian,
+            }
+            for link in fragment.all_links()
+        ]
+        # TODO: still need to make ant list distinct
         return context
 
 
@@ -824,7 +830,6 @@ class FragmentUpdateWorkLinkView(
     GetWorkLinkRequestDataMixin,
     UpdateView,
 ):
-    # TODO: write this for updating work/book assignments to links
     check_lock_object = "fragment"
     model = FragmentLink
     template_name = "research/partials/render_inline_worklink_form.html"
@@ -841,8 +846,14 @@ class FragmentUpdateWorkLinkView(
         # need to ensure we have the lock object view attribute
         # initialised in dispatch
         self.get_fragment()
-
+        self.get_initial()
         return super().dispatch(request, *args, **kwargs)
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial["work"] = self.get_object().work
+        initial["antiquarian"] = self.get_object().antiquarian
+        return initial
 
     def form_valid(self, form):
         data = form.cleaned_data
@@ -862,6 +873,7 @@ class FragmentUpdateWorkLinkView(
         context.update(
             {
                 "link": self.object,
+                "inline_update_url": "fragment:update_fragment_link",
                 "definite_antiquarian": self.get_definite_antiquarian(),
                 "definite_work": self.get_definite_work(),
                 "can_edit": True,
@@ -879,6 +891,7 @@ class FragmentUpdateWorkLinkView(
         super().post(request, *args, **kwargs)
         self.object.save()
         context = self.get_context_data()
+        print(context)
 
         return render(request, "research/partials/linked_work.html", context)
 

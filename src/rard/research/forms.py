@@ -633,11 +633,11 @@ class BaseLinkWorkForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        update = kwargs.pop("update")
         antiquarian = kwargs.pop("antiquarian")
         work = kwargs.pop("work")
         definite_antiquarian = kwargs.pop("definite_antiquarian")
         definite_work = kwargs.pop("definite_work")
-        update = kwargs.pop("update")
 
         super().__init__(*args, **kwargs)
         self.fields["book"].required = False
@@ -645,6 +645,10 @@ class BaseLinkWorkForm(forms.ModelForm):
         self.fields["definite_antiquarian"] = forms.BooleanField(required=False)
         self.fields["definite_work"] = forms.BooleanField(required=False)
         self.fields["definite_book"] = forms.BooleanField(required=False)
+
+        if update:
+            antiquarian = kwargs["initial"]["antiquarian"]
+            work = kwargs["initial"]["work"]
 
         if antiquarian:
             self.fields["antiquarian"].initial = antiquarian
