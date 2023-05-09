@@ -43,14 +43,10 @@
         </div>
         <div class='rard-list-item-actions' >
         {% if can_edit and has_object_lock %}
-        {% if linked_field == 'fragment' %}
-        <form novalidate class='form-inline' action='{% url "fragment:update_fragment_link" link.pk %}' method='POST'>
-            {% else %}
-            <form novalidate class='form-inline' action='{% url "testimonium:update_testimonium_link" link.pk %}' method='POST'>
-            {% endif %}
+        <form novalidate class='form-inline'>
         {% csrf_token %}
         <div class='form-group'>
-            <button type='button' class='btn text-primary p-0 ml-2' id="update-{{link.pk}}" data-what='link' hx-get='{% url "fragment:update_fragment_link" link.pk %}' hx-trigger="click" hx-target="#link-{{link.pk}}" hx-swap="outerHTML"><i title='Edit this link' data-placement="top" data-toggle='tooltip' class='fa fa-solid fa-pen-nib fa-s '></i></button>
+            <button type='button' class='btn text-primary p-0 ml-2' id="update-{{link.pk}}" data-what='link' hx-get="{% url inline_update_url link.pk %}" hx-trigger="click" hx-target="#link-{{link.pk}}" hx-swap="outerHTML"><i title='Edit this link' data-placement="top" data-toggle='tooltip' class='fa fa-solid fa-pen-nib fa-s'></i></button>
         </div>
         </form>
 

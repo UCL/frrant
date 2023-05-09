@@ -1,5 +1,5 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
@@ -47,6 +47,26 @@ class TestimoniumDetailView(
 ):
     model = Testimonium
     permission_required = ("research.view_testimonium",)
+
+    def get_context_data(self, **kwargs):
+        testimonium = self.get_object()
+        context = super().get_context_data(**kwargs)
+        context["inline_update_url"] = "testimonium:update_testimonium_link"
+
+        context["all_antiquarians"] = [
+            {
+                "antiquarian": link.antiquarian,
+                "definite_antiquarian": link.definite_antiquarian,
+            }
+            for link in testimonium.all_links()
+        ]
+        # TODO: still need to make ant list distinct
+        for ant_link in context["all_antiquarians"]:
+            print(ant_link["antiquarian"].pk)
+
+        # print(context["all_antiquarians"])
+
+        return context
 
 
 @method_decorator(require_POST, name="dispatch")
@@ -160,7 +180,7 @@ class TestimoniumUpdateWorkLinkView(
     GetWorkLinkRequestDataMixin,
     UpdateView,
 ):
-    check_lock_object = "fragment"
+    check_lock_object = "testimonium"
     model = TestimoniumLink
     template_name = "research/partials/render_inline_worklink_form.html"
     form_class = TestimoniumLinkWorkForm
@@ -169,39 +189,61 @@ class TestimoniumUpdateWorkLinkView(
 
     def get_testimonium(self, *args, **kwargs):
         if not getattr(self, "testimonium", False):
-            self.testimonium = get_object_or_404(Testimonium, pk=self.kwargs.get("pk"))
+            self.testimonium = self.get_object().testimonium
         return self.testimonium
+
+    def dispatch(self, request, *args, **kwargs):
+        # need to ensure we have the lock object view attribute
+        # initialised in dispatch
+        self.get_testimonium()
+        self.get_initial()
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial["work"] = self.get_object().work
+        initial["antiquarian"] = self.get_object().antiquarian
+        return initial
 
     def form_valid(self, form):
         data = form.cleaned_data
-        antiquarian = data["antiquarian"]
+        self.object = self.get_object()
 
-        data["testimonium"] = self.get_testimonium()
-        data["antiquarian"] = antiquarian
-        TestimoniumLink.objects.get_or_create(**data)
+        self.object.definite_antiquarian = data["definite_antiquarian"]
+        self.object.definite_work = data["definite_work"]
+        self.object.definite_book = data["definite_book"]
+        self.object.book = data["book"]
 
+        self.object.save()
         return super().form_valid(form)
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context.update(
             {
-                "testimonium": self.get_testimonium(),
-                "work": self.get_work(),
-                "antiquarian": self.get_antiquarian(),
+                "link": self.object,
+                "inline_update_url": "testimonium:update_testimonium_link",
                 "definite_antiquarian": self.get_definite_antiquarian(),
+                "work": self.get_work(),
                 "definite_work": self.get_definite_work(),
+                "can_edit": True,
+                "has_object_lock": True,
             }
         )
         return context
 
-    def get_form_kwargs(self):
-        values = super().get_form_kwargs()
-        values["antiquarian"] = self.get_antiquarian()
-        values["work"] = self.get_work()
-        values["definite_antiquarian"] = self.get_definite_antiquarian()
-        values["definite_work"] = self.get_definite_work()
-        return values
+    def get_success_url(self, *args, **kwargs):
+        return self.request.META.get(
+            "HTTP_REFERER",
+            reverse("testimoinum:detail", kwargs={"pk": self.testimonium.pk}),
+        )
+
+    def post(self, request, *args, **kwargs):
+        super().post(request, *args, **kwargs)
+        self.object.save()
+        context = self.get_context_data()
+
+        return render(request, "research/partials/linked_work.html", context)
 
 
 @method_decorator(require_POST, name="dispatch")
