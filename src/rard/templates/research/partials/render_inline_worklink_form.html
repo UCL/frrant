@@ -11,7 +11,7 @@
         <p>{{form.instance.work.name}}</p>
         {% bootstrap_field form.definite_work field_class="toggle-definite" %}
     </div>
-    <div>
+    <div class="book-details">
         {% bootstrap_field form.book %}
         {% bootstrap_field form.definite_book  field_class="toggle-definite" %}
     </div>
@@ -19,3 +19,5 @@
     </button>
     </form>
 </div>
+{% load static i18n %}
+<script src="{% static 'js/disableDefiniteToggles.js' %}"></script>

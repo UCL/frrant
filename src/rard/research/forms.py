@@ -636,6 +636,7 @@ class BaseLinkWorkForm(forms.ModelForm):
         update = kwargs.pop("update")
         antiquarian = kwargs.pop("antiquarian")
         work = kwargs.pop("work")
+        book = kwargs.get("book")
         definite_antiquarian = kwargs.pop("definite_antiquarian")
         definite_work = kwargs.pop("definite_work")
 
@@ -661,6 +662,8 @@ class BaseLinkWorkForm(forms.ModelForm):
                 self.fields["definite_work"].disabled = True
 
         if work:
+            if work.unknown:
+                self.fields["definite_work"].disabled = True
             if antiquarian:
                 self.fields["work"].initial = work
                 self.fields["definite_work"].initial = definite_work
@@ -673,13 +676,29 @@ class BaseLinkWorkForm(forms.ModelForm):
             if not update:
                 self.fields["book"].disabled = True
                 self.fields["definite_book"].disabled = True
+        if book:
+            if book.unknown:
+                self.fields["definite_book"].disabled = True
 
     def clean(self):
         cleaned_data = super().clean()
-        if cleaned_data.get("book") and not cleaned_data.get("work"):
+        work = cleaned_data.get("work")
+        book = cleaned_data.get("book")
+        print(str(work), str(book))
+
+        if str(work) == "Unknown Work" or "None":
+            print("unknown work")
+            cleaned_data["definite_work"] = False
+
+        if str(book) == "Unknown Book" or "None":
+            print("unknown book")
+            cleaned_data["definite_book"] = False
+
+        if book and not work:
             raise forms.ValidationError(
                 _("Work is required for book link."), code="book-without-work"
             )
+
         return cleaned_data
 
 

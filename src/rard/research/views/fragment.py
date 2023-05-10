@@ -853,6 +853,7 @@ class FragmentUpdateWorkLinkView(
         initial = super().get_initial()
         initial["work"] = self.get_object().work
         initial["antiquarian"] = self.get_object().antiquarian
+        initial["book"] = self.get_object().book
         return initial
 
     def form_valid(self, form):

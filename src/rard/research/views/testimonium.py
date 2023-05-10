@@ -58,7 +58,7 @@ class TestimoniumDetailView(
                 "antiquarian": link.antiquarian,
                 "definite_antiquarian": link.definite_antiquarian,
             }
-            for link in testimonium.all_links()
+            for link in testimonium.get_all_links()
         ]
         # TODO: still need to make ant list distinct
         for ant_link in context["all_antiquarians"]:
@@ -204,6 +204,7 @@ class TestimoniumUpdateWorkLinkView(
         initial = super().get_initial()
         initial["work"] = self.get_object().work
         initial["antiquarian"] = self.get_object().antiquarian
+        initial["book"] = self.get_object().book
         return initial
 
     def form_valid(self, form):
