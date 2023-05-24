@@ -1,4 +1,5 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
@@ -21,6 +22,7 @@ from rard.research.views.mixins import (
     CheckLockMixin,
     GetWorkLinkRequestDataMixin,
 )
+from rard.utils.shared_functions import reassign_to_unknown
 
 
 class TestimoniumCreateView(PermissionRequiredMixin, HistoricalBaseCreateView):
@@ -262,3 +264,26 @@ class RemoveTestimoniumLinkView(
         if not getattr(self, "testimonium", False):
             self.testimonium = self.get_object().testimonium
         return self.testimonium
+
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        success_url = self.get_success_url()
+
+        # Determine if it should reassign to unknown
+        # if no other links reassign to unknown
+        # otherwise delete the link
+        antiquarian = self.object.antiquarian
+        testimonium = self.get_testimonium()
+        if (
+            len(
+                TestimoniumLink.objects.filter(
+                    antiquarian=antiquarian, fragment=testimonium
+                )
+            )
+            == 1
+        ):
+            reassign_to_unknown(self)
+        else:
+            self.object.delete()
+
+        return HttpResponseRedirect(success_url)

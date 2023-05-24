@@ -50,6 +50,7 @@ from rard.utils.convertors import (
     convert_anonymous_fragment_to_fragment,
     convert_unlinked_fragment_to_anonymous_fragment,
 )
+from rard.utils.shared_functions import reassign_to_unknown
 
 
 class OriginalTextCitingWorkView(LoginRequiredMixin, TemplateView):
@@ -785,7 +786,6 @@ class FragmentAddWorkLinkView(
 class RemoveFragmentLinkView(
     CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
 ):
-    # TODO:update so if removing work/book, they become unknown; antiquarian link stays
     check_lock_object = "fragment"
     model = FragmentLink
 
@@ -793,7 +793,6 @@ class RemoveFragmentLinkView(
         # need to ensure we have the lock object view attribute
         # initialised in dispatch
         self.get_fragment()
-        # self.reassign_to_unknown()
         return super().dispatch(request, *args, **kwargs)
 
     # base class for both remove work and remove book from a fragment
@@ -809,11 +808,24 @@ class RemoveFragmentLinkView(
             self.fragment = self.get_object().fragment
         return self.fragment
 
-    def reassign_to_unknown(self, *args, **kwargs):
-        # if book in request...?
-        self.book = self.work.unknown_book
-        # if work in request...?
-        self.work = self.antiquarian.unknown_work
+    def delete(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        success_url = self.get_success_url()
+
+        # Determine if it should reassign to unknown
+        # if no other links reassign to unknown
+        # otherwise delete the link
+        antiquarian = self.object.antiquarian
+        fragment = self.get_fragment()
+        if (
+            len(FragmentLink.objects.filter(antiquarian=antiquarian, fragment=fragment))
+            == 1
+        ):
+            reassign_to_unknown(self)
+        else:
+            self.object.delete()
+
+        return HttpResponseRedirect(success_url)
 
 
 class FragmentUpdateWorkLinkView(
