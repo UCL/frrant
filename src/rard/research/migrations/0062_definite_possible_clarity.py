@@ -8,6 +8,19 @@ class Migration(migrations.Migration):
     dependencies = [
         ("research", "0061_order_in_book"),
     ]
+
+    def fix_definite_unknown_assignments(apps, schema_editor):
+        worklinks = ["FragmentLink", "TestimoniumLink", "AppositumFragmentLink"]
+        for link_type in worklinks:
+            link_class = apps.get_model("research", link_type)
+            links = link_class.objects.all()
+            for link in links:
+                if link.work.unknown is True:
+                    link.definite_work = False
+                if link.book.unknown is True:
+                    link.definite_book = False
+                link.save()
+
     # the definite field for each link will be converted to definite_antiquarian.
     # Definite work and book fields will be added
     operations = [
@@ -64,4 +77,5 @@ class Migration(migrations.Migration):
             name="definite_work",
             field=models.BooleanField(default=False),
         ),
+        migrations.RunPython(fix_definite_unknown_assignments),
     ]
