@@ -13,6 +13,7 @@ from rard.research.models.mixins import HistoryModelMixin
 from rard.research.models.topic import Topic
 from rard.utils.basemodel import DatedModel, OrderableModel
 from rard.utils.decorators import disable_for_loaddata
+from rard.utils.shared_functions import organise_links
 from rard.utils.text_processors import make_plain_text
 
 
@@ -130,6 +131,9 @@ class Fragment(HistoryModelMixin, HistoricalBaseModel, DatedModel):
             )
             .distinct()
         )
+
+    def get_organised_links(self):
+        return organise_links(self)
 
     def get_all_appositum_links(self):
         return self.appositumfragmentlinks_to.order_by("work", "work_order")

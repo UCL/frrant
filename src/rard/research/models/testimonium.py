@@ -3,6 +3,7 @@ from django.urls import reverse
 from simple_history.models import HistoricalRecords
 
 from rard.research.models.mixins import HistoryModelMixin
+from rard.utils.shared_functions import organise_links
 from rard.utils.text_processors import make_plain_text
 
 from .base import HistoricalBaseModel, TestimoniumLink
@@ -85,6 +86,9 @@ class Testimonium(HistoryModelMixin, HistoricalBaseModel):
             )
             .distinct()
         )
+
+    def get_organised_links(self):
+        return organise_links(self)
 
     def save(self, *args, **kwargs):
         if self.commentary:

@@ -53,18 +53,7 @@ class TestimoniumDetailView(
         context = super().get_context_data(**kwargs)
         context["inline_update_url"] = "testimonium:update_testimonium_link"
 
-        context["all_antiquarians"] = [
-            {
-                "antiquarian": link.antiquarian,
-                "definite_antiquarian": link.definite_antiquarian,
-            }
-            for link in testimonium.get_all_links()
-        ]
-        # TODO: still need to make ant list distinct
-        for ant_link in context["all_antiquarians"]:
-            print(ant_link["antiquarian"].pk)
-
-        # print(context["all_antiquarians"])
+        context["organised_links"] = testimonium.get_organised_links()
 
         return context
 

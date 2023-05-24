@@ -584,14 +584,7 @@ class FragmentDetailView(
         context = super().get_context_data(**kwargs)
 
         context["inline_update_url"] = "fragment:update_fragment_link"
-        context["all_antiquarians"] = [
-            {
-                "antiquarian": link.antiquarian,
-                "definite_antiquarian": link.definite_antiquarian,
-            }
-            for link in fragment.get_all_links()
-        ]
-        # TODO: still need to make ant list distinct
+        context["organised_links"] = fragment.get_organised_links()
         return context
 
 
