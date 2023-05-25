@@ -222,7 +222,8 @@
 
             <div class="pl-4 mb-4 mt-0">
                 {% for link in links %}
-                {% include 'research/partials/linked_work.html' with link=link linked_field=fragment can_edit=perms.research.change_fragment has_object_lock=has_object_lock %}
+                {% include 'research/partials/linked_work.html' with link=link linked_field=fragment can_edit=perms.research.change_fragment has_object_lock=has_object_lock disable_delete=forloop.last %}
+
                 {% endfor %}
             </div>
         {% endwith %}
