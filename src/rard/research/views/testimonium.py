@@ -277,7 +277,7 @@ class RemoveTestimoniumLinkView(
         if (
             len(
                 TestimoniumLink.objects.filter(
-                    antiquarian=antiquarian, fragment=testimonium
+                    antiquarian=antiquarian, testimonium=testimonium
                 )
             )
             == 1
