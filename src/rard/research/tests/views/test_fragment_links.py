@@ -26,7 +26,6 @@ class TestFragmentAddWorkLinkView(TestCase):
         )
 
     def test_create_link_post(self):
-
         fragment = Fragment.objects.create(name="name")
         antiquarian = Antiquarian.objects.create(name="name", re_code=1)
         work = Work.objects.create(name="name")
@@ -58,7 +57,6 @@ class TestFragmentAddWorkLinkView(TestCase):
         self.assertEqual(response.context_data["fragment"], fragment)
 
     def test_bad_data(self):
-
         fragment = Fragment.objects.create(name="name")
         work = Work.objects.create(name="name")
         url = reverse("fragment:add_work_link", kwargs={"pk": fragment.pk})
@@ -96,10 +94,32 @@ class TestFragmentRemoveWorkLinkView(TestCase):
         )
 
     def test_delete_link_post(self):
-
+        """If there's more than one link, a link can be removed as normal"""
         fragment = Fragment.objects.create(name="name")
         work = Work.objects.create(name="name")
-        link = FragmentLink.objects.create(work=work, fragment=fragment)
+        link1 = FragmentLink.objects.create(work=work, fragment=fragment)
+        link2 = FragmentLink.objects.create(work=work, fragment=fragment)
+
+        request = RequestFactory().post("/")
+        request.user = UserFactory.create()
+        fragment.lock(request.user)
+
+        self.assertEqual(FragmentLink.objects.count(), 2)
+        RemoveFragmentLinkView.as_view()(request, pk=link1.pk)
+        self.assertEqual(FragmentLink.objects.count(), 1)
+        self.assertEqual(FragmentLink.objects.first(), link2)
+
+    def test_reassign_to_unknown(self):
+        """If only one link is left, it should be reassigned to unknown work/book on delete
+        to retain the link to the antiquarian"""
+
+        antiquarian = Antiquarian.objects.create(name="name", re_code="re_code")
+        fragment = Fragment.objects.create(name="name")
+        work = Work.objects.create(name="name", antiquarian=antiquarian)
+        link = FragmentLink.objects.create(
+            work=work, fragment=fragment, antiquarian=antiquarian
+        )
+        link.save()
 
         request = RequestFactory().post("/")
         request.user = UserFactory.create()
@@ -107,7 +127,8 @@ class TestFragmentRemoveWorkLinkView(TestCase):
 
         self.assertEqual(FragmentLink.objects.count(), 1)
         RemoveFragmentLinkView.as_view()(request, pk=link.pk)
-        self.assertEqual(FragmentLink.objects.count(), 0)
+        self.assertEqual(FragmentLink.objects.count(), 1)
+        self.assertTrue(FragmentLink.objects.first().work.unknown)
 
     def test_permission_required(self):
         self.assertIn(

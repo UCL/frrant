@@ -28,7 +28,6 @@ class TestTestimoniumAddWorkLinkView(TestCase):
         )
 
     def test_create_link_post(self):
-
         testimonium = Testimonium.objects.create(name="name")
         antiquarian = Antiquarian.objects.create(name="name", re_code=1)
         work = Work.objects.create(name="name")
@@ -62,7 +61,6 @@ class TestTestimoniumAddWorkLinkView(TestCase):
         self.assertEqual(response.context_data["testimonium"], testimonium)
 
     def test_bad_data(self):
-
         testimonium = Testimonium.objects.create(name="name")
         work = Work.objects.create(name="name")
         url = reverse("testimonium:add_work_link", kwargs={"pk": testimonium.pk})
@@ -101,19 +99,41 @@ class TestTestimoniumRemoveWorkLinkView(TestCase):
         )
 
     def test_delete_link_post(self):
-
+        """If there's more than one link, a link can be removed as normal"""
         testimonium = Testimonium.objects.create(name="name")
         work = Work.objects.create(name="name")
-        link = TestimoniumLink.objects.create(work=work, testimonium=testimonium)
+        link1 = TestimoniumLink.objects.create(work=work, testimonium=testimonium)
+        link2 = TestimoniumLink.objects.create(work=work, testimonium=testimonium)
 
         request = RequestFactory().post("/")
         request.user = UserFactory.create()
+        testimonium.lock(request.user)
 
+        self.assertEqual(TestimoniumLink.objects.count(), 2)
+        RemoveTestimoniumLinkView.as_view()(request, pk=link1.pk)
+        self.assertEqual(TestimoniumLink.objects.count(), 1)
+        self.assertEqual(TestimoniumLink.objects.first(), link2)
+
+    def test_reassign_to_unknown(self):
+        """If only one link is left, it should be reassigned to unknown work/book on delete
+        to retain the link to the antiquarian"""
+
+        antiquarian = Antiquarian.objects.create(name="name", re_code="re_code")
+        testimonium = Testimonium.objects.create(name="name")
+        work = Work.objects.create(name="name", antiquarian=antiquarian)
+        link = TestimoniumLink.objects.create(
+            work=work, testimonium=testimonium, antiquarian=antiquarian
+        )
+        link.save()
+
+        request = RequestFactory().post("/")
+        request.user = UserFactory.create()
         testimonium.lock(request.user)
 
         self.assertEqual(TestimoniumLink.objects.count(), 1)
         RemoveTestimoniumLinkView.as_view()(request, pk=link.pk)
-        self.assertEqual(TestimoniumLink.objects.count(), 0)
+        self.assertEqual(TestimoniumLink.objects.count(), 1)
+        self.assertTrue(TestimoniumLink.objects.first().work.unknown)
 
     def test_permission_required(self):
         self.assertIn(
