@@ -39,8 +39,8 @@ def calculate_definite(organised_link_array):
 
 def reassign_to_unknown(worklink):
     """Used in the Remove WorkLink Views"""
-    worklink.object.work = worklink.object.antiquarian.unknown_work
-    worklink.object.book = worklink.object.work.unknown_book
-    worklink.object.definite_work = False
-    worklink.object.definite_book = False
-    worklink.object.save()
+    worklink.work = worklink.antiquarian.unknown_work
+    worklink.book = worklink.work.unknown_book
+    worklink.definite_work = False
+    worklink.definite_book = False
+    worklink.save()

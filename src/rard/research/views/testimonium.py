@@ -282,7 +282,7 @@ class RemoveTestimoniumLinkView(
             )
             == 1
         ):
-            reassign_to_unknown(self)
+            reassign_to_unknown(self.object)
         else:
             self.object.delete()
 

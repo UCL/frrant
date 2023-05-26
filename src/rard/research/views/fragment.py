@@ -821,7 +821,7 @@ class RemoveFragmentLinkView(
             len(FragmentLink.objects.filter(antiquarian=antiquarian, fragment=fragment))
             == 1
         ):
-            reassign_to_unknown(self)
+            reassign_to_unknown(self.object)
         else:
             self.object.delete()
 
