@@ -786,13 +786,22 @@ class FragmentAddWorkLinkView(
 class RemoveFragmentLinkView(
     CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
 ):
+    """When requesting link removal, one link will be removed/reassigned if from a work link
+    If from an antiquarian link, all links will be removed"""
+
     check_lock_object = "fragment"
     model = FragmentLink
 
     def dispatch(self, request, *args, **kwargs):
         # need to ensure we have the lock object view attribute
         # initialised in dispatch
-        self.get_fragment()
+        if "antiquarian_request" in request.POST:
+            antiquarian_pk = kwargs["pk"]
+            fragment_pk = request.POST.get("antiquarian_request")
+            self.get_antiquarian(antiquarian_pk)
+            self.get_fragment(fragment_pk)
+        else:
+            self.get_fragment()
         return super().dispatch(request, *args, **kwargs)
 
     # base class for both remove work and remove book from a fragment
@@ -803,27 +812,51 @@ class RemoveFragmentLinkView(
             "HTTP_REFERER", reverse("fragment:detail", kwargs={"pk": self.fragment.pk})
         )
 
+    def get_antiquarian(self, *args, **kwargs):
+        if not getattr(self, "antiquarian", False):
+            pk = args[0]
+            self.antiquarian = Antiquarian.objects.get(pk=pk)
+        return self.antiquarian
+
     def get_fragment(self, *args, **kwargs):
         if not getattr(self, "fragment", False):
-            self.fragment = self.get_object().fragment
+            if "antiquarian_request" in self.request.POST:
+                pk = args[0]
+                self.fragment = Fragment.objects.get(pk=pk)
+            else:
+                self.fragment = self.get_object().fragment
         return self.fragment
 
     def delete(self, request, *args, **kwargs):
-        self.object = self.get_object()
         success_url = self.get_success_url()
-
-        # Determine if it should reassign to unknown
-        # if no other links reassign to unknown
-        # otherwise delete the link
-        antiquarian = self.object.antiquarian
         fragment = self.get_fragment()
-        if (
-            len(FragmentLink.objects.filter(antiquarian=antiquarian, fragment=fragment))
-            == 1
-        ):
-            reassign_to_unknown(self.object)
+
+        if "antiquarian_request" in request.POST:
+            antiquarian = self.get_antiquarian()
+            antiquarian_fragmentlinks = FragmentLink.objects.filter(
+                antiquarian=antiquarian, fragment=fragment
+            )
+            for link in antiquarian_fragmentlinks:
+                link.delete()
+
         else:
-            self.object.delete()
+            self.object = self.get_object()
+            antiquarian = self.object.antiquarian
+            # Determine if it should reassign to unknown
+            # if no other links reassign to unknown
+            # otherwise delete the link
+            if (
+                len(
+                    FragmentLink.objects.filter(
+                        antiquarian=antiquarian, fragment=fragment
+                    )
+                )
+                == 1
+            ):
+                reassign_to_unknown(self.object)
+
+            else:
+                self.object.delete()
 
         return HttpResponseRedirect(success_url)
 

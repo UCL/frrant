@@ -213,12 +213,12 @@
                 {% endif %}
             </div>
         </div>
-        {% for object in organised_links %}
-        {% for antiquarian, contents in object.items %}
+        {% for link_object in organised_links %}
+        {% for antiquarian, contents in link_object.items %}
         {% with links=contents.0 %}
         {% with definite_ant=contents.1 %}
 
-            {% include 'research/partials/linked_antiquarian.html' with antiquarian=antiquarian linked_field='fragment' definite_antiquarian=definite_ant can_edit=perms.research.change_fragment has_object_lock=has_object_lock %}
+            {% include 'research/partials/linked_antiquarian.html' with antiquarian=antiquarian linked_field='fragment' object=object definite_antiquarian=definite_ant can_edit=perms.research.change_fragment has_object_lock=has_object_lock %}
 
             <div class="pl-4 mb-4 mt-0">
                 {% for link in links %}

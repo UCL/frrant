@@ -14,7 +14,7 @@ from rard.research.forms import (
     TestimoniumForm,
     TestimoniumLinkWorkForm,
 )
-from rard.research.models import Testimonium
+from rard.research.models import Antiquarian, Testimonium
 from rard.research.models.base import TestimoniumLink
 from rard.research.views.fragment import HistoricalBaseCreateView
 from rard.research.views.mixins import (
@@ -243,13 +243,22 @@ class TestimoniumUpdateWorkLinkView(
 class RemoveTestimoniumLinkView(
     CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
 ):
+    """When requesting link removal, one link will be removed/reassigned if from a work link
+    If from an antiquarian link, all links will be removed"""
+
     check_lock_object = "testimonium"
     model = TestimoniumLink
 
     def dispatch(self, request, *args, **kwargs):
         # need to ensure we have the lock object view attribute
         # initialised in dispatch
-        self.get_testimonium()
+        if "antiquarian_request" in request.POST:
+            antiquarian_pk = kwargs["pk"]
+            testimonium_pk = request.POST.get("antiquarian_request")
+            self.get_antiquarian(antiquarian_pk)
+            self.get_testimonium(testimonium_pk)
+        else:
+            self.get_testimonium()
         return super().dispatch(request, *args, **kwargs)
 
     permission_required = ("research.change_testimonium",)
@@ -260,30 +269,49 @@ class RemoveTestimoniumLinkView(
             reverse("testimonium:detail", kwargs={"pk": self.testimonium.pk}),
         )
 
+    def get_antiquarian(self, *args, **kwargs):
+        if not getattr(self, "antiquarian", False):
+            pk = args[0]
+            self.antiquarian = Antiquarian.objects.get(pk=pk)
+        return self.antiquarian
+
     def get_testimonium(self, *args, **kwargs):
         if not getattr(self, "testimonium", False):
-            self.testimonium = self.get_object().testimonium
+            if "antiquarian_request" in self.request.POST:
+                pk = args[0]
+                self.testimonium = Testimonium.objects.get(pk=pk)
+            else:
+                self.testimonium = self.get_object().testimonium
         return self.testimonium
 
     def delete(self, request, *args, **kwargs):
-        self.object = self.get_object()
         success_url = self.get_success_url()
-
-        # Determine if it should reassign to unknown
-        # if no other links reassign to unknown
-        # otherwise delete the link
-        antiquarian = self.object.antiquarian
         testimonium = self.get_testimonium()
-        if (
-            len(
-                TestimoniumLink.objects.filter(
-                    antiquarian=antiquarian, testimonium=testimonium
-                )
+
+        if "antiquarian_request" in request.POST:
+            antiquarian = self.get_antiquarian()
+            antiquarian_testimoniumlinks = TestimoniumLink.objects.filter(
+                antiquarian=antiquarian, testimonium=testimonium
             )
-            == 1
-        ):
-            reassign_to_unknown(self.object)
+            for link in antiquarian_testimoniumlinks:
+                link.delete()
+
         else:
-            self.object.delete()
+            self.object = self.get_object()
+            antiquarian = self.object.antiquarian
+            # Determine if it should reassign to unknown
+            # if no other links reassign to unknown
+            # otherwise delete the link
+            if (
+                len(
+                    TestimoniumLink.objects.filter(
+                        antiquarian=antiquarian, testimonium=testimonium
+                    )
+                )
+                == 1
+            ):
+                reassign_to_unknown(self.object)
+            else:
+                self.object.delete()
 
         return HttpResponseRedirect(success_url)
