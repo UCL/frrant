@@ -124,6 +124,8 @@ class TestTestimoniumRemoveWorkLinkView(TestCase):
         link = TestimoniumLink.objects.create(
             work=work, testimonium=testimonium, antiquarian=antiquarian
         )
+        link.definite_work = True
+        link.definite_book = True
         link.save()
 
         request = RequestFactory().post("/")
@@ -131,9 +133,13 @@ class TestTestimoniumRemoveWorkLinkView(TestCase):
         testimonium.lock(request.user)
 
         self.assertEqual(TestimoniumLink.objects.count(), 1)
+        self.assertTrue(TestimoniumLink.objects.first().definite_work)
+        self.assertTrue(TestimoniumLink.objects.first().definite_book)
         RemoveTestimoniumLinkView.as_view()(request, pk=link.pk)
         self.assertEqual(TestimoniumLink.objects.count(), 1)
         self.assertTrue(TestimoniumLink.objects.first().work.unknown)
+        self.assertFalse(TestimoniumLink.objects.first().definite_work)
+        self.assertFalse(TestimoniumLink.objects.first().definite_book)
 
     def test_remove_all_links(self):
         """when the 'remove all links' button is clicked

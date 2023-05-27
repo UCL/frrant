@@ -119,6 +119,8 @@ class TestFragmentRemoveWorkLinkView(TestCase):
         link = FragmentLink.objects.create(
             work=work, fragment=fragment, antiquarian=antiquarian
         )
+        link.definite_work = True
+        link.definite_book = True
         link.save()
 
         request = RequestFactory().post("/")
@@ -126,9 +128,13 @@ class TestFragmentRemoveWorkLinkView(TestCase):
         fragment.lock(request.user)
 
         self.assertEqual(FragmentLink.objects.count(), 1)
+        self.assertTrue(FragmentLink.objects.first().definite_work)
+        self.assertTrue(FragmentLink.objects.first().definite_book)
         RemoveFragmentLinkView.as_view()(request, pk=link.pk)
         self.assertEqual(FragmentLink.objects.count(), 1)
         self.assertTrue(FragmentLink.objects.first().work.unknown)
+        self.assertFalse(FragmentLink.objects.first().definite_work)
+        self.assertFalse(FragmentLink.objects.first().definite_book)
 
     def test_remove_all_links(self):
         """when the 'remove all links' button is clicked
