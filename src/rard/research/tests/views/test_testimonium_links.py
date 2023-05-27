@@ -135,6 +135,33 @@ class TestTestimoniumRemoveWorkLinkView(TestCase):
         self.assertEqual(TestimoniumLink.objects.count(), 1)
         self.assertTrue(TestimoniumLink.objects.first().work.unknown)
 
+    def test_remove_all_links(self):
+        """when the 'remove all links' button is clicked
+        the request should contain information about the antiquarian
+        and delete all links for that antiquarian and testimonium"""
+        antiquarian = Antiquarian.objects.create(name="name", re_code="re_code")
+        testimonium = Testimonium.objects.create(name="name")
+        work = Work.objects.create(name="name")
+        link1 = TestimoniumLink.objects.create(
+            work=work, testimonium=testimonium, antiquarian=antiquarian
+        )
+        link2 = TestimoniumLink.objects.create(
+            work=work, testimonium=testimonium, antiquarian=antiquarian
+        )
+
+        link1.save()
+        link2.save()
+
+        request = RequestFactory().post(
+            "/", data={"antiquarian_request": testimonium.pk}
+        )
+        request.user = UserFactory.create()
+        testimonium.lock(request.user)
+
+        self.assertEqual(TestimoniumLink.objects.count(), 2)
+        RemoveTestimoniumLinkView.as_view()(request, pk=antiquarian.pk)
+        self.assertEqual(TestimoniumLink.objects.count(), 0)
+
     def test_permission_required(self):
         self.assertIn(
             "research.change_testimonium", RemoveTestimoniumLinkView.permission_required

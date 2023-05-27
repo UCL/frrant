@@ -130,6 +130,31 @@ class TestFragmentRemoveWorkLinkView(TestCase):
         self.assertEqual(FragmentLink.objects.count(), 1)
         self.assertTrue(FragmentLink.objects.first().work.unknown)
 
+    def test_remove_all_links(self):
+        """when the 'remove all links' button is clicked
+        the request should contain information about the antiquarian
+        and delete all links for that antiquarian and fragment"""
+        antiquarian = Antiquarian.objects.create(name="name", re_code="re_code")
+        fragment = Fragment.objects.create(name="name")
+        work = Work.objects.create(name="name")
+        link1 = FragmentLink.objects.create(
+            work=work, fragment=fragment, antiquarian=antiquarian
+        )
+        link2 = FragmentLink.objects.create(
+            work=work, fragment=fragment, antiquarian=antiquarian
+        )
+
+        link1.save()
+        link2.save()
+
+        request = RequestFactory().post("/", data={"antiquarian_request": fragment.pk})
+        request.user = UserFactory.create()
+        fragment.lock(request.user)
+
+        self.assertEqual(FragmentLink.objects.count(), 2)
+        RemoveFragmentLinkView.as_view()(request, pk=antiquarian.pk)
+        self.assertEqual(FragmentLink.objects.count(), 0)
+
     def test_permission_required(self):
         self.assertIn(
             "research.change_fragment", RemoveFragmentLinkView.permission_required
