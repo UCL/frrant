@@ -233,6 +233,9 @@ class AnonymousFragment(
             .distinct()
         )
 
+    def get_organised_links(self):
+        return organise_links(self)
+
     def get_display_name(self):
         return "Anonymous F%s" % (self.order + 1)
 

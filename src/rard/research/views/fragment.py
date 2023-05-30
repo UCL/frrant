@@ -593,6 +593,14 @@ class AnonymousFragmentDetailView(FragmentDetailView):
     model = AnonymousFragment
     permission_required = ("research.view_fragment",)
 
+    def get_context_data(self, **kwargs):
+        fragment = self.get_object()
+        context = super().get_context_data(**kwargs)
+
+        context["inline_update_url"] = "fragment:update_fragment_link"
+        context["organised_links"] = fragment.get_organised_links()
+        return context
+
 
 @method_decorator(require_POST, name="dispatch")
 class FragmentDeleteView(
