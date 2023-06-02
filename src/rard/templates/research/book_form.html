@@ -1,5 +1,5 @@
 {% extends "research/base.html" %}
-{% load i18n bootstrap4 %}
+{% load i18n bootstrap4 static humanize %}
 
 {% block heading %}
     {% if object %}
@@ -18,6 +18,26 @@
 {% endblock %}
 
 {% block inner %}
+{# edit introduction #}
+{% if editing == 'introduction' %}
+<div>
+    {% if perms.research.change_work and has_object_lock %}
+    <form novalidate enctype="multipart/form-data" autocomplete='off' action='{% url "work:update_book_introduction" book.pk %}' class="form" method='POST' name="introduction_text">
+        {% csrf_token %}
+        <div class="pb-3">
+            {% bootstrap_field form.introduction_text field_class='d-none' show_label=False %}
+            {% include 'research/partials/rich_text_editor.html' with object_id=book.pk object_class='book' field=form.introduction_text enable_mentions=True enable_apparatus_criticus=True %}
+        </div>
+        <button type="submit" class="btn btn-primary inline-save-button">
+                {% trans 'Save' %}
+        </button>
+        <a class='ml-3 inline-cancel-button' href='{% url "work:detail" book.work.pk %}'>{% trans 'Cancel' %}</a>
+    </form>
+    {% endif %}
+</div>
+{% else %}
+
+{# normal update form #}
     <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
         {% csrf_token %}
         {% bootstrap_form form %}
@@ -29,4 +49,5 @@
             {% endif %}
         </button>
     </form>
+{% endif %}
 {% endblock %}

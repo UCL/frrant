@@ -13,6 +13,20 @@
         <button data-book='{{ book.pk }}' data-work='{{ book.work.pk }}' data-objecttype='book' data-pos='{{ forloop.counter0 }}' type='button' class='btn btn-light btn-sm' {% if forloop.last or disable_link_controls %}disabled{% endif %} name='book_down'><i class='fas fa-caret-down'></i></button>
         {% endif %}
     </h5>
+    {% comment %} <section> {% endcomment %}
+
+        <div class='d-flex justify-content-between mb-3'>
+            <small>
+                {% if perms.research.change_work and has_object_lock %}
+                <a href='{% url "work:update_book_introduction" book.pk %}'>{% trans 'Edit Introduction' %}</a>
+                {% endif %}
+            </small>
+        </div>
+        <div>
+            {% include 'research/partials/text_object_preview.html' with text_object=book.introduction %}
+        </div>
+    {% comment %} </section> {% endcomment %}
+
     {% endif %}
 
         <div>
