@@ -51,7 +51,7 @@ class Migration(migrations.Migration):
             name="plain_introduction",
             field=models.TextField(default=""),
         ),
-        migrations.AlterField(
+        migrations.AddField(
             model_name="historicalbook",
             name="introduction",
             field=models.ForeignKey(
@@ -62,7 +62,7 @@ class Migration(migrations.Migration):
                 to="research.textobjectfield",
             ),
         ),
-        migrations.AlterField(
+        migrations.AddField(
             model_name="historicalwork",
             name="introduction",
             field=models.ForeignKey(
