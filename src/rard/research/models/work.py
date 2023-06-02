@@ -8,9 +8,10 @@ from django.urls import reverse
 from django.utils.text import slugify
 from simple_history.models import HistoricalRecords
 
-from rard.research.models.mixins import HistoryModelMixin
+from rard.research.models.mixins import HistoryModelMixin, TextObjectFieldMixin
 from rard.utils.basemodel import BaseModel, DatedModel, LockableModel, OrderableModel
 from rard.utils.decorators import disable_for_loaddata
+from rard.utils.text_processors import make_plain_text
 
 
 class WorkManager(models.Manager):
@@ -25,7 +26,9 @@ class WorkManager(models.Manager):
         ).order_by(models.F(("authors")).asc(nulls_first=True), "name", "order_year")
 
 
-class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
+class Work(
+    HistoryModelMixin, TextObjectFieldMixin, DatedModel, LockableModel, BaseModel
+):
     history = HistoricalRecords()
 
     def related_lock_object(self):
@@ -49,8 +52,8 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
         on_delete=models.SET_NULL,
         null=True,
         related_name="introduction_for_%(class)s",
-        blank=True,
     )
+    plain_introduction = models.TextField(blank=False, default="")
 
     def book_set(self):
         return super().book_set().order_by("unknown", "order", "number")
@@ -67,6 +70,11 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
     def __str__(self):
         author_str = ", ".join([a.name for a in self.antiquarian_set.all()])
         return "{}: {}".format(author_str or "Anonymous", self.name)
+
+    def save(self, *args, **kwargs):
+        if self.introduction:
+            self.plain_introduction = make_plain_text(self.introduction.content)
+        super().save(*args, **kwargs)
 
     def get_absolute_url(self):
         return reverse("work:detail", kwargs={"pk": self.pk})
@@ -189,7 +197,9 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
         return ordered_materials
 
 
-class Book(HistoryModelMixin, DatedModel, BaseModel, OrderableModel):
+class Book(
+    HistoryModelMixin, TextObjectFieldMixin, DatedModel, BaseModel, OrderableModel
+):
     history = HistoricalRecords()
 
     def related_lock_object(self):
@@ -210,8 +220,8 @@ class Book(HistoryModelMixin, DatedModel, BaseModel, OrderableModel):
         on_delete=models.SET_NULL,
         null=True,
         related_name="introduction_for_%(class)s",
-        blank=True,
     )
+    plain_introduction = models.TextField(blank=False, default="")
 
     def __str__(self):
         if self.subtitle and self.number:
@@ -232,6 +242,11 @@ class Book(HistoryModelMixin, DatedModel, BaseModel, OrderableModel):
 
     def get_anchor_id(self):
         return slugify(self.__str__())
+
+    def save(self, *args, **kwargs):
+        if self.introduction:
+            self.plain_introduction = make_plain_text(self.introduction.content)
+        super().save(*args, **kwargs)
 
 
 @disable_for_loaddata
