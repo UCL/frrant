@@ -44,6 +44,14 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
 
     unknown = models.BooleanField(default=False)
 
+    introduction = models.OneToOneField(
+        "TextObjectField",
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="introduction_for_%(class)s",
+        blank=True,
+    )
+
     def book_set(self):
         return super().book_set().order_by("unknown", "order", "number")
 
@@ -196,6 +204,14 @@ class Book(HistoryModelMixin, DatedModel, BaseModel, OrderableModel):
     subtitle = models.CharField(max_length=128, blank=True)
 
     unknown = models.BooleanField(default=False)
+
+    introduction = models.OneToOneField(
+        "TextObjectField",
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="introduction_for_%(class)s",
+        blank=True,
+    )
 
     def __str__(self):
         if self.subtitle and self.number:

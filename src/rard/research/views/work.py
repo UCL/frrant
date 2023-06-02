@@ -7,7 +7,12 @@ from django.views.generic import ListView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
-from rard.research.forms import BookForm, WorkForm
+from rard.research.forms import (
+    BookForm,
+    BookIntroductionForm,
+    WorkForm,
+    WorkIntroductionForm,
+)
 from rard.research.models import Book, Work
 from rard.research.views.mixins import CanLockMixin, CheckLockMixin
 
@@ -94,6 +99,25 @@ class WorkUpdateView(
         return super().form_valid(form)
 
 
+class WorkUpdateIntroductionView(WorkUpdateView):
+    model = Work
+    form_class = WorkIntroductionForm
+    permission_required = ("research.change_work",)
+    template_name = "research/work_detail.html"
+
+    def get_success_url(self, *args, **kwargs):
+        return reverse("work:detail", kwargs={"pk": self.get_object().pk})
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update(
+            {
+                "editing": "introduction",
+            }
+        )
+        return context
+
+
 @method_decorator(require_POST, name="dispatch")
 class WorkDeleteView(
     CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
@@ -177,6 +201,29 @@ class BookUpdateView(
         context.update(
             {
                 "work": self.get_work(),
+            }
+        )
+        return context
+
+
+class BookUpdateIntroductionView(BookUpdateView):
+    model = Book
+    form_class = BookIntroductionForm
+    permission_required = ("research.change_book",)
+    template_name = "research/book_form.html"
+
+    def get_success_url(self, *args, **kwargs):
+        return reverse("work:detail", kwargs={"pk": self.get_object().work.pk})
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update(
+            {
+                "editing": "introduction",
+                "change_work": True,
+                "change_book": True,
+                "has_object_lock": True,
+                "instance": self.get_object(),
             }
         )
         return context

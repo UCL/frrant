@@ -544,6 +544,47 @@ class AnonymousFragmentCommentaryForm(CommentaryFormBase):
         fields = ()
 
 
+class IntroductionFormBase(forms.ModelForm):
+    introduction_text = forms.CharField(
+        widget=forms.Textarea,
+        required=False,
+        label="Introduction",
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.introduction:
+            self.instance.introduction.update_content_mentions()
+            self.fields[
+                "introduction_text"
+            ].initial = self.instance.introduction.content
+
+    def save(self, commit=True):
+        print(self.cleaned_data["introduction_text"])
+        instance = super().save(commit=False)
+        print(instance)
+        print(instance.introduction)
+        if commit:
+            # introduction will have been created at this point via post_save
+            print(instance.introduction)
+            instance.introduction.content = self.cleaned_data["introduction_text"]
+            print(instance.introduction)
+            instance.introduction.save()
+        return instance
+
+
+class WorkIntroductionForm(IntroductionFormBase):
+    class Meta:
+        model = Work
+        fields = ()
+
+
+class BookIntroductionForm(IntroductionFormBase):
+    class Meta:
+        model = Book
+        fields = ()
+
+
 class HistoricalFormBase(forms.ModelForm):
     def save(self, commit=True):
         instance = super().save(commit=False)

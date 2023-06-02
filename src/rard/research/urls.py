@@ -182,6 +182,16 @@ urlpatterns = [
                         views.BookDeleteView.as_view(),
                         name="delete_book",
                     ),
+                    path(
+                        "<pk>/update/introduction/",
+                        views.WorkUpdateIntroductionView.as_view(),
+                        name="update_introduction",
+                    ),
+                    path(
+                        "book/<pk>/update/introduction/",
+                        views.BookUpdateIntroductionView.as_view(),
+                        name="update_book_introduction",
+                    ),
                 ],
                 "research",
             ),
