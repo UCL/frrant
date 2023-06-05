@@ -10,12 +10,27 @@ class Migration(migrations.Migration):
         ("research", "0062_definite_possible_clarity"),
     ]
 
+    def set_default_introduction(apps, schema_editor):
+        Work = apps.get_model("research", "Work")
+        Book = apps.get_model("research", "Book")
+
+        # Set default introduction for existing works
+        for work in Work.objects.all():
+            work.introduction = f"Introduction for {work}"
+            work.save()
+
+        # Set default introduction for existing books
+        for book in Book.objects.all():
+            book.introduction = f"Introduction for {book}"
+            book.save()
+
     operations = [
         migrations.AddField(
             model_name="book",
             name="introduction",
             field=models.OneToOneField(
                 null=True,
+                default="Introduction",
                 on_delete=django.db.models.deletion.SET_NULL,
                 related_name="introduction_for_book",
                 to="research.textobjectfield",
@@ -26,6 +41,7 @@ class Migration(migrations.Migration):
             name="introduction",
             field=models.OneToOneField(
                 null=True,
+                default="Introduction",
                 on_delete=django.db.models.deletion.SET_NULL,
                 related_name="introduction_for_work",
                 to="research.textobjectfield",

@@ -3,7 +3,11 @@
 
 {% block heading %}
     {% if object %}
+    {% if editing == 'introduction' %}
+    {% trans 'Update Introduction' %}
+    {% else %}
         {% trans 'Update Book' %}
+    {% endif %}
     {% else %}
         {% trans 'Create Book' %}
     {% endif %}
@@ -12,6 +16,7 @@
         {% blocktrans with name=work.name %}
             For {{ name }}
         {% endblocktrans %}
+        {% if editing == 'introduction' %} - {{ object }} {% endif %}
     </small>
     {% endif %}
 
@@ -20,6 +25,7 @@
 {% block inner %}
 {# edit introduction #}
 {% if editing == 'introduction' %}
+{% with book=object %}
 <div>
     {% if perms.research.change_work and has_object_lock %}
     <form novalidate enctype="multipart/form-data" autocomplete='off' action='{% url "work:update_book_introduction" book.pk %}' class="form" method='POST' name="introduction_text">
@@ -35,6 +41,7 @@
     </form>
     {% endif %}
 </div>
+{% endwith %}
 {% else %}
 
 {# normal update form #}
