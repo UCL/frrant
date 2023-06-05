@@ -13,38 +13,57 @@ class Migration(migrations.Migration):
     def set_default_introduction(apps, schema_editor):
         Work = apps.get_model("research", "Work")
         Book = apps.get_model("research", "Book")
+        TextObjectField = apps.get_model("research", "TextObjectField")
 
-        # Set default introduction for existing works
+        def __str__(self):
+            if self.subtitle and self.number:
+                return "Book {}: {}".format(self.number, self.subtitle)
+            elif self.number:
+                return "Book {}".format(self.number)
+            return self.subtitle
+
         for work in Work.objects.all():
-            work.introduction = f"Introduction for {work}"
-            work.save()
+            if work.introduction is None:
+                introduction = TextObjectField.objects.create(
+                    content=f"Introduction for {work.name}"
+                )
+                work.introduction = introduction
+                work.save()
+            else:
+                work.introduction.content = f"Introduction for {work.name}"
+                work.introduction.save()
 
-        # Set default introduction for existing books
         for book in Book.objects.all():
-            book.introduction = f"Introduction for {book}"
-            book.save()
+            book_name = __str__(book)
+            if book.introduction is None:
+                introduction = TextObjectField.objects.create(
+                    content=f"Introduction for {book_name}"
+                )
+                book.introduction = introduction
+                book.save()
+            else:
+                book.introduction.content = f"Introduction for {book_name}"
+                book.introduction.save()
 
     operations = [
         migrations.AddField(
             model_name="book",
             name="introduction",
             field=models.OneToOneField(
+                "TextObjectField",
                 null=True,
-                default="Introduction",
                 on_delete=django.db.models.deletion.SET_NULL,
                 related_name="introduction_for_book",
-                to="research.textobjectfield",
             ),
         ),
         migrations.AddField(
             model_name="work",
             name="introduction",
             field=models.OneToOneField(
+                "TextObjectField",
                 null=True,
-                default="Introduction",
                 on_delete=django.db.models.deletion.SET_NULL,
                 related_name="introduction_for_work",
-                to="research.textobjectfield",
             ),
         ),
         migrations.AddField(
@@ -71,7 +90,6 @@ class Migration(migrations.Migration):
             model_name="historicalbook",
             name="introduction",
             field=models.ForeignKey(
-                db_constraint=False,
                 null=True,
                 on_delete=django.db.models.deletion.SET_NULL,
                 related_name="introduction_for_historical_book",
@@ -82,11 +100,11 @@ class Migration(migrations.Migration):
             model_name="historicalwork",
             name="introduction",
             field=models.ForeignKey(
-                db_constraint=False,
                 null=True,
                 on_delete=django.db.models.deletion.SET_NULL,
                 related_name="introduction_for_historical_work",
                 to="research.textobjectfield",
             ),
         ),
+        migrations.RunPython(set_default_introduction),
     ]
