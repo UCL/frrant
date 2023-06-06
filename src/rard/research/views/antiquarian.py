@@ -210,7 +210,6 @@ class AntiquarianUpdateIntroductionView(AntiquarianUpdateView):
     template_name = "research/antiquarian_detail.html"
 
     def get_success_url(self, *args, **kwargs):
-        print("ant view successurl")
         return reverse("antiquarian:detail", kwargs={"pk": self.get_object().pk})
 
     def get_context_data(self, *args, **kwargs):

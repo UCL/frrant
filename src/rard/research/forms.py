@@ -56,10 +56,7 @@ class IntroductionFormBase(forms.ModelForm):
 
     def save(self, commit=True):
         instance = super().save(commit=False)
-        print(instance)
-        print(instance.introduction.content)
         if commit:
-            print("committing", instance.introduction.content)
             instance.introduction.content = self.cleaned_data["introduction_text"]
             instance.introduction.save()
         return instance
