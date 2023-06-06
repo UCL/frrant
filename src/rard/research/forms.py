@@ -39,11 +39,7 @@ def _validate_reference_order(ro):
         )
 
 
-class AntiquarianIntroductionForm(forms.ModelForm):
-    class Meta:
-        model = Antiquarian
-        fields = ("name",)  # need to specify at least one field
-
+class IntroductionFormBase(forms.ModelForm):
     introduction_text = forms.CharField(
         widget=forms.Textarea,
         required=False,
@@ -57,15 +53,22 @@ class AntiquarianIntroductionForm(forms.ModelForm):
             self.fields[
                 "introduction_text"
             ].initial = self.instance.introduction.content
-        self.fields["name"].required = False
 
     def save(self, commit=True):
+        instance = super().save(commit=False)
+        print(instance)
+        print(instance.introduction.content)
         if commit:
-            instance = super().save(commit=False)  # no need to save owner
-            # introduction will have been created at this point
+            print("committing", instance.introduction.content)
             instance.introduction.content = self.cleaned_data["introduction_text"]
             instance.introduction.save()
         return instance
+
+
+class AntiquarianIntroductionForm(IntroductionFormBase):
+    class Meta:
+        model = Antiquarian
+        fields = ()
 
 
 class AntiquarianDetailsForm(forms.ModelForm):
@@ -542,35 +545,6 @@ class AnonymousFragmentCommentaryForm(CommentaryFormBase):
     class Meta:
         model = AnonymousFragment
         fields = ()
-
-
-class IntroductionFormBase(forms.ModelForm):
-    introduction_text = forms.CharField(
-        widget=forms.Textarea,
-        required=False,
-        label="Introduction",
-    )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if self.instance and self.instance.introduction:
-            self.instance.introduction.update_content_mentions()
-            self.fields[
-                "introduction_text"
-            ].initial = self.instance.introduction.content
-
-    def save(self, commit=True):
-        print(self.cleaned_data["introduction_text"])
-        instance = super().save(commit=False)
-        print(instance)
-        print(instance.introduction)
-        if commit:
-            # introduction will have been created at this point via post_save
-            print(instance.introduction)
-            instance.introduction.content = self.cleaned_data["introduction_text"]
-            print(instance.introduction)
-            instance.introduction.save()
-        return instance
 
 
 class WorkIntroductionForm(IntroductionFormBase):
