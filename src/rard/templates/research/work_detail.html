@@ -59,7 +59,7 @@
                   {% csrf_token %}
                   <div class="pb-3">
                       {% bootstrap_field form.introduction_text field_class='d-none' show_label=False %}
-                      {% include 'research/partials/rich_text_editor.html' with object_id=object.pk object_class='work' field=form.introduction_text enable_mentions=True enable_apparatus_criticus=True %}
+                      {% include 'research/partials/rich_text_editor.html' with object_id=object.pk object_class='work' field=form.introduction_text enable_mentions=True %}
                   </div>
                   <button type="submit" class="btn btn-primary inline-save-button">
                           {% trans 'Save' %}

@@ -87,15 +87,16 @@ class WorkUpdateView(
 
     def form_valid(self, form):
         work = form.save(commit=False)
-        updated = form.cleaned_data["antiquarians"]
-        existing = work.antiquarian_set.all()
-        to_remove = [a for a in existing if a not in updated]
-        to_add = [a for a in updated if a not in existing]
-        for a in to_remove:
-            a.works.remove(work)
-        for a in to_add:
-            a.works.add(work)
-        add_new_books_to_work(work, form)
+        if "antiquarians" in form.cleaned_data:
+            updated = form.cleaned_data["antiquarians"]
+            existing = work.antiquarian_set.all()
+            to_remove = [a for a in existing if a not in updated]
+            to_add = [a for a in updated if a not in existing]
+            for a in to_remove:
+                a.works.remove(work)
+            for a in to_add:
+                a.works.add(work)
+            add_new_books_to_work(work, form)
         return super().form_valid(form)
 
 
