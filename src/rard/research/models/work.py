@@ -51,7 +51,6 @@ class Work(
         "TextObjectField",
         on_delete=models.SET_NULL,
         null=True,
-        default="Introduction",
         related_name="introduction_for_%(class)s",
     )
     plain_introduction = models.TextField(blank=False, default="")
@@ -220,7 +219,6 @@ class Book(
         "TextObjectField",
         on_delete=models.SET_NULL,
         null=True,
-        default="Introduction",
         related_name="introduction_for_%(class)s",
     )
     plain_introduction = models.TextField(blank=False, default="")
