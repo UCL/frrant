@@ -22,8 +22,10 @@ class TextObjectField(HistoryModelMixin, BaseModel):
     references = GenericRelation("BibliographyItem", related_query_name="text_fields")
 
     def get_history_title(self):
+        from rard.research.models import Book, Work
+
         obj = self.get_related_object()
-        if isinstance(obj, Antiquarian):
+        if isinstance(obj, (Antiquarian, Work, Book)):
             return "Introduction"
         return "Commentary"
 

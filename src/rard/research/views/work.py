@@ -133,7 +133,6 @@ class BookCreateView(
 ):
     # the view attribute that needs to be checked for a lock
     check_lock_object = "work"
-
     model = Book
     form_class = BookForm
     permission_required = (

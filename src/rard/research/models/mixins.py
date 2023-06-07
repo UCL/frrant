@@ -22,6 +22,7 @@ class TextObjectFieldMixin(object):
     @disable_for_loaddata
     def create_text_object_fields(cls, sender, instance, created, **kwargs):
         if created:
+            print("textobjectmixin create")
             from rard.research.models.text_object_field import TextObjectField
 
             for field in cls.get_text_object_fields():

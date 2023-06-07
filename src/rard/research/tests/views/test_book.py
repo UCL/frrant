@@ -64,7 +64,7 @@ class TestBookCreateView(TestCase):
         self.assertEqual(view.get_success_url(), f"/work/{view.work.pk}/")
 
     def test_create(self):
-        work = Work.objects.create()
+        work = Work.objects.create(name="name")
         url = reverse("work:create_book", kwargs={"pk": work.pk})
 
         data = {"number": 1, "subtitle": "subtitle"}
@@ -72,7 +72,6 @@ class TestBookCreateView(TestCase):
         request.user = UserFactory.create()
 
         work.lock(request.user)
-
         BookCreateView.as_view()(request, pk=work.pk)
         self.assertEqual(work.book_set.exclude(unknown=True).count(), 1)
         for key, val in data.items():

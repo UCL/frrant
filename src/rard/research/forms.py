@@ -263,12 +263,23 @@ class WorkForm(forms.ModelForm):
         )
         labels = {"name": "Name of Work"}
 
+        introduction_text = forms.CharField(
+            widget=forms.Textarea,
+            required=False,
+            label="Introduction",
+        )
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # if we are editing an existing work then init the antiquarian set
         # on the form
         if self.instance and self.instance.pk:
             self.fields["antiquarians"].initial = self.instance.antiquarian_set.all()
+
+        if self.instance.introduction:
+            self.fields[
+                "introduction_text"
+            ].initial = self.instance.introduction.content
 
     def clean(self):
         cleaned_data = super().clean()
@@ -293,11 +304,36 @@ class WorkForm(forms.ModelForm):
                 )
         return cleaned_data
 
+    def save(self, commit=True):
+        instance = super().save(commit)
+        if commit:
+            instance.save_without_historical_record()
+            # introduction will have been created at this point
+            instance.introduction.content = self.cleaned_data["introduction_text"]
+            instance.introduction.save_without_historical_record()
+        return instance
+
 
 class BookForm(forms.ModelForm):
     class Meta:
         model = Book
-        exclude = ("work",)
+        # exclude = ("work", "plain_introduction", "introduction")
+        fields = ("order_year", "date_range", "order", "number", "subtitle")
+
+    introduction_text = forms.CharField(
+        widget=forms.Textarea,
+        required=False,
+        label="Introduction",
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.introduction:
+            self.fields[
+                "introduction_text"
+            ].initial = self.instance.introduction.content
+        else:
+            self.fields["introduction_text"].initial = "introduction for book"
 
     def clean(self):
         cleaned_data = super().clean()
@@ -307,7 +343,17 @@ class BookForm(forms.ModelForm):
             ERR = _("Please give a number or a subtitle.")
             self.add_error("number", ERR)
             self.add_error("subtitle", ERR)
+
         return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit)
+        if commit:
+            instance.save_without_historical_record()
+            # introduction will have been created at this point
+            instance.introduction.content = self.cleaned_data["introduction_text"]
+            instance.introduction.save_without_historical_record()
+        return instance
 
 
 class CommentForm(forms.ModelForm):
