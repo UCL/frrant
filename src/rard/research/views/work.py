@@ -13,7 +13,7 @@ from rard.research.forms import (
     WorkForm,
     WorkIntroductionForm,
 )
-from rard.research.models import Book, Work
+from rard.research.models import Book, TextObjectField, Work
 from rard.research.views.mixins import CanLockMixin, CheckLockMixin
 
 
@@ -105,6 +105,18 @@ class WorkUpdateIntroductionView(WorkUpdateView):
     form_class = WorkIntroductionForm
     permission_required = ("research.change_work",)
     template_name = "research/work_detail.html"
+
+    def create_intro_if_does_not_exist(self, *args, **kwargs):
+        work = self.get_object()
+        if work.introduction is None:
+            work.introduction = TextObjectField.objects.create(
+                content=f"Introduction for {work}"
+            )
+            work.save()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.create_intro_if_does_not_exist()
+        return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self, *args, **kwargs):
         return reverse("work:detail", kwargs={"pk": self.get_object().pk})
@@ -211,6 +223,18 @@ class BookUpdateIntroductionView(BookUpdateView):
     form_class = BookIntroductionForm
     permission_required = ("research.change_book",)
     template_name = "research/book_form.html"
+
+    def create_intro_if_does_not_exist(self, *args, **kwargs):
+        book = self.get_object()
+        if book.introduction is None:
+            book.introduction = TextObjectField.objects.create(
+                content=f"Introduction for {book.work}: {book}"
+            )
+            book.save()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.create_intro_if_does_not_exist()
+        return super().dispatch(request, *args, **kwargs)
 
     def get_success_url(self, *args, **kwargs):
         return reverse("work:detail", kwargs={"pk": self.get_object().work.pk})

@@ -10,41 +10,6 @@ class Migration(migrations.Migration):
         ("research", "0062_definite_possible_clarity"),
     ]
 
-    def set_default_introduction(apps, schema_editor):
-        Work = apps.get_model("research", "Work")
-        Book = apps.get_model("research", "Book")
-        TextObjectField = apps.get_model("research", "TextObjectField")
-
-        def __str__(self):
-            if self.subtitle and self.number:
-                return "Book {}: {}".format(self.number, self.subtitle)
-            elif self.number:
-                return "Book {}".format(self.number)
-            return self.subtitle
-
-        for work in Work.objects.all():
-            if work.introduction is None:
-                introduction = TextObjectField.objects.create(
-                    content=f"Introduction for {work.name}"
-                )
-                work.introduction = introduction
-                work.save()
-            else:
-                work.introduction.content = f"Introduction for {work.name}"
-                work.introduction.save()
-
-        for book in Book.objects.all():
-            book_name = __str__(book)
-            if book.introduction is None:
-                introduction = TextObjectField.objects.create(
-                    content=f"Introduction for {book_name}"
-                )
-                book.introduction = introduction
-                book.save()
-            else:
-                book.introduction.content = f"Introduction for {book_name}"
-                book.introduction.save()
-
     operations = [
         migrations.AddField(
             model_name="book",
@@ -106,5 +71,5 @@ class Migration(migrations.Migration):
                 to="research.textobjectfield",
             ),
         ),
-        migrations.RunPython(set_default_introduction),
+        # migrations.RunPython(set_default_introduction),
     ]

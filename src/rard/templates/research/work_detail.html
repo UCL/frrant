@@ -52,6 +52,7 @@
         </div>
 
         {% comment %} <section> {% endcomment %}
+        {% if object.introduction %}
           {% if editing == 'introduction' %}
           <div>
               {% if perms.research.change_work and has_object_lock %}
@@ -80,6 +81,18 @@
               {% include 'research/partials/text_object_preview.html' with text_object=object.introduction %}
           </div>
           {% endif %}
+          {% else %}
+          <div class='d-flex justify-content-between mb-3'>
+            <small>
+                {% if perms.research.change_work and has_object_lock %}
+                {% with editing='introduction' %}
+                <a href='{% url "work:update_introduction" object.pk %}'>{% trans 'Add Introduction' %}</a>
+                {% endwith%}
+                {% endif %}
+            </small>
+        </div>
+          {% endif %}
+
       {% comment %} </section> {% endcomment %}
 
         <dl class="row mb-0 mt-4">

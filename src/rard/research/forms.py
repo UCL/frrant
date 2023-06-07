@@ -317,7 +317,6 @@ class WorkForm(forms.ModelForm):
 class BookForm(forms.ModelForm):
     class Meta:
         model = Book
-        # exclude = ("work", "plain_introduction", "introduction")
         fields = ("order_year", "date_range", "order", "number", "subtitle")
 
     introduction_text = forms.CharField(

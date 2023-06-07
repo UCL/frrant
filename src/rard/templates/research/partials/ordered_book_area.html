@@ -14,7 +14,7 @@
         {% endif %}
     </h5>
     {% comment %} <section> {% endcomment %}
-
+        {% if book.introduction %}
         <div class='d-flex justify-content-between mb-3'>
             <small>
                 {% if perms.research.change_work and has_object_lock %}
@@ -25,6 +25,15 @@
         <div>
             {% include 'research/partials/text_object_preview.html' with text_object=book.introduction %}
         </div>
+        {% else %}
+        <div class='d-flex justify-content-between mb-3'>
+            <small>
+                {% if perms.research.change_work and has_object_lock %}
+                <a href='{% url "work:update_book_introduction" book.pk %}'>{% trans 'Add Introduction' %}</a>
+                {% endif %}
+            </small>
+        </div>
+        {% endif %}
     {% comment %} </section> {% endcomment %}
 
     {% endif %}
