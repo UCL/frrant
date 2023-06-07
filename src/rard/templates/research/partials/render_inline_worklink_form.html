@@ -1,4 +1,4 @@
-{% load i18n bootstrap4 %}
+{% load i18n bootstrap4 static %}
 
 <div class="inline-worklink__form" hx-target="this" hx-swap="outerHTML">
     <form novalidate enctype="form-data" autocomplete='off' action='{{ request.path }}' hx-post='{% url inline_update_url link.pk %}'>
@@ -19,5 +19,4 @@
     </button>
     </form>
 </div>
-{% load static i18n %}
 <script src="{% static 'js/disableDefiniteToggles.js' %}"></script>
