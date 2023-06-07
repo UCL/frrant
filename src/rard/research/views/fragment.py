@@ -900,6 +900,9 @@ class FragmentUpdateWorkLinkView(
         initial["work"] = self.get_object().work
         initial["antiquarian"] = self.get_object().antiquarian
         initial["book"] = self.get_object().book
+        initial["definite_work"] = self.get_object().definite_work
+        initial["definite_antiquarian"] = self.get_object().definite_antiquarian
+        initial["definite_book"] = self.get_object().definite_book
         return initial
 
     def form_valid(self, form):
@@ -927,6 +930,7 @@ class FragmentUpdateWorkLinkView(
                 "has_object_lock": True,
             }
         )
+        # print("update view", context)
         return context
 
     def get_success_url(self, *args, **kwargs):

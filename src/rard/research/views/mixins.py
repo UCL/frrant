@@ -115,7 +115,7 @@ class GetWorkLinkRequestDataMixin:
             work_pk = self.request.GET.get("work", None)
         elif self.request.method == "POST":
             work_pk = self.request.POST.get("work", None)
-        if work_pk not in ("", None):
+        if work_pk:
             try:
                 self.work = Work.objects.get(pk=work_pk)
             except Work.DoesNotExist:
@@ -132,7 +132,7 @@ class GetWorkLinkRequestDataMixin:
             return False
 
     def get_definite_book(self, *args, **kwargs):
-        # look for definite_work in the GET or POST parameters
+        # look for definite_book in the GET or POST parameters
         if self.request.method == "GET":
             return self.request.GET.get("definite_book", False)
         elif self.request.method == "POST":

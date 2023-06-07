@@ -633,6 +633,7 @@ class BaseLinkWorkForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        # print("\n kwargs - form early", kwargs)
         update = kwargs.pop("update")
         antiquarian = kwargs.pop("antiquarian")
         work = kwargs.pop("work")
@@ -650,20 +651,22 @@ class BaseLinkWorkForm(forms.ModelForm):
         if update:
             antiquarian = kwargs["initial"]["antiquarian"]
             work = kwargs["initial"]["work"]
+            # print("\n initial kwargs - form", kwargs["initial"])
 
         if antiquarian:
             self.fields["antiquarian"].initial = antiquarian
-            self.fields["work"].queryset = antiquarian.works.all()
-            self.fields["definite_antiquarian"].initial = definite_antiquarian
+            if not update:
+                self.fields["work"].queryset = antiquarian.works.all()
+                self.fields["definite_antiquarian"].initial = definite_antiquarian
         else:
             self.fields["work"].queryset = Work.objects.none()
             if not update:
-                self.fields["work"].disabled = True
-                self.fields["definite_work"].disabled = True
+                self.fields["work"].widget.attrs["disabled"] = True
+                self.fields["definite_work"].widget.attrs["disabled"] = True
 
         if work:
             if work.unknown:
-                self.fields["definite_work"].disabled = True
+                self.fields["definite_work"].widget.attrs["disabled"] = True
             if antiquarian:
                 self.fields["work"].initial = work
                 self.fields["definite_work"].initial = definite_work
@@ -674,24 +677,24 @@ class BaseLinkWorkForm(forms.ModelForm):
         else:
             self.fields["book"].queryset = Book.objects.none()
             if not update:
-                self.fields["book"].disabled = True
-                self.fields["definite_book"].disabled = True
+                self.fields["book"].widget.attrs["disabled"] = True
+                self.fields["definite_book"].widget.attrs["disabled"] = True
         if book:
             if book.unknown:
-                self.fields["definite_book"].disabled = True
+                self.fields["definite_book"].widget.attrs["disabled"] = True
+        # print(work, definite_work, antiquarian, definite_antiquarian, book)
 
     def clean(self):
         cleaned_data = super().clean()
+        # print("cleaned!", cleaned_data)
         work = cleaned_data.get("work")
         book = cleaned_data.get("book")
-        print(str(work), str(book))
+        # print(str(work), str(book))
 
-        if str(work) == "Unknown Work" or "None":
-            print("unknown work")
+        if str(work) == "Unknown Work" or str(work) == "None" or work is None:
             cleaned_data["definite_work"] = False
 
-        if str(book) == "Unknown Book" or "None":
-            print("unknown book")
+        if str(book) == "Unknown Book" or str(book) == "None" or book is None:
             cleaned_data["definite_book"] = False
 
         if book and not work:
