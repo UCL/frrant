@@ -684,17 +684,22 @@ class BaseLinkWorkForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         work = cleaned_data.get("work")
+        if work is None:
+            antiquarian = cleaned_data.get("antiquarian")
+            work = antiquarian.unknown_work
         book = cleaned_data.get("book")
+        if book is None:
+            book = work.unknown_book
         definite_work = cleaned_data.get("definite_work")
         definite_book = cleaned_data.get("definite_book")
 
-        if (work.unknown or work is None) and definite_work is True:
+        if work.unknown and definite_work is True:
             raise forms.ValidationError(
                 _("Cannot be definite link to Unknown Work"),
                 code="definite-unknown-work",
             )
 
-        if (book.unknown or book is None) and definite_book is True:
+        if book.unknown and definite_book is True:
             raise forms.ValidationError(
                 _("Cannot be definite link to Unknown Book"),
                 code="definite-unknown-book",
