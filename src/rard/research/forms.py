@@ -633,7 +633,6 @@ class BaseLinkWorkForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-        # print("\n kwargs - form early", kwargs)
         update = kwargs.pop("update")
         antiquarian = kwargs.pop("antiquarian")
         work = kwargs.pop("work")
@@ -651,7 +650,6 @@ class BaseLinkWorkForm(forms.ModelForm):
         if update:
             antiquarian = kwargs["initial"]["antiquarian"]
             work = kwargs["initial"]["work"]
-            # print("\n initial kwargs - form", kwargs["initial"])
 
         if antiquarian:
             self.fields["antiquarian"].initial = antiquarian
@@ -682,22 +680,21 @@ class BaseLinkWorkForm(forms.ModelForm):
         if book:
             if book.unknown:
                 self.fields["definite_book"].widget.attrs["disabled"] = True
-        # print(work, definite_work, antiquarian, definite_antiquarian, book)
 
     def clean(self):
         cleaned_data = super().clean()
-        # print("cleaned!", cleaned_data)
         work = cleaned_data.get("work")
         book = cleaned_data.get("book")
-        # print(str(work), str(book))
+        definite_work = cleaned_data.get("definite_work")
+        definite_book = cleaned_data.get("definite_book")
 
-        if work.unknown or work is None:
+        if (work.unknown or work is None) and definite_work is True:
             raise forms.ValidationError(
                 _("Cannot be definite link to Unknown Work"),
                 code="definite-unknown-work",
             )
 
-        if book.unknown or book is None:
+        if (book.unknown or book is None) and definite_book is True:
             raise forms.ValidationError(
                 _("Cannot be definite link to Unknown Book"),
                 code="definite-unknown-book",

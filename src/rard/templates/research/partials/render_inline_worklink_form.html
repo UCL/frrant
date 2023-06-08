@@ -4,10 +4,12 @@
     <form novalidate enctype="form-data" autocomplete='off' action='{{ request.path }}' hx-post='{% url inline_update_url link.pk %}'>
     {% csrf_token %}
     <div class="inline-worklink__form-field">
+        <input type='hidden' name='antiquarian' value='{{ form.instance.antiquarian.pk }}' />
        <p> {{form.instance.antiquarian}}</p>
         {% bootstrap_field form.definite_antiquarian field_class="toggle-definite" %}
     </div>
     <div class="inline-worklink__form-field">
+        <input type='hidden' name='work' value='{{ form.instance.work.pk }}' />
         <p>{{form.instance.work.name}}</p>
         {% bootstrap_field form.definite_work field_class="toggle-definite" %}
     </div>
