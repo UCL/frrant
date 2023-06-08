@@ -19,7 +19,6 @@ class TestUser(TestCase):
         self.assertEqual(user.display_name(), data["username"])
 
     def test_sentinel_user(self):
-
         user = User.get_sentinel_user()
         self.assertEqual(user.username, User.SENTINEL_USERNAME)
         sentinel_pk = user.pk

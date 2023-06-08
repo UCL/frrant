@@ -12,9 +12,7 @@ pytestmark = pytest.mark.django_db
 class TestAntiquarian(TestCase):
     def test_creation(self):
         data = {"name": "John Smith", "re_code": "smitre001"}
-        a = Antiquarian.objects.create(
-            **data
-        )  # fails here; rard.research.models.work.Book.work.RelatedObjectDoesNotExist: Book has no work.
+        a = Antiquarian.objects.create(**data)
         for key, value in data.items():
             self.assertEqual(getattr(a, key), value)
 

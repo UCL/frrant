@@ -24,7 +24,6 @@ from rard.research.models import (
 
 @method_decorator(require_GET, name="dispatch")
 class MentionSearchView(LoginRequiredMixin, View):
-
     context_object_name = "results"
 
     @property

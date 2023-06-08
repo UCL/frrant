@@ -12,7 +12,6 @@ register = template.Library()
 def render_diff(history_item):
     lines = []
     if history_item.prev_record:
-
         delta = history_item.diff_against(history_item.prev_record)
         for i, change in enumerate(delta.changes):
             lines.append("<em>Field: %s</em><br>" % change.field)

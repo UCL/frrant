@@ -67,7 +67,6 @@ class TestTopicListView(TestCase):
         self.assertEqual([x.name for x in Topic.objects.all()], self.names)
 
     def test_post_up(self):
-
         # move the last topic up
 
         data = {
@@ -94,7 +93,6 @@ class TestTopicListView(TestCase):
         )
 
     def test_post_down(self):
-
         # move the first one down
 
         data = {
@@ -121,7 +119,6 @@ class TestTopicListView(TestCase):
         )
 
     def test_redirect_on_bad_data(self):
-
         data = {
             "topic_id": 999,
             "down": "",
@@ -145,7 +142,6 @@ class TestTopicListView(TestCase):
 
 class TestTopicUpdateView(TestCase):
     def test_update_view(self):
-
         topic = Topic.objects.create(name="some name")
         NEW_NAME = "new name"
         request = RequestFactory().post("/", data={"name": NEW_NAME})
@@ -162,7 +158,6 @@ class TestTopicUpdateView(TestCase):
 
 class TestTopicDeleteView(TestCase):
     def test_post_only(self):
-
         topic = Topic.objects.create(name="name")
         url = reverse("topic:delete", kwargs={"slug": topic.slug})
         request = RequestFactory().get(url)
