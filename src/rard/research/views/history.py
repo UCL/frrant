@@ -55,7 +55,7 @@ class HistoryListView(LoginRequiredMixin, ListView):
                         new_item.history_change_reason = "reverted"
                         new_item.save()
 
-            except (ObjectDoesNotExist):
+            except ObjectDoesNotExist:
                 pass
 
         return HttpResponseRedirect(self.request.path)

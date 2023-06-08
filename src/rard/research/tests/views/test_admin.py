@@ -10,7 +10,6 @@ pytestmark = pytest.mark.django_db
 
 
 class TestSymbolAdmin(TestCase):
-
     # Test creation of new user via the admin interface
     def setUp(self):
         site = AdminSite()

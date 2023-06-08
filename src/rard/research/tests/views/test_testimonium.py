@@ -82,7 +82,6 @@ class TestTestimoniumSuccessUrls(TestCase):
 
 class TestTestimoniumDeleteView(TestCase):
     def test_post_only(self):
-
         testimonium = Testimonium.objects.create(name="name")
         url = reverse("testimonium:delete", kwargs={"pk": testimonium.pk})
         request = RequestFactory().get(url)
@@ -93,7 +92,6 @@ class TestTestimoniumDeleteView(TestCase):
 
 class TestTestimoniumViewPermissions(TestCase):
     def test_permissions(self):
-
         self.assertIn(
             "research.add_testimonium", TestimoniumCreateView.permission_required
         )

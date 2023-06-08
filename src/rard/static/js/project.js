@@ -492,12 +492,12 @@ function drag(ev) {
   let object_type = $(ev.target).data("objecttype");
   let pos = parseInt(src_pos);
   ev.dataTransfer.setData("Text", ev.target.id);
-  // Only show drop targets belonging to the same work
-  let work_div = $(ev.target).parent().closest(".parent-ordering-group");
+  // Only show drop targets belonging to the same book
+  let book_div = $(ev.target).parent().closest(".parent-ordering-group");
   // if we manipulate the DOM on drag start we need
   // to do it within a setTimeout. Apparently
   setTimeout(function () {
-    work_div
+    book_div
       .find(".drop-target")
       .filter('[data-objecttype="' + object_type + '"]')
       .show();
@@ -551,7 +551,7 @@ function drop(ev) {
     let link_id = $(item).data("link");
     data = { link_id: link_id, object_type: object_type };
     data["antiquarian_id"] = antiquarian_id;
-    data["move_to_by_work"] = new_pos;
+    data["move_to_by_book"] = new_pos;
     moveLinkTo(data);
   }
 

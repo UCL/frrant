@@ -768,10 +768,7 @@ class FragmentAddWorkLinkView(
 
     def form_valid(self, form):
         data = form.cleaned_data
-        antiquarian = data["antiquarian"]
-
         data["fragment"] = self.get_fragment()
-        data["antiquarian"] = antiquarian
         FragmentLink.objects.get_or_create(**data)
 
         return super().form_valid(form)

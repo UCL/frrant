@@ -48,14 +48,18 @@ class Migration(migrations.Migration):
                 book.save()
 
     def give_links_order_in_book(apps, schema_editor):
+        """As a starting point, order_in_book, will inherit its order from work_order;
+        i.e. if link A precedes link B in work_order, it will precede link B in order_in_book
+        if both belong to the same Book."""
+
         worklinks = ["FragmentLink", "TestimoniumLink", "AppositumFragmentLink"]
 
-        Work = apps.get_model("research", "Work")
+        Book = apps.get_model("research", "Book")
 
         def order_in_book_for_link_class(link_classname):
             link_class = apps.get_model("research", link_classname)
-            for work in Work.objects.all():
-                related_links = link_class.objects.filter(work=work).order_by(
+            for book in Book.objects.all():
+                related_links = link_class.objects.filter(book=book).order_by(
                     "work_order"
                 )
                 for count, link in enumerate(related_links):
@@ -65,83 +69,72 @@ class Migration(migrations.Migration):
         for link in worklinks:
             order_in_book_for_link_class(link)
 
-    def reindex_work_by_book(apps, schema_editor):
-        """Update order of links with respect to work, taking into account book__order and order_in_book"""
+    def reindex_links(apps, schema_editor):
+        """A link's order represents its order wrt the Antiquarian. This is derived first of all
+        from the order of the link's work wrt the Antiquarian, then from the link's order with
+        respect to the work (work_order). Work order is derived in turn from the order of
+        the link's book with respect to the Work, and then the link's order within that book.
+
+        We now need to loop through each Work and recalculate work_order from the new
+        order_in_book and book__order properties that have been added. Then we can
+        loop through each Antiquarian and recalculate each related link's order based on
+        work__worklink__order and work_order.
+
+        Note: Testimonia belonging to unknown works are ordered before those belonging to
+        known works; however the opposite is true for all other link classes."""
 
         worklinks = ["FragmentLink", "TestimoniumLink", "AppositumFragmentLink"]
 
         Work = apps.get_model("research", "Work")
+        Antiquarian = apps.get_model("research", "Antiquarian")
 
-        def reindex_fragment_and_testimonium_links(antiquarian):
-            to_reorder = [
-                antiquarian.fragmentlinks.all()
-                .order_by(
-                    "work__worklink__order",
-                    "work_order",
-                    "book__order",
-                    "order_in_book",
-                )
-                .distinct(),
-                # We want testimonium links without works to be ordered first
-                # but for some reason adding "-work__isnull" to the order_by
-                # breaks the rest of the ordering. Using itertools chain as
-                # a workaround does the job.
-                itertools.chain(
-                    antiquarian.testimoniumlinks.all()
-                    .filter(work__isnull=True)
-                    .distinct(),
-                    antiquarian.testimoniumlinks.all()
-                    .filter(work__isnull=False)
-                    .order_by(
-                        "work__worklink__order",
-                        "work_order",
-                        "book__order",
-                        "order_in_book",
-                    )
-                    .distinct(),
-                ),
-                antiquarian.appositumfragmentlinks.all()
-                .order_by(
-                    "work__worklink__order",
-                    "work_order",
-                    "book__order",
-                    "order_in_book",
-                )
-                .distinct(),
-            ]
+        def reindex_links_to_work(work):
+            for class_name in worklinks:
+                link_class = apps.get_model("research", class_name)
 
-            for qs in to_reorder:
-                for count, link in enumerate(qs):
-                    if link.order != count:
-                        link.order = count
-                        link.save()
-
-        # parent function
-        for work in Work.objects.all():
-            for link_class in worklinks:
-                link = apps.get_model("research", link_class)
-
+                # Unknown book's links should always be last unless
+                # Then order by book order, then order in book
                 to_reorder = (
-                    link.objects.filter(work=work)
-                    .order_by("book__order", "order_in_book")
+                    link_class.objects.filter(work=work)
+                    .order_by("book__unknown", "book__order", "order_in_book")
                     .distinct()
                 )
 
                 for count, link in enumerate(to_reorder):
-                    if link.book.work.unknown == True:
-                        link.work_order = link.order_in_book
+                    if link.work_order != count:
+                        link.work_order = count
                         link.save()
-                    else:
-                        if link.work_order != count:
-                            link.work_order = count
-                            link.save()
-                    reindex_fragment_and_testimonium_links(link.antiquarian)
+
+        def reindex_links_to_antiquarian(antiquarian):
+            for class_name in worklinks:
+                link_class = apps.get_model("research", class_name)
+
+                if class_name == "TestimoniumLink":
+                    to_reorder = (
+                        link_class.objects.filter(antiquarian=antiquarian)
+                        .order_by("-work__unknown", "work__worklink__order","work_order")
+                        .distinct()
+                    )
+                else:
+                    to_reorder = (
+                        link_class.objects.filter(antiquarian=antiquarian)
+                        .order_by("work__unknown", "work__worklink__order","work_order")
+                        .distinct()
+                    )
+
+                for count, link in enumerate(to_reorder):
+                    if link.order != count:
+                        link.order = count
+                        link.save()
+
+        for work in Work.objects.all():
+            reindex_links_to_work(work)
+
+        for ant in Antiquarian.objects.all():
+            reindex_links_to_antiquarian(ant)
+
 
     operations = [
-        migrations.AlterModelOptions(
-            name="book",
-            options={"ordering": ["order"]},
-        ),
         migrations.AddField(
             model_name="historicalbook",
             name="unknown",
@@ -192,5 +185,13 @@ class Migration(migrations.Migration):
         migrations.RunPython(assign_links_to_unknown),
         migrations.RunPython(give_books_order),
         migrations.RunPython(give_links_order_in_book),
-        migrations.RunPython(reindex_work_by_book),
+        migrations.RunPython(reindex_links),
+        migrations.AlterModelOptions(
+            name='book',
+            options={'ordering': ['unknown', 'order']},
+        ),
+        migrations.AlterModelOptions(
+            name='worklink',
+            options={'ordering': ['work__unknown', 'order']},
+        ),
     ]

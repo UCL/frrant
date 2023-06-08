@@ -10,7 +10,6 @@ from rard.utils.basemodel import BaseModel
 
 
 class BibliographyItem(HistoryModelMixin, BaseModel):
-
     history = HistoricalRecords()
 
     def related_lock_object(self):

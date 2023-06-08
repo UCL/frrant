@@ -346,7 +346,9 @@ class TestWorkDetailView(TestCase):
         # ordering the links by order since they're not fetched in that manner
         for book, materials in target_materials.items():
             for material, links in materials.items():
-                links_sorted = sorted(links.items(), key=lambda x: x[1]["order"])
+                links_sorted = sorted(
+                    links.items(), key=lambda x: x[1]["order_in_book"]
+                )
                 materials[material] = {k: v for k, v in links_sorted}
 
         assert "ordered_materials" in response.context_data
