@@ -83,12 +83,35 @@ $("form").click(function (event) {
   // store the clicked button when submitting forms
   // for cross-browser determination of the clicked button
   $(this).data("clicked", $(event.target));
+  var $clicked = $(this).data("clicked");
+  if ($clicked.hasClass("confirm-delete-antiquarian")) {
+    return confirm(
+      "Are you sure you want to delete all links to this antiquarian?\n This cannot be undone."
+    );
+  }
+  if ($clicked.hasClass("confirm-delete-link")) {
+    return confirm(
+      "Are you sure you want to delete this link?\n" +
+        "It will be reassigned to Unknown Work if there are no other links to this antiquarian.\n This cannot be undone."
+    );
+  }
 });
 
 // confirm delete/convert of objects when forms submitted
 $("body").on("submit", "form", function (e) {
   if ($(this).data("clicked")) {
     var $clicked = $(this).data("clicked");
+    if ($clicked.hasClass("confirm-delete-antiquarian")) {
+      return confirm(
+        "Are you sure you want to delete all links to this antiquarian?\n This cannot be undone."
+      );
+    }
+    if ($clicked.hasClass("confirm-delete-link")) {
+      return confirm(
+        "Are you sure you want to delete this link?\n" +
+          "It will be reassigned to Unknown Work if there are no other links to this antiquarian.\n This cannot be undone."
+      );
+    }
     if ($clicked.hasClass("confirm-delete")) {
       let what = $clicked.data("what") || "object";
       return confirm(
