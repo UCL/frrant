@@ -2,7 +2,14 @@ import pytest
 from django.test import TestCase
 from django.urls import reverse
 
-from rard.research.models import Antiquarian, Book, Fragment, Testimonium, Work
+from rard.research.models import (
+    Antiquarian,
+    Book,
+    Fragment,
+    Testimonium,
+    TextObjectField,
+    Work,
+)
 from rard.research.models.base import FragmentLink, TestimoniumLink
 
 pytestmark = pytest.mark.django_db
@@ -333,6 +340,28 @@ class TestWork(TestCase):
         self.assertEqual(0, len(work1.definite_testimonia()))
         self.assertEqual(0, len(work1.possible_testimonia()))
 
+    def test_introduction_created_with_work(self):
+        data = {
+            "name": "workname",
+            "subtitle": "Subtitle",
+        }
+        work = Work.objects.create(**data)
+        self.assertIsNotNone(work.introduction.pk)
+        self.assertEqual(
+            TextObjectField.objects.get(pk=work.introduction.pk), work.introduction
+        )
+
+    def test_introduction_deleted_with_book(self):
+        data = {
+            "name": "workname",
+            "subtitle": "Subtitle",
+        }
+        work = Work.objects.create(**data)
+        introduction_pk = work.introduction.pk
+        work.delete()
+        with self.assertRaises(TextObjectField.DoesNotExist):
+            TextObjectField.objects.get(pk=introduction_pk)
+
 
 class TestBook(TestCase):
     def setUp(self):
@@ -383,3 +412,27 @@ class TestBook(TestCase):
         book.number = "1"
         book.subtitle = ""
         self.assertEqual(str(book), "Book 1")
+
+    def test_introduction_created_with_book(self):
+        data = {
+            "number": "1",
+            "subtitle": "Subtitle",
+            "work": self.work,
+        }
+        book = Book.objects.create(**data)
+        self.assertIsNotNone(book.introduction.pk)
+        self.assertEqual(
+            TextObjectField.objects.get(pk=book.introduction.pk), book.introduction
+        )
+
+    def test_introduction_deleted_with_book(self):
+        data = {
+            "number": "1",
+            "subtitle": "Subtitle",
+            "work": self.work,
+        }
+        book = Book.objects.create(**data)
+        introduction_pk = book.introduction.pk
+        book.delete()
+        with self.assertRaises(TextObjectField.DoesNotExist):
+            TextObjectField.objects.get(pk=introduction_pk)

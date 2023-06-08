@@ -64,3 +64,17 @@ class TextObjectField(HistoryModelMixin, BaseModel):
 
         related = self.get_related_object()
         return related if isinstance(related, Antiquarian) else None
+
+    @property
+    def work(self):
+        from rard.research.models import Work
+
+        related = self.get_related_object()
+        return related if isinstance(related, Work) else None
+
+    @property
+    def book(self):
+        from rard.research.models import Book
+
+        related = self.get_related_object()
+        return related if isinstance(related, Book) else None

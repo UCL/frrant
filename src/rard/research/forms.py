@@ -250,6 +250,12 @@ class WorkForm(forms.ModelForm):
 
     books = BooksField(widget=BooksWidget, required=False)
 
+    introduction_text = forms.CharField(
+        widget=forms.Textarea,
+        required=False,
+        label="Introduction",
+    )
+
     class Meta:
         model = Work
         fields = (
@@ -260,14 +266,9 @@ class WorkForm(forms.ModelForm):
             "date_range",
             "order_year",
             "books",
+            "introduction_text",
         )
         labels = {"name": "Name of Work"}
-
-        introduction_text = forms.CharField(
-            widget=forms.Textarea,
-            required=False,
-            label="Introduction",
-        )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -280,6 +281,10 @@ class WorkForm(forms.ModelForm):
             self.fields[
                 "introduction_text"
             ].initial = self.instance.introduction.content
+        else:
+            self.fields["introduction_text"].attrs = {
+                "placeholder": "introduction for book"
+            }
 
     def clean(self):
         cleaned_data = super().clean()
@@ -315,15 +320,22 @@ class WorkForm(forms.ModelForm):
 
 
 class BookForm(forms.ModelForm):
-    class Meta:
-        model = Book
-        fields = ("order_year", "date_range", "order", "number", "subtitle")
-
     introduction_text = forms.CharField(
         widget=forms.Textarea,
         required=False,
         label="Introduction",
     )
+
+    class Meta:
+        model = Book
+        fields = (
+            "order_year",
+            "date_range",
+            "order",
+            "number",
+            "subtitle",
+            "introduction_text",
+        )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -332,7 +344,9 @@ class BookForm(forms.ModelForm):
                 "introduction_text"
             ].initial = self.instance.introduction.content
         else:
-            self.fields["introduction_text"].initial = "introduction for book"
+            self.fields["introduction_text"].attrs = {
+                "placeholder": "introduction for book"
+            }
 
     def clean(self):
         cleaned_data = super().clean()
@@ -741,14 +755,14 @@ class BaseLinkWorkForm(forms.ModelForm):
         cleaned_data = super().clean()
         work = cleaned_data.get("work")
         book = cleaned_data.get("book")
-        print(str(work), str(book))
+        # print(str(work), str(book))
 
         if str(work) == "Unknown Work" or "None":
-            print("unknown work")
+            # print("unknown work")
             cleaned_data["definite_work"] = False
 
         if str(book) == "Unknown Book" or "None":
-            print("unknown book")
+            # print("unknown book")
             cleaned_data["definite_book"] = False
 
         if book and not work:
