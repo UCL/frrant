@@ -201,14 +201,16 @@ class TestimoniumUpdateWorkLinkView(
     def form_valid(self, form):
         data = form.cleaned_data
         self.object = self.get_object()
+        if "cancel" in self.request.POST:
+            return reverse("fragment:detail", kwargs={"pk": self.fragment.pk})
+        else:
+            self.object.definite_antiquarian = data["definite_antiquarian"]
+            self.object.definite_work = data["definite_work"]
+            self.object.definite_book = data["definite_book"]
+            self.object.book = data["book"]
 
-        self.object.definite_antiquarian = data["definite_antiquarian"]
-        self.object.definite_work = data["definite_work"]
-        self.object.definite_book = data["definite_book"]
-        self.object.book = data["book"]
-
-        self.object.save()
-        return super().form_valid(form)
+            self.object.save()
+            return super().form_valid(form)
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)

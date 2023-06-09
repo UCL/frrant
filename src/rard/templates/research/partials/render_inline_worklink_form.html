@@ -17,8 +17,10 @@
         {% bootstrap_field form.book %}
         {% bootstrap_field form.definite_book  field_class="toggle-definite" %}
     </div>
-    <button class="btn btn-sm btn-outline-success" type="submit" value="Update">{% trans 'Update' %}
+    <button class="btn btn-sm btn-outline-success"  type="submit" value="Update">{% trans 'Update' %}
     </button>
+    <button class='btn btn-sm btn-outline-secondary ml-1 inline-cancel-button' hx-target="this" hx-swap="outerHTML" name="cancel" value="cancel">{% trans 'Cancel' %}</button>
     </form>
+
 </div>
 <script src="{% static 'js/disableDefiniteToggles.js' %}"></script>
