@@ -653,13 +653,13 @@ class BaseLinkWorkForm(forms.ModelForm):
 
         if antiquarian:
             self.fields["antiquarian"].initial = antiquarian
-            if not update:
+            if update is not True:
                 self.fields["work"].queryset = antiquarian.works.all()
                 self.fields["definite_antiquarian"].initial = definite_antiquarian
         else:
             self.fields["work"].queryset = Work.objects.none()
-            if not update:
-                self.fields["work"].widget.attrs["disabled"] = True
+            if update is not True:
+                self.fields["work"].disabled = True
                 self.fields["definite_work"].widget.attrs["disabled"] = True
 
         if work:
@@ -674,8 +674,8 @@ class BaseLinkWorkForm(forms.ModelForm):
             self.fields["book"].queryset = work.book_set.all()
         else:
             self.fields["book"].queryset = Book.objects.none()
-            if not update:
-                self.fields["book"].widget.attrs["disabled"] = True
+            if update is not True:
+                self.fields["book"].disabled = True
                 self.fields["definite_book"].widget.attrs["disabled"] = True
         if book:
             if book.unknown:
