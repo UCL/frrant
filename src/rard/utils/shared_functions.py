@@ -1,6 +1,3 @@
-import math
-
-
 def organise_links(obj):
     """This function will organise links for a fragment/testomonium by grouping the links under their common antiquarian"""
     links = obj.get_all_links()
@@ -31,8 +28,7 @@ def calculate_definite(organised_link_array):
 
             for link in links:
                 definite_values.append(int(link.definite_antiquarian))
-
-            definite_ant_val = math.prod(definite_values)
+            definite_ant_val = sum(definite_values)
             ant[1][1] = bool(definite_ant_val)
     return organised_link_array
 

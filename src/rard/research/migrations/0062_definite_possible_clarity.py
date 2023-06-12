@@ -21,6 +21,9 @@ class Migration(migrations.Migration):
                     link.definite_book = False
                 link.save()
 
+    def reverse(apps, schema_editor):
+        pass
+
     # the definite field for each link will be converted to definite_antiquarian.
     # Definite work and book fields will be added
     operations = [
@@ -77,5 +80,5 @@ class Migration(migrations.Migration):
             name="definite_work",
             field=models.BooleanField(default=False),
         ),
-        migrations.RunPython(fix_definite_unknown_assignments),
+        migrations.RunPython(fix_definite_unknown_assignments, reverse),
     ]
