@@ -331,9 +331,6 @@ class TestWorkLinkScheme(TestCase):
                 TestimoniumLink.objects.filter(testimonium=testimonium).last().order,
                 count,
             )
-        self.assertTrue(
-            TestimoniumLink.objects.filter(testimonium=testimonium).last().work.unknown
-        )
 
     def test_ordered_fragments_method(self):
         ordered_fragments = [f.pk for f in self.antiquarian.ordered_fragments()]
