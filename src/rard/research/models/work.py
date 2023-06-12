@@ -159,7 +159,6 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
         ordered_materials = {book: {} for book in books}
 
         for material_type, (query_list, model, link_model) in materials.items():
-            print(material_type, model, link_model)
             for book_id, links in groupby(query_list, lambda x: x["book"]):
                 book = books.get(id=book_id)
                 content = ordered_materials[book]
