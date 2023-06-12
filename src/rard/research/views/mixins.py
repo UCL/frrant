@@ -1,6 +1,9 @@
 from datetime import timedelta
 
+from django.http import Http404
 from django.utils import timezone
+
+from rard.research.models import Antiquarian, Work
 
 
 class DateOrderMixin:
@@ -79,3 +82,70 @@ class CanLockMixin:
                 return redirect(request.path)
 
         return super().dispatch(request, *args, **kwargs)
+
+
+class GetWorkLinkRequestDataMixin:
+    def get_antiquarian(self, *args, **kwargs):
+        # look for antiquarian in the GET or POST parameters
+        self.antiquarian = None
+        if self.request.method == "GET":
+            antiquarian_pk = self.request.GET.get("antiquarian", None)
+        elif self.request.method == "POST":
+            antiquarian_pk = self.request.POST.get("antiquarian", None)
+        if antiquarian_pk:
+            try:
+                self.antiquarian = Antiquarian.objects.get(pk=antiquarian_pk)
+            except Antiquarian.DoesNotExist:
+                raise Http404
+        return self.antiquarian
+
+    def get_definite_antiquarian(self, *args, **kwargs):
+        # look for definite_antiquarian in the GET or POST parameters
+        if self.request.method == "GET":
+            return self.request.GET.get("definite_antiquarian", False)
+        elif self.request.method == "POST":
+            return self.request.POST.get("definite_antiquarian", False)
+        else:
+            return False
+
+    def get_work(self, *args, **kwargs):
+        # look for work in the GET or POST parameters
+        self.work = None
+        if self.request.method == "GET":
+            work_pk = self.request.GET.get("work", None)
+        elif self.request.method == "POST":
+            work_pk = self.request.POST.get("work", None)
+        if work_pk:
+            try:
+                self.work = Work.objects.get(pk=work_pk)
+            except Work.DoesNotExist:
+                raise Http404
+        return self.work
+
+    def get_definite_work(self, *args, **kwargs):
+        # look for definite_work in the GET or POST parameters
+        if self.request.method == "GET":
+            return self.request.GET.get("definite_work", False)
+        elif self.request.method == "POST":
+            return self.request.POST.get("definite_work", False)
+        else:
+            return False
+
+    def get_definite_book(self, *args, **kwargs):
+        # look for definite_book in the GET or POST parameters
+        if self.request.method == "GET":
+            return self.request.GET.get("definite_book", False)
+        elif self.request.method == "POST":
+            return self.request.POST.get("definite_book", False)
+        else:
+            return False
+
+    def get_form_kwargs(self):
+        values = super().get_form_kwargs()
+        values["antiquarian"] = self.get_antiquarian()
+        values["work"] = self.get_work()
+        values["definite_antiquarian"] = self.get_definite_antiquarian()
+        values["definite_work"] = self.get_definite_work()
+        values["update"] = self.is_update
+
+        return values

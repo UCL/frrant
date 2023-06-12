@@ -43,7 +43,9 @@ def convert_appositum_link_to_fragment_link(appositum_link, fragment):
     fragment_link = FragmentLink.objects.create(fragment=fragment)
     fragment_link.antiquarian = appositum_link.antiquarian
     fragment_link.order = appositum_link.order
-    fragment_link.definite = appositum_link.definite
+    fragment_link.definite_antiquarian = appositum_link.definite_antiquarian
+    fragment_link.definite_work = appositum_link.definite_work
+    fragment_link.definite_book = appositum_link.definite_book
     fragment_link.work = appositum_link.work
     fragment_link.work_order = appositum_link.work_order
     fragment_link.book = appositum_link.book

@@ -211,26 +211,26 @@ class TestWorkDetailView(TestCase):
             fragment=f1,
             work=work,
             book=book1,
-            definite=True,
+            definite_work=True,
         )
         f2 = Fragment.objects.create(name="Fragment Two")
         FragmentLink.objects.create(
             fragment=f2,
             work=work,
             book=book2,
-            definite=False,
+            definite_work=False,
         )
         f3 = Fragment.objects.create(name="Fragment Three")
         FragmentLink.objects.create(
             fragment=f3,
             work=work,
-            definite=False,
+            definite_work=False,
         )
         f4 = Fragment.objects.create(name="Fragment Four")
         FragmentLink.objects.create(
             fragment=f4,
             work=work,
-            definite=True,
+            definite_work=True,
         )
 
         t1 = Testimonium.objects.create(name="Testimonium One")
@@ -238,26 +238,26 @@ class TestWorkDetailView(TestCase):
             testimonium=t1,
             work=work,
             book=book1,
-            definite=False,
+            definite_work=False,
         )
         t2 = Testimonium.objects.create(name="Testimonium Two")
         TestimoniumLink.objects.create(
             testimonium=t2,
             work=work,
             book=book2,
-            definite=True,
+            definite_work=True,
         )
         t3 = Testimonium.objects.create(name="Testimonium Three")
         TestimoniumLink.objects.create(
             testimonium=t3,
             work=work,
-            definite=False,
+            definite_work=False,
         )
         t4 = Testimonium.objects.create(name="Testimonium Four")
         TestimoniumLink.objects.create(
             testimonium=t4,
             work=work,
-            definite=True,
+            definite_work=True,
         )
 
         url = reverse("work:detail", kwargs={"pk": work.pk})
@@ -270,70 +270,83 @@ class TestWorkDetailView(TestCase):
         target_materials[book1]["fragments"] = {
             FragmentLink.objects.get(fragment=f1): {
                 "linked": f1,
-                "definite": FragmentLink.objects.get(fragment=f1).definite,
-                "order_in_book": FragmentLink.objects.get(fragment=f1).order_in_book,
+                "definite_antiquarian": False,
+                "definite_work": FragmentLink.objects.get(fragment=f1).definite_work,
+                "definite_book": False,
+                "order": FragmentLink.objects.get(fragment=f1).order_in_book,
             },
         }
         target_materials[book2]["fragments"] = {
             FragmentLink.objects.get(fragment=f2): {
                 "linked": f2,
-                "definite": FragmentLink.objects.get(fragment=f2).definite,
-                "order_in_book": FragmentLink.objects.get(fragment=f2).order_in_book,
+                "definite_antiquarian": False,
+                "definite_work": FragmentLink.objects.get(fragment=f2).definite_work,
+                "definite_book": False,
+                "order": FragmentLink.objects.get(fragment=f2).order_in_book,
             },
         }
         target_materials[unknown_book]["fragments"] = {
             FragmentLink.objects.get(fragment=f4): {
                 "linked": f4,
-                "definite": FragmentLink.objects.get(fragment=f4).definite,
-                "order_in_book": FragmentLink.objects.get(fragment=f4).order_in_book,
+                "definite_antiquarian": False,
+                "definite_work": FragmentLink.objects.get(fragment=f4).definite_work,
+                "definite_book": False,
+                "order": FragmentLink.objects.get(fragment=f4).order_in_book,
             },
             FragmentLink.objects.get(fragment=f3): {
                 "linked": f3,
-                "definite": FragmentLink.objects.get(fragment=f3).definite,
-                "order_in_book": FragmentLink.objects.get(fragment=f3).order_in_book,
+                "definite_antiquarian": False,
+                "definite_work": FragmentLink.objects.get(fragment=f3).definite_work,
+                "definite_book": False,
+                "order": FragmentLink.objects.get(fragment=f3).order_in_book,
             },
         }
         target_materials[book1]["testimonia"] = {
             TestimoniumLink.objects.get(testimonium=t1): {
                 "linked": t1,
-                "definite": TestimoniumLink.objects.get(testimonium=t1).definite,
-                "order_in_book": TestimoniumLink.objects.get(
+                "definite_antiquarian": False,
+                "definite_work": TestimoniumLink.objects.get(
                     testimonium=t1
-                ).order_in_book,
+                ).definite_work,
+                "definite_book": False,
+                "order": TestimoniumLink.objects.get(testimonium=t1).order_in_book,
             },
         }
         target_materials[book2]["testimonia"] = {
             TestimoniumLink.objects.get(testimonium=t2): {
                 "linked": t2,
-                "definite": TestimoniumLink.objects.get(testimonium=t2).definite,
-                "order_in_book": TestimoniumLink.objects.get(
+                "definite_antiquarian": False,
+                "definite_work": TestimoniumLink.objects.get(
                     testimonium=t2
-                ).order_in_book,
+                ).definite_work,
+                "definite_book": False,
+                "order": TestimoniumLink.objects.get(testimonium=t2).order_in_book,
             },
         }
         target_materials[unknown_book]["testimonia"] = {
             TestimoniumLink.objects.get(testimonium=t4): {
                 "linked": t4,
-                "definite": TestimoniumLink.objects.get(testimonium=t4).definite,
-                "order_in_book": TestimoniumLink.objects.get(
+                "definite_antiquarian": False,
+                "definite_work": TestimoniumLink.objects.get(
                     testimonium=t4
-                ).order_in_book,
+                ).definite_work,
+                "definite_book": False,
+                "order": TestimoniumLink.objects.get(testimonium=t4).order_in_book,
             },
             TestimoniumLink.objects.get(testimonium=t3): {
                 "linked": t3,
-                "definite": TestimoniumLink.objects.get(testimonium=t3).definite,
-                "order_in_book": TestimoniumLink.objects.get(
+                "definite_antiquarian": False,
+                "definite_work": TestimoniumLink.objects.get(
                     testimonium=t3
-                ).order_in_book,
+                ).definite_work,
+                "definite_book": False,
+                "order": TestimoniumLink.objects.get(testimonium=t3).order_in_book,
             },
         }
-        # ordering the links by order since they're not fetched in that manner
+        # ordering the links by order_in_book since they're not fetched in that manner
         for book, materials in target_materials.items():
             for material, links in materials.items():
-                links_sorted = sorted(
-                    links.items(), key=lambda x: x[1]["order_in_book"]
-                )
+                links_sorted = sorted(links.items(), key=lambda x: x[1]["order"])
                 materials[material] = {k: v for k, v in links_sorted}
-
         assert "ordered_materials" in response.context_data
         assert response.context_data["ordered_materials"] == target_materials

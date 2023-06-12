@@ -150,6 +150,19 @@ class Antiquarian(
         "BibliographyItem", related_query_name="bibliography_items"
     )
 
+    @property
+    def ordered_works(self):
+        # ordered
+        from rard.research.models import Work
+
+        return Work.objects.filter(worklink__antiquarian=self).order_by(
+            "unknown", "worklink__order"
+        )
+
+    @property
+    def unknown_work(self):
+        return self.works.filter(unknown=True).first()
+
     def __str__(self):
         return self.name
 
@@ -165,19 +178,6 @@ class Antiquarian(
         if self.introduction:
             self.plain_introduction = make_plain_text(self.introduction.content)
         super().save(*args, **kwargs)
-
-    @property
-    def ordered_works(self):
-        # ordered
-        from rard.research.models import Work
-
-        return Work.objects.filter(worklink__antiquarian=self).order_by(
-            "unknown", "worklink__order"
-        )
-
-    @property
-    def unknown_work(self):
-        return self.works.filter(unknown=True).first()
 
     def reindex_work_links(self):
         # where there has been a change, ensure the
@@ -247,7 +247,9 @@ class Antiquarian(
                         "antiquarian": self,
                         "work": link.work,
                         "book": link.book,
-                        "definite": link.definite,
+                        "definite_antiquarian": link.definite_antiquarian,
+                        "definite_work": link.definite_work,
+                        "definite_book": link.definite_book,
                         link.linked_field: getattr(link, link.linked_field),
                     }
                     link.__class__.objects.get_or_create(**data)

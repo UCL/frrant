@@ -94,16 +94,71 @@ class TestFragmentRemoveWorkLinkView(TestCase):
         )
 
     def test_delete_link_post(self):
+        """If there's more than one link, a link can be removed as normal"""
         fragment = Fragment.objects.create(name="name")
         work = Work.objects.create(name="name")
-        link = FragmentLink.objects.create(work=work, fragment=fragment)
+        link1 = FragmentLink.objects.create(work=work, fragment=fragment)
+        link2 = FragmentLink.objects.create(work=work, fragment=fragment)
+
+        request = RequestFactory().post("/")
+        request.user = UserFactory.create()
+        fragment.lock(request.user)
+
+        self.assertEqual(FragmentLink.objects.count(), 2)
+        RemoveFragmentLinkView.as_view()(request, pk=link1.pk)
+        self.assertEqual(FragmentLink.objects.count(), 1)
+        self.assertEqual(FragmentLink.objects.first(), link2)
+
+    def test_reassign_to_unknown(self):
+        """If only one link is left, it should be reassigned to unknown work/book on delete
+        to retain the link to the antiquarian"""
+
+        antiquarian = Antiquarian.objects.create(name="name", re_code="re_code")
+        fragment = Fragment.objects.create(name="name")
+        work = Work.objects.create(name="name", antiquarian=antiquarian)
+        link = FragmentLink.objects.create(
+            work=work, fragment=fragment, antiquarian=antiquarian
+        )
+        link.definite_work = True
+        link.definite_book = True
+        link.save()
 
         request = RequestFactory().post("/")
         request.user = UserFactory.create()
         fragment.lock(request.user)
 
         self.assertEqual(FragmentLink.objects.count(), 1)
+        self.assertTrue(FragmentLink.objects.first().definite_work)
+        self.assertTrue(FragmentLink.objects.first().definite_book)
         RemoveFragmentLinkView.as_view()(request, pk=link.pk)
+        self.assertEqual(FragmentLink.objects.count(), 1)
+        self.assertTrue(FragmentLink.objects.first().work.unknown)
+        self.assertFalse(FragmentLink.objects.first().definite_work)
+        self.assertFalse(FragmentLink.objects.first().definite_book)
+
+    def test_remove_all_links(self):
+        """when the 'remove all links' button is clicked
+        the request should contain information about the antiquarian
+        and delete all links for that antiquarian and fragment"""
+        antiquarian = Antiquarian.objects.create(name="name", re_code="re_code")
+        fragment = Fragment.objects.create(name="name")
+        work = Work.objects.create(name="name")
+        link1 = FragmentLink.objects.create(
+            work=work, fragment=fragment, antiquarian=antiquarian
+        )
+        link2 = FragmentLink.objects.create(
+            work=work, fragment=fragment, antiquarian=antiquarian
+        )
+
+        link1.save()
+        link2.save()
+
+        request = RequestFactory().post("/", data={"antiquarian_request": fragment.pk})
+        request.user = UserFactory.create()
+        fragment.lock(request.user)
+
+        self.assertEqual(FragmentLink.objects.count(), 2)
+        RemoveFragmentLinkView.as_view()(request, pk=antiquarian.pk)
         self.assertEqual(FragmentLink.objects.count(), 0)
 
     def test_permission_required(self):

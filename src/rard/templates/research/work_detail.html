@@ -1,6 +1,6 @@
 {% extends "research/detail_base.html" %}
 {% load i18n object_lock links_for_work %}
-
+{% block title %}Work: {{object.name}} ({{object.antiquarian_set.first}}) {% endblock %}
 {% block heading %}
 {% if object.antiquarian_set.count %}
 <div class='mb-2'>

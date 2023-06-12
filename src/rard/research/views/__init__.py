@@ -64,6 +64,7 @@ from .fragment import (
     FragmentUpdateAntiquariansView,
     FragmentUpdateCommentaryView,
     FragmentUpdateView,
+    FragmentUpdateWorkLinkView,
     MoveAnonymousTopicLinkView,
     RemoveAppositumLinkView,
     RemoveFragmentLinkView,
@@ -92,6 +93,7 @@ from .testimonium import (
     TestimoniumUpdateAntiquariansView,
     TestimoniumUpdateCommentaryView,
     TestimoniumUpdateView,
+    TestimoniumUpdateWorkLinkView,
 )
 from .topic import (
     MoveTopicView,
@@ -179,6 +181,7 @@ __all__ = [
     "FragmentListView",
     "FragmentOriginalTextCreateView",
     "FragmentUpdateView",
+    "FragmentUpdateWorkLinkView",
     "FragmentUpdateAntiquariansView",
     "HistoryListView",
     "HomeView",
@@ -197,6 +200,7 @@ __all__ = [
     "TestimoniumDetailView",
     "TestimoniumListView",
     "TestimoniumUpdateView",
+    "TestimoniumUpdateWorkLinkView",
     "TestimoniumUpdateAntiquariansView",
     "TestimoniumUpdateCommentaryView",
     "TextObjectFieldCommentListView",

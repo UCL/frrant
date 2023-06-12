@@ -2,10 +2,11 @@
 
 {% load i18n %}
     {% with work=link.work linked_field=link.linked_field %}
-    <div class='rard-list-item d-flex justify-content-between'>
+    <div class='rard-list-item d-flex justify-content-between' id="link-{{link.pk}}">
         <div>
-            <li>
-                <a href='{% url "work:detail" work.pk %}'>{{ work }}</a>
+            <li class="unstyled">
+                {% include 'research/partials/render_definite_indicators.html' with link=link %}
+                <a href='{% url "work:detail" work.pk %}'>{{ work.name }}</a>
                 {% if link.book %}
                     {{ link.book }}
 
@@ -23,8 +24,14 @@
 
             </li>
         </div>
-        <div class='rard-list-item-actions'>
+        <div class='rard-list-item-actions' >
         {% if can_edit and has_object_lock %}
+        <form novalidate class='form-inline'>
+        {% csrf_token %}
+        <div class='form-group'>
+            <button type='button' class='btn text-primary p-0 ml-2' id="update-{{link.pk}}" data-what='link' hx-get="{% url inline_update_url link.pk %}" hx-trigger="click" hx-target="#link-{{link.pk}}" hx-swap="outerHTML"><i title='Edit this link' data-placement="top" data-toggle='tooltip' class='fa fa-solid fa-pen-nib fa-s'></i></button>
+        </div>
+        </form>
 
                 {% if linked_field == 'fragment' %}
                 <form novalidate class='form-inline' action='{% url "fragment:remove_fragment_link" link.pk %}' method='POST'>
@@ -33,8 +40,8 @@
                 {% endif %}
                     {% csrf_token %}
                     <div class='form-group'>
-                        <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
-                            data-what='link'>{% trans 'Remove Link' %}</button>
+                        <button type='submit' class='btn btn-link text-danger confirm-delete-link p-0 ml-2'
+                            data-what='link'{% if is_last and link.work.unknown is True %} disabled {% endif %}><i title='Remove this link' data-placement="top" data-toggle='tooltip' class='fa fa-solid fa-trash fa-s confirm-delete-link'></i></button>
                     </div>
                 </form>
         {% endif %}

@@ -10,11 +10,8 @@
         <li class="unstyled">
                 {% with fragment.get_display_name as link_text %}
                 {% if perms.research.view_fragment %}
-                {% if link.definite %}
-                    <i title='Definite link' data-placement="top" data-toggle='tooltip' class='fa fa-check-circle fa-xs text-muted'></i>
-                {% else %}
-                    <i title='Possible link' data-placement="top" data-toggle='tooltip' class='fa fa-question-circle fa-xs text-muted'></i>
-                {% endif %}
+
+                {% include 'research/partials/render_definite_indicators.html' with link=link %}
 
                 <a href='{% url "anonymous_fragment:detail" fragment.pk %}'>{{ link_text }}</a>
                 {% else %}

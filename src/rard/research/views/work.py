@@ -25,9 +25,8 @@ class WorkDetailView(
     permission_required = ("research.view_work",)
 
     def get_context_data(self, **kwargs):
-        """use work model method get_ordered_materials to retrieve a dictionary
-        of all fragments, testimonia and apposita grouped by book and add it to
-        the context"""
+        """use work model method get_ordered_materials to retrieve a dictionary of all fragments,
+        testimonia and apposita grouped by book and add it to the context"""
 
         context = super().get_context_data(**kwargs)
         work = self.get_object()

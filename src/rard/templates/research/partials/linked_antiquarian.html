@@ -1,12 +1,18 @@
 {# Assumes context objects named link object named 'link' also 'can_edit' and 'has_object_lock' #}
 
 {% load i18n %}
-{% with antiquarian=link.antiquarian linked_field=link.linked_field %}
 <div class='rard-list-item d-flex justify-content-between'>
     <div>
-        <li>
+        <li class="unstyled">
             {% with antiquarian.name as link_text %}
                 {% if perms.research.view_antiquarian %}
+                <span class="definite-indicators">
+                    {% if definite_antiquarian %}
+                        <i title='Definite antiquarian link' data-placement="top" data-toggle='tooltip' class='fa fa-solid fa-user fa-xs text-success'></i>
+                    {% else %}
+                        <i title='Possible antiquarian link' data-placement="top" data-toggle='tooltip' class='fa fa-user fa-xs text-muted'></i>
+                    {% endif %}
+                </span>
                 <a href='{% url "antiquarian:detail" antiquarian.pk %}'>{{ link_text }}</a>
                 {% else %}
                     {{ link_text }}
@@ -22,17 +28,17 @@
     {% if can_edit and has_object_lock %}
 
             {% if linked_field == 'fragment' %}
-            <form novalidate class='form-inline' action='{% url "fragment:remove_fragment_link" link.pk %}' method='POST'>
+            <form novalidate class='form-inline' action='{% url "fragment:remove_fragment_link" antiquarian.pk %}' method='POST'>
             {% else %}
-            <form novalidate class='form-inline' action='{% url "testimonium:remove_testimonium_link" link.pk %}' method='POST'>
+            <form novalidate class='form-inline' action='{% url "testimonium:remove_testimonium_link" antiquarian.pk %}' method='POST'>
             {% endif %}
                 {% csrf_token %}
+                 <input type="hidden" name="antiquarian_request" value={{object.pk}} />
                 <div class='form-group'>
-                    <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
-                        data-what='link'>{% trans 'Remove Link' %}</button>
+                    <button type='submit' class='btn btn-link text-danger confirm-delete-antiquarian p-0 ml-2'
+                        data-what='antiquarian_link'><small class="confirm-delete-antiquarian">{% trans 'remove all links' %}</small></button>
                 </div>
             </form>
     {% endif %}
     </div>
 </div>
-{% endwith %}

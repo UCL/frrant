@@ -79,7 +79,9 @@ class LinkBaseModel(BaseModel):
         on_delete=models.SET_NULL,
     )
 
-    definite = models.BooleanField(default=False)
+    definite_book = models.BooleanField(default=False)
+    definite_work = models.BooleanField(default=False)
+    definite_antiquarian = models.BooleanField(default=False)
 
 
 class WorkLinkBaseModel(LinkBaseModel):
@@ -614,6 +616,7 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
                 )
             else:
                 name = "%s" % link.get_display_name()
+                # TODO: do we need this anymore?
             if show_certainty and not link.definite:
                 name += " (possible)"
             names.append(name)

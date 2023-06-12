@@ -5,9 +5,9 @@
 <div class='rard-list-item d-flex justify-content-between'>
   <div>
       <li class="unstyled">
+        {% include 'research/partials/render_definite_indicators.html' with link=link %}
           {% if link.linked_to %}
               {% with fragment=link.linked_to %}
-
               <span>
                   {% with fragment.get_display_name as link_text %}
                       {% if perms.research.view_fragment %}

@@ -288,22 +288,25 @@ class TestWorkLinkScheme(TestCase):
 
             # add links to antiquarian directly
             FragmentLink.objects.create(
-                antiquarian=self.antiquarian, fragment=fragment, definite=True
+                antiquarian=self.antiquarian,
+                fragment=fragment,
+                definite_antiquarian=True,
             )
             # Only create work links for half the testimonia
-            work = self.work if i % 2 == 0 else None
+            unknown_work = self.antiquarian.unknown_work
+            work = self.work if i % 2 == 0 else unknown_work
             TestimoniumLink.objects.create(
                 antiquarian=self.antiquarian,
                 work=work,
                 testimonium=testimonium,
-                definite=True,
+                definite_antiquarian=True,
             )
             # add links to works
             FragmentLink.objects.create(
                 antiquarian=self.antiquarian,
                 fragment=fragment,
                 work=self.work,
-                definite=True,
+                definite_antiquarian=True,
             )
 
     def test_link_antiquarian_orders_sequentially(self):
@@ -325,7 +328,7 @@ class TestWorkLinkScheme(TestCase):
         for count, name in enumerate(names_order):
             testimonium = Testimonium.objects.get(name=name)
             self.assertEqual(
-                TestimoniumLink.objects.filter(testimonium=testimonium).first().order,
+                TestimoniumLink.objects.filter(testimonium=testimonium).last().order,
                 count,
             )
 
@@ -543,7 +546,12 @@ class TestWorkLinkScheme(TestCase):
         # any relevant fragment links
         work = Work.objects.create(name="another")
         for fragment in Fragment.objects.all():
-            FragmentLink.objects.create(fragment=fragment, work=work, definite=True)
+            FragmentLink.objects.create(
+                fragment=fragment,
+                work=work,
+                definite_work=True,
+                definite_antiquarian=True,
+            )
         antiquarian = Antiquarian.objects.create(name="hi", re_code=12345)
         self.assertEqual(antiquarian.fragmentlinks.count(), 0)
         work.antiquarian_set.add(antiquarian)
@@ -582,7 +590,7 @@ class TestWorkLinkScheme(TestCase):
                     antiquarian=self.antiquarian,
                     fragment=fragment,
                     work=work,
-                    definite=True,
+                    definite_work=True,
                 )
 
         works = Work.objects.all()
@@ -643,6 +651,9 @@ class TestWorkLinkScheme(TestCase):
 
 class TestLinkScheme(TestCase):
     def setUp(self):
+        """The new way of defining definite/possible aspects is broken down for antiquarians, works and books.
+        This means each link will be definite or not for each and will not be null.
+        """
         # add an antiquarian with a work
         self.antiquarian = Antiquarian.objects.create(name="name", re_code="name")
         self.work = Work.objects.create(name="work")
@@ -674,8 +685,10 @@ class TestLinkScheme(TestCase):
         self.assertEqual(self.antiquarian.fragments.count(), 0)
 
     def test_fragment_queryset_methods(self):
-        self.assertEqual(0, len(self.fragment.definite_work_and_book_links()))
-        self.assertEqual(0, len(self.fragment.possible_work_and_book_links()))
+        self.assertEqual(0, len(self.fragment.definite_work_links()))
+        self.assertEqual(0, len(self.fragment.possible_work_links()))
+        self.assertEqual(0, len(self.fragment.definite_book_links()))
+        self.assertEqual(0, len(self.fragment.possible_book_links()))
         self.assertEqual(0, self.fragment.definite_antiquarian_links().count())
         self.assertEqual(0, self.fragment.possible_antiquarian_links().count())
 
@@ -683,49 +696,61 @@ class TestLinkScheme(TestCase):
             antiquarian=self.antiquarian,
             work=self.work,
             fragment=self.fragment,
-            definite=True,
+            definite_work=True,
         )
 
-        self.assertEqual(1, len(self.fragment.definite_work_and_book_links()))
-        self.assertEqual(0, len(self.fragment.possible_work_and_book_links()))
+        self.assertEqual(0, len(self.fragment.definite_book_links()))
+        self.assertEqual(1, len(self.fragment.possible_book_links()))
+        self.assertEqual(1, len(self.fragment.definite_work_links()))
+        self.assertEqual(0, len(self.fragment.possible_work_links()))
         self.assertEqual(0, self.fragment.definite_antiquarian_links().count())
-        self.assertEqual(0, self.fragment.possible_antiquarian_links().count())
+        self.assertEqual(1, self.fragment.possible_antiquarian_links().count())
 
-        link.definite = False
+        link.definite_work = False
         link.save()
 
-        self.assertEqual(0, len(self.fragment.definite_work_and_book_links()))
-        self.assertEqual(1, len(self.fragment.possible_work_and_book_links()))
+        self.assertEqual(0, len(self.fragment.definite_book_links()))
+        self.assertEqual(1, len(self.fragment.possible_book_links()))
+        self.assertEqual(0, len(self.fragment.definite_work_links()))
+        self.assertEqual(1, len(self.fragment.possible_work_links()))
         self.assertEqual(0, self.fragment.definite_antiquarian_links().count())
-        self.assertEqual(0, self.fragment.possible_antiquarian_links().count())
+        self.assertEqual(1, self.fragment.possible_antiquarian_links().count())
 
         link.book = self.book
         link.save()
-        self.assertEqual(0, len(self.fragment.definite_work_and_book_links()))
-        self.assertEqual(1, len(self.fragment.possible_work_and_book_links()))
+        self.assertEqual(0, len(self.fragment.definite_book_links()))
+        self.assertEqual(1, len(self.fragment.possible_book_links()))
+        self.assertEqual(0, len(self.fragment.definite_work_links()))
+        self.assertEqual(1, len(self.fragment.possible_work_links()))
         self.assertEqual(0, self.fragment.definite_antiquarian_links().count())
-        self.assertEqual(0, self.fragment.possible_antiquarian_links().count())
+        self.assertEqual(1, self.fragment.possible_antiquarian_links().count())
 
         link.work = None
-        link.definite = True
+        link.definite_antiquarian = True
         link.save()
 
-        self.assertEqual(0, len(self.fragment.definite_work_and_book_links()))
-        self.assertEqual(0, len(self.fragment.possible_work_and_book_links()))
+        self.assertEqual(0, len(self.fragment.definite_book_links()))
+        self.assertEqual(1, len(self.fragment.possible_book_links()))
+        self.assertEqual(0, len(self.fragment.definite_work_links()))
+        self.assertEqual(1, len(self.fragment.possible_work_links()))
         self.assertEqual(1, self.fragment.definite_antiquarian_links().count())
         self.assertEqual(0, self.fragment.possible_antiquarian_links().count())
 
-        link.definite = False
+        link.definite_antiquarian = False
         link.save()
 
-        self.assertEqual(0, len(self.fragment.definite_work_and_book_links()))
-        self.assertEqual(0, len(self.fragment.possible_work_and_book_links()))
+        self.assertEqual(0, len(self.fragment.definite_book_links()))
+        self.assertEqual(1, len(self.fragment.possible_book_links()))
+        self.assertEqual(0, len(self.fragment.definite_work_links()))
+        self.assertEqual(1, len(self.fragment.possible_work_links()))
         self.assertEqual(0, self.fragment.definite_antiquarian_links().count())
         self.assertEqual(1, self.fragment.possible_antiquarian_links().count())
 
     def test_testimonium_queryset_methods(self):
-        self.assertEqual(0, len(self.testimonium.definite_work_and_book_links()))
-        self.assertEqual(0, len(self.testimonium.possible_work_and_book_links()))
+        self.assertEqual(0, len(self.testimonium.definite_book_links()))
+        self.assertEqual(0, len(self.testimonium.possible_book_links()))
+        self.assertEqual(0, len(self.testimonium.definite_work_links()))
+        self.assertEqual(0, len(self.testimonium.possible_work_links()))
         self.assertEqual(0, self.testimonium.definite_antiquarian_links().count())
         self.assertEqual(0, self.testimonium.possible_antiquarian_links().count())
 
@@ -733,43 +758,53 @@ class TestLinkScheme(TestCase):
             antiquarian=self.antiquarian,
             work=self.work,
             testimonium=self.testimonium,
-            definite=True,
+            definite_work=True,
         )
 
-        self.assertEqual(1, len(self.testimonium.definite_work_and_book_links()))
-        self.assertEqual(0, len(self.testimonium.possible_work_and_book_links()))
+        self.assertEqual(0, len(self.testimonium.definite_book_links()))
+        self.assertEqual(1, len(self.testimonium.possible_book_links()))
+        self.assertEqual(1, len(self.testimonium.definite_work_links()))
+        self.assertEqual(0, len(self.testimonium.possible_work_links()))
         self.assertEqual(0, self.testimonium.definite_antiquarian_links().count())
-        self.assertEqual(0, self.testimonium.possible_antiquarian_links().count())
+        self.assertEqual(1, self.testimonium.possible_antiquarian_links().count())
 
-        link.definite = False
+        link.definite_work = False
         link.save()
 
-        self.assertEqual(0, len(self.testimonium.definite_work_and_book_links()))
-        self.assertEqual(1, len(self.testimonium.possible_work_and_book_links()))
+        self.assertEqual(0, len(self.testimonium.definite_book_links()))
+        self.assertEqual(1, len(self.testimonium.possible_book_links()))
+        self.assertEqual(0, len(self.testimonium.definite_work_links()))
+        self.assertEqual(1, len(self.testimonium.possible_work_links()))
         self.assertEqual(0, self.testimonium.definite_antiquarian_links().count())
-        self.assertEqual(0, self.testimonium.possible_antiquarian_links().count())
+        self.assertEqual(1, self.testimonium.possible_antiquarian_links().count())
 
         link.book = self.book
         link.save()
-        self.assertEqual(0, len(self.testimonium.definite_work_and_book_links()))
-        self.assertEqual(1, len(self.testimonium.possible_work_and_book_links()))
+        self.assertEqual(0, len(self.testimonium.definite_book_links()))
+        self.assertEqual(1, len(self.testimonium.possible_book_links()))
+        self.assertEqual(0, len(self.testimonium.definite_work_links()))
+        self.assertEqual(1, len(self.testimonium.possible_work_links()))
         self.assertEqual(0, self.testimonium.definite_antiquarian_links().count())
-        self.assertEqual(0, self.testimonium.possible_antiquarian_links().count())
+        self.assertEqual(1, self.testimonium.possible_antiquarian_links().count())
 
         link.work = None
-        link.definite = True
+        link.definite_antiquarian = True
         link.save()
 
-        self.assertEqual(0, len(self.testimonium.definite_work_and_book_links()))
-        self.assertEqual(0, len(self.testimonium.possible_work_and_book_links()))
+        self.assertEqual(0, len(self.testimonium.definite_book_links()))
+        self.assertEqual(1, len(self.testimonium.possible_book_links()))
+        self.assertEqual(0, len(self.testimonium.definite_work_links()))
+        self.assertEqual(1, len(self.testimonium.possible_work_links()))
         self.assertEqual(1, self.testimonium.definite_antiquarian_links().count())
         self.assertEqual(0, self.testimonium.possible_antiquarian_links().count())
 
-        link.definite = False
+        link.definite_antiquarian = False
         link.save()
 
-        self.assertEqual(0, len(self.testimonium.definite_work_and_book_links()))
-        self.assertEqual(0, len(self.testimonium.possible_work_and_book_links()))
+        self.assertEqual(0, len(self.testimonium.definite_book_links()))
+        self.assertEqual(1, len(self.testimonium.possible_book_links()))
+        self.assertEqual(0, len(self.testimonium.definite_work_links()))
+        self.assertEqual(1, len(self.testimonium.possible_work_links()))
         self.assertEqual(0, self.testimonium.definite_antiquarian_links().count())
         self.assertEqual(1, self.testimonium.possible_antiquarian_links().count())
 
@@ -778,15 +813,18 @@ class TestLinkScheme(TestCase):
             antiquarian=self.antiquarian,
             work=self.work,
             fragment=self.fragment,
-            definite=True,
+            definite_antiquarian=True,
+            definite_work=True,
         )
-        self.assertEqual(len(self.fragment.definite_work_and_book_links()), 1)
+        self.assertEqual(len(self.fragment.definite_work_links()), 1)
         # add more links to the antiquarian and the work should be unaffected
         for i in range(0, 10):
             FragmentLink.objects.create(
-                antiquarian=self.antiquarian, fragment=self.fragment, definite=True
+                antiquarian=self.antiquarian,
+                fragment=self.fragment,
+                definite_antiquarian=True,
             )
-        self.assertEqual(len(self.fragment.definite_work_and_book_links()), 1)
+        self.assertEqual(len(self.fragment.definite_work_links()), 1)
 
     def test_get_all_names(self):
         # all names that this fragment is known by according to the
@@ -971,7 +1009,7 @@ class TestFragmentWorkOrderingScheme(TestCase):
                 antiquarian=self.antiquarian,
                 fragment=fragment,
                 work=self.work,
-                definite=True,
+                definite_antiquarian=True,
                 order_in_book=i,
             )
 
