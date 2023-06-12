@@ -42,9 +42,9 @@ class TestFragmentLinkWorkForm(TestCase):
         )
         self.assertIsNone(form.fields["antiquarian"].initial)
         self.assertIsNone(form.fields["work"].initial)
-        self.assertTrue(form.fields["work"].widget.attrs["disabled"])
+        self.assertTrue(form.fields["work"].disabled)
         self.assertEqual(form.fields["work"].queryset.count(), 0)
-        self.assertTrue(form.fields["book"].widget.attrs["disabled"])
+        self.assertTrue(form.fields["book"].disabled)
         self.assertEqual(form.fields["book"].queryset.count(), 0)
 
     def test_required_fields_no_work_selected(self):
@@ -64,7 +64,7 @@ class TestFragmentLinkWorkForm(TestCase):
         self.assertEqual(
             form.fields["work"].queryset.count(), 2
         )  # includes unknown work
-        self.assertTrue(form.fields["book"].widget.attrs["disabled"])
+        self.assertTrue(form.fields["book"].disabled)
         self.assertEqual(form.fields["book"].queryset.count(), 0)
 
     def test_required_fields_with_work_selected(self):
