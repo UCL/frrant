@@ -56,6 +56,7 @@ class Migration(migrations.Migration):
             name="introduction",
             field=models.ForeignKey(
                 null=True,
+                db_constraint=False,  # Adding this manually to prevent error when deleting books
                 on_delete=django.db.models.deletion.SET_NULL,
                 related_name="introduction_for_historical_book",
                 to="research.textobjectfield",
@@ -66,6 +67,7 @@ class Migration(migrations.Migration):
             name="introduction",
             field=models.ForeignKey(
                 null=True,
+                db_constraint=False,  # Adding this manually to prevent error when deleting works
                 on_delete=django.db.models.deletion.SET_NULL,
                 related_name="introduction_for_historical_work",
                 to="research.textobjectfield",
