@@ -253,7 +253,10 @@ Go to the production machine and run the following command:
 
 ```sudo docker-compose -f production.yml run --rm django python manage.py dumpdata --indent=4  --natural-foreign --natural-primary -a  > dump.json```
 
-This dumps all (-a) the data in the database into a json file that we can load locally.
+This dumps all (-a) the data in the database into a json file that we can load locally. Check the end of the file to ensure there are no unexpected characters, particularly if you get an error similar to:
+```
+json.decoder.JSONDecodeError: Extra data: line 1722506 column 1 (char 53971086)
+```
 
 Now scp the json file to your local machine and run the following commands:
 

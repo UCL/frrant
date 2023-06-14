@@ -724,17 +724,18 @@ class BaseLinkWorkForm(forms.ModelForm):
 
         if antiquarian:
             self.fields["antiquarian"].initial = antiquarian
-            self.fields["work"].queryset = antiquarian.works.all()
-            self.fields["definite_antiquarian"].initial = definite_antiquarian
+            if update is not True:
+                self.fields["work"].queryset = antiquarian.works.all()
+                self.fields["definite_antiquarian"].initial = definite_antiquarian
         else:
             self.fields["work"].queryset = Work.objects.none()
-            if not update:
+            if update is not True:
                 self.fields["work"].disabled = True
-                self.fields["definite_work"].disabled = True
+                self.fields["definite_work"].widget.attrs["disabled"] = True
 
         if work:
             if work.unknown:
-                self.fields["definite_work"].disabled = True
+                self.fields["definite_work"].widget.attrs["disabled"] = True
             if antiquarian:
                 self.fields["work"].initial = work
                 self.fields["definite_work"].initial = definite_work
@@ -744,26 +745,36 @@ class BaseLinkWorkForm(forms.ModelForm):
             self.fields["book"].queryset = work.book_set.all()
         else:
             self.fields["book"].queryset = Book.objects.none()
-            if not update:
+            if update is not True:
                 self.fields["book"].disabled = True
-                self.fields["definite_book"].disabled = True
+                self.fields["definite_book"].widget.attrs["disabled"] = True
         if book:
             if book.unknown:
-                self.fields["definite_book"].disabled = True
+                self.fields["definite_book"].widget.attrs["disabled"] = True
 
     def clean(self):
         cleaned_data = super().clean()
         work = cleaned_data.get("work")
+        if work is None:
+            antiquarian = cleaned_data.get("antiquarian")
+            work = antiquarian.unknown_work
         book = cleaned_data.get("book")
-        # print(str(work), str(book))
+        if book is None:
+            book = work.unknown_book
+        definite_work = cleaned_data.get("definite_work")
+        definite_book = cleaned_data.get("definite_book")
 
-        if str(work) == "Unknown Work" or "None":
-            # print("unknown work")
-            cleaned_data["definite_work"] = False
+        if work.unknown and definite_work is True:
+            raise forms.ValidationError(
+                _("Cannot be definite link to Unknown Work"),
+                code="definite-unknown-work",
+            )
 
-        if str(book) == "Unknown Book" or "None":
-            # print("unknown book")
-            cleaned_data["definite_book"] = False
+        if book.unknown and definite_book is True:
+            raise forms.ValidationError(
+                _("Cannot be definite link to Unknown Book"),
+                code="definite-unknown-book",
+            )
 
         if book and not work:
             raise forms.ValidationError(

@@ -9,7 +9,6 @@ pytestmark = pytest.mark.django_db
 
 class TestAntiquarianForms(TestCase):
     def test_introduction_not_required(self):
-
         form = AntiquarianIntroductionForm()
         self.assertFalse(form.fields["introduction_text"].required)
 

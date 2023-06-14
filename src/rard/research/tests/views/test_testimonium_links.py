@@ -100,6 +100,7 @@ class TestTestimoniumRemoveWorkLinkView(TestCase):
 
     def test_delete_link_post(self):
         """If there's more than one link, a link can be removed as normal"""
+
         testimonium = Testimonium.objects.create(name="name")
         work = Work.objects.create(name="name")
         link1 = TestimoniumLink.objects.create(work=work, testimonium=testimonium)

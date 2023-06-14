@@ -28,7 +28,7 @@ class TopicListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
                 elif "down" in self.request.POST:
                     topic.down()
 
-            except (Topic.DoesNotExist):
+            except Topic.DoesNotExist:
                 pass
         return HttpResponseRedirect(self.request.path)
 
@@ -101,7 +101,6 @@ class TopicDeleteView(
 
 
 class MoveTopicView(LoginRequiredMixin, View):
-
     render_partial_template = "research/partials/ordered_topic_area.html"
 
     def render_valid_response(self, page_index):
@@ -120,7 +119,6 @@ class MoveTopicView(LoginRequiredMixin, View):
         return JsonResponse(data=ajax_data, safe=False)
 
     def post(self, *args, **kwargs):
-
         topic_pk = self.request.POST.get("topic_id", None)
         page_index = self.request.POST.get("page_index", None)
         if topic_pk:

@@ -8,8 +8,8 @@ bookSelectElems.forEach((select) => {
     var definiteBookToggle = parentElem.querySelector("#id_definite_book");
 
     if (value.toString().toLowerCase().includes("unknown")) {
-      console.log("Unknown book selected!");
       definiteBookToggle.disabled = true;
+      definiteBookToggle.checked = false;
     } else definiteBookToggle.disabled = false;
   };
 });

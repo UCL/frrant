@@ -109,7 +109,6 @@ class TestOriginalTextDeleteView(TestCase):
         self.citing_work = CitingWork.objects.create(title="title")
 
     def test_post_only(self):
-
         fragment = Fragment.objects.create(name="name")
         text = OriginalText.objects.create(
             owner=fragment,
@@ -138,7 +137,6 @@ class TestOriginalTextViewsDispatch(TestCase):
         )
 
     def test_update_delete_create_top_level_object(self):
-
         # dispatch method creates an attribute used by the
         # locking mechanism so here we ensure it is created
         request = RequestFactory().post("/")

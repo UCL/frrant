@@ -423,7 +423,11 @@ def handle_new_link(sender, instance, created, **kwargs):
         else:
             work = instance.work
             if instance.book is None:
+                # Add to end of unknown book
                 instance.book = work.unknown_book
+                instance.order_in_book = instance.__class__.objects.filter(
+                    book=work.unknown_book
+                ).count()
         instance.save()
         reindex_order_info(sender, instance, **kwargs)
 
@@ -605,7 +609,7 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
         links = self.get_all_links().order_by("work", "antiquarian", "order")
         names = []
         for link in links:
-            if link.work:
+            if link.work and not link.work.unknown:
                 name = "%s [= %s]" % (
                     link.get_work_display_name(),
                     link.get_display_name(),

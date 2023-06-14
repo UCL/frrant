@@ -5,7 +5,6 @@ from rard.utils.basemodel import BaseModel
 
 
 class Image(BaseModel):
-
     title = models.CharField(max_length=128, blank=False)
 
     description = models.CharField(max_length=128, blank=True)

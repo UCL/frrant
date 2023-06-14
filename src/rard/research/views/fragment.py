@@ -768,10 +768,7 @@ class FragmentAddWorkLinkView(
 
     def form_valid(self, form):
         data = form.cleaned_data
-        antiquarian = data["antiquarian"]
-
         data["fragment"] = self.get_fragment()
-        data["antiquarian"] = antiquarian
         FragmentLink.objects.get_or_create(**data)
 
         return super().form_valid(form)
@@ -900,20 +897,25 @@ class FragmentUpdateWorkLinkView(
         initial["work"] = self.get_object().work
         initial["antiquarian"] = self.get_object().antiquarian
         initial["book"] = self.get_object().book
+        initial["definite_work"] = self.get_object().definite_work
+        initial["definite_antiquarian"] = self.get_object().definite_antiquarian
+        initial["definite_book"] = self.get_object().definite_book
         return initial
 
     def form_valid(self, form):
         data = form.cleaned_data
         self.object = self.get_object()
+        if "cancel" in self.request.POST:
+            return reverse("fragment:detail", kwargs={"pk": self.fragment.pk})
+        else:
+            self.object.definite_antiquarian = data["definite_antiquarian"]
+            self.object.definite_work = data["definite_work"]
+            self.object.definite_book = data["definite_book"]
+            self.object.book = data["book"]
 
-        self.object.definite_antiquarian = data["definite_antiquarian"]
-        self.object.definite_work = data["definite_work"]
-        self.object.definite_book = data["definite_book"]
-        self.object.book = data["book"]
+            self.object.save()
 
-        self.object.save()
-
-        return super().form_valid(form)
+            return super().form_valid(form)
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)

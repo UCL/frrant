@@ -8,7 +8,6 @@ from rard.utils.basemodel import BaseModel, LockableModel, OrderableModel
 
 
 class Topic(HistoryModelMixin, OrderableModel, LockableModel, BaseModel):
-
     history = HistoricalRecords()
 
     def related_lock_object(self):

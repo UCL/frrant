@@ -8,7 +8,7 @@
         <div class='ordered-list'>
         <ul class='parent-ordering-group'>
 
-          {% with utlinks=object|testimonium_links_for_work:None %}
+          {% with utlinks=object|testimonium_links_for_work:object.unknown_work %}
 
             {% for link in utlinks %}
                 {% include 'research/partials/testimonium_link_list_item.html' with link=link link_text=link.get_display_name|safe can_edit=can_edit has_object_lock=has_object_lock %}

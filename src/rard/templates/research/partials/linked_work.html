@@ -40,8 +40,8 @@
                 {% endif %}
                     {% csrf_token %}
                     <div class='form-group'>
-                        <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
-                            data-what='link'{% if is_last and link.work.unknown is True %} disabled {% endif %}><i title='Remove this link' data-placement="top" data-toggle='tooltip' class='fa fa-solid fa-trash fa-s confirm-delete'></i></button>
+                        <button type='submit' class='btn btn-link text-danger confirm-delete-link p-0 ml-2'
+                            data-what='link'{% if is_last and link.work.unknown is True %} disabled {% endif %}><i title='Remove this link' data-placement="top" data-toggle='tooltip' class='fa fa-solid fa-trash fa-s confirm-delete-link'></i></button>
                     </div>
                 </form>
         {% endif %}
