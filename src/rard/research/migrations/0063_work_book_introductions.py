@@ -71,5 +71,4 @@ class Migration(migrations.Migration):
                 to="research.textobjectfield",
             ),
         ),
-        # migrations.RunPython(set_default_introduction),
     ]
