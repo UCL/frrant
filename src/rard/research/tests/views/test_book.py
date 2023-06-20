@@ -3,7 +3,12 @@ from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
 from rard.research.models import Book, Work
-from rard.research.views import BookCreateView, BookDeleteView, BookUpdateView
+from rard.research.views import (
+    BookCreateView,
+    BookDeleteView,
+    BookUpdateIntroductionView,
+    BookUpdateView,
+)
 from rard.users.tests.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
@@ -36,6 +41,57 @@ class TestBookUpdateView(TestCase):
         view.object = Book.objects.create(number=1, work=work)
 
         self.assertEqual(view.get_success_url(), f"/work/{work.pk}/")
+
+
+class TestBookUpdateIntroductionView(TestCase):
+    def setUp(self):
+        self.work = Work.objects.create(name="name")
+        self.book = Book.objects.create(work=self.work, number=1)
+        self.url = reverse("work:update_book_introduction", kwargs={"pk": self.book.pk})
+        self.request = RequestFactory().get(self.url)
+        self.request.user = UserFactory.create()
+
+        self.work.lock(self.request.user)
+
+        self.response = BookUpdateIntroductionView.as_view()(
+            self.request, pk=self.book.pk
+        )
+
+    def test_context_data(self):
+        self.assertEqual(self.response.context_data["editing"], "introduction")
+
+    def test_success_url(self):
+        # this is more complicated than with other views
+        # due to the conditional rendering on another view
+        # // I think
+        success_url = self.response.context_data["view"].get_success_url()
+        self.assertEqual(success_url, f"/work/{self.work.pk}/")
+
+    def test_update_intro(self):
+        """This checks that an introduction object is created
+        when the book object is created but is empty
+        and will update on POST"""
+        intro = self.response.context_data["object"].introduction
+
+        self.assertTrue(bool(intro.pk))
+        self.assertFalse(bool(intro.content))
+
+        book_pk = self.response.context_data["object"].pk
+
+        intro_text = "testing update of introduction"
+
+        data = {
+            "introduction_text": intro_text,
+        }
+        post_request = RequestFactory().post(self.url, data=data)
+        post_request.user = self.request.user
+        BookUpdateIntroductionView.as_view()(post_request, pk=book_pk)
+
+        view = BookUpdateIntroductionView.as_view()(self.request, pk=self.book.pk)
+
+        intro = view.context_data["object"].introduction
+        self.assertTrue(bool(intro.content))
+        self.assertEqual(intro.content, intro_text)
 
 
 class TestBookCreateView(TestCase):
@@ -79,6 +135,7 @@ class TestBookCreateView(TestCase):
                 getattr(work.book_set.exclude(unknown=True).first(), key), val
             )
         self.assertIn(work.unknown_book, work.book_set.all())
+        self.assertTrue(work.book_set.first().introduction)
 
 
 class TestBookDeleteView(TestCase):

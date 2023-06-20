@@ -9,6 +9,7 @@ from rard.research.views import (
     WorkDeleteView,
     WorkDetailView,
     WorkListView,
+    WorkUpdateIntroductionView,
     WorkUpdateView,
 )
 from rard.users.tests.factories import UserFactory
@@ -350,3 +351,53 @@ class TestWorkDetailView(TestCase):
                 materials[material] = {k: v for k, v in links_sorted}
         assert "ordered_materials" in response.context_data
         assert response.context_data["ordered_materials"] == target_materials
+
+
+class TestWorkUpdateIntroductionView(TestCase):
+    def setUp(self):
+        self.work = Work.objects.create(name="name")
+        self.url = reverse("work:update_introduction", kwargs={"pk": self.work.pk})
+        self.request = RequestFactory().get(self.url)
+        self.request.user = UserFactory.create()
+
+        self.work.lock(self.request.user)
+
+        self.response = WorkUpdateIntroductionView.as_view()(
+            self.request, pk=self.work.pk
+        )
+
+    def test_context_data(self):
+        self.assertEqual(self.response.context_data["editing"], "introduction")
+
+    def test_success_url(self):
+        # this is more complicated than with other views
+        # due to the conditional rendering on another view
+        # // I think
+        success_url = self.response.context_data["view"].get_success_url()
+        self.assertEqual(success_url, f"/work/{self.work.pk}/")
+
+    def test_update_intro(self):
+        """This checks that an introduction object is created
+        when the book object is created but is empty
+        and will update on POST"""
+        intro = self.response.context_data["object"].introduction
+
+        self.assertTrue(bool(intro.pk))
+        self.assertFalse(bool(intro.content))
+
+        work_pk = self.response.context_data["object"].pk
+
+        intro_text = "testing update of introduction"
+
+        data = {
+            "introduction_text": intro_text,
+        }
+        post_request = RequestFactory().post(self.url, data=data)
+        post_request.user = self.request.user
+        WorkUpdateIntroductionView.as_view()(post_request, pk=work_pk)
+
+        view = WorkUpdateIntroductionView.as_view()(self.request, pk=self.work.pk)
+
+        intro = view.context_data["object"].introduction
+        self.assertTrue(bool(intro.content))
+        self.assertEqual(intro.content, intro_text)
