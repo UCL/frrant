@@ -71,8 +71,9 @@ class TestFragmentLinkWorkForm(TestCase):
         antiquarian = Antiquarian.objects.create(name="Me", re_code=1)
         # this will automatically create an Unknown Book
         work = Work.objects.create(name="foo")
+
         NUM_BOOKS = 5
-        for i in range(0, NUM_BOOKS):
+        for i in range(1, NUM_BOOKS):
             Book.objects.create(number=i, work=work)
 
         form = FragmentLinkWorkForm(
