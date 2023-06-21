@@ -283,7 +283,7 @@ class WorkForm(forms.ModelForm):
             ].initial = self.instance.introduction.content
         else:
             self.fields["introduction_text"].attrs = {
-                "placeholder": "introduction for book"
+                "placeholder": "introduction for work"
             }
 
     def clean(self):
@@ -367,6 +367,18 @@ class BookForm(forms.ModelForm):
             instance.introduction.content = self.cleaned_data["introduction_text"]
             instance.introduction.save_without_historical_record()
         return instance
+
+
+class WorkIntroductionForm(IntroductionFormBase):
+    class Meta:
+        model = Work
+        fields = ()
+
+
+class BookIntroductionForm(IntroductionFormBase):
+    class Meta:
+        model = Book
+        fields = ()
 
 
 class CommentForm(forms.ModelForm):
@@ -600,18 +612,6 @@ class TestimoniumCommentaryForm(CommentaryFormBase):
 class AnonymousFragmentCommentaryForm(CommentaryFormBase):
     class Meta:
         model = AnonymousFragment
-        fields = ()
-
-
-class WorkIntroductionForm(IntroductionFormBase):
-    class Meta:
-        model = Work
-        fields = ()
-
-
-class BookIntroductionForm(IntroductionFormBase):
-    class Meta:
-        model = Book
         fields = ()
 
 
