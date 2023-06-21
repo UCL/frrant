@@ -8,7 +8,6 @@ from django.urls import reverse
 from django.utils.text import slugify
 from simple_history.models import HistoricalRecords
 
-from rard.research.models import TextObjectField
 from rard.research.models.base import (
     AppositumFragmentLink,
     FragmentLink,
@@ -304,14 +303,6 @@ def create_unknown_book(sender, instance, **kwargs):
     )
     unknown_book.save()
     instance.book_set.add(unknown_book)
-
-
-@disable_for_loaddata
-def set_default_intro(sender, instance, **kwargs):
-    if instance.introduction is None:
-        instance.introduction = TextObjectField.objects.create(
-            content=f"Introduction for {instance}"
-        )
 
 
 @disable_for_loaddata
