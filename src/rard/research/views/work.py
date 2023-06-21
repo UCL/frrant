@@ -110,9 +110,7 @@ class WorkUpdateIntroductionView(WorkUpdateView):
     def create_intro_if_does_not_exist(self, *args, **kwargs):
         work = self.get_object()
         if work.introduction is None:
-            work.introduction = TextObjectField.objects.create(
-                content=f"Introduction for {work}"
-            )
+            work.introduction = TextObjectField.objects.create(content="")
             work.save()
 
     def dispatch(self, request, *args, **kwargs):
@@ -228,9 +226,7 @@ class BookUpdateIntroductionView(BookUpdateView):
     def create_intro_if_does_not_exist(self, *args, **kwargs):
         book = self.get_object()
         if book.introduction is None:
-            book.introduction = TextObjectField.objects.create(
-                content=f"Introduction for {book.work}: {book}"
-            )
+            book.introduction = TextObjectField.objects.create(content="")
             book.save()
 
     def dispatch(self, request, *args, **kwargs):
