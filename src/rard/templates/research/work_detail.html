@@ -52,8 +52,7 @@
         </div>
 
         {% comment %} <section> {% endcomment %}
-        {% if object.introduction %}
-          {% if editing == 'introduction' %}
+        {% if editing == 'introduction' %}
           <div>
               {% if perms.research.change_work and has_object_lock %}
               <form novalidate enctype="multipart/form-data" autocomplete='off' action='{% url "work:update_introduction" object.pk %}' class="form" method='POST'>
@@ -70,6 +69,7 @@
               {% endif %}
           </div>
           {% else %}
+          {% if object.introduction %}
           <div class='d-flex justify-content-between mb-3'>
               <small>
                   {% if perms.research.change_work and has_object_lock %}
@@ -80,7 +80,7 @@
           <div>
               {% include 'research/partials/text_object_preview.html' with text_object=object.introduction %}
           </div>
-          {% endif %}
+
           {% else %}
           <div class='d-flex justify-content-between mb-3'>
             <small>
@@ -91,7 +91,7 @@
                 {% endif %}
             </small>
         </div>
-          {% endif %}
+          {% endif %}{% endif %}
 
       {% comment %} </section> {% endcomment %}
 
