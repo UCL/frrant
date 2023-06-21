@@ -1,10 +1,25 @@
 {% extends "research/base.html" %}
 {% load i18n bootstrap4 static humanize %}
+{% block title %}
+{% if object %}
+{{ object }}:
+{% if editing == 'introduction' %}
+{% trans 'Editing Introduction' %}
+{% else %}
+    {% trans 'Updating' %}
+{% endif %}
+{% else %}
+{% if work %}
+{{ work }}:
+{% endif %}
+New Book
+{% endif %}
+{% endblock %}
 
 {% block heading %}
     {% if object %}
     {% if editing == 'introduction' %}
-    {% trans 'Update Introduction' %}
+    {% trans 'Editing Introduction' %}
     {% else %}
         {% trans 'Update Book' %}
     {% endif %}

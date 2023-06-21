@@ -18,13 +18,22 @@
         <div class='d-flex justify-content-between mb-3'>
             <small>
                 {% if perms.research.change_work and has_object_lock %}
-                <a href='{% url "work:update_book_introduction" book.pk %}'>{% trans 'Edit Introduction' %}</a>
+                <a href='{% url "work:update_book_introduction" book.pk %}'>
+                    {% if book.introduction.content.strip|length > 12 %}
+                    {% trans 'Edit Introduction' %}
+                    {% else %}
+                    {% trans 'Add Introduction' %}
+                    {% endif %}
+                </a>
+
                 {% endif %}
             </small>
         </div>
+        {% if book.introduction.content.strip|length > 12 %}
         <div>
             {% include 'research/partials/text_object_preview.html' with text_object=book.introduction %}
         </div>
+        {% endif %}
         {% else %}
         <div class='d-flex justify-content-between mb-3'>
             <small>
