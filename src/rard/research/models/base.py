@@ -79,13 +79,16 @@ class LinkBaseModel(BaseModel):
         on_delete=models.SET_NULL,
     )
 
-    definite = models.BooleanField(default=False)
+    definite_book = models.BooleanField(default=False)
+    definite_work = models.BooleanField(default=False)
+    definite_antiquarian = models.BooleanField(default=False)
 
 
 class WorkLinkBaseModel(LinkBaseModel):
     class Meta(LinkBaseModel.Meta):
         abstract = True
 
+    order_in_book = models.PositiveIntegerField(default=None, null=True, blank=True)
     # the order wrt the work
     work_order = models.PositiveIntegerField(default=None, null=True, blank=True)
 
@@ -109,29 +112,78 @@ class WorkLinkBaseModel(LinkBaseModel):
 
     def related_work_queryset(self):
         try:
-            return self.__class__.objects.filter(work=self.work).order_by("work_order")
+            return self.__class__.objects.filter(work=self.work).order_by(
+                "book__order", "order_in_book"
+            )
         except ObjectDoesNotExist:
             return self.__class__.objects.none()
 
-    def prev_by_work(self):
+    def related_book_queryset(self):
+        try:
+            return self.__class__.objects.filter(book=self.book).order_by(
+                "order_in_book"
+            )
+        except ObjectDoesNotExist:
+            return self.__class__.objects.none()
+
+    def prev_by_book(self):
         return (
-            self.related_work_queryset().filter(work_order__lt=self.work_order).last()
+            self.related_book_queryset()
+            .filter(order_in_book__lt=self.order_in_book)
+            .last()
         )
 
-    def next_by_work(self):
+    def next_by_book(self):
         return (
-            self.related_work_queryset().filter(work_order__gt=self.work_order).first()
+            self.related_book_queryset()
+            .filter(order_in_book__gt=self.order_in_book)
+            .first()
         )
 
-    def swap_by_work(self, replacement):
-        self.work_order, replacement.work_order = (
-            replacement.work_order,
-            self.work_order,
+    def swap_by_book(self, replacement):
+        self.order_in_book, replacement.order_in_book = (
+            replacement.order_in_book,
+            self.order_in_book,
         )
         self.save()
         replacement.save()
+        if self.work:
+            self.reindex_work_by_book()
         if self.antiquarian:
             self.antiquarian.reindex_fragment_and_testimonium_links()
+
+    def move_to_by_book(self, pos):
+        # move to a particular index in the set
+        old_pos = self.order_in_book
+        if pos == old_pos:
+            return
+        # if beyond the end, put it at the end (useful for UI)
+        pos = min(pos, self.related_book_queryset().count())
+
+        if pos < old_pos:
+            to_reorder = (
+                self.related_book_queryset()
+                .exclude(pk=self.pk)
+                .filter(order_in_book__gte=pos)
+            )
+            reindex_start_pos = pos + 1
+        else:
+            to_reorder = (
+                self.related_book_queryset()
+                .exclude(pk=self.pk)
+                .filter(order_in_book__lte=pos)
+            )
+            reindex_start_pos = 0
+        with transaction.atomic():
+            for count, obj in enumerate(to_reorder):
+                obj.order_in_book = count + reindex_start_pos
+                obj.save()
+            self.order_in_book = pos
+            self.save()
+
+        self.reindex_work_by_book()
+        self.antiquarian.reindex_fragment_and_testimonium_links()
+        Antiquarian.reindex_null_fragment_and_testimonium_links()
 
     def move_to_by_work(self, pos):
         # move to a particular index in the set
@@ -161,23 +213,42 @@ class WorkLinkBaseModel(LinkBaseModel):
             for count, obj in enumerate(to_reorder):
                 obj.work_order = count + reindex_start_pos
                 obj.save()
-
             self.work_order = pos
             self.save()
-
         self.antiquarian.reindex_fragment_and_testimonium_links()
-
         Antiquarian.reindex_null_fragment_and_testimonium_links()
 
-    def up_by_work(self):
-        previous = self.prev_by_work()
+    def up_by_book(self):
+        previous = self.prev_by_book()
         if previous:
-            self.swap_by_work(previous)
+            self.swap_by_book(previous)
 
-    def down_by_work(self):
-        next_ = self.next_by_work()
+    def down_by_book(self):
+        next_ = self.next_by_book()
         if next_:
-            self.swap_by_work(next_)
+            self.swap_by_book(next_)
+
+    def reindex_work_by_book(self):
+        """Update order of links with respect to work, taking into account book__order and order_in_book"""
+        from django.db import transaction
+
+        with transaction.atomic():
+            to_reorder = (
+                self.__class__.objects.filter(work=self.work)
+                .order_by("book__order", "order_in_book")
+                .distinct()
+            )
+
+            for count, link in enumerate(to_reorder):
+                if link.work_order != count:
+                    link.work_order = count
+                    link.save()
+            # request that the antiquarian involved reindex their fragment links
+            if self.antiquarian:
+                self.antiquarian.reindex_fragment_and_testimonium_links()
+        # also check order of unattached links it
+        # works for null antiquarian also
+        Antiquarian.reindex_null_fragment_and_testimonium_links()
 
     work = models.ForeignKey(
         "Work",
@@ -188,6 +259,7 @@ class WorkLinkBaseModel(LinkBaseModel):
     )
     # optional additional book information
     book = models.ForeignKey(
+        # this has book__order, not the same as order_in_book
         "Book",
         null=True,
         default=None,
@@ -204,7 +276,6 @@ class WorkLinkBaseModel(LinkBaseModel):
 
 
 class TestimoniumLink(WorkLinkBaseModel):
-
     linked_field = "testimonium"
     display_stub = "T"
 
@@ -218,7 +289,6 @@ class TestimoniumLink(WorkLinkBaseModel):
 
 
 class FragmentLink(WorkLinkBaseModel):
-
     linked_field = "fragment"
     display_stub = "F"
 
@@ -241,7 +311,6 @@ class FragmentLink(WorkLinkBaseModel):
 
 
 class AppositumFragmentLink(WorkLinkBaseModel):
-
     linked_field = "anonymous_fragment"
     display_stub = "A"
 
@@ -320,7 +389,6 @@ class AppositumFragmentLink(WorkLinkBaseModel):
 
 @disable_for_loaddata
 def check_order_info(sender, instance, action, model, pk_set, **kwargs):
-
     from rard.research.models import Antiquarian, Fragment, Testimonium
 
     if action not in ["post_add", "post_remove"]:
@@ -346,28 +414,43 @@ def handle_new_link(sender, instance, created, **kwargs):
     if created:
         if isinstance(instance, FragmentLink):
             AppositumFragmentLink.ensure_apposita_links(instance)
+
+        if instance.work is None:
+            if instance.antiquarian is not None:
+                instance.work = instance.antiquarian.unknown_work
+                if instance.book is None:
+                    instance.book = instance.antiquarian.unknown_work.unknown_book
+        else:
+            work = instance.work
+            if instance.book is None:
+                # Add to end of unknown book
+                instance.book = work.unknown_book
+                instance.order_in_book = instance.__class__.objects.filter(
+                    book=work.unknown_book
+                ).count()
+        instance.save()
         reindex_order_info(sender, instance, **kwargs)
 
 
 @disable_for_loaddata
 def reindex_order_info(sender, instance, **kwargs):
-    # when we delete a fragmentlink we need to:
-    # reindex all work_links for the work it pointed to
-    with transaction.atomic():
+    instance.reindex_work_by_book()
+    # # when we delete a fragmentlink we need to:
+    # # reindex all work_links for the work it pointed to
+    # with transaction.atomic():
+    #     qs = instance.related_work_queryset()
+    #     for count, item in enumerate(qs.all()):
+    #         if item.work_order != count:
+    #             item.work_order = count
+    #             item.save()
 
-        qs = instance.related_work_queryset()
-        for count, item in enumerate(qs.all()):
-            if item.work_order != count:
-                item.work_order = count
-                item.save()
+    #     # request that the antiquarian involved reindex their fragment links
+    #     if instance.antiquarian:
+    #         instance.antiquarian.reindex_fragment_and_testimonium_links()
 
-        # request that the antiquarian involved reindex their fragment links
-        if instance.antiquarian:
-            instance.antiquarian.reindex_fragment_and_testimonium_links()
-
-        # also check order of unattached links it
-        # works for null antiquarian also
-        Antiquarian.reindex_null_fragment_and_testimonium_links()
+    #     # also check order of unattached links it
+    #     # works for null antiquarian also
+    # Antiquarian.reindex_null_fragment_and_testimonium_links()
 
 
 m2m_changed.connect(check_order_info, sender=FragmentLink)
@@ -382,7 +465,6 @@ post_delete.connect(reindex_order_info, sender=TestimoniumLink)
 
 
 class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
-
     # abstract base class for shared properties of fragments and testimonia
     class Meta:
         abstract = True
@@ -489,7 +571,6 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
         return mark_safe(first_line)
 
     def get_citing_display(self, for_citing_author=None):
-
         # if citing author passed as arg we need to put their original texts
         # first when displaying info
         if for_citing_author:
@@ -528,13 +609,14 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
         links = self.get_all_links().order_by("work", "antiquarian", "order")
         names = []
         for link in links:
-            if link.work:
+            if link.work and not link.work.unknown:
                 name = "%s [= %s]" % (
                     link.get_work_display_name(),
                     link.get_display_name(),
                 )
             else:
                 name = "%s" % link.get_display_name()
+                # TODO: do we need this anymore?
             if show_certainty and not link.definite:
                 name += " (possible)"
             names.append(name)

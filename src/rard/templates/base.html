@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="x-ua-compatible" content="ie=edge">
-    <title>{% block title %}Roman Republican Antiquarians Research Database{% endblock title %}</title>
+    <title>{% block title %}{% endblock title %} | Roman Republican Antiquarians Research Database</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="The Republican Antiquarians Research Database Project">
     <meta name="author" content="UCL">
@@ -27,6 +27,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-select@1.13.14/dist/css/bootstrap-select.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
     <link href="https://quill-mention.github.io/quill-mention/quill.mention.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/htmx.org@1.9.2" integrity="sha384-L6OqL9pRWyyFU3+/bjdSri+iIphTN/bvYyM37tICVyOJkWZLpP2vGn6VUEXgzg6h" crossorigin="anonymous"></script>
 
     <!-- This file stores project-specific CSS -->
 
@@ -38,123 +39,6 @@
     <!-- Styling to make it obvious we're not in production -->
     <link href="{% static 'css/development.css' %}" rel="stylesheet">
     {% endif %}
-    <!-- Temporary demo css. Remove when adding official style -->
-    <style>
-
-      .ql-editor {
-        background-color: white!important;
-        font-size: 18px;
-      }
-      .ql-mention-list-container {
-        max-height: 400px;
-        overflow-y: auto;
-      }
-      .mention.error {
-        background:#f1baba!important;
-      }
-      .bad-link {
-        height: 24px;
-        border-radius: 6px;
-        padding: 3px;
-        margin-right: 2px;
-        user-select: all;
-        color: red;
-        background:#f1baba!important;
-        /* font-weight: bold; */
-      }
-      @font-face {
-          font-family: Alphabetum;
-          src: url("{% static 'fonts/ALPHABETUM_v_12.00.otf' %}") format("opentype");
-      }
-
-      @font-face {
-          font-family: Alphabetum;
-          src: url("{% static 'fonts/ExtraSymbols.otf' %}") format("opentype");
-          unicode-range: U+2C41;
-      }
-
-      .alphabetum {
-          font-family: Alphabetum!important;
-      }
-
-      body {
-        font-family: Arial, Helvetica, sans-serif;
-      }
-      form a, form button, .actions a {
-        font-family: Arial, Helvetica, sans-serif!important;
-        font-size: initial!important;
-      }
-      .form-control {
-        font-size: 1.1rem;
-      }
-      .historical{
-        font-family: 'Alphabetum';
-      }
-      .also {
-        font-size: 80%;
-        color: #888;
-      }
-      .historical .also {
-        font-size: 18px;
-      }
-      .alphabetum, dd, .form-control, .rard-list-item, .form-group label {
-        font-family: 'Alphabetum';
-        font-size: large;
-      }
-
-      .rard-list-item {
-        font-family: 'Alphabetum';
-      } */
-      .rard-list-item-actions {
-        visibility: hidden;
-      }
-      .rard-list-item:hover .rard-list-item-actions {
-          visibility: visible;
-      }
-      .rard-list-item {
-        padding-top: 10px;
-        padding-bottom: 10px;
-      }
-      .rard-list-item:hover {
-        background: #f8f9fa;
-      }
-      .required label::after {
-        content: '*'
-      }
-      img.character {
-          height: 1em!important;
-          max-height: 1em!important;
-          padding: 0.2em 0em!important;
-          width: auto!important;
-      }
-      img.character.asterisk {
-          content:url("/static/images/characters/asterisk.svg");
-      }
-      img.character.diple_periestigmene {
-          content:url("/static/images/characters/diple_periestigmene.svg");
-      }
-      .show-detail.collapsed::after {
-        content: '+'
-      }
-      .show-detail::after {
-        content: '-'
-      }
-      .toggle-element.hidden {
-        display:none!important;
-      }
-      .toggle-element {
-        display:block!important;
-
-      }
-      .rich-editor {
-        font-family: Alphabetum!important;
-      }
-      button.insert {
-          width: 30px;
-          height: 30px;
-          margin: 5px 5px 5px 5px;
-      }
-    </style>
 
     {% endblock %}
 
@@ -173,6 +57,7 @@
           {% trans "Roman Republican Antiquarians Research Database" %}
           {% if not PRODUCTION_INSTANCE %}
             (NON PRODUCTION VERSION)
+            <div class="non-prod-column"></div>
           {% endif %}
         </a>
 

@@ -13,6 +13,7 @@ from rard.research.models.mixins import HistoryModelMixin
 from rard.research.models.topic import Topic
 from rard.utils.basemodel import DatedModel, OrderableModel
 from rard.utils.decorators import disable_for_loaddata
+from rard.utils.shared_functions import organise_links
 from rard.utils.text_processors import make_plain_text
 
 
@@ -55,7 +56,6 @@ post_delete.connect(handle_deleted_topic_link, sender=TopicLink)
 
 
 class Fragment(HistoryModelMixin, HistoricalBaseModel, DatedModel):
-
     history = HistoricalRecords(
         excluded_fields=[
             "topics",
@@ -71,50 +71,69 @@ class Fragment(HistoryModelMixin, HistoricalBaseModel, DatedModel):
 
     original_texts = GenericRelation("OriginalText", related_query_name="fragments")
 
-    def definite_work_and_book_links(self):
+    # these definite/possible querysets are only used in tests...
+    def definite_book_links(self):
         return (
             self.antiquarian_fragmentlinks.filter(
-                definite=True,
-                work__isnull=False,
+                definite_book=True,
             )
             .order_by("work", "-book")
             .distinct()
         )
 
-    def possible_work_and_book_links(self):
+    def possible_book_links(self):
         return (
             self.antiquarian_fragmentlinks.filter(
-                definite=False,
-                work__isnull=False,
+                definite_book=False,
+            )
+            .order_by("work", "-book")
+            .distinct()
+        )
+
+    def definite_work_links(self):
+        return (
+            self.antiquarian_fragmentlinks.filter(
+                definite_work=True,
+            )
+            .order_by("work", "-book")
+            .distinct()
+        )
+
+    def possible_work_links(self):
+        return (
+            self.antiquarian_fragmentlinks.filter(
+                definite_work=False,
             )
             .order_by("work", "-book")
             .distinct()
         )
 
     def definite_antiquarian_links(self):
-        return self.antiquarian_fragmentlinks.filter(definite=True, work__isnull=True)
+        return self.antiquarian_fragmentlinks.filter(definite_antiquarian=True)
 
     def possible_antiquarian_links(self):
-        return self.antiquarian_fragmentlinks.filter(definite=False, work__isnull=True)
+        return self.antiquarian_fragmentlinks.filter(definite_antiquarian=False)
 
     def get_absolute_url(self):
         return reverse("fragment:detail", kwargs={"pk": self.pk})
 
     def get_all_names(self):
-        return [
-            link.get_display_name()
-            # for link in self.get_all_links().order_by(
-            #     'antiquarian', 'order'
-            # ).distinct()
-            for link in self.get_all_links()
-        ]
+        return [link.get_display_name() for link in self.get_all_links()]
 
     def get_all_links(self):
         return (
             FragmentLink.objects.filter(fragment=self)
-            .order_by("antiquarian", "order")
+            .order_by(
+                "antiquarian__name",
+                "work__worklink__order",
+                "book__unknown",
+                "book__order",
+            )
             .distinct()
         )
+
+    def get_organised_links(self):
+        return organise_links(self)
 
     def get_all_appositum_links(self):
         return self.appositumfragmentlinks_to.order_by("work", "work_order")
@@ -136,7 +155,6 @@ class Fragment(HistoryModelMixin, HistoricalBaseModel, DatedModel):
 
 
 class AnonymousTopicLink(OrderableModel):
-
     # need a different class for anonymous topics so they can
     # vary independently
 
@@ -166,7 +184,6 @@ class AnonymousTopicLink(OrderableModel):
 class AnonymousFragment(
     HistoryModelMixin, OrderableModel, HistoricalBaseModel, DatedModel
 ):
-
     history = HistoricalRecords(
         excluded_fields=[
             "topics",
@@ -207,9 +224,17 @@ class AnonymousFragment(
     def get_all_links(self):
         return (
             AppositumFragmentLink.objects.filter(anonymous_fragment=self)
-            .order_by("antiquarian", "order")
+            .order_by(
+                "antiquarian__name",
+                "work__worklink__order",
+                "book__unknown",
+                "book__order",
+            )
             .distinct()
         )
+
+    def get_organised_links(self):
+        return organise_links(self)
 
     def get_display_name(self):
         return "Anonymous F%s" % (self.order + 1)

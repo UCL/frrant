@@ -1,5 +1,4 @@
 import pytest
-from django.db.utils import IntegrityError
 from django.test import TestCase
 from django.urls import reverse
 
@@ -31,31 +30,43 @@ class TestWork(TestCase):
         workc = Work.objects.create(name="ccc")
 
         # 1. check anonymous ordering
-        self.assertEqual([w for w in Work.objects.all()], [worka, workb, workc])
+        self.assertEqual(
+            [w for w in Work.objects.exclude(unknown=True)], [worka, workb, workc]
+        )
 
         antc.works.add(workb)
         # this should now be last with anon works at the start
-        self.assertEqual([w for w in Work.objects.all()], [worka, workc, workb])
+        self.assertEqual(
+            [w for w in Work.objects.exclude(unknown=True)], [worka, workc, workb]
+        )
 
         # the name of the antiquarian should put work c second
         antb.works.add(workc)
-        self.assertEqual([w for w in Work.objects.all()], [worka, workc, workb])
+        self.assertEqual(
+            [w for w in Work.objects.exclude(unknown=True)], [worka, workc, workb]
+        )
         # even if we also add antc as an author of workc, as the name of
         # antiquarian antb should govern the order
         antc.works.add(workb)
-        self.assertEqual([w for w in Work.objects.all()], [worka, workc, workb])
+        self.assertEqual(
+            [w for w in Work.objects.exclude(unknown=True)], [worka, workc, workb]
+        )
 
         # now, put worka as a work of anta and this should be first in the
         # list as the name of the antiquarian and then the work should be
         # ahead of the others
         anta.works.add(worka)
-        self.assertEqual([w for w in Work.objects.all()], [worka, workc, workb])
+        self.assertEqual(
+            [w for w in Work.objects.exclude(unknown=True)], [worka, workc, workb]
+        )
 
         # final test - antiquarian name takes precedence
         anta.works.set([workc])
         antb.works.set([workb])
         antc.works.set([worka])
-        self.assertEqual([w for w in Work.objects.all()], [workc, workb, worka])
+        self.assertEqual(
+            [w for w in Work.objects.exclude(unknown=True)], [workc, workb, worka]
+        )
 
     def test_required_fields(self):
         self.assertFalse(Work._meta.get_field("name").blank)
@@ -200,7 +211,7 @@ class TestWork(TestCase):
             FragmentLink.objects.create(
                 work=work1,
                 fragment=fragment,
-                definite=True,
+                definite_work=True,
             )
         # shoud appear in work1's definite fragments only
         self.assertEqual(
@@ -213,7 +224,7 @@ class TestWork(TestCase):
         self.assertEqual(0, len(work2.possible_fragments()))
 
         # make these links possible...
-        FragmentLink.objects.update(definite=False)
+        FragmentLink.objects.update(definite_work=False)
         # shoud appear in work1's possible fragments only
         self.assertEqual(
             [x.pk for x in work1.possible_fragments()],
@@ -225,7 +236,7 @@ class TestWork(TestCase):
         self.assertEqual(0, len(work2.possible_fragments()))
 
         # switch all fragment links to work2 and make definite...
-        FragmentLink.objects.update(work=work2, definite=True)
+        FragmentLink.objects.update(work=work2, definite_work=True)
 
         # shoud appear in work2's definite fragments only
         self.assertEqual(
@@ -238,7 +249,7 @@ class TestWork(TestCase):
         self.assertEqual(0, len(work1.possible_fragments()))
 
         # finally make possible and check...
-        FragmentLink.objects.update(definite=False)
+        FragmentLink.objects.update(definite_work=False)
         # shoud appear in work2's possible fragments only
         self.assertEqual(
             [x.pk for x in work2.possible_fragments()],
@@ -273,7 +284,7 @@ class TestWork(TestCase):
             TestimoniumLink.objects.create(
                 work=work1,
                 testimonium=testimonium,
-                definite=True,
+                definite_work=True,
             )
         # shoud appear in work1's definite testimonia only
         self.assertEqual(
@@ -286,7 +297,7 @@ class TestWork(TestCase):
         self.assertEqual(0, len(work2.possible_testimonia()))
 
         # make these links possible...
-        TestimoniumLink.objects.update(definite=False)
+        TestimoniumLink.objects.update(definite_work=False)
         # shoud appear in work1's possible testimonia only
         self.assertEqual(
             [x.pk for x in work1.possible_testimonia()],
@@ -298,7 +309,7 @@ class TestWork(TestCase):
         self.assertEqual(0, len(work2.possible_testimonia()))
 
         # switch all testimonium links to work2 and make definite...
-        TestimoniumLink.objects.update(work=work2, definite=True)
+        TestimoniumLink.objects.update(work=work2, definite_work=True)
 
         # shoud appear in work2's definite testimonia only
         self.assertEqual(
@@ -311,7 +322,7 @@ class TestWork(TestCase):
         self.assertEqual(0, len(work1.possible_testimonia()))
 
         # finally make possible and check...
-        TestimoniumLink.objects.update(definite=False)
+        TestimoniumLink.objects.update(definite_work=False)
         # shoud appear in work2's possible testimonia only
         self.assertEqual(
             [x.pk for x in work2.possible_testimonia()],
@@ -339,7 +350,7 @@ class TestBook(TestCase):
             "number": "1",
             "subtitle": "Subtitle",
         }
-        with self.assertRaises(IntegrityError):
+        with self.assertRaises(Book.work.RelatedObjectDoesNotExist):
             Book.objects.create(**data_no_work)
 
     def test_required_fields(self):

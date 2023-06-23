@@ -17,10 +17,8 @@ from rard.research.templatetags.entity_escape import entity_escape
 
 
 class DynamicTextField(TextField):
-
     # class to search for dynamic links in text fields
     def contribute_to_class(self, cls, name, **kwargs):
-
         super().contribute_to_class(cls, name, **kwargs)
         if not self.null:
             field_name = self.name
@@ -221,17 +219,29 @@ class DynamicTextField(TextField):
                 do the same for any related antiquarians
                 """
                 if self.fragment:
-                    antiquarians = [ant for link.antiquarian in self.fragment.get_all_links() if link.antiquarian is not None]
-                    
+                    antiquarians = [
+                        link.antiquarian
+                        for link in self.fragment.get_all_links()
+                        if link.antiquarian is not None
+                    ]
+
                 if self.anonymousfragment:
-                    antiquarians = [ant for link.antiquarian in self.anonymousfragment.get_all_links() if link.antiquarian is not None]
-                    
+                    antiquarians = [
+                        link.antiquarian
+                        for link in self.anonymousfragment.get_all_links()
+                        if link.antiquarian is not None
+                    ]
+
                 if self.testimonium:
-                    antiquarians = [ant for link.antiquarian in self.testimonium.get_all_links() if link.antiquarian is not None]
-                    
+                    antiquarians = [
+                        link.antiquarian
+                        for link in self.testimonium.get_all_links()
+                        if link.antiquarian is not None
+                    ]
+
                 if self.antiquarian:
                     antiquarians = [self.antiquarian]
-                
+
                 value = getattr(self, field_name)
                 soup = bs4.BeautifulSoup(value, features="html.parser")
                 links = soup.find_all("span", class_="mention")
@@ -247,7 +257,7 @@ class DynamicTextField(TextField):
                             bib_item = model.objects.get(pk=int(pkstr))
                             for ant in antiquarians:
                                 ant.bibliography_items.add(bib_item)
-                            
+
                         except ObjectDoesNotExist:
                             # If bibliography item has been deleted, we want to ignore,
                             # as it should still be rendered as unlinked
@@ -295,7 +305,6 @@ class ObjectLockRequest(TimeStampedModel, models.Model):
 
 
 class BaseModel(TimeStampedModel, models.Model):
-
     # defines a base model with any required
     # additional common functionality
     class Meta:
@@ -320,7 +329,6 @@ class LockableModel(models.Model):
         )
 
     def break_lock(self, broken_by_user):
-
         if not broken_by_user.can_break_locks:
             return
 
@@ -380,7 +388,6 @@ class LockableModel(models.Model):
         )
 
     def unlock(self):
-
         object_lock = self.get_object_lock()
 
         if not object_lock:
@@ -393,7 +400,6 @@ class LockableModel(models.Model):
 
         # notify anyone with a lock request of the event
         for lock_request in object_lock.objectlockrequest_set.all():
-
             html_email_template = "research/emails/item_unlocked.html"
             current_site = get_current_site(None)
             context = {
@@ -423,7 +429,6 @@ class LockableModel(models.Model):
             send_mail(*args, **kwargs)
 
     def check_lock_expired(self):
-
         object_lock = self.get_object_lock()
         if not object_lock:
             return

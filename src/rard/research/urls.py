@@ -212,6 +212,11 @@ urlpatterns = [
                         name="update",
                     ),
                     path(
+                        "update-link/<pk>",
+                        views.FragmentUpdateWorkLinkView.as_view(),
+                        name="update_fragment_link",
+                    ),
+                    path(
                         "<pk>/update/commentary/",
                         views.FragmentUpdateCommentaryView.as_view(),
                         name="update_commentary",
@@ -336,6 +341,11 @@ urlpatterns = [
                         name="update",
                     ),
                     path(
+                        "update-link/<pk>",
+                        views.TestimoniumUpdateWorkLinkView.as_view(),
+                        name="update_testimonium_link",
+                    ),
+                    path(
                         "<pk>/update/commentary/",
                         views.TestimoniumUpdateCommentaryView.as_view(),
                         name="update_commentary",
@@ -436,6 +446,20 @@ urlpatterns = [
                 "research",
             ),
             namespace="search",
+        ),
+    ),
+    path(
+        "unlinked/",
+        include(
+            (
+                [
+                    path(
+                        "list/", views.UnlinkedFragmentListView.as_view(), name="list"
+                    ),
+                ],
+                "research",
+            ),
+            namespace="unlinked_fragment",
         ),
     ),
     path(

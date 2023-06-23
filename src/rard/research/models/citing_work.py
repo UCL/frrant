@@ -81,7 +81,6 @@ class CitingAuthor(HistoryModelMixin, LockableModel, DatedModel, BaseModel):
 
 
 class CitingWork(HistoryModelMixin, LockableModel, DatedModel, BaseModel):
-
     history = HistoricalRecords(excluded_fields=[])
 
     def related_lock_object(self):

@@ -12,11 +12,15 @@ from rard.utils.text_processors import make_plain_text
 
 
 class WorkLink(OrderableModel, models.Model):
+    """Through-model for Work to Antiquarian, m2m"""
+
     class Meta:
-        ordering = ["order"]
+        ordering = ["work__unknown", "order"]
 
     def related_queryset(self):
-        return self.__class__.objects.filter(antiquarian=self.antiquarian)
+        return self.__class__.objects.filter(
+            antiquarian=self.antiquarian, work__unknown=False
+        )
 
     antiquarian = models.ForeignKey("Antiquarian", null=False, on_delete=models.CASCADE)
 
@@ -28,7 +32,6 @@ class WorkLink(OrderableModel, models.Model):
 
 @disable_for_loaddata
 def handle_deleted_work_link(sender, instance, **kwargs):
-
     if instance.work and instance.work.antiquarian_set.count() == 0:
         work = instance.work
         # prevent multiple anon links
@@ -104,7 +107,6 @@ post_save.connect(handle_reordered_works, sender=WorkLink)
 class Antiquarian(
     HistoryModelMixin, TextObjectFieldMixin, LockableModel, DatedModel, BaseModel
 ):
-
     history = HistoricalRecords(excluded_fields=[])
 
     def related_lock_object(self):
@@ -147,6 +149,19 @@ class Antiquarian(
         "BibliographyItem", related_name="antiquarians", blank=True
     )
 
+    @property
+    def ordered_works(self):
+        # ordered
+        from rard.research.models import Work
+
+        return Work.objects.filter(worklink__antiquarian=self).order_by(
+            "unknown", "worklink__order"
+        )
+
+    @property
+    def unknown_work(self):
+        return self.works.filter(unknown=True).first()
+
     def __str__(self):
         return self.name
 
@@ -163,15 +178,6 @@ class Antiquarian(
             self.plain_introduction = make_plain_text(self.introduction.content)
         super().save(*args, **kwargs)
 
-    @property
-    def ordered_works(self):
-        # ordered
-        from rard.research.models import Work
-
-        return Work.objects.filter(worklink__antiquarian=self).order_by(
-            "worklink__order"
-        )
-
     def reindex_work_links(self):
         # where there has been a change, ensure the
         # ordering of works is correct (zero-indexed)
@@ -180,7 +186,7 @@ class Antiquarian(
         # single db update
         with transaction.atomic():
             links = WorkLink.objects.filter(antiquarian=self).order_by(
-                models.F(("order")).asc(nulls_first=False)
+                "work__unknown", models.F(("order")).asc(nulls_first=False)
             )
             for count, link in enumerate(links):
                 if link.order != count:
@@ -226,7 +232,6 @@ class Antiquarian(
         )
 
         with transaction.atomic():
-
             to_ensure = [
                 FragmentLink.objects.filter(work=work).exclude(antiquarian=self),
                 TestimoniumLink.objects.filter(work=work).exclude(antiquarian=self),
@@ -241,7 +246,9 @@ class Antiquarian(
                         "antiquarian": self,
                         "work": link.work,
                         "book": link.book,
-                        "definite": link.definite,
+                        "definite_antiquarian": link.definite_antiquarian,
+                        "definite_work": link.definite_work,
+                        "definite_book": link.definite_book,
                         link.linked_field: getattr(link, link.linked_field),
                     }
                     link.__class__.objects.get_or_create(**data)
@@ -257,14 +264,12 @@ class Antiquarian(
                 qs.delete()
 
     def reindex_fragment_and_testimonium_links(self):
-
         # when the order of works changes wrt to this antiquarian we need to
         # reflect these changes in all of our linked fragments and testimonia
 
         from django.db import transaction
 
         with transaction.atomic():
-
             # for any works that were linked to this antiquarian but still have
             # other authors, we need to delete our links to those works
             deleteable = [
@@ -314,7 +319,10 @@ class Antiquarian(
 
             to_reorder = [
                 self.fragmentlinks.all()
-                .order_by("work__worklink__order", "work_order")
+                .order_by(
+                    "work__worklink__order",
+                    "work_order",
+                )
                 .distinct(),
                 # We want testimonium links without works to be ordered first
                 # but for some reason adding "-work__isnull" to the order_by
@@ -324,11 +332,18 @@ class Antiquarian(
                     self.testimoniumlinks.all().filter(work__isnull=True).distinct(),
                     self.testimoniumlinks.all()
                     .filter(work__isnull=False)
-                    .order_by("work__worklink__order", "work_order")
+                    .order_by(
+                        "-work__unknown",
+                        "work__worklink__order",
+                        "work_order",
+                    )
                     .distinct(),
                 ),
                 self.appositumfragmentlinks.all()
-                .order_by("work__worklink__order", "work_order")
+                .order_by(
+                    "work__worklink__order",
+                    "work_order",
+                )
                 .distinct(),
             ]
 
@@ -339,6 +354,24 @@ class Antiquarian(
                         link.save()
 
             self.reindex_null_fragment_and_testimonium_links()
+
+
+@disable_for_loaddata
+def create_unknown_work(sender, instance, **kwargs):
+    from rard.research.models import Work
+
+    if not instance.unknown_work:
+        # create unknown work if doesn't exist
+        unknown_work = Work.objects.create(
+            name="Unknown Work",
+            unknown=True,
+        )
+        unknown_work.antiquarian_set.add(instance)
+        unknown_work.save()
+    else:
+        # update existing
+        instance.unknown_work.antiquarian_set.add(instance)
+        instance.unknown_work.save()
 
 
 @disable_for_loaddata
@@ -366,12 +399,13 @@ def remove_stale_antiquarian_links(sender, instance, **kwargs):
 
 pre_delete.connect(remove_stale_antiquarian_links, sender=Antiquarian)
 
+post_save.connect(create_unknown_work, sender=Antiquarian)
+
 
 Antiquarian.init_text_object_fields()
 
 
 class AntiquarianConcordance(HistoryModelMixin, BaseModel):
-
     history = HistoricalRecords()
 
     def related_lock_object(self):

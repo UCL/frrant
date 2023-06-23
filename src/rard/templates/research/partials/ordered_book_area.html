@@ -1,0 +1,48 @@
+{% load i18n %}
+<div class="ordered-list parent-ordering-group">
+{% for book, content in ordered_materials.items %}
+
+    <div id="{{ book.get_anchor_id }}" class="pb-4">
+
+    {% if book.unknown == True %}
+    <h5>{{ book }}</h5>
+    {% else %}
+    <h5>{{ book }}
+        {% if can_edit and has_object_lock %}
+        <button data-book='{{ book.pk }}' data-work='{{ book.work.pk }}' data-objecttype='book' data-pos='{{ forloop.counter0 }}' type='button' class='btn btn-light btn-sm' {% if forloop.first or disable_link_controls %}disabled{% endif %} name='book_up'><i class='fas fa-caret-up'></i></button>
+        <button data-book='{{ book.pk }}' data-work='{{ book.work.pk }}' data-objecttype='book' data-pos='{{ forloop.counter0 }}' type='button' class='btn btn-light btn-sm' {% if forloop.last or disable_link_controls %}disabled{% endif %} name='book_down'><i class='fas fa-caret-down'></i></button>
+        {% endif %}
+    </h5>
+    {% endif %}
+
+        <div>
+            <div>
+            {% if content.fragments %}
+                {% for fragment in content.fragments %}
+                    {% include 'research/partials/fragment_link_list_item.html' with link=fragment can_edit=can_edit has_object_lock=has_object_lock %}
+                {% endfor %}
+            {% endif %}
+            </div>
+
+            <div>
+            {% if content.testimonia %}
+                <h6>{% trans 'Testimonia' %}</h6>
+                {% for testimonium in content.testimonia %}
+                    {% include 'research/partials/testimonium_link_list_item.html' with link=testimonium can_edit=can_edit has_object_lock=has_object_lock %}
+                {% endfor %}
+            {% endif %}
+            </div>
+
+            <div>
+            {% if content.apposita %}
+                <h6>{% trans 'Apposita' %}</h6>
+                {% for appositum in content.apposita %}
+                    {% include 'research/partials/appositum_fragment_link_list_item.html' with link=appositum can_edit=can_edit has_object_lock=has_object_lock %}
+                    {% endfor %}
+            {% endif %}
+            </div>
+
+        </div>
+    </div>
+{% endfor %}
+</div>

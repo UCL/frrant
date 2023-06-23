@@ -27,7 +27,7 @@ class TestMentionsView(TestCase):
         self.url = reverse("search:mention")
         self.view = MentionSearchView()
 
-        # create basic search items
+        # create basic search items, these will each have an Unknown Work by default
         self.antman = Antiquarian.objects.create(name="antman", re_code="1")
         self.andrew = Antiquarian.objects.create(name="andrew", re_code="2")
         self.bixby = Antiquarian.objects.create(name="bixby", re_code="3")
@@ -218,9 +218,8 @@ class TestMentionsView(TestCase):
         ) as mock_search_method:
             view.get_queryset()
             mock_search_method.assert_called_with([])
-
         # no search term
-        self.assertEqual(len(list(view.get_queryset())), 3)
+        self.assertEqual(len(list(view.get_queryset())), 6)
 
         # number as search: only applicable if number in antiquarian/name
         view.request = self.request(
@@ -243,9 +242,10 @@ class TestMentionsView(TestCase):
                 "q": "wk:and",
             }
         )
-        self.assertEqual(len(list(view.get_queryset())), 2)
+        self.assertEqual(len(list(view.get_queryset())), 3)
         self.assertCountEqual(
-            list(view.get_queryset()), [self.andropov, self.provisions]
+            list(view.get_queryset()),
+            [self.andropov, self.provisions, self.andrew.unknown_work],
         )
 
     def test_anonymous_fragment_search(self):

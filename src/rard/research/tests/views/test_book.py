@@ -11,7 +11,6 @@ pytestmark = pytest.mark.django_db
 
 class TestBookUpdateView(TestCase):
     def test_context_data(self):
-
         work = Work.objects.create(name="name")
         book = Book.objects.create(work=work, number=1)
         url = reverse("work:update_book", kwargs={"pk": book.pk})
@@ -41,7 +40,6 @@ class TestBookUpdateView(TestCase):
 
 class TestBookCreateView(TestCase):
     def test_context_data(self):
-
         work = Work.objects.create(name="name")
         url = reverse("work:create_book", kwargs={"pk": work.pk})
         request = RequestFactory().get(url)
@@ -66,7 +64,6 @@ class TestBookCreateView(TestCase):
         self.assertEqual(view.get_success_url(), f"/work/{view.work.pk}/")
 
     def test_create(self):
-
         work = Work.objects.create()
         url = reverse("work:create_book", kwargs={"pk": work.pk})
 
@@ -77,14 +74,16 @@ class TestBookCreateView(TestCase):
         work.lock(request.user)
 
         BookCreateView.as_view()(request, pk=work.pk)
-        self.assertEqual(work.book_set.count(), 1)
+        self.assertEqual(work.book_set.exclude(unknown=True).count(), 1)
         for key, val in data.items():
-            self.assertEqual(getattr(work.book_set.first(), key), val)
+            self.assertEqual(
+                getattr(work.book_set.exclude(unknown=True).first(), key), val
+            )
+        self.assertIn(work.unknown_book, work.book_set.all())
 
 
 class TestBookDeleteView(TestCase):
     def test_post_only(self):
-
         work = Work.objects.create(name="name")
         book = Book.objects.create(number=1, work=work)
         url = reverse("work:delete_book", kwargs={"pk": book.pk})

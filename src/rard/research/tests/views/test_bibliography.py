@@ -6,6 +6,7 @@ from rard.research.models import Antiquarian, BibliographyItem  # , bibliography
 from rard.research.views import (
     BibliographyCreateView,
     BibliographyDeleteView,
+    BibliographyDetailView,
     BibliographyUpdateView,
 )
 from rard.users.tests.factories import UserFactory
@@ -15,7 +16,6 @@ pytestmark = pytest.mark.django_db
 
 class TestBibliographyUpdateView(TestCase):
     def test_success_url(self):
-
         bibitem = BibliographyItem.objects.create(
             authors="author name",
             author_surnames="author",
@@ -34,7 +34,6 @@ class TestBibliographyUpdateView(TestCase):
 
 class TestBibliographyDeleteView(TestCase):
     def test_post_only(self):
-
         bibitem = BibliographyItem.objects.create(
             authors="author name",
             author_surnames="author",
@@ -47,7 +46,6 @@ class TestBibliographyDeleteView(TestCase):
         self.assertEqual(response.status_code, 405)
 
     def test_delete_success_url(self):
-
         bibitem = BibliographyItem.objects.create(
             authors="author name",
             author_surnames="author",
@@ -192,25 +190,23 @@ class TestBibliographyCreateView(TestCase):
         )
 
 
-"""@pytest.mark.runit
 class TestBibliographyDetailView(TestCase):
-
     def test_get_context_data(self):
-        #a1 = Antiquarian.objects.create(name="foo", re_code=3)
-        #a2 = Antiquarian.objects.create(name="zoo", re_code=4)
+        # a1 = Antiquarian.objects.create(name="foo", re_code=3)
+        # a2 = Antiquarian.objects.create(name="zoo", re_code=4)
         data = {
             "authors": "Hartley, J. R.",
             "author_surnames": "Hartley",
             "title": "Fly Fishing",
             "year": "1855",
-        #    "antiquarians":[a1.pk,a2.pk]
+            #    "antiquarians":[a1.pk,a2.pk]
         }
         bibliography = BibliographyItem(**data)
-        #bibliography.antiquarians.add(a1)
-        #bibliography.antiquarians.add(a2)
-        url = reverse("bibliography:detail",kwargs = {"pk":bibliography.pk})
+        # bibliography.antiquarians.add(a1)
+        # bibliography.antiquarians.add(a2)
+        url = reverse("bibliography:detail", kwargs={"pk": bibliography.pk})
         request = RequestFactory().get(url)
         request.user = UserFactory.create()
         bibliography.lock(request.user)
-        response = BibliographyDetailView.as_view()(request,pk=bibliography.pk)
-        self.assertEqual(response.context_data["title"],bibliography.title)"""
+        response = BibliographyDetailView.as_view()(request, pk=bibliography.pk)
+        self.assertEqual(response.context_data["title"], bibliography.title)
