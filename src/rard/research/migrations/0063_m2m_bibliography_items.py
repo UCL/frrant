@@ -23,7 +23,7 @@ def add_antiquarian_m2m_relations_to_bibliography_items(apps,schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('research', '0060_add_reference_model'),
+        ('research', '0062_definite_possible_clarity'),
     ]
 
     operations = [
