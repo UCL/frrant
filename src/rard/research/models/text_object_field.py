@@ -2,7 +2,6 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ObjectDoesNotExist
 from simple_history.models import HistoricalRecords
 
-from rard.research.models import Antiquarian
 from rard.research.models.mixins import HistoryModelMixin
 from rard.utils.basemodel import BaseModel, DynamicTextField
 
@@ -22,10 +21,8 @@ class TextObjectField(HistoryModelMixin, BaseModel):
     references = GenericRelation("BibliographyItem", related_query_name="text_fields")
 
     def get_history_title(self):
-        from rard.research.models import Book, Work
-
         obj = self.get_related_object()
-        if isinstance(obj, (Antiquarian, Work, Book)):
+        if obj.__class__.__name__ in ["Antiquarian", "Work", "Book"]:
             return "Introduction"
         return "Commentary"
 
@@ -43,6 +40,11 @@ class TextObjectField(HistoryModelMixin, BaseModel):
             except ObjectDoesNotExist:
                 pass
         return None
+
+    def save(self, *args, **kwargs):
+        obj = self.get_related_object()
+        obj.save()
+        super().save(*args, **kwargs)
 
     @property
     def fragment(self):
