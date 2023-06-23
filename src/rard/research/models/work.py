@@ -60,9 +60,6 @@ class Work(
     )
     plain_introduction = models.TextField(blank=False, default="")
 
-    def book_set(self):
-        return super().book_set().order_by("unknown", "order", "number")
-
     @property
     def unknown_book(self):
         return self.book_set.filter(unknown=True).first()
