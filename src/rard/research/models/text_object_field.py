@@ -43,7 +43,8 @@ class TextObjectField(HistoryModelMixin, BaseModel):
 
     def save(self, *args, **kwargs):
         obj = self.get_related_object()
-        obj.save()
+        if obj.__class__.__name__ in ["Antiquarian", "Work", "Book"]:
+            obj.save()
         super().save(*args, **kwargs)
 
     @property
