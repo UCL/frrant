@@ -219,28 +219,28 @@ class DynamicTextField(TextField):
                 do the same for any related antiquarians
                 """
                 if self.fragment:
-                    antiquarians = [
+                    antiquarians = {
                         link.antiquarian
                         for link in self.fragment.get_all_links()
                         if link.antiquarian is not None
-                    ]
+                    }
 
                 if self.anonymousfragment:
-                    antiquarians = [
+                    antiquarians = {
                         link.antiquarian
                         for link in self.anonymousfragment.get_all_links()
                         if link.antiquarian is not None
-                    ]
+                    }
 
                 if self.testimonium:
-                    antiquarians = [
+                    antiquarians = {
                         link.antiquarian
                         for link in self.testimonium.get_all_links()
                         if link.antiquarian is not None
-                    ]
+                    }
 
                 if self.antiquarian:
-                    antiquarians = [self.antiquarian]
+                    antiquarians = {self.antiquarian}
 
                 value = getattr(self, field_name)
                 soup = bs4.BeautifulSoup(value, features="html.parser")
