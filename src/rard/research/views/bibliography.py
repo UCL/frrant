@@ -1,8 +1,10 @@
 from itertools import permutations
+from typing import Any, List
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.http import HttpResponseRedirect
+from django.db.models.query import QuerySet
+from django.http import Http404, HttpResponseRedirect
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
@@ -10,7 +12,7 @@ from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from rard.research.forms import BibliographyItemForm
-from rard.research.models import BibliographyItem, TextObjectField
+from rard.research.models import Antiquarian, BibliographyItem, TextObjectField
 from rard.research.views.mixins import CanLockMixin, CheckLockMixin
 
 
@@ -55,14 +57,10 @@ class BibliographyCreateView(LoginRequiredMixin, PermissionRequiredMixin, Create
     title = "Create Bibliography Item"
     # change_antiquarian only required when adding an Antiquarian to a Bibliography,
     # sim CitingAuthor
-    permission_required = (
-        "research.change_antiquarian",
-        "research.add_bibliographyitem",
-        "research.change_citingauthor",
-    )
+    permission_required = "research.add_bibliographyitem"
 
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
         context.update(
             {
                 "title": self.title,
@@ -71,7 +69,48 @@ class BibliographyCreateView(LoginRequiredMixin, PermissionRequiredMixin, Create
         return context
 
     def get_success_url(self, *args, **kwargs):
-        return reverse("bibliography:detail", kwargs={"pk": self.object.pk})
+        if self.kwargs.get("linked_to") == "Antiquarian":
+            return reverse(
+                "antiquarian:bibliography",
+                kwargs={"pk": self.get_antiquarians().get().pk},
+            )
+        else:
+            return reverse("bibliography:detail", kwargs={"pk": self.object.pk})
+
+    def get_antiquarians(self) -> QuerySet:
+        """Called if linked_to = antiquarian, in which case
+        self.kwargs["pk"] is the Antiquarian's pk"""
+        queryset = Antiquarian.objects.all()
+        ant_pk = self.kwargs.get(self.pk_url_kwarg)
+        if ant_pk is None:
+            raise AttributeError(
+                f"{self.__class__.__name__} must be called with a pk "
+                "in the URLconf if linked_to = antiquarian."
+            )
+        try:
+            antiquarians = queryset.filter(pk=ant_pk)
+        except queryset.model.DoesNotExist:
+            raise Http404(
+                f"No {queryset.model._meta.verbose_name}s found matching the query"
+            )
+        return antiquarians
+
+    def get_form_kwargs(self):
+        """Return kwargs for instantiating the form with linked_to
+        object if applicable"""
+        kwargs = super().get_form_kwargs()
+        linked_to = self.kwargs.get("linked_to")
+        if linked_to == "Antiquarian" and self.request.method.lower() == "get":
+            kwargs.update(initial={"antiquarians": self.get_antiquarians()})
+        return kwargs
+
+    def get_template_names(self) -> List[str]:
+        # If pre-linked to antiquarian/citing author use the
+        # htmx template
+        if self.kwargs.get("linked_to"):
+            return ["research/inline_forms/bibliographyitem_form.html"]
+        else:
+            return super().get_template_names()
 
     def form_valid(self, form):
         rtn = super().form_valid(form)
@@ -80,22 +119,6 @@ class BibliographyCreateView(LoginRequiredMixin, PermissionRequiredMixin, Create
         for c in form.cleaned_data["citing_authors"]:
             c.bibliography_items.add(self.object)
         return rtn
-
-    """def get_antiquarian(self, *args, **kwargs):
-        # look for Antiquarian in the GET or POST parameters
-        # in case this bibliography is created from there
-        # use to add context
-        self.antiquarian = None
-        if self.request.method == "GET":
-            antiquarian_pk = self.request.GET.get("antiquarian", None)
-        elif self.request.method == "POST":
-            antiquarian_pk = self.request.POST.get("antiquarian", None)
-        if antiquarian_pk:
-            try:
-                self.antiquarian = Antiquarian.objects.get(pk=antiquarian_pk)
-            except Antiquarian.DoesNotExist:
-                raise Http404
-        return self.antiquarian"""
 
 
 class BibliographyUpdateView(
@@ -106,11 +129,7 @@ class BibliographyUpdateView(
     form_class = BibliographyItemForm
     title = "Edit Bibliography Item"
 
-    permission_required = (
-        "research.change_bibliographyitem",
-        "research.change_antiquarian",
-        "research.change_citingauthor",
-    )
+    permission_required = ("research.change_bibliographyitem",)
 
     def get_success_url(self, *args, **kwargs):
         return reverse("bibliography:detail", kwargs={"pk": self.object.pk})
@@ -206,3 +225,24 @@ class BibliographyDeleteView(
             )
         else:
             return super().delete(self, request, *args, **kwargs)
+
+
+class BibliographySectionView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    model = BibliographyItem
+    template_name = "research/partials/section/bibliography.html"
+    context_object_name = "bibliography_items"
+    permission_required = ("research.view_bibliographyitem",)
+
+    def get_queryset(self) -> QuerySet[Any]:
+        if self.model is not None:
+            queryset = self.model._default_manager.all()
+        self.ant_pk = self.kwargs.get("pk")
+        if self.ant_pk:
+            queryset = queryset.filter(antiquarians__id=self.ant_pk)
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.ant_pk:
+            context["antiquarian"] = Antiquarian.objects.get(id=self.ant_pk)
+        return context

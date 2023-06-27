@@ -1,0 +1,38 @@
+{% load i18n bootstrap4 static %}
+
+<form id="bib-inline-form" class="card card-body" novalidate autocomplete='off' hx-indicator="#spinner" hx-target="#bib-outer" hx-swap="innerHTML" hx-post='{{ request.path }}'>
+  {% csrf_token %}
+  <div class="form-row">
+    <div class="col">
+    {% bootstrap_field form.authors %}
+    </div>
+    <div class="col">
+    {% bootstrap_field form.author_surnames %}
+    </div>
+    <div class="col">
+    {% bootstrap_field form.year %}
+    </div>
+  </div>
+    {% bootstrap_field form.title field_class='d-none' %}
+    {% include 'research/partials/rich_text_editor.html' with field=form.title min_height=100 %}
+    {% bootstrap_field form.antiquarians %}
+    {% bootstrap_field form.citing_authors %}
+  <div>
+    <button type="submit" class="btn btn-primary">
+        {% if object %}
+            {% trans 'Save' %}
+        {% else %}
+            {% trans 'Create' %}
+        {% endif %}
+        <span id="spinner" class="spinner-border spinner-border-sm htmx-indicator" role="status" aria-hidden="true"></span>
+    </button>
+    <button
+      type="button"
+      class="btn btn-sm btn-outline-secondary inline-cancel-button"
+      _="on click transition #bib-inline-form's max-height to 0 then remove #bib-inline-form then show .bib-edit-button"
+      name="cancel"
+      value="cancel"
+      >{% trans 'Cancel' %}
+    </button>
+  </div>
+</form>

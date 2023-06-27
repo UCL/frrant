@@ -107,6 +107,33 @@ class AntiquarianDetailsForm(forms.ModelForm):
             ].initial = self.instance.bibliography_items.all()
 
 
+class AntiquarianLinkBibliographyItemForm(forms.ModelForm):
+    class Meta:
+        model = Antiquarian
+        fields = ["bibliography_items"]
+
+    bibliography_items = BibliographyModelMultipleChoiceField(
+        queryset=BibliographyItem.objects.all(),
+        widget=forms.SelectMultiple,
+        required=True,
+    )
+
+    def clean_bibliography_items(self):
+        """Add initial bibliography items so we only add new ones"""
+        data = self.cleaned_data["bibliography_items"]
+        return data.union(self.instance.bibliography_items.all())
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Init the existing bib item set and exclude these from queryset
+        self.fields[
+            "bibliography_items"
+        ].initial = self.instance.bibliography_items.all()
+        self.fields["bibliography_items"].queryset = BibliographyItem.objects.exclude(
+            antiquarians=self.instance.pk
+        )
+
+
 class AntiquarianCreateForm(forms.ModelForm):
     class Meta:
         model = Antiquarian
@@ -618,6 +645,11 @@ class BibliographyItemForm(HistoricalFormBase):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # if creating a bibliography item linked to a specific model
+        # hide the antiquarians and citing_authors fields
+        if self.initial.get("antiquarians"):
+            self.fields["antiquarians"].widget = forms.widgets.MultipleHiddenInput()
+            self.fields["citing_authors"].widget = forms.widgets.MultipleHiddenInput()
         # if editing a bibliography item init the antiquarian set
         if self.instance and self.instance.pk:
             self.fields["antiquarians"].initial = self.instance.antiquarians.all()

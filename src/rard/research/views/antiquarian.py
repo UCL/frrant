@@ -15,6 +15,7 @@ from rard.research.forms import (
     AntiquarianCreateForm,
     AntiquarianDetailsForm,
     AntiquarianIntroductionForm,
+    AntiquarianLinkBibliographyItemForm,
     AntiquarianUpdateWorksForm,
     WorkForm,
 )
@@ -377,3 +378,19 @@ class AntiquarianConcordanceDeleteView(
 
     def get_success_url(self, *args, **kwargs):
         return self.object.antiquarian.get_absolute_url()
+
+
+class AntiquarianLinkBibliographyItemView(
+    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
+):
+    model = Antiquarian
+    template_name = "research/inline_forms/link_bibliographyitem_form.html"
+    form_class = AntiquarianLinkBibliographyItemForm
+
+    permission_required = (
+        "research.change_bibliographyitem",
+        "research.change_antiquarian",
+    )
+
+    def get_success_url(self, *args, **kwargs):
+        return reverse("antiquarian:bibliography", kwargs={"pk": self.get_object().pk})

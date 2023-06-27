@@ -95,6 +95,22 @@ urlpatterns = [
                         name="update_introduction",
                     ),
                     path(
+                        "<pk>/add/bibliography-item/",
+                        views.BibliographyCreateView.as_view(),
+                        {"linked_to": "Antiquarian"},
+                        name="add_bibliographyitem",
+                    ),
+                    path(
+                        "<pk>/link-bibliography-item/",
+                        views.AntiquarianLinkBibliographyItemView.as_view(),
+                        name="link_bibliographyitem",
+                    ),
+                    path(
+                        "<pk>/bibliography/",
+                        views.BibliographySectionView.as_view(),
+                        name="bibliography",
+                    ),
+                    path(
                         "<pk>/delete/",
                         views.AntiquarianDeleteView.as_view(),
                         name="delete",

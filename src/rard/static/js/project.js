@@ -335,6 +335,7 @@ function initRichTextEditor($item) {
   new Quill("#" + $item.attr("id"), config);
 
   var for_id = $item.data("for");
+  var model_field = $item.data("model-field");
   var $for = $(`#${for_id}`);
 
   var html = $for.text();
@@ -344,6 +345,12 @@ function initRichTextEditor($item) {
   $("body").on("submit", "form", function (e) {
     let html = $item.find(".ql-editor").html();
     $for.text(html);
+  });
+  // When using htmx we can't hook into on submit,
+  // add html to post parameters directly instead
+  $("body").on("htmx:configRequest", function (e) {
+    let html = $item.find(".ql-editor").html();
+    e.detail.parameters[model_field] = html;
   });
 }
 
@@ -368,6 +375,14 @@ document.addEventListener("DOMContentLoaded", function (event) {
 
 window.addEventListener("beforeunload", function (e) {
   sessionStorage.setItem("scrollpos", window.scrollY);
+});
+
+// If swapping form containing rich text editor with htmx
+// we need to initialise it
+document.addEventListener('htmx:afterSettle', function(evt) {
+  if (evt.detail.target.id == "bib-edit-area") {
+    initRichTextEditors()
+  };
 });
 
 if (!String.prototype.HTMLDecode) {

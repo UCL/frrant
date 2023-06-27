@@ -261,23 +261,8 @@
             <hr>
 
         {% endcomment %}
-        <section>
-            <div class='d-flex justify-content-between mb-3'>
-                <div>
-                    <h5>{% trans 'Bibliography' %}</h5>
-                </div>
-                <div>
-                    {% if perms.research.change_antiquarian and has_object_lock %}
-                    <a href='{% url "bibliography:create" %}'>{% trans 'Add new' %}</a><p>
-                    <a href='{% url "antiquarian:update" object.pk %}'>{% trans 'Add existing' %}</a>
-                    {% endif %}
-                </div>
-            </div>
-            {% for item in object.bibliography_items.all %}
-
-                {% include 'research/partials/bibliography_list_item.html' %}
-
-            {% endfor %}
+        <section id="bibliography">
+          {% include 'research/partials/section/bibliography.html' with bibliography_items=object.bibliography_items %}
         </section>
 
         {% endwith %}
