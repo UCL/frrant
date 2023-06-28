@@ -1,17 +1,18 @@
-from .antiquarian import (  # AntiquarianBibliographyCreateView,
+from .antiquarian import (
     AntiquarianConcordanceCreateView,
     AntiquarianConcordanceDeleteView,
     AntiquarianConcordanceUpdateView,
     AntiquarianCreateView,
     AntiquarianDeleteView,
     AntiquarianDetailView,
-    AntiquarianLinkBibliographyItemView,
+    AntiquarianIntroductionSectionView,
     AntiquarianListView,
     AntiquarianUpdateIntroductionView,
     AntiquarianUpdateView,
     AntiquarianWorkCreateView,
     AntiquarianWorksUpdateView,
     MoveLinkView,
+    refresh_bibliography_from_mentions,
 )
 from .apparatus_criticus import (
     ApparatusCriticusSearchView,
@@ -21,10 +22,12 @@ from .apparatus_criticus import (
     UpdateApparatusCriticusLineView,
 )
 from .bibliography import (
+    BibliographyCreateInlineView,
     BibliographyCreateView,
     BibliographyDeleteView,
     BibliographyDetailView,
     BibliographyListView,
+    BibliographyOverviewView,
     BibliographySectionView,
     BibliographyUpdateView,
 )
@@ -125,7 +128,6 @@ from .work import (
 __all__ = [
     "AddAppositumFragmentLinkView",
     "AddAppositumGeneralLinkView",
-    # "AntiquarianBibliographyCreateView",
     "AntiquarianConcordanceCreateView",
     "AntiquarianConcordanceDeleteView",
     "AntiquarianConcordanceUpdateView",
@@ -133,7 +135,7 @@ __all__ = [
     "AntiquarianWorkCreateView",
     "AntiquarianDeleteView",
     "AntiquarianDetailView",
-    "AntiquarianLinkBibliographyItemView",
+    "AntiquarianIntroductionSectionView",
     "AntiquarianListView",
     "MoveLinkView",
     "AntiquarianUpdateView",
@@ -144,6 +146,8 @@ __all__ = [
     "BibliographyListView",
     "BibliographyDetailView",
     "BibliographyCreateView",
+    "BibliographyCreateInlineView",
+    "BibliographyOverviewView",
     "BibliographyUpdateView",
     "BibliographySectionView",
     "BookCreateView",
@@ -226,4 +230,5 @@ __all__ = [
     "WorkDetailView",
     "WorkListView",
     "WorkUpdateView",
+    "refresh_bibliography_from_mentions",
 ]

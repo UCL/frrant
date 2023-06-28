@@ -1,0 +1,31 @@
+{% extends "research/base.html" %}
+{% load i18n %}
+
+{% block heading %}
+    {% trans 'Bibliography' %}
+{% endblock %}
+
+{% block action %}
+<div class='d-flex justify-content-between align-items-center'>
+    {%comment%}<div>
+        {% include 'research/partials/render_date_order_form.html' %}
+    </div>{%endcomment%}
+    {% if perms.research.add_bibliographyitem %}
+        <button
+          type="button"
+          _="on click hide .bib-create-button"
+          class="btn text-primary p-0 ml-2 bib-create-button"
+          hx-get="{% url 'bibliography:create_inline' %}"
+          hx-trigger="click"
+          hx-target="#bib-form-container"
+          hx-swap="innerHTML">
+          {% trans 'Create new' %}
+        </button>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block inner %}
+<div id="bib-form-container" class="rich-text-form-container"></div>
+<div id="bib-list-container" hx-trigger="load, new-item from:body" hx-get="{% url 'bibliography:list' %}" hx-swap="innerHTML"></div>
+{% endblock %}

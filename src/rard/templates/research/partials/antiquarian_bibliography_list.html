@@ -1,0 +1,9 @@
+<div
+  id="bib-list"
+  hx-trigger="refreshed-bibliography from:body, intro-updated from:body"
+  hx-get="{% url 'antiquarian:bibliography' pk=antiquarian.pk %}"
+  hx-swap="outerHTML">
+  {% for item in bibliography_items.all %}
+    {% include 'research/partials/bibliography_list_item.html' %}
+  {% endfor %}
+</div>

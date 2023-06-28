@@ -122,50 +122,23 @@
         <hr>
         <section>
 
-            {% if editing == 'introduction' %}
-            <div class='d-flex justify-content-between w-100'>
-                <div>
-                    <h5 class='mb-3 mr-3'>{% trans 'Introduction' %}</h5>
-                </div>
-                <div>
-                </div>
-            </div>
-
-            <div>
-                {% if perms.research.change_antiquarian and has_object_lock %}
-
-                <form novalidate enctype="multipart/form-data" autocomplete='off' action='{% url "antiquarian:update_introduction" object.pk %}' class="form" method='POST'>
-                    {% csrf_token %}
-                        {% bootstrap_field form.introduction_text field_class='d-none' show_label=False %}
-                        {% include 'research/partials/rich_text_editor.html' with field=form.introduction_text enable_mentions=True %}
-
-                    <button type="submit" class="btn btn-primary inline-save-button">
-                            {% trans 'Save' %}
-                    </button>
-                    <a class='ml-3 inline-cancel-button' href='{% url "antiquarian:detail" object.pk %}'>{% trans 'Cancel' %}</a>
-                </form>
-
-                {% endif %}
-
-            </div>
-            {% else %}
-
-
             <div class='d-flex justify-content-between w-100'>
                 <div>
                     <h5 class='mb-3 mr-3'>{% trans 'Introduction' %}</h5>
                 </div>
                 <div>
                     {% if perms.research.change_antiquarian and has_object_lock %}
-                    <a href='{% url "antiquarian:update_introduction" object.pk %}'>{% trans 'Edit' %}</a>
+                    <button
+                      class="btn text-primary p-0 ml-2"
+                      hx-get="{% url 'antiquarian:update_introduction' object.pk %}"
+                      hx-target=".introduction-container"
+                      hx-swap="innerHTML">{% trans 'Edit' %}</button>
                     {% endif %}
                 </div>
             </div>
-            <div>
+            <div class="introduction-container rich-text-form-container">
                 {% include 'research/partials/text_object_preview.html' with text_object=object.introduction %}
             </div>
-
-            {% endif %}
 
         </section>
 
@@ -262,7 +235,17 @@
 
         {% endcomment %}
         <section id="bibliography">
-          {% include 'research/partials/section/bibliography.html' with bibliography_items=object.bibliography_items %}
+          <div class='d-flex justify-content-between mb-3'>
+            <div>
+              <h5>{% trans 'Bibliography' %}</h5>
+            </div>
+            <div id="bib-buttons-area">
+              {% if has_object_lock and perms.research.change_bibliographyitem %}
+                <button type="button" class='btn text-primary p-0 ml-2' hx-get="{% url "antiquarian:refresh_bibliography" pk=antiquarian.pk %}" hx-trigger="click">{% trans 'Refresh bibliography from mentions' %}</button>
+              {% endif %}
+            </div>
+          </div>
+          {% include 'research/partials/antiquarian_bibliography_list.html' with bibliography_items=object.bibliography_items %}
         </section>
 
         {% endwith %}

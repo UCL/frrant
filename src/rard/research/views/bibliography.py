@@ -1,25 +1,36 @@
 from itertools import permutations
-from typing import Any, List
+from typing import Any
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.db.models.query import QuerySet
-from django.http import Http404, HttpResponseRedirect
+from django.http import HttpResponseRedirect
+from django.shortcuts import render
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
+from django.views import View
 from django.views.decorators.http import require_POST
 from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
-from rard.research.forms import BibliographyItemForm
+from rard.research.forms import BibliographyItemForm, BibliographyItemInlineForm
 from rard.research.models import Antiquarian, BibliographyItem, TextObjectField
 from rard.research.views.mixins import CanLockMixin, CheckLockMixin
+
+
+class BibliographyOverviewView(LoginRequiredMixin, PermissionRequiredMixin, View):
+    template_name = "research/bibliographyitem_overview.html"
+    permission_required = ("research.view_bibliographyitem",)
+
+    def get(self, request, *args, **kwargs):
+        return render(self.request, template_name=self.template_name)
 
 
 class BibliographyListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     paginate_by = 10
     model = BibliographyItem
     permission_required = ("research.view_bibliographyitem",)
+    template_name = "research/partials/htmx_bibliography_list_page.html"
 
 
 class BibliographyDetailView(
@@ -49,6 +60,29 @@ class BibliographyDetailView(
         return super().get_context_data(**kwargs)
 
 
+class BibliographyCreateInlineView(
+    LoginRequiredMixin, PermissionRequiredMixin, CreateView
+):
+    model = BibliographyItem
+    template_name = "research/inline_forms/bibliographyitem_form.html"
+    form_class = BibliographyItemInlineForm
+    permission_required = "research.add_bibliographyitem"
+
+    def form_valid(self, form):
+        self.object = form.save()
+        messages.add_message(
+            self.request, messages.SUCCESS, f"{self.object} successfully created"
+        )
+        response = render(
+            self.request,
+            template_name="research/partials/inline_create_success.html",
+            context=self.get_context_data(),
+            status=200,
+        )
+        response["HX-Trigger"] = "new-item"
+        return response
+
+
 class BibliographyCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = BibliographyItem
     template_name = "research/bibliographyitem_form.html"
@@ -76,41 +110,6 @@ class BibliographyCreateView(LoginRequiredMixin, PermissionRequiredMixin, Create
             )
         else:
             return reverse("bibliography:detail", kwargs={"pk": self.object.pk})
-
-    def get_antiquarians(self) -> QuerySet:
-        """Called if linked_to = antiquarian, in which case
-        self.kwargs["pk"] is the Antiquarian's pk"""
-        queryset = Antiquarian.objects.all()
-        ant_pk = self.kwargs.get(self.pk_url_kwarg)
-        if ant_pk is None:
-            raise AttributeError(
-                f"{self.__class__.__name__} must be called with a pk "
-                "in the URLconf if linked_to = antiquarian."
-            )
-        try:
-            antiquarians = queryset.filter(pk=ant_pk)
-        except queryset.model.DoesNotExist:
-            raise Http404(
-                f"No {queryset.model._meta.verbose_name}s found matching the query"
-            )
-        return antiquarians
-
-    def get_form_kwargs(self):
-        """Return kwargs for instantiating the form with linked_to
-        object if applicable"""
-        kwargs = super().get_form_kwargs()
-        linked_to = self.kwargs.get("linked_to")
-        if linked_to == "Antiquarian" and self.request.method.lower() == "get":
-            kwargs.update(initial={"antiquarians": self.get_antiquarians()})
-        return kwargs
-
-    def get_template_names(self) -> List[str]:
-        # If pre-linked to antiquarian/citing author use the
-        # htmx template
-        if self.kwargs.get("linked_to"):
-            return ["research/inline_forms/bibliographyitem_form.html"]
-        else:
-            return super().get_template_names()
 
     def form_valid(self, form):
         rtn = super().form_valid(form)
@@ -229,7 +228,7 @@ class BibliographyDeleteView(
 
 class BibliographySectionView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     model = BibliographyItem
-    template_name = "research/partials/section/bibliography.html"
+    template_name = "research/partials/antiquarian_bibliography_list.html"
     context_object_name = "bibliography_items"
     permission_required = ("research.view_bibliographyitem",)
 

@@ -355,6 +355,10 @@ class Antiquarian(
 
             self.reindex_null_fragment_and_testimonium_links()
 
+    def refresh_bibliography_items_from_mentions(self):
+        self.bibliography_items.clear()
+        self.introduction.link_bibliography_mentions_in_content()
+
 
 @disable_for_loaddata
 def create_unknown_work(sender, instance, **kwargs):

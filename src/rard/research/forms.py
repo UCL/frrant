@@ -619,6 +619,17 @@ class TestimoniumAntiquariansForm(HistoricalFormBase):
         fields = ()
 
 
+class BibliographyItemInlineForm(HistoricalFormBase):
+    class Meta:
+        model = BibliographyItem
+        fields = (
+            "authors",
+            "author_surnames",
+            "year",
+            "title",
+        )
+
+
 class BibliographyItemForm(HistoricalFormBase):
     antiquarians = forms.ModelMultipleChoiceField(
         widget=forms.CheckboxSelectMultiple,
@@ -645,12 +656,7 @@ class BibliographyItemForm(HistoricalFormBase):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # if creating a bibliography item linked to a specific model
-        # hide the antiquarians and citing_authors fields
-        if self.initial.get("antiquarians"):
-            self.fields["antiquarians"].widget = forms.widgets.MultipleHiddenInput()
-            self.fields["citing_authors"].widget = forms.widgets.MultipleHiddenInput()
-        # if editing a bibliography item init the antiquarian set
+        # if editing a bibliography item init the antiquarian and citing_author sets
         if self.instance and self.instance.pk:
             self.fields["antiquarians"].initial = self.instance.antiquarians.all()
             self.fields["citing_authors"].initial = self.instance.citing_authors.all()

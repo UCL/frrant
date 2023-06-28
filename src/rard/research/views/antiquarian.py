@@ -1,12 +1,13 @@
 from django.contrib.auth.context_processors import PermWrapper
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import Http404, HttpResponseRedirect, JsonResponse
-from django.shortcuts import get_object_or_404
+from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
+from django.shortcuts import get_object_or_404, render
 from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 from django.views.generic import ListView, View
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
@@ -15,7 +16,6 @@ from rard.research.forms import (
     AntiquarianCreateForm,
     AntiquarianDetailsForm,
     AntiquarianIntroductionForm,
-    AntiquarianLinkBibliographyItemForm,
     AntiquarianUpdateWorksForm,
     WorkForm,
 )
@@ -211,16 +211,48 @@ class AntiquarianUpdateView(
         return super().form_valid(form)
 
 
+class AntiquarianIntroductionSectionView(
+    LoginRequiredMixin, PermissionRequiredMixin, View
+):
+    model = Antiquarian
+    permission_required = ("research.view_antiquarian",)
+    template_name = "research/partials/text_object_preview.html"
+
+    def get_object(self):
+        pk = self.kwargs.get("pk")
+        queryset = self.model._default_manager.all()
+        try:
+            obj = queryset.get(pk=pk)
+        except queryset.model.DoesNotExist:
+            raise Http404("No Antiquarians found matching the query")
+        return obj
+
+    def get(self, request, *args, **kwargs):
+        context = {"text_object": self.get_object().introduction}
+        return render(self.request, template_name=self.template_name, context=context)
+
+
 class AntiquarianUpdateIntroductionView(
     LoginRequiredMixin, CheckLockMixin, PermissionRequiredMixin, UpdateView
 ):
     model = Antiquarian
     permission_required = ("research.change_antiquarian",)
     form_class = AntiquarianIntroductionForm
-    template_name = "research/antiquarian_detail.html"
+    template_name = "research/inline_forms/antiquarian_introduction_form.html"
+    success_template_name = "research/partials/text_object_preview.html"
 
     def get_success_url(self, *args, **kwargs):
-        return reverse("antiquarian:detail", kwargs={"pk": self.object.pk})
+        return reverse("antiquarian:introduction", kwargs={"pk": self.object.pk})
+
+    def form_valid(self, form):
+        self.object = form.save()
+        context = {"text_object": self.object.introduction}
+        response = render(
+            self.request, template_name=self.success_template_name, context=context
+        )
+        # Add htmx trigger for client side response to update
+        response["HX-Trigger"] = "intro-updated"
+        return response
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
@@ -380,17 +412,23 @@ class AntiquarianConcordanceDeleteView(
         return self.object.antiquarian.get_absolute_url()
 
 
-class AntiquarianLinkBibliographyItemView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
-):
-    model = Antiquarian
-    template_name = "research/inline_forms/link_bibliographyitem_form.html"
-    form_class = AntiquarianLinkBibliographyItemForm
+@require_GET
+@login_required
+@permission_required("research.change_antiquarian")
+def refresh_bibliography_from_mentions(request, pk):
+    """Given the pk of an Antiquarian object, call its
+    refresh_bibliography_items_from_mentions method to
+    parse DynamicTextFields for mentions of bibliography
+    items and link these directly."""
+    try:
+        antiquarian = Antiquarian.objects.get(pk=pk)
+    except Antiquarian.DoesNotExist:
+        raise Http404("No Antiquarians found matching the query")
 
-    permission_required = (
-        "research.change_bibliographyitem",
-        "research.change_antiquarian",
+    antiquarian.refresh_bibliography_items_from_mentions()
+
+    response = HttpResponse(
+        status=204,
     )
-
-    def get_success_url(self, *args, **kwargs):
-        return reverse("antiquarian:bibliography", kwargs={"pk": self.get_object().pk})
+    response.headers["HX-Trigger"] = "refreshed-bibliography"
+    return response

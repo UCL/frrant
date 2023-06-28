@@ -95,20 +95,19 @@ urlpatterns = [
                         name="update_introduction",
                     ),
                     path(
-                        "<pk>/add/bibliography-item/",
-                        views.BibliographyCreateView.as_view(),
-                        {"linked_to": "Antiquarian"},
-                        name="add_bibliographyitem",
-                    ),
-                    path(
-                        "<pk>/link-bibliography-item/",
-                        views.AntiquarianLinkBibliographyItemView.as_view(),
-                        name="link_bibliographyitem",
+                        "<pk>/introduction/",
+                        views.AntiquarianIntroductionSectionView.as_view(),
+                        name="introduction",
                     ),
                     path(
                         "<pk>/bibliography/",
                         views.BibliographySectionView.as_view(),
                         name="bibliography",
+                    ),
+                    path(
+                        "<pk>/refresh_bibliography/",
+                        views.refresh_bibliography_from_mentions,
+                        name="refresh_bibliography",
                     ),
                     path(
                         "<pk>/delete/",
@@ -157,11 +156,17 @@ urlpatterns = [
         include(
             (
                 [
+                    path("", views.BibliographyOverviewView.as_view(), name="overview"),
                     path("list/", views.BibliographyListView.as_view(), name="list"),
                     path(
                         "create/",
                         views.BibliographyCreateView.as_view(),
                         name="create",
+                    ),
+                    path(
+                        "create-inline/",
+                        views.BibliographyCreateInlineView.as_view(),
+                        name="create_inline",
                     ),
                     path(
                         "<pk>/",

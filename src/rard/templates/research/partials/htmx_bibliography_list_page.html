@@ -1,0 +1,19 @@
+{% extends "research/htmx_list_base.html" %}
+
+{% block items %}
+  {% for item in page_obj %}
+      <a href='{{ item.get_absolute_url }}' class='rard-list-item list-group-item list-group-item-action flex-column align-items-start'>
+          <div class='d-flex w-100 justify-content-between'>
+
+              <div class="col-sm-3">{{ item.authors }}</div>
+              <div class="col-sm-2">{% if item.year %}{{ item.year }}{% endif %}</div>
+              <div class="col-sm-7">{{ item.title|safe }}</div>
+
+          </div>
+      </a>
+
+  {% endfor %}
+
+  {{ block.super }}
+
+{% endblock items %}

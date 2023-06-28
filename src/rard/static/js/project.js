@@ -380,9 +380,14 @@ window.addEventListener("beforeunload", function (e) {
 // If swapping form containing rich text editor with htmx
 // we need to initialise it
 document.addEventListener('htmx:afterSettle', function(evt) {
-  if (evt.detail.target.id == "bib-edit-area") {
-    initRichTextEditors()
+  verb = evt.detail.requestConfig.verb;
+  console.log(evt);
+  if (evt.detail.target.classList.contains("rich-text-form-container") && verb == "get") {
+    initRichTextEditors();
   };
+  if (verb=="post" && evt.detail.successful) {
+    $(".bib-create-button").show()
+  }
 });
 
 if (!String.prototype.HTMLDecode) {
