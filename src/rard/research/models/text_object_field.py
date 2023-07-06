@@ -42,6 +42,9 @@ class TextObjectField(HistoryModelMixin, BaseModel):
         return None
 
     def save(self, *args, **kwargs):
+        # if the object is Antiquarian, Work or Book the TextObjectField is
+        # linked through the introduction attribute for that object and it needs
+        # to be saved on the parent side as well
         obj = self.get_related_object()
         if obj.__class__.__name__ in ["Antiquarian", "Work", "Book"]:
             obj.save()
