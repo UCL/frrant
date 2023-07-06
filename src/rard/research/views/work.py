@@ -108,6 +108,9 @@ class WorkUpdateIntroductionView(WorkUpdateView):
     template_name = "research/work_detail.html"
 
     def create_intro_if_does_not_exist(self, *args, **kwargs):
+        # If a TOF is not created for the introduction an error will be
+        # thrown when trying to save as it will try to save something that
+        # does not exist
         work = self.get_object()
         if work.introduction is None:
             work.introduction = TextObjectField.objects.create(content="")
