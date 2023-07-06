@@ -120,9 +120,6 @@ class WorkUpdateIntroductionView(WorkUpdateView):
         self.create_intro_if_does_not_exist()
         return super().dispatch(request, *args, **kwargs)
 
-    def get_success_url(self, *args, **kwargs):
-        return reverse("work:detail", kwargs={"pk": self.get_object().pk})
-
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context.update(
@@ -235,9 +232,6 @@ class BookUpdateIntroductionView(BookUpdateView):
     def dispatch(self, request, *args, **kwargs):
         self.create_intro_if_does_not_exist()
         return super().dispatch(request, *args, **kwargs)
-
-    def get_success_url(self, *args, **kwargs):
-        return reverse("work:detail", kwargs={"pk": self.get_object().work.pk})
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
