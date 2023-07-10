@@ -2,15 +2,6 @@
 {% load i18n bootstrap4 static humanize object_lock %}
 
 {% block heading %}
-{% comment %}
-{% if object.antiquarians.count %}
-<div class='mb-2'>
-    <small>
-        {% for b in object.antiquarians.all %}{% if not forloop.first %}, {% endif %}<a href='{{ b.get_absolute_url }}'>{{ b }}</a>{% endfor %}
-    </small>
-</div>
-{% endif %}
-{% endcomment %}
 <div>{{ object.name }}</div>
 {% endblock %}
 

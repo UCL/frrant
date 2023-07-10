@@ -37,12 +37,6 @@ class BibliographyDetailView(
     CanLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DetailView
 ):
     model = BibliographyItem
-    fields = (
-        "authors",
-        "author_surnames",
-        "year",
-        "title",
-    )
     permission_required = ("research.view_bibliographyitem",)
 
     def get_context_data(self, **kwargs):
@@ -57,7 +51,7 @@ class BibliographyDetailView(
                 "citing_authors": citing_authors,
             }
         )
-        return super().get_context_data(**kwargs)
+        return context
 
 
 class BibliographyCreateInlineView(
@@ -87,7 +81,6 @@ class BibliographyCreateView(LoginRequiredMixin, PermissionRequiredMixin, Create
     model = BibliographyItem
     template_name = "research/bibliographyitem_form.html"
     form_class = BibliographyItemForm
-    success_url_name = "bibliography:detail"
     title = "Create Bibliography Item"
     # change_antiquarian only required when adding an Antiquarian to a Bibliography,
     # sim CitingAuthor
@@ -101,15 +94,6 @@ class BibliographyCreateView(LoginRequiredMixin, PermissionRequiredMixin, Create
             }
         )
         return context
-
-    def get_success_url(self, *args, **kwargs):
-        if self.kwargs.get("linked_to") == "Antiquarian":
-            return reverse(
-                "antiquarian:bibliography",
-                kwargs={"pk": self.get_antiquarians().get().pk},
-            )
-        else:
-            return reverse("bibliography:detail", kwargs={"pk": self.object.pk})
 
     def form_valid(self, form):
         rtn = super().form_valid(form)

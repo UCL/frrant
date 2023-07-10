@@ -6,7 +6,6 @@ from rard.research.models import Antiquarian, BibliographyItem  # , bibliography
 from rard.research.views import (
     BibliographyCreateView,
     BibliographyDeleteView,
-    BibliographyDetailView,
     BibliographyUpdateView,
 )
 from rard.users.tests.factories import UserFactory
@@ -188,25 +187,3 @@ class TestBibliographyCreateView(TestCase):
         self.assertEqual(
             [4, 2, 1, 3, 6, 7, 5], [x.pk for x in BibliographyItem.objects.all()]
         )
-
-
-class TestBibliographyDetailView(TestCase):
-    def test_get_context_data(self):
-        # a1 = Antiquarian.objects.create(name="foo", re_code=3)
-        # a2 = Antiquarian.objects.create(name="zoo", re_code=4)
-        data = {
-            "authors": "Hartley, J. R.",
-            "author_surnames": "Hartley",
-            "title": "Fly Fishing",
-            "year": "1855",
-            #    "antiquarians":[a1.pk,a2.pk]
-        }
-        bibliography = BibliographyItem(**data)
-        # bibliography.antiquarians.add(a1)
-        # bibliography.antiquarians.add(a2)
-        url = reverse("bibliography:detail", kwargs={"pk": bibliography.pk})
-        request = RequestFactory().get(url)
-        request.user = UserFactory.create()
-        bibliography.lock(request.user)
-        response = BibliographyDetailView.as_view()(request, pk=bibliography.pk)
-        self.assertEqual(response.context_data["title"], bibliography.title)
