@@ -2,7 +2,6 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ObjectDoesNotExist
 from simple_history.models import HistoricalRecords
 
-from rard.research.models import Antiquarian
 from rard.research.models.mixins import HistoryModelMixin
 from rard.utils.basemodel import BaseModel, DynamicTextField
 
@@ -21,7 +20,7 @@ class TextObjectField(HistoryModelMixin, BaseModel):
 
     def get_history_title(self):
         obj = self.get_related_object()
-        if isinstance(obj, Antiquarian):
+        if obj.__class__.__name__ in ["Antiquarian", "Work", "Book"]:
             return "Introduction"
         return "Commentary"
 
@@ -43,6 +42,12 @@ class TextObjectField(HistoryModelMixin, BaseModel):
     def save(self, *args, **kwargs):
         # Update links generated from mentions each time we save
         self.link_bibliography_mentions_in_content()
+        # if the object is Antiquarian, Work or Book the TextObjectField is
+        # linked through the introduction attribute for that object and it needs
+        # to be saved on the parent side as well
+        obj = self.get_related_object()
+        if obj.__class__.__name__ in ["Antiquarian", "Work", "Book"]:
+            obj.save()
         super().save(*args, **kwargs)
 
     @property
@@ -72,3 +77,17 @@ class TextObjectField(HistoryModelMixin, BaseModel):
 
         related = self.get_related_object()
         return related if isinstance(related, Antiquarian) else None
+
+    @property
+    def work(self):
+        from rard.research.models import Work
+
+        related = self.get_related_object()
+        return related if isinstance(related, Work) else None
+
+    @property
+    def book(self):
+        from rard.research.models import Book
+
+        related = self.get_related_object()
+        return related if isinstance(related, Book) else None

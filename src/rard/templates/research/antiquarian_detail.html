@@ -1,6 +1,6 @@
 {% extends "research/detail_base.html" %}
 {% load i18n bootstrap4 object_lock links_for_work static %}
-{% block title %}{{object.name}}{% endblock %}
+{% block title %}{{object.name}}{% if editing == 'introduction' %}: Editing Introduction {% endif %}{% endblock %}
 {% block heading %}{{ object.name }}{% endblock %}
 
 {% block last_modified %}{% endblock %}
@@ -186,54 +186,6 @@
 
         <hr>
 
-        {% comment %}
-            <section>
-                <div class='d-flex justify-content-between mb-3'>
-                    <div>
-                        <h5>{% trans 'Ordered Testimonia' %}</h5>
-                    </div>
-                    <div>
-                        {% if perms.research.change_antiquarian and has_object_lock %}
-                        <a href='{% url "testimonium:create" %}'>{% trans 'Add' %}</a>
-                        {% endif %}
-                    </div>
-                </div>
-
-                {% for link in object.testimoniumlinks.all %}
-
-                {% include 'research/partials/testimonium_link_list_item.html' with link=link testimonium=link.linked can_edit=perms.research.change_antiquarian has_object_lock=has_object_lock %}
-
-                {% endfor %}
-
-            </section>
-
-
-            <hr>
-
-            <section>
-                <div class='d-flex justify-content-between mb-3'>
-                    <div>
-                        <h5>{% trans 'Ordered Fragments' %}</h5>
-                    </div>
-                    <div>
-                        {% if perms.research.change_antiquarian and has_object_lock %}
-                        <a href='{% url "fragment:create" %}'>{% trans 'Add' %}</a>
-                        {% endif %}
-                    </div>
-                </div>
-
-                {% for link in object.fragmentlinks.all %}
-
-                {% include 'research/partials/fragment_link_list_item.html' with link=link fragment=link.linked can_edit=perms.research.change_antiquarian has_object_lock=has_object_lock %}
-
-                {% endfor %}
-            </section>
-
-
-
-            <hr>
-
-        {% endcomment %}
         <section id="bibliography">
           <div class='d-flex justify-content-between mb-3'>
             <div>

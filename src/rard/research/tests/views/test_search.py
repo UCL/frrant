@@ -8,6 +8,7 @@ from rard.research.models import (
     AnonymousFragment,
     Antiquarian,
     BibliographyItem,
+    Book,
     CitingAuthor,
     CitingWork,
     Fragment,
@@ -523,3 +524,28 @@ class TestSearchView(TestCase):
         response = SearchView.as_view()(request)
 
         self.assertEqual(response.context_data["results"], [f2])
+
+    def test_search_introductions(self):
+        def do_search(search_function, keywords):
+            return list(search_function(SearchView.Term(keywords)))
+
+        view = SearchView()
+        a11 = Antiquarian.objects.create(name="boring person", re_code="11")
+        a11.introduction.content = "I'm a very interesting person"
+
+        w11 = Work.objects.create(name="boring work", unknown=False)
+        w11.introduction.content = "I was written by a rather interesting chap"
+        a11.works.add(w11)
+
+        b11 = Book.objects.create(
+            number=11, unknown=False, subtitle="boring book", work=w11
+        )
+        b11.introduction.content = (
+            "I am but one of a collection but am nonetheless interesting"
+        )
+        a11.save()
+        w11.save()
+        b11.save()
+        self.assertEqual(do_search(view.antiquarian_search, "interesting"), [a11])
+        self.assertEqual(do_search(view.work_search, "interesting"), [w11])
+        self.assertEqual(do_search(view.book_search, "interesting"), [b11])

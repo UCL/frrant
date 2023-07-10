@@ -1,6 +1,8 @@
 {% extends "research/detail_base.html" %}
-{% load i18n object_lock links_for_work %}
-{% block title %}Work: {{object.name}} ({{object.antiquarian_set.first}}) {% endblock %}
+{% load i18n object_lock links_for_work bootstrap4 static humanize %}
+{% block title %}Work: {{object.name}} ({{object.antiquarian_set.first}})
+{% if editing == 'introduction' %}: Editing Introduction {% endif %}
+{% endblock %}
 {% block heading %}
 {% if object.antiquarian_set.count %}
 <div class='mb-2'>
@@ -51,7 +53,58 @@
             </div>
         </div>
 
-        <dl class="row mb-0">
+        {% comment %} <section> {% endcomment %}
+        {% if editing == 'introduction' %}
+          <div>
+              {% if perms.research.change_work and has_object_lock %}
+              <form novalidate enctype="multipart/form-data" autocomplete='off' action='{% url "work:update_introduction" object.pk %}' class="form" method='POST'>
+                  {% csrf_token %}
+                  <div class="pb-3">
+                      {% bootstrap_field form.introduction_text field_class='d-none' show_label=False %}
+                      {% include 'research/partials/rich_text_editor.html' with object_id=object.pk object_class='work' field=form.introduction_text enable_mentions=True %}
+                  </div>
+                  <button type="submit" class="btn btn-primary inline-save-button">
+                          {% trans 'Save' %}
+                  </button>
+                  <a class='ml-3 inline-cancel-button' href='{% url "work:detail" object.pk %}'>{% trans 'Cancel' %}</a>
+              </form>
+              {% endif %}
+          </div>
+          {% else %}
+          {% if object.introduction %}
+          <div class='d-flex justify-content-between mb-3'>
+              <small>
+                  {% if perms.research.change_work and has_object_lock %}
+                  <a href='{% url "work:update_introduction" object.pk %}'>{% if object.introduction.content.strip|length > 11 %}
+                    {% trans 'Edit Introduction' %}
+                    {% else %}
+                    {% trans 'Add Introduction' %}
+                    {% endif %}
+                </a>
+                  {% endif %}
+              </small>
+          </div>
+          {% if object.introduction.content.strip|length > 11 %}
+          <div>
+              {% include 'research/partials/text_object_preview.html' with text_object=object.introduction %}
+          </div>
+          {% endif %}
+          {% else %}
+          <div class='d-flex justify-content-between mb-3'>
+            <small>
+                {% if perms.research.change_work and has_object_lock %}
+                {% with editing='introduction' %}
+                <a href='{% url "work:update_introduction" object.pk %}'>{% trans 'Add Introduction' %}</a>
+                {% endwith %}
+                {% endif %}
+            </small>
+        </div>
+          {% endif %}{% endif %}
+
+
+      {% comment %} </section> {% endcomment %}
+
+        <dl class="row mb-0 mt-4">
             <dt class="col-sm-3">{% trans 'Name of Work' %}</dt>
             <dd class="col-sm-9">{{ object.name }}</dd>
 

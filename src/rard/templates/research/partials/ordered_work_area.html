@@ -48,7 +48,6 @@
                         {% endif %}
                         {% endif %}
 
-
                     </div>
                     <div>
                         {% if can_edit and has_object_lock %}
@@ -56,6 +55,10 @@
                         {% endif %}
                     </div>
                 </div>
+
+                {% if work.introduction and not work.unknown %}
+                    {% include 'research/partials/text_object_preview.html' with text_object=work.introduction truncate=200 %}
+                {% endif %}
 
                 <ul>
                     <div class='ordered-list'>

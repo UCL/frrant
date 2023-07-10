@@ -117,11 +117,13 @@ from .translation import (
 from .work import (
     BookCreateView,
     BookDeleteView,
+    BookUpdateIntroductionView,
     BookUpdateView,
     WorkCreateView,
     WorkDeleteView,
     WorkDetailView,
     WorkListView,
+    WorkUpdateIntroductionView,
     WorkUpdateView,
 )
 
@@ -152,6 +154,7 @@ __all__ = [
     "BibliographySectionView",
     "BookCreateView",
     "BookUpdateView",
+    "BookUpdateIntroductionView",
     "BookDeleteView",
     "CitingAuthorCreateView",
     "CitingAuthorCreateWorkView",
@@ -231,4 +234,5 @@ __all__ = [
     "WorkListView",
     "WorkUpdateView",
     "refresh_bibliography_from_mentions",
+    "WorkUpdateIntroductionView",
 ]

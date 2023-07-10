@@ -7,8 +7,13 @@ from django.views.generic import ListView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
-from rard.research.forms import BookForm, WorkForm
-from rard.research.models import Book, Work
+from rard.research.forms import (
+    BookForm,
+    BookIntroductionForm,
+    WorkForm,
+    WorkIntroductionForm,
+)
+from rard.research.models import Book, TextObjectField, Work
 from rard.research.views.mixins import CanLockMixin, CheckLockMixin
 
 
@@ -83,16 +88,46 @@ class WorkUpdateView(
 
     def form_valid(self, form):
         work = form.save(commit=False)
-        updated = form.cleaned_data["antiquarians"]
-        existing = work.antiquarian_set.all()
-        to_remove = [a for a in existing if a not in updated]
-        to_add = [a for a in updated if a not in existing]
-        for a in to_remove:
-            a.works.remove(work)
-        for a in to_add:
-            a.works.add(work)
-        add_new_books_to_work(work, form)
+        if "antiquarians" in form.cleaned_data:
+            updated = form.cleaned_data["antiquarians"]
+            existing = work.antiquarian_set.all()
+            to_remove = [a for a in existing if a not in updated]
+            to_add = [a for a in updated if a not in existing]
+            for a in to_remove:
+                a.works.remove(work)
+            for a in to_add:
+                a.works.add(work)
+            add_new_books_to_work(work, form)
         return super().form_valid(form)
+
+
+class WorkUpdateIntroductionView(WorkUpdateView):
+    model = Work
+    form_class = WorkIntroductionForm
+    permission_required = ("research.change_work",)
+    template_name = "research/work_detail.html"
+
+    def create_intro_if_does_not_exist(self, *args, **kwargs):
+        # If a TOF is not created for the introduction an error will be
+        # thrown when trying to save as it will try to save something that
+        # does not exist
+        work = self.get_object()
+        if work.introduction is None:
+            work.introduction = TextObjectField.objects.create(content="")
+            work.save()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.create_intro_if_does_not_exist()
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update(
+            {
+                "editing": "introduction",
+            }
+        )
+        return context
 
 
 @method_decorator(require_POST, name="dispatch")
@@ -109,7 +144,6 @@ class BookCreateView(
 ):
     # the view attribute that needs to be checked for a lock
     check_lock_object = "work"
-
     model = Book
     form_class = BookForm
     permission_required = (
@@ -178,6 +212,39 @@ class BookUpdateView(
         context.update(
             {
                 "work": self.get_work(),
+            }
+        )
+        return context
+
+
+class BookUpdateIntroductionView(BookUpdateView):
+    model = Book
+    form_class = BookIntroductionForm
+    permission_required = ("research.change_book",)
+    template_name = "research/book_form.html"
+
+    def create_intro_if_does_not_exist(self, *args, **kwargs):
+        # If a TOF is not created for the introduction an error will be
+        # thrown when trying to save as it will try to save something that
+        # does not exist
+        book = self.get_object()
+        if book.introduction is None:
+            book.introduction = TextObjectField.objects.create(content="")
+            book.save()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.create_intro_if_does_not_exist()
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update(
+            {
+                "editing": "introduction",
+                "change_work": True,
+                "change_book": True,
+                "has_object_lock": True,
+                "instance": self.get_object(),
             }
         )
         return context

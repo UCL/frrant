@@ -232,9 +232,7 @@ class AntiquarianIntroductionSectionView(
         return render(self.request, template_name=self.template_name, context=context)
 
 
-class AntiquarianUpdateIntroductionView(
-    LoginRequiredMixin, CheckLockMixin, PermissionRequiredMixin, UpdateView
-):
+class AntiquarianUpdateIntroductionView(AntiquarianUpdateView):
     model = Antiquarian
     permission_required = ("research.change_antiquarian",)
     form_class = AntiquarianIntroductionForm

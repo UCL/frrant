@@ -51,11 +51,7 @@ class BibliographyModelMultipleChoiceField(ModelMultipleChoiceField):
         return (ttl[:75] + "..") if len(ttl) > 75 else ttl
 
 
-class AntiquarianIntroductionForm(forms.ModelForm):
-    class Meta:
-        model = Antiquarian
-        fields = ("name",)  # need to specify at least one field
-
+class IntroductionFormBase(forms.ModelForm):
     introduction_text = forms.CharField(
         widget=forms.Textarea,
         required=False,
@@ -69,15 +65,19 @@ class AntiquarianIntroductionForm(forms.ModelForm):
             self.fields[
                 "introduction_text"
             ].initial = self.instance.introduction.content
-        self.fields["name"].required = False
 
     def save(self, commit=True):
+        instance = super().save(commit=False)
         if commit:
-            instance = super().save(commit=False)  # no need to save owner
-            # introduction will have been created at this point
             instance.introduction.content = self.cleaned_data["introduction_text"]
             instance.introduction.save()
         return instance
+
+
+class AntiquarianIntroductionForm(IntroductionFormBase):
+    class Meta:
+        model = Antiquarian
+        fields = ()
 
 
 class AntiquarianDetailsForm(forms.ModelForm):
@@ -303,6 +303,12 @@ class WorkForm(forms.ModelForm):
 
     books = BooksField(widget=BooksWidget, required=False)
 
+    introduction_text = forms.CharField(
+        widget=forms.Textarea,
+        required=False,
+        label="Introduction",
+    )
+
     class Meta:
         model = Work
         fields = (
@@ -313,6 +319,7 @@ class WorkForm(forms.ModelForm):
             "date_range",
             "order_year",
             "books",
+            "introduction_text",
         )
         labels = {"name": "Name of Work"}
 
@@ -322,6 +329,15 @@ class WorkForm(forms.ModelForm):
         # on the form
         if self.instance and self.instance.pk:
             self.fields["antiquarians"].initial = self.instance.antiquarian_set.all()
+
+        if self.instance.introduction:
+            self.fields[
+                "introduction_text"
+            ].initial = self.instance.introduction.content
+        else:
+            self.fields["introduction_text"].attrs = {
+                "placeholder": "introduction for work"
+            }
 
     def clean(self):
         cleaned_data = super().clean()
@@ -346,11 +362,44 @@ class WorkForm(forms.ModelForm):
                 )
         return cleaned_data
 
+    def save(self, commit=True):
+        instance = super().save(commit)
+        if commit:
+            instance.save_without_historical_record()
+            # introduction will have been created at this point
+            instance.introduction.content = self.cleaned_data["introduction_text"]
+            instance.introduction.save_without_historical_record()
+        return instance
+
 
 class BookForm(forms.ModelForm):
+    introduction_text = forms.CharField(
+        widget=forms.Textarea,
+        required=False,
+        label="Introduction",
+    )
+
     class Meta:
         model = Book
-        exclude = ("work",)
+        fields = (
+            "order_year",
+            "date_range",
+            "order",
+            "number",
+            "subtitle",
+            "introduction_text",
+        )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.introduction:
+            self.fields[
+                "introduction_text"
+            ].initial = self.instance.introduction.content
+        else:
+            self.fields["introduction_text"].attrs = {
+                "placeholder": "introduction for book"
+            }
 
     def clean(self):
         cleaned_data = super().clean()
@@ -360,7 +409,29 @@ class BookForm(forms.ModelForm):
             ERR = _("Please give a number or a subtitle.")
             self.add_error("number", ERR)
             self.add_error("subtitle", ERR)
+
         return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit)
+        if commit:
+            instance.save_without_historical_record()
+            # introduction will have been created at this point
+            instance.introduction.content = self.cleaned_data["introduction_text"]
+            instance.introduction.save_without_historical_record()
+        return instance
+
+
+class WorkIntroductionForm(IntroductionFormBase):
+    class Meta:
+        model = Work
+        fields = ()
+
+
+class BookIntroductionForm(IntroductionFormBase):
+    class Meta:
+        model = Book
+        fields = ()
 
 
 class CommentForm(forms.ModelForm):
