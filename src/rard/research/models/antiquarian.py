@@ -356,8 +356,20 @@ class Antiquarian(
             self.reindex_null_fragment_and_testimonium_links()
 
     def refresh_bibliography_items_from_mentions(self):
-        self.bibliography_items.clear()
+        self.bibliography_items.clear()  # Start with a blank slate
+        # Link bib mentions from introduction
         self.introduction.link_bibliography_mentions_in_content()
+        # Now loop through linked items
+        for fr in self.fragments.distinct():
+            fr.commentary.link_bibliography_mentions_in_content()
+        for tt in self.testimonia.distinct():
+            tt.commentary.link_bibliography_mentions_in_content()
+        anon_list = []
+        for app_link in self.appositumfragmentlinks.all():
+            an = app_link.anonymous_fragment
+            if an not in anon_list:
+                an.commentary.link_bibliography_mentions_in_content()
+                anon_list.append(an)
 
 
 @disable_for_loaddata
