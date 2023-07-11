@@ -303,6 +303,19 @@ img.character.diple_periestigmene {
 .rich-editor {
   font-family: Alphabetum !important;
 }
+#footnote-area {
+  font-size: 80%;
+  color: #808080;
+  padding-top: 2rem;
+  position: absolute;
+  bottom: 0;
+  z-index: 10;
+}
+.highlighted-note {
+  background-color: #f3f3ac;
+  box-shadow: 0.5px 0 4px 1px #58656b;
+  cursor: pointer;
+}
 button.insert {
   width: 30px;
   height: 30px;

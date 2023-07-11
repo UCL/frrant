@@ -8,7 +8,7 @@ class FootnoteIndicator extends BlockEmbed {
     const number = value.substring(1);
     const node = super.create(value);
     node.classList.add("footnote-indicator");
-    node.id = `data-footnote-indicator-id-${number}`;
+    node.id = `footnote-indicator-${number}`;
     node.textContent = value;
     return node;
   }
@@ -49,23 +49,22 @@ class Footnote extends Module {
     this.toolbar.addHandler("footnote", this.insertFootnote.bind(this));
     const observer = new MutationObserver(this.deleteFootnote.bind(this));
     observer.observe(this.quill.root, { childList: true, subtree: true });
-  }
-
-  setEditorSelectionWithinFootnoteArea() {
-    const footnoteArea = document.getElementById("footnote-area");
-
-    // Set the selection to encompass the whole footnote-area block
-    const range = this.quill.getSelection();
-    range.index = 0;
-    range.length = footnoteArea.textContent.length;
-    this.quill.setSelection(index);
+    document.addEventListener("DOMContentLoaded", () => {
+      // add highlight and edit listeners to existing notes
+      if (document.getElementById("footnote-area")) {
+        document.querySelectorAll(".footnote").forEach((footnote) => {
+          footnote.addEventListener("mouseenter", this.addHighlight);
+          footnote.addEventListener("mouseleave", this.removeHighlight);
+          footnote.addEventListener("click", this.editNote);
+        });
+      }
+    });
   }
 
   countFootnotes() {
     var footnoteCounter;
     if (document.querySelector(".footnote-indicator")) {
       var indicators = document.querySelectorAll(".footnote-indicator");
-      console.log(indicators.length);
       return (footnoteCounter = indicators.length + 1);
     } else return (footnoteCounter = 1); // if no indicators
   }
@@ -86,13 +85,34 @@ class Footnote extends Module {
       // insert a superscripted indicator in the text editor
       this.quill.insertEmbed(index, "footnote-indicator", `•${footnoteNumber}`);
       this.quill.setSelection(index + 3);
+
       // create the content of the footnote in the footnote area
+      var editLink = document.createElement("a");
+      editLink.textContent = "Edit note";
+      editLink.classList = "";
       const footnoteElement = document.createElement("p");
-      footnoteElement.classList = "footnote pb-1";
-      footnoteElement.id = `data-footnote-id-${footnoteNumber}`;
+      footnoteElement.classList = "footnote pb-1 btn btn-sm btn-text";
+      footnoteElement.id = `footnote-${footnoteNumber}`;
       footnoteElement.textContent = `${footnoteNumber}. ${footnoteContent}`;
 
-      this.footnoteArea.appendChild(footnoteElement);
+      // insert it in the correct location in the list
+      var nextFootnoteIndicator = this.findNextIndicator(footnoteNumber);
+      if (nextFootnoteIndicator) {
+        const footnoteID = nextFootnoteIndicator.id.replace(
+          "footnote-indicator-",
+          ""
+        );
+        const nextFootNoteItem = document.getElementById(
+          `footnote-${footnoteID}`
+        );
+        this.footnoteArea.insertBefore(footnoteElement, nextFootNoteItem);
+      } else this.footnoteArea.appendChild(footnoteElement);
+
+      // add highlight and edit listeners
+      footnoteElement.addEventListener("mouseenter", this.addHighlight);
+      footnoteElement.addEventListener("mouseleave", this.removeHighlight);
+      footnote.addEventListener("click", this.editNote);
+
       this.cleanFootnoteNumbers();
       footnoteNumber++;
     }
@@ -105,10 +125,7 @@ class Footnote extends Module {
         const removedFootnoteIDs = [];
         mutation.removedNodes.forEach((node) => {
           if (node.classList && node.classList.contains("footnote-indicator")) {
-            const footnoteID = node.id.replace(
-              "data-footnote-indicator-id-",
-              ""
-            );
+            const footnoteID = node.id.replace("footnote-indicator-", "");
             removedFootnoteIDs.push(footnoteID);
           }
         });
@@ -116,7 +133,7 @@ class Footnote extends Module {
         // Delete the corresponding footnote
         removedFootnoteIDs.forEach((footnoteID) => {
           const footnoteElement = document.getElementById(
-            `data-footnote-id-${footnoteID}`
+            `footnote-${footnoteID}`
           );
           if (footnoteElement) {
             footnoteElement.remove();
@@ -148,19 +165,68 @@ class Footnote extends Module {
             .split(".")
             .slice(1)
             .join(".")}`;
-          footnote.id = `data-footnote-id-${expectedNumber}`;
+          footnote.id = `footnote-${expectedNumber}`;
           footnote.textContent = newText;
         }
 
         // update the indicator if the element is still there
         if (footnoteIndicator) {
-          footnoteIndicator.id = `data-footnote-indicator-id-${expectedNumber}`;
+          footnoteIndicator.id = `footnote-indicator-${expectedNumber}`;
           footnoteIndicator.textContent = `•${expectedNumber}`;
         }
 
         expectedNumber++;
       }
     }
+  }
+
+  findNextIndicator(footnoteNumber) {
+    // When inserting a new footnote and there are other footnotes
+    // this will find the next indicator and return it so the note
+    // is inserted in the correct place
+    var newIndicator = document.getElementById(
+      `footnote-indicator-${footnoteNumber}`
+    );
+    var parentElement = newIndicator.parentElement;
+    var parentSibling = parentElement.nextElementSibling;
+    var cousinElement = parentSibling.firstElementChild;
+
+    while (cousinElement) {
+      if (
+        cousinElement !== newIndicator &&
+        cousinElement.tagName.toLowerCase() === "sup" &&
+        cousinElement.classList.contains("footnote-indicator")
+      ) {
+        return cousinElement;
+      }
+      cousinElement = cousinElement.nextElementSibling;
+    }
+    return null;
+  }
+
+  addHighlight(e) {
+    var noteID = e.target.id.replace("footnote-", "");
+    var correspondingIndicator = document.getElementById(
+      `footnote-indicator-${noteID}`
+    );
+    // add a highlight class to the elements - ensure this is in your CSS file
+    e.target.classList.add("highlighted-note");
+    correspondingIndicator.classList.add("highlighted-note");
+  }
+  removeHighlight(e) {
+    var noteID = e.target.id.replace("footnote-", "");
+    var correspondingIndicator = document.getElementById(
+      `footnote-indicator-${noteID}`
+    );
+    e.target.classList.remove("highlighted-note");
+    correspondingIndicator.classList.remove("highlighted-note");
+  }
+  editNote(e) {
+    var updatedContent = prompt(
+      `Update footnote:${e.target.innerText}`,
+      `${e.target.innerText}`
+    );
+    e.target.innerText = updatedContent;
   }
 }
 
