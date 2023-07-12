@@ -7,6 +7,7 @@ from rard.research.models import (
     AnonymousFragment,
     Antiquarian,
     BibliographyItem,
+    Book,
     Fragment,
     Testimonium,
     TextObjectField,
@@ -148,12 +149,14 @@ class TestAntiquarian(TestCase):
         - fragment__commentary
         - testimonium__commentary
         - appositum__commentary
+        - work__introduction
+        - work__book__introduction
         """
 
         def mention_bibliography_item_in_text_object_field(bib: BibliographyItem, obj):
             if obj._meta.model_name in ["fragment", "testimonium", "anonymousfragment"]:
                 tof = obj.commentary
-            if obj._meta.model_name in ["antiquarian"]:
+            if obj._meta.model_name in ["antiquarian", "work", "book"]:
                 tof = obj.introduction
             mention_text = f"""
                 <span class="mention"
@@ -190,12 +193,17 @@ class TestAntiquarian(TestCase):
         tt2 = Testimonium.objects.create(name="tt2")
         an1 = AnonymousFragment.objects.create(name="an1")
         an2 = AnonymousFragment.objects.create(name="an2")
-        # Link fr1, an1, and tt1 to Antiquarian aq1
+        wk1 = Work.objects.create(name="wk1")
+        wk2 = Work.objects.create(name="wk2")
+        bk1 = Book.objects.create(number="1", subtitle="bk1", work=wk1)
+        bk2 = Book.objects.create(number="1", subtitle="bk1", work=wk2)
+        # Link fr1, an1, tt1, and wk1 to Antiquarian aq1
         fr1.apposita.add(an1)
         FragmentLink.objects.create(antiquarian=aq1, fragment=fr1)
         TestimoniumLink.objects.create(antiquarian=aq1, testimonium=tt1)
+        aq1.works.add(wk1)
         # Add bibliography item mentions to all items
-        mentioners = [aq1, fr1, an1, tt1, fr2, tt2, an2]
+        mentioners = [aq1, fr1, an1, tt1, wk1, bk1, fr2, tt2, an2, wk2, bk2]
         target_bibs = []
         for i, obj in enumerate(mentioners):
             bib = BibliographyItem.objects.create(
@@ -206,7 +214,7 @@ class TestAntiquarian(TestCase):
             )
             mention_bibliography_item_in_text_object_field(bib=bib, obj=obj)
             # We expect the first four to be linked
-            if i < 4:
+            if i < 6:
                 target_bibs.append(bib)
         # Now refresh antiquarian bibliography item links
         aq1.refresh_bibliography_items_from_mentions()
