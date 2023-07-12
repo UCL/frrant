@@ -210,7 +210,7 @@ class TestAntiquarian(TestCase):
                 authors="Alice Last-Name, Bob Surname",
                 author_surnames="Last-Name, Surname",
                 year="2023",
-                title=obj.name + "_bib_item",
+                title=f"bib_item_{i}",
             )
             mention_bibliography_item_in_text_object_field(bib=bib, obj=obj)
             # We expect the first four to be linked
