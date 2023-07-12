@@ -325,6 +325,11 @@ button.insert {
   padding-bottom: 2rem;
   position: absolute;
   bottom: 0;
+  height: 10rem;
+  overflow: scroll;
+}
+\0305 {
+  width: 120%;
 }
 .highlighted-note {
   border-radius: 1px;
