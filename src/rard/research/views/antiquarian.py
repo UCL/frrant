@@ -20,7 +20,12 @@ from rard.research.forms import (
     WorkForm,
 )
 from rard.research.models import Antiquarian, AntiquarianConcordance, Book, Work
-from rard.research.views.mixins import CanLockMixin, CheckLockMixin, DateOrderMixin
+from rard.research.views.mixins import (
+    CanLockMixin,
+    CheckLockMixin,
+    DateOrderMixin,
+    TextObjectFieldUpdateMixin,
+)
 
 
 class AntiquarianListView(
@@ -194,9 +199,6 @@ class AntiquarianUpdateView(
     permission_required = ("research.change_antiquarian",)
     form_class = AntiquarianDetailsForm
 
-    def get_success_url(self, *args, **kwargs):
-        return reverse("antiquarian:detail", kwargs={"pk": self.object.pk})
-
     def form_valid(self, form):
         antiquarian = form.save(commit=False)
         updated = form.cleaned_data["bibliography_items"]
@@ -232,34 +234,14 @@ class AntiquarianIntroductionSectionView(
         return render(self.request, template_name=self.template_name, context=context)
 
 
-class AntiquarianUpdateIntroductionView(AntiquarianUpdateView):
+class AntiquarianUpdateIntroductionView(
+    TextObjectFieldUpdateMixin, AntiquarianUpdateView
+):
     model = Antiquarian
     permission_required = ("research.change_antiquarian",)
     form_class = AntiquarianIntroductionForm
-    template_name = "research/inline_forms/antiquarian_introduction_form.html"
-    success_template_name = "research/partials/text_object_preview.html"
-
-    def get_success_url(self, *args, **kwargs):
-        return reverse("antiquarian:introduction", kwargs={"pk": self.object.pk})
-
-    def form_valid(self, form):
-        self.object = form.save()
-        context = {"text_object": self.object.introduction}
-        response = render(
-            self.request, template_name=self.success_template_name, context=context
-        )
-        # Add htmx trigger for client side response to update
-        response["HX-Trigger"] = "intro-updated"
-        return response
-
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
-        context.update(
-            {
-                "editing": "introduction",
-            }
-        )
-        return context
+    hx_trigger = "intro-updated"
+    textobject_field = "introduction"
 
 
 @method_decorator(require_POST, name="dispatch")

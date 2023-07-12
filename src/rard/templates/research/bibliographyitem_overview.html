@@ -13,8 +13,8 @@
     {% if perms.research.add_bibliographyitem %}
         <button
           type="button"
-          _="on click hide .bib-create-button"
-          class="btn text-primary p-0 ml-2 bib-create-button"
+          _="on click hide .htmx-get-button"
+          class="btn text-primary p-0 ml-2 htmx-get-button"
           hx-get="{% url 'bibliography:create_inline' %}"
           hx-trigger="click"
           hx-target="#bib-form-container"

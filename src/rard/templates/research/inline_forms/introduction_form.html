@@ -6,7 +6,7 @@
   novalidate
   autocomplete='off'
   hx-post="{{ request.path }}"
-  hx-target=".introduction-container"
+  hx-target="closest .introduction-container"
   hx-swap="innerHTML">
     {% csrf_token %}
         {% bootstrap_field form.introduction_text field_class='d-none' show_label=false %}

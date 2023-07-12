@@ -386,7 +386,7 @@ document.addEventListener('htmx:afterSettle', function(evt) {
     initRichTextEditors();
   };
   if (verb=="post" && evt.detail.successful) {
-    $(".bib-create-button").show()
+    $(".htmx-get-button").show()
   }
 });
 

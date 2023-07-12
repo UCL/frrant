@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 from django.http import Http404
+from django.shortcuts import render
 from django.utils import timezone
 
 from rard.research.models import Antiquarian, Work
@@ -149,3 +150,29 @@ class GetWorkLinkRequestDataMixin:
         values["update"] = self.is_update
 
         return values
+
+
+class TextObjectFieldUpdateMixin(object):
+    template_name = "research/inline_forms/introduction_form.html"
+    success_template_name = "research/partials/text_object_preview.html"
+    hx_trigger = None
+    textobject_field = None
+    hide_empty = False
+
+    def form_valid(self, form):
+        self.object = form.save()
+        context = self.get_context_data()
+        response = render(
+            self.request, template_name=self.success_template_name, context=context
+        )
+        # Add htmx trigger for client side response to update
+        if self.hx_trigger:
+            response["HX-Trigger"] = self.hx_trigger
+        return response
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["hide_empty"] = self.hide_empty
+        if self.textobject_field:
+            context["text_object"] = getattr(context["object"], self.textobject_field)
+        return context
