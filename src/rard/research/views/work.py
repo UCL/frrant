@@ -241,10 +241,7 @@ class BookUpdateIntroductionView(BookUpdateView):
         context.update(
             {
                 "editing": "introduction",
-                "change_work": True,
-                "change_book": True,
                 "has_object_lock": True,
-                "instance": self.get_object(),
             }
         )
         return context
