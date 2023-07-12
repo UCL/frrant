@@ -5,7 +5,7 @@
     <div class='col h-fill' style='min-height: {% if min_height %}{{ min_height }}{% else %}400{% endif %}px; padding-bottom: {% if padding_bottom != None %}{{ padding_bottom }}{% else %}60{% endif %}px;'>
         <div id='{{ field.auto_id }}_editor' {% if object_class %}data-class='{{ object_class }}'{% endif %} {% if object_id %}data-object='{{ object_id }}'{% endif %} class='rich-editor {% if enable_mentions %}enable-mentions{% endif %} {% if enable_apparatus_criticus %}enable-apparatus-criticus{% endif %}' spellcheck="false"  id='{{ field.auto_id }}_rich_editor_content' data-for='{{ field.auto_id }}'>
         </div>
-        <div class='text-muted'>
+        <div class='text-muted pt-2 mt-2'>
           {% if enable_mentions %}
           <small
             data-toggle="tooltip"

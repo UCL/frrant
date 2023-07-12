@@ -325,7 +325,6 @@ button.insert {
   padding-bottom: 2rem;
   position: absolute;
   bottom: 0;
-  z-index: 10;
 }
 .highlighted-note {
   border-radius: 1px;
