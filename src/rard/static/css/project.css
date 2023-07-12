@@ -187,17 +187,7 @@ table.books-widget .book-order {
 }
 
 /***** other base, "temporary demo css" ******/
-.ql-editor {
-  background-color: white !important;
-  font-size: 18px;
-}
-.ql-mention-list-container {
-  max-height: 400px;
-  overflow-y: auto;
-}
-.mention.error {
-  background: #f1baba !important;
-}
+
 .bad-link {
   height: 24px;
   border-radius: 6px;
@@ -300,22 +290,6 @@ img.character.diple_periestigmene {
 .toggle-element {
   display: block !important;
 }
-.rich-editor {
-  font-family: Alphabetum !important;
-}
-#footnote-area {
-  font-size: 80%;
-  color: #808080;
-  padding-top: 2rem;
-  position: absolute;
-  bottom: 0;
-  z-index: 10;
-}
-.highlighted-note {
-  background-color: #f3f3ac;
-  box-shadow: 0.5px 0 4px 1px #58656b;
-  cursor: pointer;
-}
 button.insert {
   width: 30px;
   height: 30px;
@@ -327,6 +301,42 @@ button.insert {
   width: 1vw;
   height: 100vh;
   background-color: #ffff00;
+}
+
+/* editor related */
+.ql-editor {
+  background-color: white !important;
+  font-size: 18px;
+}
+.ql-mention-list-container {
+  max-height: 400px;
+  overflow-y: auto;
+}
+.mention.error {
+  background: #f1baba !important;
+}
+.rich-editor {
+  font-family: Alphabetum !important;
+}
+#footnote-area {
+  font-size: 80%;
+  color: #808080;
+  padding-top: 1.5rem;
+  padding-bottom: 2rem;
+  position: absolute;
+  bottom: 0;
+  z-index: 10;
+}
+.highlighted-note {
+  border-radius: 1px;
+  background: #f0f4f6;
+  box-shadow: 2px 2px 4px #f3f2f2, -2px -2px 4px #ffffff;
+  cursor: pointer;
+  color: #1cac1c;
+}
+.text-object-preview p {
+  padding: 0.1rem;
+  margin: 0.1rem;
 }
 
 /**** extras ****/

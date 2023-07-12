@@ -5,11 +5,13 @@ const Parchment = Quill.import("parchment");
 // create custom blot for superscript footnote indicator
 class FootnoteIndicator extends BlockEmbed {
   static create(value) {
-    const number = value.substring(1);
+    const number = value.trim();
     const node = super.create(value);
     node.classList.add("footnote-indicator");
     node.id = `footnote-indicator-${number}`;
     node.textContent = value;
+    node.addEventListener("mouseenter", this.addHighlight);
+    node.addEventListener("mouseleave", this.removeHighlight);
     return node;
   }
   static value(node) {
@@ -19,13 +21,11 @@ class FootnoteIndicator extends BlockEmbed {
 FootnoteIndicator.blotName = "footnote-indicator";
 FootnoteIndicator.scope = Parchment.Scope.INLINE;
 FootnoteIndicator.tagName = "sup";
-// FootnoteIndicator.className = "footnote-indicator";
 
 class FootnoteArea extends BlockEmbed {
   static create(value) {
     const node = super.create(value);
-    node.classList = "pt-1 mt-2";
-    node.id = "footnote-area";
+    node.id = "footnote-area"; // edit styling in CSS
     node.textContent = value;
     node.innerHTML = "<hr>";
     return node;
@@ -82,16 +82,16 @@ class Footnote extends Module {
 
     const footnoteContent = prompt("Enter footnote content:");
     if (footnoteContent) {
-      // insert a superscripted indicator in the text editor
-      this.quill.insertEmbed(index, "footnote-indicator", `•${footnoteNumber}`);
-      this.quill.setSelection(index + 3);
+      // insert a superscripted indicator in the text editor, space after is intended
+      this.quill.insertEmbed(index, "footnote-indicator", `${footnoteNumber} `);
+      this.quill.setSelection(index + 1);
 
       // create the content of the footnote in the footnote area
       var editLink = document.createElement("a");
       editLink.textContent = "Edit note";
       editLink.classList = "";
       const footnoteElement = document.createElement("p");
-      footnoteElement.classList = "footnote pb-1 btn btn-sm btn-text";
+      footnoteElement.classList = "footnote";
       footnoteElement.id = `footnote-${footnoteNumber}`;
       footnoteElement.textContent = `${footnoteNumber}. ${footnoteContent}`;
 
@@ -111,7 +111,7 @@ class Footnote extends Module {
       // add highlight and edit listeners
       footnoteElement.addEventListener("mouseenter", this.addHighlight);
       footnoteElement.addEventListener("mouseleave", this.removeHighlight);
-      footnote.addEventListener("click", this.editNote);
+      footnoteElement.addEventListener("click", this.editNote);
 
       this.cleanFootnoteNumbers();
       footnoteNumber++;
@@ -172,7 +172,7 @@ class Footnote extends Module {
         // update the indicator if the element is still there
         if (footnoteIndicator) {
           footnoteIndicator.id = `footnote-indicator-${expectedNumber}`;
-          footnoteIndicator.textContent = `•${expectedNumber}`;
+          footnoteIndicator.textContent = `${expectedNumber} `;
         }
 
         expectedNumber++;
@@ -205,7 +205,10 @@ class Footnote extends Module {
   }
 
   addHighlight(e) {
-    var noteID = e.target.id.replace("footnote-", "");
+    // var noteID = e.target.id.replace("footnote-", "");
+    var matches = e.target.id.match(/\d+/);
+    var noteID = parseInt(matches[0]);
+
     var correspondingIndicator = document.getElementById(
       `footnote-indicator-${noteID}`
     );
@@ -214,7 +217,9 @@ class Footnote extends Module {
     correspondingIndicator.classList.add("highlighted-note");
   }
   removeHighlight(e) {
-    var noteID = e.target.id.replace("footnote-", "");
+    // var noteID = e.target.id.replace("footnote-", "");
+    var matches = e.target.id.match(/\d+/);
+    var noteID = parseInt(matches[0]);
     var correspondingIndicator = document.getElementById(
       `footnote-indicator-${noteID}`
     );
@@ -226,7 +231,9 @@ class Footnote extends Module {
       `Update footnote:${e.target.innerText}`,
       `${e.target.innerText}`
     );
-    e.target.innerText = updatedContent;
+    if (updatedContent) {
+      e.target.innerText = updatedContent;
+    } else e.target.innerText = e.target.innerText;
   }
 }
 

@@ -177,7 +177,7 @@ $("body").on("submit", "form", function (e) {
   $(this).data("submitted", true);
 });
 
-Quill.register("modules/mention", quillMention);
+Quill.register("modules/mention", quillMention, true);
 var icons = Quill.import("ui/icons");
 // import fontawesome icons for the undo/redo buttons
 icons["undo"] =
@@ -187,6 +187,7 @@ icons["redo"] =
 // and for the vinculum buttons
 icons["vinculum_on"] = "V\u0305";
 icons["vinculum_off"] = "V";
+icons["footnote"] = '<i class="far fa-comment-alt"></i>';
 
 async function suggestPeople(searchTerm) {
   // call backend synchonously here and wait
@@ -243,8 +244,12 @@ function initRichTextEditor($item) {
           [{ list: "ordered" }, { list: "bullet" }],
           [{ align: [] }],
           ["clean"],
+          ["footnote"],
         ],
         handlers: {
+          footnote: function () {
+            this.quill.modules.footnote.insertFootnote();
+          },
           undo: function (value) {
             this.quill.history.undo();
           },
@@ -284,6 +289,7 @@ function initRichTextEditor($item) {
           },
         },
       },
+      footnote: true,
     },
   };
 
