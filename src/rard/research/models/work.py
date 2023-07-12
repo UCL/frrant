@@ -295,11 +295,12 @@ class Book(
 
 @disable_for_loaddata
 def create_unknown_book(sender, instance, **kwargs):
-    unknown_book = Book.objects.create(
-        subtitle="Unknown Book", unknown=True, work=instance
-    )
-    unknown_book.save()
-    instance.book_set.add(unknown_book)
+    if not instance.unknown_book:
+        unknown_book = Book.objects.create(
+            subtitle="Unknown Book", unknown=True, work=instance
+        )
+        unknown_book.save()
+        # call function to make sure unknown book contents are collated
 
 
 @disable_for_loaddata
