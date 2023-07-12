@@ -356,6 +356,14 @@ class Antiquarian(
             self.reindex_null_fragment_and_testimonium_links()
 
     def refresh_bibliography_items_from_mentions(self):
+        """Antiquarian bibliography should be derived from bibliography
+        items mentioned in:
+        - the antiquarian's introduction
+        - the introduction to works by that antiquarian, and introductions
+          to any books belonging to those works
+        - commentaries belonging to any fragments, testimonia, or
+          apposita linked to that antiquarian
+        """
         self.bibliography_items.clear()  # Start with a blank slate
         # Link bib mentions from introduction
         self.introduction.link_bibliography_mentions_in_content()
@@ -370,6 +378,10 @@ class Antiquarian(
             if an not in anon_list:
                 an.commentary.link_bibliography_mentions_in_content()
                 anon_list.append(an)
+        for work in self.works.all():
+            work.introduction.link_bibliography_mentions_in_content()
+            for book in work.book_set.all():
+                book.introduction.link_bibliography_mentions_in_content()
 
 
 @disable_for_loaddata
