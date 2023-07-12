@@ -108,6 +108,9 @@ class WorkUpdateIntroductionView(WorkUpdateView):
     template_name = "research/work_detail.html"
 
     def create_intro_if_does_not_exist(self, *args, **kwargs):
+        # If a TOF is not created for the introduction an error will be
+        # thrown when trying to save as it will try to save something that
+        # does not exist
         work = self.get_object()
         if work.introduction is None:
             work.introduction = TextObjectField.objects.create(content="")
@@ -116,9 +119,6 @@ class WorkUpdateIntroductionView(WorkUpdateView):
     def dispatch(self, request, *args, **kwargs):
         self.create_intro_if_does_not_exist()
         return super().dispatch(request, *args, **kwargs)
-
-    def get_success_url(self, *args, **kwargs):
-        return reverse("work:detail", kwargs={"pk": self.get_object().pk})
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
@@ -224,6 +224,9 @@ class BookUpdateIntroductionView(BookUpdateView):
     template_name = "research/book_form.html"
 
     def create_intro_if_does_not_exist(self, *args, **kwargs):
+        # If a TOF is not created for the introduction an error will be
+        # thrown when trying to save as it will try to save something that
+        # does not exist
         book = self.get_object()
         if book.introduction is None:
             book.introduction = TextObjectField.objects.create(content="")
@@ -233,18 +236,12 @@ class BookUpdateIntroductionView(BookUpdateView):
         self.create_intro_if_does_not_exist()
         return super().dispatch(request, *args, **kwargs)
 
-    def get_success_url(self, *args, **kwargs):
-        return reverse("work:detail", kwargs={"pk": self.get_object().work.pk})
-
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
         context.update(
             {
                 "editing": "introduction",
-                "change_work": True,
-                "change_book": True,
                 "has_object_lock": True,
-                "instance": self.get_object(),
             }
         )
         return context
