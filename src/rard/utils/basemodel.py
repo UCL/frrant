@@ -242,6 +242,12 @@ class DynamicTextField(TextField):
                 if self.antiquarian:
                     antiquarians = {self.antiquarian}
 
+                if self.work:
+                    antiquarians = {ant for ant in self.work.antiquarian_set.all()}
+
+                if self.book:
+                    antiquarians = {ant for ant in self.book.work.antiquarian_set.all()}
+
                 value = getattr(self, field_name)
                 soup = bs4.BeautifulSoup(value, features="html.parser")
                 links = soup.find_all("span", class_="mention")
