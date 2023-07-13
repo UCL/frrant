@@ -386,7 +386,8 @@ document.addEventListener('htmx:afterSettle', function(evt) {
     initRichTextEditors();
   };
   if (verb=="post" && evt.detail.successful) {
-    $(".htmx-get-button").show()
+    $(".htmx-get-button").show();  // Show edit button again
+    $('[data-toggle="tooltip"]').tooltip();  // Enable tooltips in updated content
   }
 });
 
