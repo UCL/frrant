@@ -156,16 +156,8 @@
     <hr>
 
     <section>
-        {% if editing == 'commentary' %}
-        <div class='d-flex justify-content-between w-100'>
-            <div>
-                <h5 class='mb-3 mr-3'>{% trans 'Commentary' %}</h5>
-            </div>
-            <div>
-            </div>
-        </div>
 
-        <div>
+        {% comment %} <div>
             {% if perms.research.change_antiquarian and has_object_lock %}
 
             <form novalidate enctype="multipart/form-data" autocomplete='off' action='{% url "fragment:update_commentary" object.pk %}' class="form" method='POST'>
@@ -181,23 +173,26 @@
 
             {% endif %}
 
-        </div>
-        {% else %}
+        </div> {% endcomment %}
+
         <div class='d-flex justify-content-between mb-3'>
             <div>
                 <h5>{% trans 'Commentary' %}</h5>
             </div>
             <div>
                 {% if perms.research.change_fragment and has_object_lock %}
-                <a href='{% url "fragment:update_commentary" object.pk %}'>{% trans 'Edit' %}</a>
+                <button
+                  class="btn text-primary p-0 ml-2"
+                  hx-get="{% url 'fragment:update_commentary' object.pk %}"
+                  hx-target=".introduction-container"
+                  hx-swap="innerHTML">{% trans 'Edit' %}</button>
                 {% endif %}
             </div>
         </div>
-
-        <div>
-            {% include 'research/partials/text_object_preview.html' with text_object=object.commentary %}
+        <div class="introduction-container rich-text-form-container">
+          {% include 'research/partials/text_object_preview.html' with text_object=object.commentary %}
         </div>
-        {% endif %}
+
     </section>
 
     <hr>

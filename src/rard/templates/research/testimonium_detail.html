@@ -135,48 +135,23 @@
     <hr>
 
     <section>
-        {% if editing == 'commentary' %}
-        <div class='d-flex justify-content-between w-100'>
-            <div>
-                <h5 class='mb-3 mr-3'>{% trans 'Commentary' %}</h5>
-            </div>
-            <div>
-            </div>
-        </div>
-
+      <div class='d-flex justify-content-between mb-3'>
         <div>
-            {% if perms.research.change_antiquarian and has_object_lock %}
-
-            <form novalidate enctype="multipart/form-data" autocomplete='off' action='{% url "testimonium:update_commentary" object.pk %}' class="form" method='POST'>
-                {% csrf_token %}
-                    {% bootstrap_field form.commentary_text field_class='d-none' show_label=False %}
-                    {% comment %} {% include 'research/partials/rich_text_editor.html' with field=form.commentary_text enable_mentions=True %} {% endcomment %}
-                    {% include 'research/partials/rich_text_editor.html' with object_id=object.pk object_class='testimonium' field=form.commentary_text enable_mentions=True enable_apparatus_criticus=True %}
-                <button type="submit" class="btn btn-primary inline-save-button">
-                        {% trans 'Save' %}
-                </button>
-                <a class='ml-3 inline-cancel-button' href='{% url "testimonium:detail" object.pk %}'>{% trans 'Cancel' %}</a>
-            </form>
-
+            <h5>{% trans 'Commentary' %}</h5>
+        </div>
+        <div>
+            {% if perms.research.change_fragment and has_object_lock %}
+            <button
+              class="btn text-primary p-0 ml-2"
+              hx-get="{% url 'testimonium:update_commentary' object.pk %}"
+              hx-target=".introduction-container"
+              hx-swap="innerHTML">{% trans 'Edit' %}</button>
             {% endif %}
-
         </div>
-        {% else %}
-        <div class='d-flex justify-content-between mb-3'>
-            <div>
-                <h5>{% trans 'Commentary' %}</h5>
-            </div>
-            <div>
-                {% if perms.research.change_testimonium and has_object_lock %}
-                <a href='{% url "testimonium:update_commentary" object.pk %}'>{% trans 'Edit' %}</a>
-                {% endif %}
-            </div>
-        </div>
-
-        <div>
-            {% include 'research/partials/text_object_preview.html' with text_object=object.commentary %}
-        </div>
-        {% endif %}
+    </div>
+    <div class="introduction-container rich-text-form-container">
+      {% include 'research/partials/text_object_preview.html' with text_object=object.commentary %}
+    </div>
     </section>
 
     <hr>
