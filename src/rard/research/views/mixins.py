@@ -173,6 +173,7 @@ class TextObjectFieldUpdateMixin(object):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["hide_empty"] = self.hide_empty
+        context["object_class"] = self.object._meta.model_name
         if self.textobject_field:
             context["text_object"] = getattr(context["object"], self.textobject_field)
         return context
