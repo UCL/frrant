@@ -1,9 +1,28 @@
 {% extends "research/base.html" %}
-{% load i18n bootstrap4 %}
+{% load i18n bootstrap4 static humanize %}
+{% block title %}
+{% if object %}
+{{ object }}:
+{% if editing == 'introduction' %}
+{% trans 'Editing Introduction' %}
+{% else %}
+    {% trans 'Updating' %}
+{% endif %}
+{% else %}
+{% if work %}
+{{ work }}:
+{% endif %}
+New Book
+{% endif %}
+{% endblock %}
 
 {% block heading %}
     {% if object %}
+    {% if editing == 'introduction' %}
+    {% trans 'Editing Introduction' %}
+    {% else %}
         {% trans 'Update Book' %}
+    {% endif %}
     {% else %}
         {% trans 'Create Book' %}
     {% endif %}
@@ -12,15 +31,47 @@
         {% blocktrans with name=work.name %}
             For {{ name }}
         {% endblocktrans %}
+        {% if editing == 'introduction' %} - {{ object }} {% endif %}
     </small>
     {% endif %}
 
 {% endblock %}
 
 {% block inner %}
+{# edit introduction #}
+{% if editing == 'introduction' %}
+{% with book=object %}
+<div>
+    {% if perms.research.change_work and has_object_lock %}
+    <form novalidate enctype="multipart/form-data" autocomplete='off' action='{% url "work:update_book_introduction" book.pk %}' class="form" method='POST' name="introduction_text">
+        {% csrf_token %}
+        <div class="pb-3">
+            {% bootstrap_field form.introduction_text field_class='d-none' show_label=False %}
+            {% include 'research/partials/rich_text_editor.html' with object_id=book.pk object_class='book' field=form.introduction_text enable_mentions=True %}
+        </div>
+        <button type="submit" class="btn btn-primary inline-save-button">
+                {% trans 'Save' %}
+        </button>
+        <a class='ml-3 inline-cancel-button' href='{% url "work:detail" book.work.pk %}'>{% trans 'Cancel' %}</a>
+    </form>
+    {% endif %}
+</div>
+{% endwith %}
+{% else %}
+
+{# normal update form #}
     <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
         {% csrf_token %}
-        {% bootstrap_form form %}
+        {% bootstrap_field form.order_year %}
+        {% bootstrap_field form.date_range %}
+        {% bootstrap_field form.order %}
+        {% bootstrap_field form.number %}
+        {% bootstrap_field form.subtitle %}
+
+        {% if form.introduction_text %}
+            {% bootstrap_field form.introduction_text field_class='d-none' %}
+            {% include 'research/partials/rich_text_editor.html' with field=form.introduction_text enable_mentions=True %}
+        {% endif %}
         <button type="submit" class="btn btn-primary">
             {% if object %}
                 {% trans 'Save' %}
@@ -29,4 +80,5 @@
             {% endif %}
         </button>
     </form>
+{% endif %}
 {% endblock %}
