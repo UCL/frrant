@@ -44,7 +44,8 @@ class TextObjectField(HistoryModelMixin, BaseModel):
     def save(self, *args, **kwargs):
         # save the parent object so the plain intro/commentary is processed
         obj = self.get_related_object()
-        obj.save()
+        if obj:
+            obj.save()
         super().save(*args, **kwargs)
 
     @property
