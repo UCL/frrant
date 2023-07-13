@@ -58,7 +58,10 @@ class TestBookUpdateIntroductionView(TestCase):
         )
 
     def test_context_data(self):
-        self.assertEqual(self.response.context_data["editing"], "introduction")
+        self.assertEqual(
+            self.response.context_data["text_object"], self.book.introduction
+        )
+        self.assertEqual(self.response.context_data["object_class"], "book")
 
     def test_success_url(self):
         # this is more complicated than with other views
