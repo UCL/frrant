@@ -42,12 +42,11 @@ class TextObjectField(HistoryModelMixin, BaseModel):
     def save(self, *args, **kwargs):
         # Update links generated from mentions each time we save
         self.link_bibliography_mentions_in_content()
-        # if the object is Antiquarian, Work or Book the TextObjectField is
-        # linked through the introduction attribute for that object and it needs
-        # to be saved on the parent side as well
+
+        # save the parent object so the plain intro/commentary is
+        # updated for search purposes
         obj = self.get_related_object()
-        if obj.__class__.__name__ in ["Antiquarian", "Work", "Book"]:
-            obj.save()
+        obj.save()
         super().save(*args, **kwargs)
 
     @property
