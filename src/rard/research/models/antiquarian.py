@@ -379,9 +379,11 @@ class Antiquarian(
                 an.commentary.link_bibliography_mentions_in_content()
                 anon_list.append(an)
         for work in self.works.all():
-            work.introduction.link_bibliography_mentions_in_content()
+            if work.introduction:
+                work.introduction.link_bibliography_mentions_in_content()
             for book in work.book_set.all():
-                book.introduction.link_bibliography_mentions_in_content()
+                if book.introduction:
+                    book.introduction.link_bibliography_mentions_in_content()
 
 
 @disable_for_loaddata
