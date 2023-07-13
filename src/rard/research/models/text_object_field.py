@@ -44,9 +44,10 @@ class TextObjectField(HistoryModelMixin, BaseModel):
         self.link_bibliography_mentions_in_content()
 
         # save the parent object so the plain intro/commentary is
-        # updated for search purposes
+        # updated for search purposes.
         obj = self.get_related_object()
-        obj.save()
+        if obj:
+            obj.save()
         super().save(*args, **kwargs)
 
     @property
