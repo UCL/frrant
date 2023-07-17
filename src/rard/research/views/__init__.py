@@ -64,10 +64,12 @@ from .fragment import (
     FragmentUpdateAntiquariansView,
     FragmentUpdateCommentaryView,
     FragmentUpdateView,
+    FragmentUpdateWorkLinkView,
     MoveAnonymousTopicLinkView,
     RemoveAppositumLinkView,
     RemoveFragmentLinkView,
     UnlinkedFragmentConvertToAnonymousView,
+    UnlinkedFragmentListView,
 )
 from .history import HistoryListView
 from .home import HomeView
@@ -91,6 +93,7 @@ from .testimonium import (
     TestimoniumUpdateAntiquariansView,
     TestimoniumUpdateCommentaryView,
     TestimoniumUpdateView,
+    TestimoniumUpdateWorkLinkView,
 )
 from .topic import (
     MoveTopicView,
@@ -108,11 +111,13 @@ from .translation import (
 from .work import (
     BookCreateView,
     BookDeleteView,
+    BookUpdateIntroductionView,
     BookUpdateView,
     WorkCreateView,
     WorkDeleteView,
     WorkDetailView,
     WorkListView,
+    WorkUpdateIntroductionView,
     WorkUpdateView,
 )
 
@@ -138,6 +143,7 @@ __all__ = [
     "BibliographyUpdateView",
     "BookCreateView",
     "BookUpdateView",
+    "BookUpdateIntroductionView",
     "BookDeleteView",
     "CitingAuthorCreateView",
     "CitingAuthorCreateWorkView",
@@ -178,6 +184,7 @@ __all__ = [
     "FragmentListView",
     "FragmentOriginalTextCreateView",
     "FragmentUpdateView",
+    "FragmentUpdateWorkLinkView",
     "FragmentUpdateAntiquariansView",
     "HistoryListView",
     "HomeView",
@@ -196,6 +203,7 @@ __all__ = [
     "TestimoniumDetailView",
     "TestimoniumListView",
     "TestimoniumUpdateView",
+    "TestimoniumUpdateWorkLinkView",
     "TestimoniumUpdateAntiquariansView",
     "TestimoniumUpdateCommentaryView",
     "TextObjectFieldCommentListView",
@@ -208,9 +216,11 @@ __all__ = [
     "TranslationCreateView",
     "TranslationUpdateView",
     "TranslationDeleteView",
+    "UnlinkedFragmentListView",
     "WorkCreateView",
     "WorkDeleteView",
     "WorkDetailView",
     "WorkListView",
     "WorkUpdateView",
+    "WorkUpdateIntroductionView",
 ]

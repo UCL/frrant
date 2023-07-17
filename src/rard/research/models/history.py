@@ -37,7 +37,6 @@ class HistoricalRecordLog(models.Model):
 
 @receiver(post_create_historical_record)
 def post_create_historical_record_callback(sender, **kwargs):
-
     HistoricalRecordLog.objects.create(
         history_record=kwargs.get("history_instance"),
         history_user=kwargs.get("history_user"),

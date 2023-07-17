@@ -39,11 +39,7 @@ def _validate_reference_order(ro):
         )
 
 
-class AntiquarianIntroductionForm(forms.ModelForm):
-    class Meta:
-        model = Antiquarian
-        fields = ("name",)  # need to specify at least one field
-
+class IntroductionFormBase(forms.ModelForm):
     introduction_text = forms.CharField(
         widget=forms.Textarea,
         required=False,
@@ -57,15 +53,19 @@ class AntiquarianIntroductionForm(forms.ModelForm):
             self.fields[
                 "introduction_text"
             ].initial = self.instance.introduction.content
-        self.fields["name"].required = False
 
     def save(self, commit=True):
+        instance = super().save(commit=False)
         if commit:
-            instance = super().save(commit=False)  # no need to save owner
-            # introduction will have been created at this point
             instance.introduction.content = self.cleaned_data["introduction_text"]
             instance.introduction.save()
         return instance
+
+
+class AntiquarianIntroductionForm(IntroductionFormBase):
+    class Meta:
+        model = Antiquarian
+        fields = ()
 
 
 class AntiquarianDetailsForm(forms.ModelForm):
@@ -242,7 +242,6 @@ class BooksField(forms.Field):
 
 
 class WorkForm(forms.ModelForm):
-
     antiquarians = forms.ModelMultipleChoiceField(
         widget=forms.CheckboxSelectMultiple,
         queryset=Antiquarian.objects.all(),
@@ -250,6 +249,12 @@ class WorkForm(forms.ModelForm):
     )
 
     books = BooksField(widget=BooksWidget, required=False)
+
+    introduction_text = forms.CharField(
+        widget=forms.Textarea,
+        required=False,
+        label="Introduction",
+    )
 
     class Meta:
         model = Work
@@ -261,6 +266,7 @@ class WorkForm(forms.ModelForm):
             "date_range",
             "order_year",
             "books",
+            "introduction_text",
         )
         labels = {"name": "Name of Work"}
 
@@ -270,6 +276,15 @@ class WorkForm(forms.ModelForm):
         # on the form
         if self.instance and self.instance.pk:
             self.fields["antiquarians"].initial = self.instance.antiquarian_set.all()
+
+        if self.instance.introduction:
+            self.fields[
+                "introduction_text"
+            ].initial = self.instance.introduction.content
+        else:
+            self.fields["introduction_text"].attrs = {
+                "placeholder": "introduction for work"
+            }
 
     def clean(self):
         cleaned_data = super().clean()
@@ -294,11 +309,44 @@ class WorkForm(forms.ModelForm):
                 )
         return cleaned_data
 
+    def save(self, commit=True):
+        instance = super().save(commit)
+        if commit:
+            instance.save_without_historical_record()
+            # introduction will have been created at this point
+            instance.introduction.content = self.cleaned_data["introduction_text"]
+            instance.introduction.save_without_historical_record()
+        return instance
+
 
 class BookForm(forms.ModelForm):
+    introduction_text = forms.CharField(
+        widget=forms.Textarea,
+        required=False,
+        label="Introduction",
+    )
+
     class Meta:
         model = Book
-        exclude = ("work",)
+        fields = (
+            "order_year",
+            "date_range",
+            "order",
+            "number",
+            "subtitle",
+            "introduction_text",
+        )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.introduction:
+            self.fields[
+                "introduction_text"
+            ].initial = self.instance.introduction.content
+        else:
+            self.fields["introduction_text"].attrs = {
+                "placeholder": "introduction for book"
+            }
 
     def clean(self):
         cleaned_data = super().clean()
@@ -308,7 +356,29 @@ class BookForm(forms.ModelForm):
             ERR = _("Please give a number or a subtitle.")
             self.add_error("number", ERR)
             self.add_error("subtitle", ERR)
+
         return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit)
+        if commit:
+            instance.save_without_historical_record()
+            # introduction will have been created at this point
+            instance.introduction.content = self.cleaned_data["introduction_text"]
+            instance.introduction.save_without_historical_record()
+        return instance
+
+
+class WorkIntroductionForm(IntroductionFormBase):
+    class Meta:
+        model = Work
+        fields = ()
+
+
+class BookIntroductionForm(IntroductionFormBase):
+    class Meta:
+        model = Book
+        fields = ()
 
 
 class CommentForm(forms.ModelForm):
@@ -322,7 +392,6 @@ class CommentForm(forms.ModelForm):
 
 
 class CitingWorkForm(forms.ModelForm):
-
     new_citing_work = forms.BooleanField(required=False)
     new_author = forms.BooleanField(required=False)
     new_author_name = forms.CharField(
@@ -410,7 +479,6 @@ class OriginalTextAuthorForm(forms.ModelForm):
 
 
 class OriginalTextDetailsForm(forms.ModelForm):
-
     new_apparatus_criticus_line = forms.CharField(
         widget=forms.Textarea(attrs={"rows": 2}),
         required=False,
@@ -427,7 +495,6 @@ class OriginalTextDetailsForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
-
         original_text = kwargs.get("instance", None)
         if original_text and original_text.pk:
             original_text.update_content_mentions()
@@ -460,7 +527,6 @@ class OriginalTextDetailsForm(forms.ModelForm):
 
 
 class OriginalTextForm(OriginalTextAuthorForm):
-
     new_apparatus_criticus_line = forms.CharField(
         widget=forms.Textarea(attrs={"rows": 2}),
         required=False,
@@ -482,7 +548,6 @@ class OriginalTextForm(OriginalTextAuthorForm):
         }
 
     def __init__(self, *args, **kwargs):
-
         original_text = kwargs.get("instance", None)
         if original_text and original_text.pk:
             original_text.update_content_mentions()
@@ -628,41 +693,94 @@ class BaseLinkWorkForm(forms.ModelForm):
             "antiquarian",
             "work",
             "book",
-            "definite",
+            "definite_antiquarian",
+            "definite_work",
+            "definite_book",
         )
-        labels = {"definite": _("Definite Link")}
+        labels = {
+            "definite_antiquarian": _("Definite link to Antiquarian"),
+            "definite_work": _("Definite link to Work"),
+            "definite_book": _("Definite link to Book"),
+        }
 
     def __init__(self, *args, **kwargs):
+        update = kwargs.pop("update")
         antiquarian = kwargs.pop("antiquarian")
         work = kwargs.pop("work")
+        book = kwargs.get("book")
+        definite_antiquarian = kwargs.pop("definite_antiquarian")
+        definite_work = kwargs.pop("definite_work")
 
         super().__init__(*args, **kwargs)
         self.fields["book"].required = False
         self.fields["work"].required = False
+        self.fields["definite_antiquarian"] = forms.BooleanField(required=False)
+        self.fields["definite_work"] = forms.BooleanField(required=False)
+        self.fields["definite_book"] = forms.BooleanField(required=False)
+
+        if update:
+            antiquarian = kwargs["initial"]["antiquarian"]
+            work = kwargs["initial"]["work"]
+
         if antiquarian:
             self.fields["antiquarian"].initial = antiquarian
-            self.fields["work"].queryset = antiquarian.works.all()
+            if update is not True:
+                self.fields["work"].queryset = antiquarian.works.all()
+                self.fields["definite_antiquarian"].initial = definite_antiquarian
         else:
             self.fields["work"].queryset = Work.objects.none()
-            self.fields["work"].disabled = True
+            if update is not True:
+                self.fields["work"].disabled = True
+                self.fields["definite_work"].widget.attrs["disabled"] = True
 
         if work:
+            if work.unknown:
+                self.fields["definite_work"].widget.attrs["disabled"] = True
             if antiquarian:
                 self.fields["work"].initial = work
+                self.fields["definite_work"].initial = definite_work
             else:
                 self.fields["work"].initial = None
 
             self.fields["book"].queryset = work.book_set.all()
         else:
             self.fields["book"].queryset = Book.objects.none()
-            self.fields["book"].disabled = True
+            if update is not True:
+                self.fields["book"].disabled = True
+                self.fields["definite_book"].widget.attrs["disabled"] = True
+        if book:
+            if book.unknown:
+                self.fields["definite_book"].widget.attrs["disabled"] = True
 
     def clean(self):
         cleaned_data = super().clean()
-        if cleaned_data.get("book") and not cleaned_data.get("work"):
+        work = cleaned_data.get("work")
+        if work is None:
+            antiquarian = cleaned_data.get("antiquarian")
+            work = antiquarian.unknown_work
+        book = cleaned_data.get("book")
+        if book is None:
+            book = work.unknown_book
+        definite_work = cleaned_data.get("definite_work")
+        definite_book = cleaned_data.get("definite_book")
+
+        if work.unknown and definite_work is True:
+            raise forms.ValidationError(
+                _("Cannot be definite link to Unknown Work"),
+                code="definite-unknown-work",
+            )
+
+        if book.unknown and definite_book is True:
+            raise forms.ValidationError(
+                _("Cannot be definite link to Unknown Book"),
+                code="definite-unknown-book",
+            )
+
+        if book and not work:
             raise forms.ValidationError(
                 _("Work is required for book link."), code="book-without-work"
             )
+
         return cleaned_data
 
 
@@ -677,7 +795,6 @@ class TestimoniumLinkWorkForm(BaseLinkWorkForm):
 
 
 class AppositumGeneralLinkForm(forms.ModelForm):
-
     # for linking to antiquarian, work or book
     # mechanism is different for fragment
 
@@ -691,7 +808,6 @@ class AppositumGeneralLinkForm(forms.ModelForm):
         )
 
     def __init__(self, *args, **kwargs):
-
         antiquarian = kwargs.pop("antiquarian")
         work = kwargs.pop("work")
 
@@ -719,7 +835,6 @@ class AppositumGeneralLinkForm(forms.ModelForm):
 
 
 class AppositumFragmentLinkForm(forms.ModelForm):
-
     # for linking to antiquarian, work or book
     # mechanism is different for fragment
 
@@ -728,7 +843,6 @@ class AppositumFragmentLinkForm(forms.ModelForm):
         fields = ("linked_to",)
 
     def __init__(self, *args, **kwargs):
-
         super().__init__(*args, **kwargs)
 
         self.fields["linked_to"].initial = Fragment.objects.all()

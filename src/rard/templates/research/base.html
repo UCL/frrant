@@ -7,159 +7,6 @@
 {% endblock %}
 
 {% block content %}
-<style>
-
-.toggle-element, .toggle-switch {
-  display:none;
-}
-.toggle-element-button {
-  text-decoration: none!important;
-}
-.toggle-element-button:after {
-  content: '+';
-}
-.toggle-element-button.open:after {
-    content: '-';
-}
-
-.open-button {
-  background-color: #555;
-  color: white;
-  padding: 16px 20px;
-  border: none;
-  cursor: pointer;
-  opacity: 0.7;
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  width: 60px;
-	border-radius:50px;
-	height:60px;
-  z-index: 12;
-	text-align:center;
-	box-shadow: 2px 2px 3px #999;
-}
-
-.open-button:focus {
-  outline:0;
-}
-
-.drop-target {
-   display:none;
-   height: 10px;
-    background: #f8f9fa;
-    border-color: gray;
-    border-style: dashed;
-    border-width: 2px;
-    margin-top: 10px;
-    margin-bottom: 10px;
-}
-
-.drop-target.over {
-    height: 100px;
-   /* background: green; */
-}
-
-/* hidden by default */
-.symbol-popup {
-  display: none;
-  position: fixed;
-  bottom: 100px;
-  right: 15px;
-  border: 3px solid #f1f1f1;
-  z-index: 13;
-}
-.symbol-area {
-  overflow-x: hidden;
-}
-
-/* Add styles to the form container */
-.symbol-popup .form-container {
-  max-width: 300px;
-  padding: 10px;
-  background-color: white;
-}
-
-.symbol-palette {
-  display:none;
-  max-height: 33vh;
-  overflow-y: auto;
-}
-
-/* .ordered-list-item:first-of-type .form-group [name*='up']  {
-  opacity:0.5;
-  pointer-events:none;
-}
-
-.ordered-list-item:last-of-type .form-group [name*='down']  {
-  opacity:0.5;
-  pointer-events:none;
-} */
-
-
-/* Full-width textarea */
-.symbol-popup .form-container textarea {
-  width: 100%;
-  padding: 15px;
-  margin: 5px 0 22px 0;
-  border: none;
-  background: #f1f1f1;
-  resize: none;
-  min-height: 200px;
-}
-
-/* When the textarea gets focus, do something */
-.symbol-popup .form-container textarea:focus {
-  background-color: #ddd;
-  outline: none;
-}
-
-/* Add some hover effects to buttons */
-.symbol-popup .form-container .btn:hover, .open-button:hover {
-  opacity: 1;
-}
-
-.symbol-popup.picker.open {
-  display:block;
-}
-.symbol-popup.picker {
-  display:none;
-}
-
-.open-button.picker.open {
-  /* background-color: #4CAF50; */
-  /* background-color: #007bff; */
-}
-
-.open-button.picker {
-  /* background-color: #555; */
-  background-color: #007bff;
-}
-.open-button.picker:after {
-    font-family: 'Font Awesome 5 Free';
-    content: '\f11c';
-    font-size: 24px;
-    line-height: 30px;
-    margin-left: -3px;
-}
-.open-button.picker.open:after {
-    font-family: 'Arial, Helvetica, sans-serif';
-    text-align: center;
-    content: '\00d7';
-    font-size: 24px;
-    line-height: 24px;
-    margin-left: 0px;
-}
-#id_antiquarians.checkbox, #id_topics.checkbox {
-    max-height: 150px;
-    overflow-y: auto;
-    border: 1px solid #ced4da;
-    padding-left: 10px;
-    padding-top: 5px;
-    border-radius: 0.25rem;
-}
-
-</style>
 {% block symbol_picker %}
 
 <button class="open-button picker" onclick="togglePicker()"></button>
@@ -198,18 +45,18 @@
         {% trans 'Testimonia' %}
       </a>
       {% endif %}
-      {% if perms.research.view_fragment %}
-      <a class='nav-link {% if "fragment" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
-        href='{% url "fragment:list" %}'>
-        {% trans 'Fragments' %}
-      </a>
-      {% endif %}
       {% endcomment %}
 
       {% if perms.research.view_fragment %}
       <a class='nav-link {% if "anonymous_fragment" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
         href='{% url "anonymous_fragment:list" %}'>
         {% trans 'Anonymous Fragments' %}
+      </a>
+      {% endif %}
+      {% if perms.research.view_fragment %}
+      <a class='nav-link {% if "unlinked_fragment" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
+        href='{% url "unlinked_fragment:list" %}'>
+        {% trans 'Unlinked Fragments' %}
       </a>
       {% endif %}
       {% if perms.research.view_citingauthor %}

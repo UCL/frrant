@@ -182,6 +182,16 @@ urlpatterns = [
                         views.BookDeleteView.as_view(),
                         name="delete_book",
                     ),
+                    path(
+                        "<pk>/update/introduction/",
+                        views.WorkUpdateIntroductionView.as_view(),
+                        name="update_introduction",
+                    ),
+                    path(
+                        "book/<pk>/update/introduction/",
+                        views.BookUpdateIntroductionView.as_view(),
+                        name="update_book_introduction",
+                    ),
                 ],
                 "research",
             ),
@@ -199,6 +209,11 @@ urlpatterns = [
                         "<pk>/update/",
                         views.FragmentUpdateView.as_view(),
                         name="update",
+                    ),
+                    path(
+                        "update-link/<pk>",
+                        views.FragmentUpdateWorkLinkView.as_view(),
+                        name="update_fragment_link",
                     ),
                     path(
                         "<pk>/update/commentary/",
@@ -325,6 +340,11 @@ urlpatterns = [
                         name="update",
                     ),
                     path(
+                        "update-link/<pk>",
+                        views.TestimoniumUpdateWorkLinkView.as_view(),
+                        name="update_testimonium_link",
+                    ),
+                    path(
                         "<pk>/update/commentary/",
                         views.TestimoniumUpdateCommentaryView.as_view(),
                         name="update_commentary",
@@ -425,6 +445,20 @@ urlpatterns = [
                 "research",
             ),
             namespace="search",
+        ),
+    ),
+    path(
+        "unlinked/",
+        include(
+            (
+                [
+                    path(
+                        "list/", views.UnlinkedFragmentListView.as_view(), name="list"
+                    ),
+                ],
+                "research",
+            ),
+            namespace="unlinked_fragment",
         ),
     ),
     path(

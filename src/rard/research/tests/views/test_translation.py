@@ -51,7 +51,6 @@ class TestTranslationCreateView(TestCase):
         self.assertEqual(response.context_data["original_text"], self.original_text)
 
     def test_post_creation(self):
-
         data = {
             "original_text": self.original_text,
             "translated_text": "translated_text",
@@ -74,7 +73,6 @@ class TestTranslationCreateView(TestCase):
         self.assertEqual(created.original_text, self.original_text)
 
     def test_translated_text_required(self):
-
         data = {
             "original_text": self.original_text,
             "translator_name": "translator_name",
@@ -94,7 +92,6 @@ class TestTranslationCreateView(TestCase):
         self.assertEqual(0, Translation.objects.count())
 
     def test_translator_name_required(self):
-
         data = {
             "original_text": self.original_text,
             "translated_text": "translated_text",
@@ -127,7 +124,6 @@ class TestTranslationViewsDispatch(TestCase):
         )
 
     def test_update_delete_create_top_level_object(self):
-
         # dispatch method creates an attribute used by the
         # locking mechanism so here we ensure it is created
         request = RequestFactory().post("/")

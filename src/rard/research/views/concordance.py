@@ -12,7 +12,6 @@ from rard.research.views.mixins import CheckLockMixin
 
 
 class ConcordanceListView(LoginRequiredMixin, PermissionRequiredMixin, View):
-
     permission_required = "research.view_concordance"
 
     def get(self, request, *args, **kwargs):
@@ -80,7 +79,6 @@ class ConcordanceListView(LoginRequiredMixin, PermissionRequiredMixin, View):
 class ConcordanceCreateView(
     CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, CreateView
 ):
-
     check_lock_object = "top_level_object"
 
     # create a concordance for an original text
@@ -128,7 +126,6 @@ class ConcordanceCreateView(
 class ConcordanceUpdateView(
     CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
 ):
-
     check_lock_object = "top_level_object"
 
     model = Concordance

@@ -11,7 +11,6 @@ from rard.research.views.mixins import CheckLockMixin
 class TranslationCreateView(
     CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, CreateView
 ):
-
     check_lock_object = "top_level_object"
 
     model = Translation
@@ -52,7 +51,6 @@ class TranslationCreateView(
 class TranslationUpdateView(
     CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
 ):
-
     check_lock_object = "top_level_object"
 
     model = Translation
@@ -82,7 +80,6 @@ class TranslationUpdateView(
 class TranslationDeleteView(
     CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
 ):
-
     check_lock_object = "top_level_object"
 
     model = Translation

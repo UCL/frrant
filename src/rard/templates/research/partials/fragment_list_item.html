@@ -4,14 +4,16 @@
 
 <div class='rard-list-item d-flex justify-content-between'>
     <div>
-        <li>
+        <li class="unstyled">
             <span>
                 {% with fragment.get_display_name as link_text %}
                     {% if perms.research.view_fragment %}
+
                     <a href='{% url "fragment:detail" fragment.pk %}'>{{ link_text }}</a>
                     {% else %}
                         {{ link_text }}
                     {% endif %}
+
                 {% endwith %}
                 {% include 'research/partials/render_inline_lock_icon.html' with object=fragment %}
 
@@ -32,5 +34,13 @@
         </div>
     </div>
     <div class='rard-list-item-actions'>
+        {% if can_edit and has_object_lock %}
+                <button data-link='{{ link.pk }}'
+                data-antiquarian='{{ link.antiquarian.pk }}'  data-objecttype='fragment' data-pos='{{ forloop.counter0 }}' type='button' class='btn btn-light'  {% if forloop.first or disable_link_controls %}disabled{% endif %}
+                name='up_by_book'><i class='fas fa-caret-up'></i></button>
+            <button data-link='{{ link.pk }}' data-antiquarian='{{ link.antiquarian.pk }}'  data-objecttype='fragment' data-pos='{{ forloop.counter0 }}' type='button' class='btn btn-light'  {% if forloop.last or disable_link_controls %}disabled{% endif %}
+                name='down_by_book'><i class='fas fa-caret-down'></i></button>
+
+                {% endif %}
     </div>
 </div>

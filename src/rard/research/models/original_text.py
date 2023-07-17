@@ -11,7 +11,6 @@ from rard.utils.text_processors import make_plain_text
 
 
 class OriginalText(HistoryModelMixin, BaseModel):
-
     history = HistoricalRecords()
 
     def related_lock_object(self):
@@ -127,7 +126,6 @@ class OriginalText(HistoryModelMixin, BaseModel):
 
 
 class Concordance(HistoryModelMixin, BaseModel):
-
     history = HistoricalRecords()
 
     def related_lock_object(self):
@@ -149,7 +147,6 @@ class Concordance(HistoryModelMixin, BaseModel):
 
 
 class Translation(HistoryModelMixin, BaseModel):
-
     history = HistoricalRecords()
 
     def related_lock_object(self):

@@ -8,7 +8,7 @@ from django.http import (
     HttpResponseRedirect,
     JsonResponse,
 )
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
 from django.urls import resolve, reverse, reverse_lazy
 from django.utils.decorators import method_decorator
@@ -41,11 +41,16 @@ from rard.research.models import (
 )
 from rard.research.models.base import AppositumFragmentLink, FragmentLink
 from rard.research.models.fragment import AnonymousTopicLink
-from rard.research.views.mixins import CanLockMixin, CheckLockMixin
+from rard.research.views.mixins import (
+    CanLockMixin,
+    CheckLockMixin,
+    GetWorkLinkRequestDataMixin,
+)
 from rard.utils.convertors import (
     convert_anonymous_fragment_to_fragment,
     convert_unlinked_fragment_to_anonymous_fragment,
 )
+from rard.utils.shared_functions import reassign_to_unknown
 
 
 class OriginalTextCitingWorkView(LoginRequiredMixin, TemplateView):
@@ -74,7 +79,6 @@ class OriginalTextCitingWorkView(LoginRequiredMixin, TemplateView):
         return redirect(self.get_success_url())
 
     def post(self, request, *args, **kwargs):
-
         context = self.get_context_data()
         forms = context["forms"]
 
@@ -83,7 +87,6 @@ class OriginalTextCitingWorkView(LoginRequiredMixin, TemplateView):
             or "then_add_links" in self.request.POST
             or "then_add_apparatus_criticus" in self.request.POST
         ):
-
             # now check the forms using the form validation
             forms_valid = all([x.is_bound and x.is_valid() for x in forms.values()])
             if forms_valid:
@@ -125,7 +128,6 @@ class OriginalTextCitingWorkView(LoginRequiredMixin, TemplateView):
 
 
 class HistoricalBaseCreateView(OriginalTextCitingWorkView):
-
     template_name = "research/base_create_form.html"
 
     def get_forms(self):
@@ -140,7 +142,6 @@ class HistoricalBaseCreateView(OriginalTextCitingWorkView):
         pass
 
     def forms_valid(self, forms):
-
         # save the objects here
         object_form = forms["object"]
         self.saved_object = object_form.save()
@@ -225,7 +226,6 @@ class AnonymousFragmentCreateView(FragmentCreateView):
 
 
 class AppositumCreateView(AnonymousFragmentCreateView):
-
     title = "Create Appositum"
 
     def get_context_data(self, *args, **kwargs):
@@ -365,10 +365,23 @@ class AnonymousFragmentListView(LoginRequiredMixin, PermissionRequiredMixin, Lis
         return qs
 
 
+class UnlinkedFragmentListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+    model = Fragment
+    permission_required = "research.view_fragment"
+    template_name = "research/unlinkedfragment_list.html"
+
+    def get_queryset(self):
+        """Queryset should include all unlinked fragments."""
+        qs = Fragment.objects.all().filter(
+            linked_antiquarians=None,
+        )
+
+        return qs
+
+
 class AddAppositumGeneralLinkView(
     CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, FormView
 ):
-
     check_lock_object = "anonymous_fragment"
 
     def dispatch(self, request, *args, **kwargs):
@@ -470,7 +483,6 @@ class AddAppositumGeneralLinkView(
 class AddAppositumFragmentLinkView(
     CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, FormView
 ):
-
     check_lock_object = "anonymous_fragment"
 
     def dispatch(self, request, *args, **kwargs):
@@ -523,7 +535,6 @@ class AddAppositumFragmentLinkView(
 class RemoveAppositumLinkView(
     CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, RedirectView
 ):
-
     check_lock_object = "anonymous_fragment"
     permission_required = ("research.change_anonymousfragment",)
 
@@ -569,10 +580,26 @@ class FragmentDetailView(
     model = Fragment
     permission_required = ("research.view_fragment",)
 
+    def get_context_data(self, **kwargs):
+        fragment = self.get_object()
+        context = super().get_context_data(**kwargs)
+
+        context["inline_update_url"] = "fragment:update_fragment_link"
+        context["organised_links"] = fragment.get_organised_links()
+        return context
+
 
 class AnonymousFragmentDetailView(FragmentDetailView):
     model = AnonymousFragment
     permission_required = ("research.view_fragment",)
+
+    def get_context_data(self, **kwargs):
+        fragment = self.get_object()
+        context = super().get_context_data(**kwargs)
+
+        context["inline_update_url"] = "fragment:update_fragment_link"
+        context["organised_links"] = fragment.get_organised_links()
+        return context
 
 
 @method_decorator(require_POST, name="dispatch")
@@ -706,9 +733,12 @@ class AnonymousFragmentUpdateCommentaryView(AnonymousFragmentUpdateView):
 
 
 class FragmentAddWorkLinkView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, FormView
+    CheckLockMixin,
+    LoginRequiredMixin,
+    PermissionRequiredMixin,
+    GetWorkLinkRequestDataMixin,
+    FormView,
 ):
-
     check_lock_object = "fragment"
 
     def dispatch(self, request, *args, **kwargs):
@@ -723,6 +753,7 @@ class FragmentAddWorkLinkView(
         "research.change_fragment",
         "research.add_fragmentlink",
     )
+    is_update = False
 
     def get_success_url(self, *args, **kwargs):
         if "another" in self.request.POST:
@@ -737,41 +768,10 @@ class FragmentAddWorkLinkView(
 
     def form_valid(self, form):
         data = form.cleaned_data
-        antiquarian = data["antiquarian"]
-
         data["fragment"] = self.get_fragment()
-        data["antiquarian"] = antiquarian
         FragmentLink.objects.get_or_create(**data)
 
         return super().form_valid(form)
-
-    def get_antiquarian(self, *args, **kwargs):
-        # look for antiquarian in the GET or POST parameters
-        self.antiquarian = None
-        if self.request.method == "GET":
-            antiquarian_pk = self.request.GET.get("antiquarian", None)
-        elif self.request.method == "POST":
-            antiquarian_pk = self.request.POST.get("antiquarian", None)
-        if antiquarian_pk:
-            try:
-                self.antiquarian = Antiquarian.objects.get(pk=antiquarian_pk)
-            except Antiquarian.DoesNotExist:
-                raise Http404
-        return self.antiquarian
-
-    def get_work(self, *args, **kwargs):
-        # look for work in the GET or POST parameters
-        self.work = None
-        if self.request.method == "GET":
-            work_pk = self.request.GET.get("work", None)
-        elif self.request.method == "POST":
-            work_pk = self.request.POST.get("work", None)
-        if work_pk not in ("", None):
-            try:
-                self.work = Work.objects.get(pk=work_pk)
-            except Work.DoesNotExist:
-                raise Http404
-        return self.work
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
@@ -780,21 +780,19 @@ class FragmentAddWorkLinkView(
                 "fragment": self.get_fragment(),
                 "work": self.get_work(),
                 "antiquarian": self.get_antiquarian(),
+                "definite_antiquarian": self.get_definite_antiquarian(),
+                "definite_work": self.get_definite_work(),
             }
         )
         return context
-
-    def get_form_kwargs(self):
-        values = super().get_form_kwargs()
-        values["antiquarian"] = self.get_antiquarian()
-        values["work"] = self.get_work()
-        return values
 
 
 @method_decorator(require_POST, name="dispatch")
 class RemoveFragmentLinkView(
     CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
 ):
+    """When requesting link removal, one link will be removed/reassigned if from a work link
+    If from an antiquarian link, all links will be removed"""
 
     check_lock_object = "fragment"
     model = FragmentLink
@@ -802,7 +800,13 @@ class RemoveFragmentLinkView(
     def dispatch(self, request, *args, **kwargs):
         # need to ensure we have the lock object view attribute
         # initialised in dispatch
-        self.get_fragment()
+        if "antiquarian_request" in request.POST:
+            antiquarian_pk = kwargs["pk"]
+            fragment_pk = request.POST.get("antiquarian_request")
+            self.get_antiquarian(antiquarian_pk)
+            self.get_fragment(fragment_pk)
+        else:
+            self.get_fragment()
         return super().dispatch(request, *args, **kwargs)
 
     # base class for both remove work and remove book from a fragment
@@ -813,18 +817,137 @@ class RemoveFragmentLinkView(
             "HTTP_REFERER", reverse("fragment:detail", kwargs={"pk": self.fragment.pk})
         )
 
+    def get_antiquarian(self, *args, **kwargs):
+        if not getattr(self, "antiquarian", False):
+            pk = args[0]
+            self.antiquarian = Antiquarian.objects.get(pk=pk)
+        return self.antiquarian
+
+    def get_fragment(self, *args, **kwargs):
+        if not getattr(self, "fragment", False):
+            if "antiquarian_request" in self.request.POST:
+                pk = args[0]
+                self.fragment = Fragment.objects.get(pk=pk)
+            else:
+                self.fragment = self.get_object().fragment
+        return self.fragment
+
+    def delete(self, request, *args, **kwargs):
+        success_url = self.get_success_url()
+        fragment = self.get_fragment()
+
+        if "antiquarian_request" in request.POST:
+            antiquarian = self.get_antiquarian()
+            antiquarian_fragmentlinks = FragmentLink.objects.filter(
+                antiquarian=antiquarian, fragment=fragment
+            )
+            for link in antiquarian_fragmentlinks:
+                link.delete()
+
+        else:
+            self.object = self.get_object()
+            antiquarian = self.object.antiquarian
+            # Determine if it should reassign to unknown
+            # if no other links reassign to unknown
+            # otherwise delete the link
+            if (
+                len(
+                    FragmentLink.objects.filter(
+                        antiquarian=antiquarian, fragment=fragment
+                    )
+                )
+                == 1
+            ):
+                reassign_to_unknown(self.object)
+
+            else:
+                self.object.delete()
+
+        return HttpResponseRedirect(success_url)
+
+
+class FragmentUpdateWorkLinkView(
+    CheckLockMixin,
+    LoginRequiredMixin,
+    PermissionRequiredMixin,
+    GetWorkLinkRequestDataMixin,
+    UpdateView,
+):
+    check_lock_object = "fragment"
+    model = FragmentLink
+    template_name = "research/partials/render_inline_worklink_form.html"
+    form_class = FragmentLinkWorkForm
+    is_update = True
+    permission_required = "research.change_fragment"
+
     def get_fragment(self, *args, **kwargs):
         if not getattr(self, "fragment", False):
             self.fragment = self.get_object().fragment
         return self.fragment
 
+    def dispatch(self, request, *args, **kwargs):
+        # need to ensure we have the lock object view attribute
+        # initialised in dispatch
+        self.get_fragment()
+        self.get_initial()
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_initial(self):
+        initial = super().get_initial()
+        initial["work"] = self.get_object().work
+        initial["antiquarian"] = self.get_object().antiquarian
+        initial["book"] = self.get_object().book
+        initial["definite_work"] = self.get_object().definite_work
+        initial["definite_antiquarian"] = self.get_object().definite_antiquarian
+        initial["definite_book"] = self.get_object().definite_book
+        return initial
+
+    def form_valid(self, form):
+        data = form.cleaned_data
+        self.object = self.get_object()
+        if "cancel" in self.request.POST:
+            return reverse("fragment:detail", kwargs={"pk": self.fragment.pk})
+        else:
+            self.object.definite_antiquarian = data["definite_antiquarian"]
+            self.object.definite_work = data["definite_work"]
+            self.object.definite_book = data["definite_book"]
+            self.object.book = data["book"]
+
+            self.object.save()
+
+            return super().form_valid(form)
+
+    def get_context_data(self, *args, **kwargs):
+        context = super().get_context_data(*args, **kwargs)
+        context.update(
+            {
+                "link": self.object,
+                "inline_update_url": "fragment:update_fragment_link",
+                "definite_antiquarian": self.get_definite_antiquarian(),
+                "definite_work": self.get_definite_work(),
+                "can_edit": True,
+                "has_object_lock": True,
+            }
+        )
+        return context
+
+    def get_success_url(self, *args, **kwargs):
+        return self.request.META.get(
+            "HTTP_REFERER", reverse("fragment:detail", kwargs={"pk": self.fragment.pk})
+        )
+
+    def post(self, request, *args, **kwargs):
+        super().post(request, *args, **kwargs)
+        self.object.save()
+        context = self.get_context_data()
+
+        return render(request, "research/partials/linked_work.html", context)
+
 
 class MoveAnonymousTopicLinkView(LoginRequiredMixin, View):
-
     render_partial_template = "research/partials/ordered_anonymoustopiclink_area.html"
 
     def render_valid_response(self, topic_id):
-
         view = AnonymousFragmentListView()
         topic = Topic.objects.get(id=topic_id)
         qs = view.get_queryset(topic=topic)
@@ -839,7 +962,6 @@ class MoveAnonymousTopicLinkView(LoginRequiredMixin, View):
         return JsonResponse(data=ajax_data, safe=False)
 
     def post(self, *args, **kwargs):
-
         anonymoustopiclink_pk = self.request.POST.get("anonymoustopiclink_id", None)
         topic_id = self.request.POST.get("topic_id", None)
         if anonymoustopiclink_pk and topic_id:

@@ -5,7 +5,6 @@ from rard.utils.basemodel import ObjectLock
 
 
 class Command(BaseCommand):
-
     help = "Checks for locks that have expired"
 
     def handle(self, *args, **options):

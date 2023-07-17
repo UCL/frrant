@@ -4,15 +4,17 @@
 
 <div class='rard-list-item d-flex justify-content-between'>
     <div>
-        <li>
+        <li class="unstyled">
             <span>
                 {% with testimonium.get_display_name as link_text %}
                     {% if perms.research.view_testimonium %}
+
                     <a href='{% url "testimonium:detail" testimonium.pk %}'>{{ link_text }}</a>
                     {% else %}
                         {{ link_text }}
                     {% endif %}
-                {% endwith %}
+
+                    {% endwith %}
                 {% include 'research/partials/render_inline_lock_icon.html' with object=testimonium %}
 
                 <button class="btn btn-link toggle-element-button" type="button" data-toggles="testimonium_{{ testimonium.pk }}"></button>

@@ -9,6 +9,7 @@ from rard.research.views import (
     WorkDeleteView,
     WorkDetailView,
     WorkListView,
+    WorkUpdateIntroductionView,
     WorkUpdateView,
 )
 from rard.users.tests.factories import UserFactory
@@ -44,7 +45,6 @@ class TestWorkSuccessUrls(TestCase):
 
 class TestWorkDeleteView(TestCase):
     def test_post_only(self):
-
         work = Work.objects.create(name="name")
         url = reverse("work:delete", kwargs={"pk": work.pk})
         request = RequestFactory().get(url)
@@ -64,7 +64,6 @@ class TestWorkViewPermissions(TestCase):
 
 class TestWorkCreateView(TestCase):
     def test_create(self):
-
         url = reverse("work:create")
         a = Antiquarian.objects.create(name="foo", re_code=1)
         data = {"antiquarians": [a.pk], "name": "work name"}
@@ -73,10 +72,10 @@ class TestWorkCreateView(TestCase):
 
         WorkCreateView.as_view()(request)
         a = Antiquarian.objects.get(pk=a.pk)
-        self.assertEqual(a.works.count(), 1)
+        self.assertEqual(a.works.exclude(unknown=True).count(), 1)
+        self.assertIn(a.unknown_work, a.works.all())
 
     def test_create_with_books(self):
-
         url = reverse("work:create")
         a = Antiquarian.objects.create(name="bar", re_code=2)
         data = {
@@ -94,23 +93,25 @@ class TestWorkCreateView(TestCase):
 
         WorkCreateView.as_view()(request)
         a = Antiquarian.objects.get(pk=a.pk)
-        self.assertEqual(a.works.count(), 1)
-        w = a.works.all()[0]
-        self.assertEqual(Book.objects.filter(work=w).count(), 2)
-        self.assertEqual(w.book_set.count(), 2)
+        self.assertEqual(a.works.exclude(unknown=True).count(), 1)
+        w = a.works.first()
+        self.assertEqual(Book.objects.filter(work=w, unknown=False).count(), 2)
+        self.assertEqual(w.book_set.exclude(unknown=True).count(), 2)
+
+        self.assertIn(w.unknown_book, w.book_set.all())
         bs = w.book_set.all()
-        # Books are sorted by number
-        self.assertEqual(bs[0].number, 1)
-        self.assertEqual(bs[0].subtitle, "un")
-        self.assertEqual(bs[1].number, 2)
-        self.assertEqual(bs[1].subtitle, "deux")
-        self.assertEqual(bs[1].order_year, -150)
-        self.assertEqual(bs[1].date_range, "somewhen")
+        # Books are sorted by unknown, then order, then number
+        self.assertTrue(bs.last().unknown)
+        self.assertEqual(bs[0].number, 2)
+        self.assertEqual(bs[0].subtitle, "deux")
+        self.assertEqual(bs[0].order_year, -150)
+        self.assertEqual(bs[0].date_range, "somewhen")
+        self.assertEqual(bs[1].number, 1)
+        self.assertEqual(bs[1].subtitle, "un")
 
 
 class TestWorkUpdateView(TestCase):
     def test_update(self):
-
         work = Work.objects.create(name="name")
         url = reverse("work:update", kwargs={"pk": work.pk})
         a1 = Antiquarian.objects.create(name="foo", re_code=1)
@@ -126,8 +127,8 @@ class TestWorkUpdateView(TestCase):
         work.lock(request.user)
 
         WorkUpdateView.as_view()(request, pk=work.pk)
-        self.assertEqual(a1.works.count(), 1)
-        self.assertEqual(a2.works.count(), 0)
+        self.assertEqual(a1.works.exclude(unknown=True).count(), 1)
+        self.assertEqual(a2.works.exclude(unknown=True).count(), 0)
         self.assertEqual(Work.objects.get(pk=work.pk).name, "first")
 
         work = Work.objects.create(name="name")
@@ -144,12 +145,11 @@ class TestWorkUpdateView(TestCase):
         # view.form.instance = work
 
         view(request, pk=work.pk)
-        self.assertEqual(a1.works.count(), 1)
-        self.assertEqual(a2.works.count(), 1)
+        self.assertEqual(a1.works.exclude(unknown=True).count(), 1)
+        self.assertEqual(a2.works.exclude(unknown=True).count(), 1)
         self.assertEqual(Work.objects.get(pk=work.pk).name, "other")
 
     def test_update_with_books(self):
-
         work = Work.objects.create(name="name2")
         url = reverse("work:update", kwargs={"pk": work.pk})
 
@@ -187,7 +187,7 @@ class TestWorkUpdateView(TestCase):
 
         view(request, pk=work.pk)
 
-        bs = work.book_set.all()
+        bs = work.book_set.exclude(unknown=True)
         self.assertEqual(bs[0].number, 11)
         self.assertEqual(bs[0].subtitle, "alpha")
         self.assertEqual(bs[1].number, 12)
@@ -201,51 +201,203 @@ class TestWorkDetailView(TestCase):
         self.user = UserFactory.create()
 
     def test_ordered_materials(self):
+        # the get_ordered_materials function is on the work model but used in the view
         work = Work.objects.create(name="meditations")
         book1 = Book.objects.create(work=work, number=1)
         book2 = Book.objects.create(work=work, number=2)
+        unknown_book = work.unknown_book
 
         f1 = Fragment.objects.create(name="Fragment One")
-        FragmentLink.objects.create(fragment=f1, work=work, book=book1, definite=True)
+        FragmentLink.objects.create(
+            fragment=f1,
+            work=work,
+            book=book1,
+            definite_work=True,
+        )
         f2 = Fragment.objects.create(name="Fragment Two")
-        FragmentLink.objects.create(fragment=f2, work=work, book=book2, definite=False)
+        FragmentLink.objects.create(
+            fragment=f2,
+            work=work,
+            book=book2,
+            definite_work=False,
+        )
         f3 = Fragment.objects.create(name="Fragment Three")
-        FragmentLink.objects.create(fragment=f3, work=work, definite=False)
+        FragmentLink.objects.create(
+            fragment=f3,
+            work=work,
+            definite_work=False,
+        )
         f4 = Fragment.objects.create(name="Fragment Four")
-        FragmentLink.objects.create(fragment=f4, work=work, definite=True)
+        FragmentLink.objects.create(
+            fragment=f4,
+            work=work,
+            definite_work=True,
+        )
 
         t1 = Testimonium.objects.create(name="Testimonium One")
         TestimoniumLink.objects.create(
-            testimonium=t1, work=work, book=book1, definite=False
+            testimonium=t1,
+            work=work,
+            book=book1,
+            definite_work=False,
         )
         t2 = Testimonium.objects.create(name="Testimonium Two")
         TestimoniumLink.objects.create(
-            testimonium=t2, work=work, book=book2, definite=True
+            testimonium=t2,
+            work=work,
+            book=book2,
+            definite_work=True,
         )
         t3 = Testimonium.objects.create(name="Testimonium Three")
-        TestimoniumLink.objects.create(testimonium=t3, work=work, definite=False)
+        TestimoniumLink.objects.create(
+            testimonium=t3,
+            work=work,
+            definite_work=False,
+        )
         t4 = Testimonium.objects.create(name="Testimonium Four")
-        TestimoniumLink.objects.create(testimonium=t4, work=work, definite=True)
+        TestimoniumLink.objects.create(
+            testimonium=t4,
+            work=work,
+            definite_work=True,
+        )
 
         url = reverse("work:detail", kwargs={"pk": work.pk})
-        self.client.force_login(self.user)
-        response = self.client.get(url)
+        request = RequestFactory().get(url)
+        request.user = self.user
+        response = WorkDetailView.as_view()(request, pk=work.pk)
 
-        target_materials = {
-            book: {
-                material: {"definite": [], "possible": []}
-                for material in ["fragments", "testimonia", "apposita"]
-            }
-            for book in [book1, book2] + ["Unknown Book"]
+        target_materials = {book: {} for book in work.book_set.all()}
+
+        target_materials[book1]["fragments"] = {
+            FragmentLink.objects.get(fragment=f1): {
+                "linked": f1,
+                "definite_antiquarian": False,
+                "definite_work": FragmentLink.objects.get(fragment=f1).definite_work,
+                "definite_book": False,
+                "order": FragmentLink.objects.get(fragment=f1).order_in_book,
+            },
         }
-        target_materials[book1]["fragments"]["definite"] = [f1]
-        target_materials[book2]["fragments"]["possible"] = [f2]
-        target_materials["Unknown Book"]["fragments"]["definite"] = [f4]
-        target_materials["Unknown Book"]["fragments"]["possible"] = [f3]
-        target_materials[book1]["testimonia"]["possible"] = [t1]
-        target_materials[book2]["testimonia"]["definite"] = [t2]
-        target_materials["Unknown Book"]["testimonia"]["definite"] = [t4]
-        target_materials["Unknown Book"]["testimonia"]["possible"] = [t3]
+        target_materials[book2]["fragments"] = {
+            FragmentLink.objects.get(fragment=f2): {
+                "linked": f2,
+                "definite_antiquarian": False,
+                "definite_work": FragmentLink.objects.get(fragment=f2).definite_work,
+                "definite_book": False,
+                "order": FragmentLink.objects.get(fragment=f2).order_in_book,
+            },
+        }
+        target_materials[unknown_book]["fragments"] = {
+            FragmentLink.objects.get(fragment=f4): {
+                "linked": f4,
+                "definite_antiquarian": False,
+                "definite_work": FragmentLink.objects.get(fragment=f4).definite_work,
+                "definite_book": False,
+                "order": FragmentLink.objects.get(fragment=f4).order_in_book,
+            },
+            FragmentLink.objects.get(fragment=f3): {
+                "linked": f3,
+                "definite_antiquarian": False,
+                "definite_work": FragmentLink.objects.get(fragment=f3).definite_work,
+                "definite_book": False,
+                "order": FragmentLink.objects.get(fragment=f3).order_in_book,
+            },
+        }
+        target_materials[book1]["testimonia"] = {
+            TestimoniumLink.objects.get(testimonium=t1): {
+                "linked": t1,
+                "definite_antiquarian": False,
+                "definite_work": TestimoniumLink.objects.get(
+                    testimonium=t1
+                ).definite_work,
+                "definite_book": False,
+                "order": TestimoniumLink.objects.get(testimonium=t1).order_in_book,
+            },
+        }
+        target_materials[book2]["testimonia"] = {
+            TestimoniumLink.objects.get(testimonium=t2): {
+                "linked": t2,
+                "definite_antiquarian": False,
+                "definite_work": TestimoniumLink.objects.get(
+                    testimonium=t2
+                ).definite_work,
+                "definite_book": False,
+                "order": TestimoniumLink.objects.get(testimonium=t2).order_in_book,
+            },
+        }
+        target_materials[unknown_book]["testimonia"] = {
+            TestimoniumLink.objects.get(testimonium=t4): {
+                "linked": t4,
+                "definite_antiquarian": False,
+                "definite_work": TestimoniumLink.objects.get(
+                    testimonium=t4
+                ).definite_work,
+                "definite_book": False,
+                "order": TestimoniumLink.objects.get(testimonium=t4).order_in_book,
+            },
+            TestimoniumLink.objects.get(testimonium=t3): {
+                "linked": t3,
+                "definite_antiquarian": False,
+                "definite_work": TestimoniumLink.objects.get(
+                    testimonium=t3
+                ).definite_work,
+                "definite_book": False,
+                "order": TestimoniumLink.objects.get(testimonium=t3).order_in_book,
+            },
+        }
+        # ordering the links by order_in_book since they're not fetched in that manner
+        for book, materials in target_materials.items():
+            for material, links in materials.items():
+                links_sorted = sorted(links.items(), key=lambda x: x[1]["order"])
+                materials[material] = {k: v for k, v in links_sorted}
+        assert "ordered_materials" in response.context_data
+        assert response.context_data["ordered_materials"] == target_materials
 
-        assert "ordered_materials" in response.context
-        assert response.context["ordered_materials"] == target_materials
+
+class TestWorkUpdateIntroductionView(TestCase):
+    def setUp(self):
+        self.work = Work.objects.create(name="name")
+        self.url = reverse("work:update_introduction", kwargs={"pk": self.work.pk})
+        self.request = RequestFactory().get(self.url)
+        self.request.user = UserFactory.create()
+
+        self.work.lock(self.request.user)
+
+        self.response = WorkUpdateIntroductionView.as_view()(
+            self.request, pk=self.work.pk
+        )
+
+    def test_context_data(self):
+        self.assertEqual(self.response.context_data["editing"], "introduction")
+
+    def test_success_url(self):
+        # this is more complicated than with other views
+        # due to the conditional rendering on another view
+        # // I think
+        success_url = self.response.context_data["view"].get_success_url()
+        self.assertEqual(success_url, f"/work/{self.work.pk}/")
+
+    def test_update_intro(self):
+        """This checks that an introduction object is created
+        when the book object is created but is empty
+        and will update on POST"""
+        intro = self.response.context_data["object"].introduction
+
+        self.assertTrue(bool(intro.pk))
+        self.assertFalse(bool(intro.content))
+
+        work_pk = self.response.context_data["object"].pk
+
+        intro_text = "testing update of introduction"
+
+        data = {
+            "introduction_text": intro_text,
+        }
+        post_request = RequestFactory().post(self.url, data=data)
+        post_request.user = self.request.user
+        WorkUpdateIntroductionView.as_view()(post_request, pk=work_pk)
+
+        view = WorkUpdateIntroductionView.as_view()(self.request, pk=self.work.pk)
+
+        intro = view.context_data["object"].introduction
+        self.assertTrue(bool(intro.content))
+        self.assertEqual(intro.content, intro_text)

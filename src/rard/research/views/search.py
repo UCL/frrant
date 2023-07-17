@@ -15,6 +15,7 @@ from rard.research.models import (
     AnonymousFragment,
     Antiquarian,
     BibliographyItem,
+    Book,
     CitingAuthor,
     CitingWork,
     Fragment,
@@ -125,7 +126,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             # Now we call add_fold repeatedly to add more
             # folds to self.query
             k = self.keywords
-            for (fold_to, fold_from) in rard_folds:
+            for fold_to, fold_from in rard_folds:
                 if fold_from in k:
                     k = k.replace(fold_from, fold_to)
                     self.add_fold(fold_from, fold_to)
@@ -431,6 +432,19 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             ("name", terms.match),
             ("subtitle", terms.match),
             ("antiquarian__name", terms.match),
+            ("plain_introduction", terms.match),
+            ("book__plain_introduction", terms.match),
+        ]
+        return cls.generic_content_search(qs, search_fields)
+
+    @classmethod
+    def book_search(cls, terms, ant_filter=None, **kwargs):
+        qs = cls.get_filtered_model_qs(Book, ant_filter=ant_filter)
+        search_fields = [
+            ("subtitle", terms.match),
+            ("work__antiquarian__name", terms.match),
+            ("work__name", terms.match),
+            ("plain_introduction", terms.match),
         ]
         return cls.generic_content_search(qs, search_fields)
 

@@ -13,7 +13,6 @@ User = get_user_model()
 
 @admin.register(User)
 class UserAdmin(auth_admin.UserAdmin):
-
     DEFAULT_PASSWORD_LENGTH = 12
 
     form = UserChangeForm

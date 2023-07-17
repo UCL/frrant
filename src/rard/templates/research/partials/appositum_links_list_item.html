@@ -4,10 +4,10 @@
 
 <div class='rard-list-item d-flex justify-content-between'>
   <div>
-      <li>
+      <li class="unstyled">
+        {% include 'research/partials/render_definite_indicators.html' with link=link %}
           {% if link.linked_to %}
               {% with fragment=link.linked_to %}
-
               <span>
                   {% with fragment.get_display_name as link_text %}
                       {% if perms.research.view_fragment %}
@@ -82,7 +82,7 @@
                       {% else %}
                       <ul class='pl-3'>
                           {% for name in fragment.get_all_names %}
-                          <li>
+                          <li class="unstyled">
                               {{ name }}
                           </li>
                           {% endfor %}

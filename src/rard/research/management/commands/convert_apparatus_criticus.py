@@ -5,7 +5,6 @@ from rard.research.models import ApparatusCriticusItem, OriginalText
 
 
 class Command(BaseCommand):
-
     help = "converts old format app crit into new version"
 
     def handle(self, *args, **options):

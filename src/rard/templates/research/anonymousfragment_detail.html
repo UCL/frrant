@@ -1,6 +1,6 @@
 {% extends "research/detail_base.html" %}
 {% load i18n bootstrap4 static humanize object_lock show_citing_info %}
-
+{% block title %}Anonymous Fragment {{object.pk}} {% endblock %}
 {% block heading %}
     {{ object.get_display_name }}
 {% endblock %}

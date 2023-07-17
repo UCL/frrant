@@ -8,6 +8,7 @@ from rard.research.models import (
     AnonymousFragment,
     Antiquarian,
     BibliographyItem,
+    Book,
     CitingAuthor,
     CitingWork,
     Fragment,
@@ -93,10 +94,10 @@ class TestSearchView(TestCase):
         url = reverse("search:home")
         request = RequestFactory().get(url, data=data)
         view.request = request
-        self.assertEqual(3, len(view.get_queryset()))
+        # should include the unknown works for them
+        self.assertEqual(5, len(view.get_queryset()))
 
     def test_empty_search_redirects(self):
-
         # any empty sring should be ignored
         for search_term in ("", " ", "              "):
             data = {
@@ -244,7 +245,6 @@ class TestSearchView(TestCase):
         self.assertEqual(len(view.get_queryset()), 1)
 
     def test_search_objects(self):
-
         # Run a particular search and return a list of results
         def do_search(search_function, keywords):
             return list(search_function(SearchView.Term(keywords)))
@@ -272,11 +272,18 @@ class TestSearchView(TestCase):
         # works
         w1 = Work.objects.create(name="work")
         w2 = Work.objects.create(name="nothing")
-        self.assertEqual(do_search(view.work_search, "work"), [w1])
-        self.assertEqual(do_search(view.work_search, "WORK"), [w1])
+        self.assertEqual(
+            do_search(view.work_search, "work"), [w1, a1.unknown_work, a2.unknown_work]
+        )
+        self.assertEqual(
+            do_search(view.work_search, "WORK"), [w1, a1.unknown_work, a2.unknown_work]
+        )
         self.assertEqual(do_search(view.work_search, "nothing"), [w2])
         self.assertEqual(do_search(view.work_search, "NothInG"), [w2])
-        self.assertEqual(do_search(view.work_search, "*O*"), [w2, w1])
+        self.assertEqual(
+            do_search(view.work_search, "*O*"),
+            [w2, w1, a1.unknown_work, a2.unknown_work],
+        )
 
         cw = CitingWork.objects.create(title="citing_work")
 
@@ -290,7 +297,10 @@ class TestSearchView(TestCase):
         )
 
         f2 = Fragment.objects.create()
-        f2.original_texts.create(content="not$me", citing_work=cw,).references.create(
+        f2.original_texts.create(
+            content="not$me",
+            citing_work=cw,
+        ).references.create(
             reference_position="daisy ma<>,./?;'#:@~[]{}-=_+!\"£$%^&*()\\|y cooper",
         )
 
@@ -400,7 +410,6 @@ class TestSearchView(TestCase):
         self.assertCountEqual(do_search(view.citing_work_search, "?ook"), [cw1, cw2])
 
     def test_wildcards(self):
-
         # Run a particular search and return a list of results
         def do_search(search_function, keywords):
             return list(search_function(SearchView.Term(keywords)))
@@ -437,7 +446,6 @@ class TestSearchView(TestCase):
         self.assertEqual(do_search(view.fragment_search, "again?"), [])
 
     def test_search_snippets(self):
-
         raw_content = (
             "Lorem ipsum dolor sit amet, <span class='test consectatur'>"
             "consectetur</span> adipiscing <strong>elit</strong>, sed do "
@@ -516,3 +524,28 @@ class TestSearchView(TestCase):
         response = SearchView.as_view()(request)
 
         self.assertEqual(response.context_data["results"], [f2])
+
+    def test_search_introductions(self):
+        def do_search(search_function, keywords):
+            return list(search_function(SearchView.Term(keywords)))
+
+        view = SearchView()
+        a11 = Antiquarian.objects.create(name="boring person", re_code="11")
+        a11.introduction.content = "I'm a very interesting person"
+
+        w11 = Work.objects.create(name="boring work", unknown=False)
+        w11.introduction.content = "I was written by a rather interesting chap"
+        a11.works.add(w11)
+
+        b11 = Book.objects.create(
+            number=11, unknown=False, subtitle="boring book", work=w11
+        )
+        b11.introduction.content = (
+            "I am but one of a collection but am nonetheless interesting"
+        )
+        a11.save()
+        w11.save()
+        b11.save()
+        self.assertEqual(do_search(view.antiquarian_search, "interesting"), [a11])
+        self.assertEqual(do_search(view.work_search, "interesting"), [w11])
+        self.assertEqual(do_search(view.book_search, "interesting"), [b11])
