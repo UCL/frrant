@@ -12,7 +12,7 @@ class FootnoteIndicator extends BlockEmbed {
     node.textContent = value;
     node.setAttribute("data-toggle", "tooltip");
     node.setAttribute("data-placement", "top");
-    node.setAttribute("data-html", "true");
+    node.setAttribute("contenteditable", "false");
     return node;
   }
   static value(node) {
@@ -21,7 +21,7 @@ class FootnoteIndicator extends BlockEmbed {
 }
 FootnoteIndicator.blotName = "footnote-indicator";
 FootnoteIndicator.scope = Parchment.Scope.INLINE;
-FootnoteIndicator.tagName = "sup";
+FootnoteIndicator.tagName = "SUP";
 
 class FootnoteArea extends BlockEmbed {
   static create(value) {
@@ -86,7 +86,15 @@ class Footnote extends Module {
       // insert a superscripted indicator in the text editor, space after is intended
       this.quill.insertEmbed(index, "footnote-indicator", `${footnoteNumber} `);
 
-      this.quill.setSelection(index + 1);
+      // this.quill.setSelection(index + 1);
+      const cursorPosition = index + 1; // Set the desired cursor position
+      this.quill.setSelection(cursorPosition);
+
+      // Add the ql-cursor class to the selected range to style the cursor
+      const range = this.quill.getSelection();
+      range.length = 0; // Remove the selection
+      range.index = cursorPosition; // Set the index to the cursor position
+      this.quill.setSelection(range);
 
       // create the content of the footnote in the footnote area
       const footnoteElement = document.createElement("p");
@@ -119,7 +127,7 @@ class Footnote extends Module {
 
       this.cleanFootnoteNumbers();
       footnoteNumber++;
-      $('[data-toggle="tooltip"]').tooltip();
+      $('[data-toggle="tooltip"]').tooltip(); //enable tooltips
     }
   }
 
