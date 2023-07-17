@@ -197,13 +197,21 @@ class Footnote extends Module {
     var newIndicator = document.getElementById(
       `footnote-indicator-${footnoteNumber}`
     );
+    // if it's the last indicator in the editor, return null to save searching
+    var allIndicators = document.querySelectorAll(".footnote-indicator");
+    if (newIndicator == allIndicators[allIndicators.length - 1]) {
+      return null;
+    }
+
     var parentElement = newIndicator.parentElement;
     var parentSibling = parentElement.nextElementSibling;
     var newIndicatorIndex = Array.from(parentElement.children).indexOf(
       newIndicator
     );
     var siblingElement = parentElement.children[newIndicatorIndex + 1];
-    var cousinElement = parentSibling.firstElementChild;
+    var cousinElement = parentSibling.firstElementChild
+      ? parentSibling.firstElementChild
+      : parentSibling.nextElementSibling;
     // check parent first
     while (siblingElement) {
       if (
@@ -216,11 +224,12 @@ class Footnote extends Module {
       siblingElement = siblingElement.nextElementSibling;
     }
     if (!siblingElement) {
-      console.log("no siblings");
-      console.log(cousinElement);
       // if not in parent, check parent sibling
       if (!cousinElement) {
-        cousinElement = parentSibling.nextElementSibling.firstElementChild;
+        cousinElement = parentSibling.nextElementSibling.firstElementChild
+          ? parentSibling.nextElementSibling.firstElementChild
+          : parentSibling.nextElementSibling.nextElementSibling
+              .firstElementChild;
       }
       while (cousinElement) {
         if (
@@ -231,14 +240,13 @@ class Footnote extends Module {
           return cousinElement;
         }
         if (cousinElement.nextElementSibling) {
-          console.log("another to check");
           cousinElement = cousinElement.nextElementSibling;
         }
         // and then parent sibling sibling
-        else
+        else {
           cousinElement =
             cousinElement.parentElement.parentSibling.firstElementChild;
-        console.log(cousinElement);
+        }
       }
     }
     return null;

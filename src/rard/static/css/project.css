@@ -327,6 +327,10 @@ button.insert {
   bottom: 0;
   height: 10rem;
   overflow: scroll;
+  width: 90%;
+}
+.footnote-indicator {
+  color: #007bff;
 }
 \0305 {
   width: 120%;
