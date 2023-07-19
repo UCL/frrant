@@ -356,6 +356,6 @@ button.insert {
 
 #bib-inline-form {
   opacity: 1;
-  max-height: 1000px;
+  max-height: 50vh;
   transition: max-height 1s ease-out, opacity 1s ease-out;
 }
