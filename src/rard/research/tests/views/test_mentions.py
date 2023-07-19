@@ -80,7 +80,6 @@ class TestMentionsView(TestCase):
             authors="fie froe, tie twoe",
             author_surnames="Froe",
             title="peppers two apples 2",
-            # parent=self.andrew,
         )
 
     def request(self, *args, **kwargs):
