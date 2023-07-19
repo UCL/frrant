@@ -370,7 +370,7 @@ class TestSearchView(TestCase):
         # bibliography
         data = {"authors": "Aab, W", "title": "The Roman Age"}
         b1 = BibliographyItem.objects.create(**data)
-        data = {"authors": "Beeb, Z", "title": "The Roman Era"}  # , "parent": parent}
+        data = {"authors": "Beeb, Z", "title": "The Roman Era"}
         b2 = BibliographyItem.objects.create(**data)
 
         self.assertEqual(do_search(view.bibliography_search, "*aab*"), [b1])
