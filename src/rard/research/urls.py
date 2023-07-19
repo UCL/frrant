@@ -126,7 +126,6 @@ urlpatterns = [
                     ),
                     path(
                         "<pk>/bibliography/create/",
-                        # views.AntiquarianBibliographyCreateView.as_view(),
                         views.BibliographyCreateView.as_view(),
                         name="create_bibliography",
                     ),
