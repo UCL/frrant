@@ -1,10 +1,8 @@
-from itertools import permutations
 from typing import Any
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.db.models.query import QuerySet
-from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
@@ -14,7 +12,7 @@ from django.views.generic import DetailView, ListView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from rard.research.forms import BibliographyItemForm, BibliographyItemInlineForm
-from rard.research.models import Antiquarian, BibliographyItem, TextObjectField
+from rard.research.models import Antiquarian, BibliographyItem
 from rard.research.views.mixins import CanLockMixin, CheckLockMixin
 
 
@@ -157,57 +155,6 @@ class BibliographyDeleteView(
     model = BibliographyItem
     success_url = reverse_lazy("bibliography:list")
     permission_required = ("research.delete_bibliographyitem",)
-
-    def delete(self, request, *args, **kwargs):
-        """
-        if a TextObjectField contains a mention of a BibilographyItem,
-        it will contain this string:
-        <span class="mention" data-denotation-char="@" data-id="20" data-index="1" data-target="bibliographyitem"  # noqa: E501
-        data-index is the order within the TextObjectField, so we can ignore it
-        data-id is the bibliography_item.pk
-        note that the attributes can come in any order, hence the slightly convoluted regex builder (re doesn't support DEFINE)  # noqa: E501
-        """
-        bibliography = self.get_object()
-        bib_pk = bibliography.pk
-
-        p = [
-            r"class=\"mention\" ",
-            r"data-denotation-char=\"@\" ",
-            rf"data-id=\"{bib_pk}\" ",
-            # r'data-index="[0-9]{1,4}" ',  # we can ignore this and use .{0,17} instead
-            r"data-target=\"bibliographyitem\" ",
-        ]
-        list_of_short_patterns = list(permutations(p))
-        pattern_to_find = ""
-        for c, t in enumerate(list_of_short_patterns):
-            # iterate tuples in l
-            if c > 0:
-                pattern_to_find += "|"
-            pattern_to_find += (
-                "<span " + t[0] + ".{0,17}" + t[1] + ".{0,17}" + t[2] + ".{0,17}" + t[3]
-            )
-
-        bib_mention_count = TextObjectField.objects.filter(
-            content__regex=pattern_to_find
-        ).count()
-
-        if bib_mention_count > 0:
-            # There are @mentions of this bibliography_item, so do something:
-            s = "s" if bib_mention_count > 1 else ""
-            messages.add_message(
-                self.request,
-                messages.ERROR,
-                "This Bibliography item has "
-                + str(bib_mention_count)
-                + " mention"
-                + s
-                + " elsewhere in the database, deletion not successful",
-            )
-            return HttpResponseRedirect(
-                reverse("bibliography:detail", kwargs={"pk": bib_pk})
-            )
-        else:
-            return super().delete(self, request, *args, **kwargs)
 
 
 class BibliographySectionView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
