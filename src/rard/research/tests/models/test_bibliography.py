@@ -15,7 +15,6 @@ class TestBibliography(TestCase):
             "year": "1855",
         }
         self.bibliography = BibliographyItem.objects.create(**data)
-        # self.parent_object = TextObjectField.objects.create(content="foo")
 
     def test_display(self):
         # the __str__ function should show the name
@@ -25,19 +24,6 @@ class TestBibliography(TestCase):
         self.assertTrue(
             BibliographyItem.objects.filter(pk=self.bibliography.pk).exists()
         )
-
-    def test_related_query_name_for_bib_item_fields(self):
-        self.assertTrue(
-            BibliographyItem.objects.filter(pk=self.bibliography.pk).exists()
-        )
-        # text objects have a related query name to allow filtering of
-        # bib items by the fact they point to text fields
-        """self.assertEqual(
-            BibliographyItem.objects.filter(
-                text_fields__pk=self.parent_object.pk
-            ).count(),
-            1,
-        )"""
 
     def test_bibliography_can_belong_to_multiple_antiquarians(self):
         # works can belong to multiple antiquarians
