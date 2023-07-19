@@ -698,7 +698,6 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                     antiquarians.append(object)
                 elif obj_type == BibliographyItem:
                     bibliographies.append(object)
-                    # antiquarians.extend(list(object.bibliography_items.all()))
                 elif obj_type == Work:
                     antiquarians.extend(list(object.antiquarian_set.all()))
                 elif obj_type == CitingWork:
