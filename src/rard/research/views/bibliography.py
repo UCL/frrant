@@ -163,7 +163,7 @@ class BibliographyDeleteView(
         if a TextObjectField contains a mention of a BibilographyItem,
         it will contain this string:
         <span class="mention" data-denotation-char="@" data-id="20" data-index="1" data-target="bibliographyitem"  # noqa: E501
-        data-index is the order within the TextObjectField, so we can ignore
+        data-index is the order within the TextObjectField, so we can ignore it
         data-id is the bibliography_item.pk
         note that the attributes can come in any order, hence the slightly convoluted regex builder (re doesn't support DEFINE)  # noqa: E501
         """
