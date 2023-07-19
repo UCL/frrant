@@ -368,7 +368,6 @@ class TestSearchView(TestCase):
         self.assertEqual(do_search(view.apparatus_criticus_search, "content"), [])
 
         # bibliography
-        # parent = TextObjectField.objects.create(content="foo")
         data = {"authors": "Aab, W", "title": "The Roman Age"}  # , "parent": parent}
         b1 = BibliographyItem.objects.create(**data)
         data = {"authors": "Beeb, Z", "title": "The Roman Era"}  # , "parent": parent}
