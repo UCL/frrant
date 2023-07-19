@@ -70,7 +70,6 @@ class TestMentionsView(TestCase):
             authors="fee froe",
             author_surnames="Froe",
             title="apples and pears",
-            # parent=self.antman,
         )
         self.bi2 = BibliographyItem.objects.create(
             authors="tee twoe",
