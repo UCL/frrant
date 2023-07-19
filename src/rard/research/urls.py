@@ -95,11 +95,6 @@ urlpatterns = [
                         name="update_introduction",
                     ),
                     path(
-                        "<pk>/introduction/",
-                        views.AntiquarianIntroductionSectionView.as_view(),
-                        name="introduction",
-                    ),
-                    path(
                         "<pk>/bibliography/",
                         views.BibliographySectionView.as_view(),
                         name="bibliography",

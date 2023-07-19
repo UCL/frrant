@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
@@ -211,27 +211,6 @@ class AntiquarianUpdateView(
         for b in to_add:
             b.antiquarians.add(antiquarian)
         return super().form_valid(form)
-
-
-class AntiquarianIntroductionSectionView(
-    LoginRequiredMixin, PermissionRequiredMixin, View
-):
-    model = Antiquarian
-    permission_required = ("research.view_antiquarian",)
-    template_name = "research/partials/text_object_preview.html"
-
-    def get_object(self):
-        pk = self.kwargs.get("pk")
-        queryset = self.model._default_manager.all()
-        try:
-            obj = queryset.get(pk=pk)
-        except queryset.model.DoesNotExist:
-            raise Http404("No Antiquarians found matching the query")
-        return obj
-
-    def get(self, request, *args, **kwargs):
-        context = {"text_object": self.get_object().introduction}
-        return render(self.request, template_name=self.template_name, context=context)
 
 
 class AntiquarianUpdateIntroductionView(
