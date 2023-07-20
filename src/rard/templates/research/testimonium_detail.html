@@ -32,12 +32,7 @@
 {% endblock %}
 
 {% block inner %}
-    {% with editing as disable_link_controls %}
     {% with request.user|has_lock:object as has_object_lock %}
-
-    {% if editing %}
-    {% include 'research/partials/disable_main_links.css' %}
-    {% endif %}
 
     <hr>
     <section>
@@ -187,7 +182,6 @@
     </section>
 
 
-    {% endwith %}
     {% endwith %}
 
 {% endblock %}

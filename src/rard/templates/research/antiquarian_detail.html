@@ -1,6 +1,6 @@
 {% extends "research/detail_base.html" %}
 {% load i18n bootstrap4 object_lock links_for_work static %}
-{% block title %}{{object.name}}{% if editing == 'introduction' %}: Editing Introduction {% endif %}{% endblock %}
+{% block title %}{{object.name}}{% endblock %}
 {% block heading %}{{ object.name }}{% endblock %}
 
 {% block last_modified %}{% endblock %}
@@ -37,13 +37,7 @@
 
 {% block inner %}
 
-    {% with editing as disable_link_controls %}
-        {% with request.user|has_lock:object as has_object_lock %}
-
-
-        {% if editing %}
-        {% include 'research/partials/disable_main_links.css' %}
-        {% endif %}
+      {% with request.user|has_lock:object as has_object_lock %}
 
 
         <hr>
@@ -200,7 +194,6 @@
           {% include 'research/partials/antiquarian_bibliography_list.html' with bibliography_items=object.bibliography_items %}
         </section>
 
-        {% endwith %}
-    {% endwith %}
+      {% endwith %}
 
 {% endblock %}
