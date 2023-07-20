@@ -3,8 +3,18 @@ from django.db.utils import IntegrityError
 from django.test import TestCase
 from django.urls import reverse
 
-from rard.research.models import Antiquarian, TextObjectField, Work
+from rard.research.models import (
+    AnonymousFragment,
+    Antiquarian,
+    BibliographyItem,
+    Book,
+    Fragment,
+    Testimonium,
+    TextObjectField,
+    Work,
+)
 from rard.research.models.antiquarian import WorkLink
+from rard.research.models.base import FragmentLink, TestimoniumLink
 
 pytestmark = pytest.mark.django_db
 
@@ -128,6 +138,90 @@ class TestAntiquarian(TestCase):
         DATE_RANGE = "From then till now"
         a.date_range = DATE_RANGE
         self.assertEqual(a.display_date_range(), DATE_RANGE)
+
+    def test_refresh_bibliography_items_from_mentions(self):
+        """If the TextObjectFields belonging to objects that are
+        linked to an Antiquarian contain mentions of bibliography
+        items, those bibliography items should be linked to
+        the antiquarian.
+
+        Related TextObjectFields:
+        - fragment__commentary
+        - testimonium__commentary
+        - appositum__commentary
+        - work__introduction
+        - work__book__introduction
+        """
+
+        def mention_bibliography_item_in_text_object_field(bib: BibliographyItem, obj):
+            if obj._meta.model_name in ["fragment", "testimonium", "anonymousfragment"]:
+                tof = obj.commentary
+            if obj._meta.model_name in ["antiquarian", "work", "book"]:
+                tof = obj.introduction
+            mention_text = f"""
+                <span class="mention"
+                    data-denotation-char="@"
+                    data-id="{bib.pk}"
+                    data-target="{bib._meta.model_name}"
+                    data-value="{bib.__str__()}">
+                    <span contenteditable="false">
+                        <span class="ql-mention-denotation-char">
+                        @
+                        </span>
+                        {bib.__str__()}
+                    </span>
+                </span>"""
+            tof.content += mention_text
+            tof.save()
+            obj.save()
+
+        # Start with an Antiquarian and a linked bibliography item
+        aq1 = Antiquarian.objects.create(name="aq1", re_code="smitre001")
+        bib_init = BibliographyItem.objects.create(
+            authors="Alice Last-Name, Bob Surname",
+            author_surnames="Last-Name, Surname",
+            year="2023",
+            title="Initial bib",
+        )
+        aq1.bibliography_items.add(bib_init)
+        aq1.save()
+        self.assertQuerysetEqual(aq1.bibliography_items.all(), [bib_init])
+
+        fr1 = Fragment.objects.create(name="fr1")
+        fr2 = Fragment.objects.create(name="fr2")
+        tt1 = Testimonium.objects.create(name="tt1")
+        tt2 = Testimonium.objects.create(name="tt2")
+        an1 = AnonymousFragment.objects.create(name="an1")
+        an2 = AnonymousFragment.objects.create(name="an2")
+        wk1 = Work.objects.create(name="wk1")
+        wk2 = Work.objects.create(name="wk2")
+        bk1 = Book.objects.create(number="1", subtitle="bk1", work=wk1)
+        bk2 = Book.objects.create(number="1", subtitle="bk1", work=wk2)
+        # Link fr1, an1, tt1, and wk1 to Antiquarian aq1
+        fr1.apposita.add(an1)
+        FragmentLink.objects.create(antiquarian=aq1, fragment=fr1)
+        TestimoniumLink.objects.create(antiquarian=aq1, testimonium=tt1)
+        aq1.works.add(wk1)
+        # Add bibliography item mentions to all items
+        mentioners = [aq1, fr1, an1, tt1, wk1, bk1, fr2, tt2, an2, wk2, bk2]
+        target_bibs = []
+        for i, obj in enumerate(mentioners):
+            bib = BibliographyItem.objects.create(
+                authors="Alice Last-Name, Bob Surname",
+                author_surnames="Last-Name, Surname",
+                year="2023",
+                title=f"bib_item_{i}",
+            )
+            mention_bibliography_item_in_text_object_field(bib=bib, obj=obj)
+            # We expect the first four to be linked
+            if i < 6:
+                target_bibs.append(bib)
+        # Now refresh antiquarian bibliography item links
+        aq1.refresh_bibliography_items_from_mentions()
+
+        # bib init should have been removed, and all those mentioned by related
+        # objects should be added.
+        self.assertQuerysetEqual(aq1.bibliography_items.all(), target_bibs)
 
 
 class TestWorkLink(TestCase):

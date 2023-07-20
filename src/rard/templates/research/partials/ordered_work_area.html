@@ -57,7 +57,7 @@
                 </div>
 
                 {% if work.introduction and not work.unknown %}
-                    {% include 'research/partials/text_object_preview.html' with text_object=work.introduction truncate=200 %}
+                    {% include 'research/partials/text_object_preview.html' with text_object=work.introduction truncate=200 hide_last_modified=True%}
                 {% endif %}
 
                 <ul>

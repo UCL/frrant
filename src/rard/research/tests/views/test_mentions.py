@@ -70,19 +70,16 @@ class TestMentionsView(TestCase):
             authors="fee froe",
             author_surnames="Froe",
             title="apples and pears",
-            parent=self.antman,
         )
         self.bi2 = BibliographyItem.objects.create(
             authors="tee twoe",
             author_surnames="Twoe",
             title="peppers and carrots",
-            parent=self.andrew,
         )
         self.bi3 = BibliographyItem.objects.create(
             authors="fie froe, tie twoe",
             author_surnames="Froe",
             title="peppers two apples 2",
-            parent=self.andrew,
         )
 
     def request(self, *args, **kwargs):

@@ -85,7 +85,7 @@
       {% endif %}
       {% if perms.research.view_bibliographyitem %}
       <a class='nav-link {% if "bibliography" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
-        href='{% url "bibliography:list" %}'>
+        href='{% url "bibliography:overview" %}'>
         {% trans 'Bibliography' %}
       </a>
       {% endif %}

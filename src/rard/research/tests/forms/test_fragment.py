@@ -73,7 +73,7 @@ class TestFragmentLinkWorkForm(TestCase):
         work = Work.objects.create(name="foo")
 
         NUM_BOOKS = 5
-        for i in range(1, NUM_BOOKS):
+        for i in range(NUM_BOOKS):
             Book.objects.create(number=i, work=work)
 
         form = FragmentLinkWorkForm(

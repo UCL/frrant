@@ -1,5 +1,4 @@
 from .antiquarian import (
-    AntiquarianBibliographyCreateView,
     AntiquarianConcordanceCreateView,
     AntiquarianConcordanceDeleteView,
     AntiquarianConcordanceUpdateView,
@@ -12,6 +11,7 @@ from .antiquarian import (
     AntiquarianWorkCreateView,
     AntiquarianWorksUpdateView,
     MoveLinkView,
+    refresh_bibliography_from_mentions,
 )
 from .apparatus_criticus import (
     ApparatusCriticusSearchView,
@@ -21,8 +21,13 @@ from .apparatus_criticus import (
     UpdateApparatusCriticusLineView,
 )
 from .bibliography import (
+    BibliographyCreateInlineView,
+    BibliographyCreateView,
     BibliographyDeleteView,
+    BibliographyDetailView,
     BibliographyListView,
+    BibliographyOverviewView,
+    BibliographySectionView,
     BibliographyUpdateView,
 )
 from .citing_work import (
@@ -124,7 +129,6 @@ from .work import (
 __all__ = [
     "AddAppositumFragmentLinkView",
     "AddAppositumGeneralLinkView",
-    "AntiquarianBibliographyCreateView",
     "AntiquarianConcordanceCreateView",
     "AntiquarianConcordanceDeleteView",
     "AntiquarianConcordanceUpdateView",
@@ -140,7 +144,12 @@ __all__ = [
     "ApparatusCriticusSearchView",
     "BibliographyDeleteView",
     "BibliographyListView",
+    "BibliographyDetailView",
+    "BibliographyCreateView",
+    "BibliographyCreateInlineView",
+    "BibliographyOverviewView",
     "BibliographyUpdateView",
+    "BibliographySectionView",
     "BookCreateView",
     "BookUpdateView",
     "BookUpdateIntroductionView",
@@ -222,5 +231,6 @@ __all__ = [
     "WorkDetailView",
     "WorkListView",
     "WorkUpdateView",
+    "refresh_bibliography_from_mentions",
     "WorkUpdateIntroductionView",
 ]

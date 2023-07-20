@@ -210,11 +210,75 @@ class DynamicTextField(TextField):
 
                 return str(soup)
 
+            def link_bibliography_mentions(self):
+                """
+                If this model has a related antiquarian, search content
+                for @mentions referencing bibliographyitems and add them
+                to antiquarian.bibliography_items.
+                If there is a related (anonymous)fragment or testimonium,
+                do the same for any related antiquarians
+                """
+                if self.fragment:
+                    antiquarians = {
+                        link.antiquarian
+                        for link in self.fragment.get_all_links()
+                        if link.antiquarian is not None
+                    }
+
+                if self.anonymousfragment:
+                    antiquarians = {
+                        link.antiquarian
+                        for link in self.anonymousfragment.get_all_links()
+                        if link.antiquarian is not None
+                    }
+
+                if self.testimonium:
+                    antiquarians = {
+                        link.antiquarian
+                        for link in self.testimonium.get_all_links()
+                        if link.antiquarian is not None
+                    }
+
+                if self.antiquarian:
+                    antiquarians = {self.antiquarian}
+
+                if self.work:
+                    antiquarians = {ant for ant in self.work.antiquarian_set.all()}
+
+                if self.book:
+                    antiquarians = {ant for ant in self.book.work.antiquarian_set.all()}
+
+                value = getattr(self, field_name)
+                soup = bs4.BeautifulSoup(value, features="html.parser")
+                links = soup.find_all("span", class_="mention")
+
+                for link in links:
+                    model_name = link.attrs.get("data-target", None)
+                    pkstr = link.attrs.get("data-id", None)
+                    if model_name == "bibliographyitem" and pkstr:
+                        try:
+                            model = apps.get_model(
+                                app_label="research", model_name=model_name
+                            )
+                            bib_item = model.objects.get(pk=int(pkstr))
+                            for ant in antiquarians:
+                                ant.bibliography_items.add(bib_item)
+
+                        except ObjectDoesNotExist:
+                            # If bibliography item has been deleted, we want to ignore,
+                            # as it should still be rendered as unlinked
+                            pass
+
             # here we add a method to the class. So if the dynamic field of
             # our class is called 'content' then the method will be
             # 'render_content' etc
             setattr(cls, "render_%s" % self.name, render_dynamic_content)
             setattr(cls, "update_%s_mentions" % self.name, update_editable_mentions)
+            setattr(
+                cls,
+                f"link_bibliography_mentions_in_{self.name}",
+                link_bibliography_mentions,
+            )
 
 
 class ObjectLock(models.Model):

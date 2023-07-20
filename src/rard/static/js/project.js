@@ -335,6 +335,7 @@ function initRichTextEditor($item) {
   new Quill("#" + $item.attr("id"), config);
 
   var for_id = $item.data("for");
+  var model_field = $item.data("model-field");
   var $for = $(`#${for_id}`);
 
   var html = $for.text();
@@ -344,6 +345,12 @@ function initRichTextEditor($item) {
   $("body").on("submit", "form", function (e) {
     let html = $item.find(".ql-editor").html();
     $for.text(html);
+  });
+  // When using htmx we can't hook into on submit,
+  // add html to post parameters directly instead
+  $("body").on("htmx:configRequest", function (e) {
+    let html = $item.find(".ql-editor").html();
+    e.detail.parameters[model_field] = html;
   });
 }
 
@@ -368,6 +375,20 @@ document.addEventListener("DOMContentLoaded", function (event) {
 
 window.addEventListener("beforeunload", function (e) {
   sessionStorage.setItem("scrollpos", window.scrollY);
+});
+
+// If swapping form containing rich text editor with htmx
+// we need to initialise it
+document.addEventListener('htmx:afterSettle', function(evt) {
+  verb = evt.detail.requestConfig.verb;
+  console.log(evt);
+  if (evt.detail.target.classList.contains("rich-text-form-container") && verb == "get") {
+    initRichTextEditors();
+  };
+  if (verb=="post" && evt.detail.successful) {
+    $(".htmx-get-button").show();  // Show edit button again
+    $('[data-toggle="tooltip"]').tooltip();  // Enable tooltips in updated content
+  }
 });
 
 if (!String.prototype.HTMLDecode) {
