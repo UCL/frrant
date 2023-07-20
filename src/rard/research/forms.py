@@ -92,20 +92,6 @@ class AntiquarianDetailsForm(forms.ModelForm):
         )
         labels = {"order_name": "Name for alphabetisation"}
 
-    bibliography_items = BibliographyModelMultipleChoiceField(
-        widget=forms.CheckboxSelectMultiple,
-        queryset=BibliographyItem.objects.all(),
-        required=False,
-    )
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # if editing a antiquarian item, init the bibliography_items set
-        if self.instance and self.instance.pk:
-            self.fields[
-                "bibliography_items"
-            ].initial = self.instance.bibliography_items.all()
-
 
 class AntiquarianLinkBibliographyItemForm(forms.ModelForm):
     class Meta:
