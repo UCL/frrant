@@ -1,6 +1,6 @@
 {% load get_full_path_with_page %}
 
-<div id="list-container">
+<div id="pagination-list__container">
 
 {% block page_controls %}
   <div class="d-flex w-100 mb-3">
@@ -13,18 +13,18 @@
             {% if page_obj.number == page %}
               <button class="btn btn-link" disabled>{{ page }}</button>
             {% else %}
-              <button class="btn btn-link" hx-get="{{ request|get_full_path_with_page:page }}" hx-target="#list-container" hx-swap="innerHTML">{{ page }}</button>
+              <button class="btn btn-link" hx-get="{{ request|get_full_path_with_page:page }}" hx-target="#pagination-list__container" hx-swap="innerHTML">{{ page }}</button>
             {% endif %}
           {% endfor %})
 
         ({% if page_obj.has_previous %}
-          <button class="btn btn-link" hx-get='{{ request|get_full_path_with_page:page_obj.previous_page_number }}' hx-target="#list-container" hx-swap="innerHTML">prev</button>
+          <button class="btn btn-link" hx-get='{{ request|get_full_path_with_page:page_obj.previous_page_number }}' hx-target="#pagination-list__container" hx-swap="innerHTML">prev</button>
         {% else %}
           <button class="btn btn-link" disabled>prev</button>
         {% endif %}
         |
         {% if page_obj.has_next %}
-          <button class="btn btn-link" hx-get='{{ request|get_full_path_with_page:page_obj.next_page_number }}' hx-target="#list-container" hx-swap="innerHTML">next</button>
+          <button class="btn btn-link" hx-get='{{ request|get_full_path_with_page:page_obj.next_page_number }}' hx-target="#pagination-list__container" hx-swap="innerHTML">next</button>
         {% else %}
           <button class="btn btn-link" disabled>next</button>
         {% endif %})
