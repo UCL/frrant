@@ -224,7 +224,7 @@ class TestimoniumUpdateWorkLinkView(
     def get_success_url(self, *args, **kwargs):
         return self.request.META.get(
             "HTTP_REFERER",
-            reverse("testimoinum:detail", kwargs={"pk": self.testimonium.pk}),
+            reverse("testimonium:detail", kwargs={"pk": self.testimonium.pk}),
         )
 
     def post(self, request, *args, **kwargs):
