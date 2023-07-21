@@ -238,7 +238,7 @@ EMAIL_TIMEOUT = 5
 ADMIN_URL = "admin/"
 # https://docs.djangoproject.com/en/dev/ref/settings/#admins
 ADMINS = [
-    ("""UCL""", "r.alegre@ucl.ac.uk"),
+    ("Amanda Ho-Lyn", "a.ho-lyn@ucl.ac.uk"),
     ("Tom Couch", "t.couch@ucl.ac.uk"),
 ]
 
