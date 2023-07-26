@@ -147,10 +147,11 @@ class Footnote extends Module {
       if (mutation.type === "childList" && mutation.removedNodes.length > 0) {
         let node = mutation.removedNodes[0];
         if (node.id) {
-          return this.removeFootnote(node);
+          this.removeFootnote(node);
         }
       }
     }
+    return true;
   }
   handleDeletion(mutationsList) {
     let hasFinished = this.processMutations(mutationsList);
@@ -215,15 +216,33 @@ class Footnote extends Module {
     var indicator = document.getElementById(`footnote-indicator-${noteID}`);
     var footnote = document.getElementById(`footnote-${noteID}`);
     // add a highlight class to the elements - ensure this is in your CSS file
-    footnote.classList.add("highlighted-note");
-    indicator.classList.add("highlighted-note");
+    if (footnote && indicator) {
+      footnote.classList.add("highlighted-note-valid");
+      indicator.classList.add("highlighted-note-valid");
+    } else {
+      if (footnote) {
+        footnote.classList.add("highlighted-note-missing");
+      }
+      if (indicator) {
+        indicator.classList.add("highlighted-note-missing");
+      }
+    }
   }
   removeHighlight(e) {
     var noteID = e.target.id.match(/\d+/)[0];
     var indicator = document.getElementById(`footnote-indicator-${noteID}`);
     var footnote = document.getElementById(`footnote-${noteID}`);
-    footnote.classList.remove("highlighted-note");
-    indicator.classList.remove("highlighted-note");
+    if (footnote && indicator) {
+      footnote.classList.remove("highlighted-note-valid");
+      indicator.classList.remove("highlighted-note-valid");
+    } else {
+      if (footnote) {
+        footnote.classList.remove("highlighted-note-missing");
+      }
+      if (indicator) {
+        indicator.classList.remove("highlighted-note-missing");
+      }
+    }
   }
 
   editNote(e) {
