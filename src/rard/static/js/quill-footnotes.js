@@ -1,9 +1,13 @@
-const Module = Quill.import("core/module");
-const BlockEmbed = Quill.import("blots/block/embed");
-const Parchment = Quill.import("parchment");
+var Module = Quill.import("core/module");
+var BlockEmbed = Quill.import("blots/block/embed");
+var Parchment = Quill.import("parchment");
 
 // create custom blot for superscript footnote indicator
 class FootnoteIndicator extends BlockEmbed {
+  static blotName = "footnote-indicator";
+  static scope = Parchment.Scope.INLINE;
+  static tagName = "SUP";
+
   static create(value) {
     const number = value.trim();
     const node = super.create(value);
@@ -19,11 +23,11 @@ class FootnoteIndicator extends BlockEmbed {
     return node.textContent;
   }
 }
-FootnoteIndicator.blotName = "footnote-indicator";
-FootnoteIndicator.scope = Parchment.Scope.INLINE;
-FootnoteIndicator.tagName = "SUP";
-
 class FootnoteArea extends BlockEmbed {
+  static blotName = "footnote-area";
+  static scope = Parchment.Scope.BLOCK;
+  static tagName = "div";
+
   static create(value) {
     const node = super.create(value);
     node.id = "footnote-area"; // edit styling in CSS
@@ -35,9 +39,6 @@ class FootnoteArea extends BlockEmbed {
     return node.textContent;
   }
 }
-FootnoteArea.blotName = "footnote-area";
-FootnoteArea.scope = Parchment.Scope.BLOCK;
-FootnoteArea.tagName = "div";
 
 Quill.register("formats/footnote-indicator", FootnoteIndicator, true);
 Quill.register("formats/footnote-area", FootnoteArea, true);
@@ -48,7 +49,7 @@ class Footnote extends Module {
     this.quill = quill;
     this.toolbar = quill.getModule("toolbar");
     this.toolbar.addHandler("footnote", this.insertFootnote.bind(this));
-    const observer = new MutationObserver(this.deleteFootnote.bind(this));
+    const observer = new MutationObserver(this.handleDeletion.bind(this));
     observer.observe(this.quill.root, { childList: true, subtree: true });
     document.addEventListener("DOMContentLoaded", () => {
       // add highlight and edit listeners to existing notes
@@ -116,7 +117,7 @@ class Footnote extends Module {
       var indicatorElement = document.getElementById(
         `footnote-indicator-${footnoteNumber}`
       );
-      indicatorElement.setAttribute("title", footnoteElement.textContent);
+      indicatorElement.setAttribute("title", footnoteContent);
       // add highlight and edit listeners
       footnoteElement.addEventListener("mouseenter", this.addHighlight);
       footnoteElement.addEventListener("mouseleave", this.removeHighlight);
@@ -131,41 +132,35 @@ class Footnote extends Module {
     }
   }
 
-  deleteFootnote(mutationsList) {
+  removeFootnote(node) {
+    let footnoteID = node.id.match(/\d+/)[0];
+    if (node.classList && node.classList.contains("footnote-indicator")) {
+      let footnoteElement = document.getElementById(`footnote-${footnoteID}`);
+      if (footnoteElement) {
+        footnoteElement.remove();
+        return true;
+      }
+    }
+  }
+  processMutations(mutationsList) {
     for (const mutation of mutationsList) {
       if (mutation.type === "childList" && mutation.removedNodes.length > 0) {
-        // Check if any removed nodes are footnotes or indicators
         let node = mutation.removedNodes[0];
-        if (
-          (node.classList && node.classList.contains("footnote")) ||
-          (node.classList && node.classList.contains("footnote-indicator"))
-        ) {
-          let footnoteID = node.id.match(/\d+/)[0];
-
-          // Delete the corresponding footnote/indicator
-          let footnoteElement = document.getElementById(
-            `footnote-${footnoteID}`
-          );
-          let indicatorElement = document.getElementById(
-            `footnote-indicator-${footnoteID}`
-          );
-          if (footnoteElement) {
-            footnoteElement.remove();
-          }
-          if (indicatorElement) {
-            indicatorElement.remove();
-          }
-
-          // ensure footnotes are in correct ascending order
-          this.cleanFootnoteNumbers();
+        if (node.id) {
+          return this.removeFootnote(node);
         }
       }
     }
   }
+  handleDeletion(mutationsList) {
+    let hasFinished = this.processMutations(mutationsList);
+    if (hasFinished) {
+      this.cleanFootnoteNumbers();
+    }
+  }
 
   cleanFootnoteNumbers() {
-    var footnoteArea = document.getElementById("footnote-area");
-    var footnotes = footnoteArea.querySelectorAll("p.footnote");
+    var footnotes = document.querySelectorAll("p.footnote");
     var footnoteIndicators = document.querySelectorAll(
       "sup.footnote-indicator"
     );
@@ -205,59 +200,14 @@ class Footnote extends Module {
     var newIndicator = document.getElementById(
       `footnote-indicator-${footnoteNumber}`
     );
-    // if it's the last indicator in the editor, return null to save searching
+    // if it's the last indicator in the editor, return null
     var allIndicators = document.querySelectorAll(".footnote-indicator");
     if (newIndicator == allIndicators[allIndicators.length - 1]) {
       return null;
     }
 
-    var parentElement = newIndicator.parentElement;
-    var parentSibling = parentElement.nextElementSibling;
-    var newIndicatorIndex = Array.from(parentElement.children).indexOf(
-      newIndicator
-    );
-    var siblingElement = parentElement.children[newIndicatorIndex + 1];
-    var cousinElement = parentSibling.firstElementChild
-      ? parentSibling.firstElementChild
-      : parentSibling.nextElementSibling;
-    // check parent first
-    while (siblingElement) {
-      if (
-        siblingElement !== newIndicator &&
-        siblingElement.tagName.toLowerCase() === "sup" &&
-        siblingElement.classList.contains("footnote-indicator")
-      ) {
-        return siblingElement;
-      }
-      siblingElement = siblingElement.nextElementSibling;
-    }
-    if (!siblingElement) {
-      // if not in parent, check parent sibling
-      if (!cousinElement) {
-        cousinElement = parentSibling.nextElementSibling.firstElementChild
-          ? parentSibling.nextElementSibling.firstElementChild
-          : parentSibling.nextElementSibling.nextElementSibling
-              .firstElementChild;
-      }
-      while (cousinElement) {
-        if (
-          cousinElement !== newIndicator &&
-          cousinElement.tagName.toLowerCase() === "sup" &&
-          cousinElement.classList.contains("footnote-indicator")
-        ) {
-          return cousinElement;
-        }
-        if (cousinElement.nextElementSibling) {
-          cousinElement = cousinElement.nextElementSibling;
-        }
-        // and then parent sibling sibling
-        else {
-          cousinElement =
-            cousinElement.parentElement.parentSibling.firstElementChild;
-        }
-      }
-    }
-    return null;
+    var index = Array.from(allIndicators).indexOf(newIndicator);
+    return allIndicators[index + 1];
   }
 
   addHighlight(e) {
@@ -285,9 +235,11 @@ class Footnote extends Module {
       if (updateContent.trim() !== "") {
         e.target.innerText = updateContent;
       } else {
+        // delete the note and indicator if they remove the content
         let id = e.target.id.match(/\d+/)[0];
         e.target.remove();
         document.getElementById(`footnote-indicator-${id}`).remove();
+        this.cleanFootnoteNumbers();
       }
     } else return e.target.innerText;
   }
