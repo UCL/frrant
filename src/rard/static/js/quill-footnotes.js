@@ -49,6 +49,7 @@ class Footnote extends Module {
     this.quill = quill;
     this.toolbar = quill.getModule("toolbar");
     this.toolbar.addHandler("footnote", this.insertFootnote.bind(this));
+
     const observer = new MutationObserver(this.handleDeletion.bind(this));
     observer.observe(this.quill.root, { childList: true, subtree: true });
     document.addEventListener("DOMContentLoaded", () => {
@@ -146,7 +147,7 @@ class Footnote extends Module {
     for (const mutation of mutationsList) {
       if (mutation.type === "childList" && mutation.removedNodes.length > 0) {
         let node = mutation.removedNodes[0];
-        if (node.id) {
+        if (node.id && node.id.includes("footnote")) {
           this.removeFootnote(node);
         }
       }
