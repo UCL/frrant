@@ -3,15 +3,21 @@
 var Module = Quill.import("core/module");
 
 var BlockEmbed = Quill.import("blots/block/embed");
+var Block = Quill.import("blots/block");
 var Container = Quill.import("blots/container");
 var Delta = Quill.import("delta");
 
 function editContents(e) {
   var updateContent = prompt(
-    `Update cell content: ${e.target.innerText}\n If you'd like to remove it, delete the contents.`,
+    `Update cell content or set blank.`,
     `${e.target.innerText}`
   );
   return (e.target.innerText = updateContent);
+}
+
+var currentCell;
+function updateCurrentCell(e) {
+  currentCell = e.target;
 }
 
 class TableCell extends BlockEmbed {
@@ -27,6 +33,7 @@ class TableCell extends BlockEmbed {
     }
     node.classList.add("ql-table");
     node.addEventListener("dblclick", editContents);
+    node.addEventListener("click", updateCurrentCell);
     return node;
   }
 
@@ -98,7 +105,6 @@ class TableContainer extends BlockEmbed {
   }
 
   balanceCells() {
-    console.log("balancing act");
     const rows = this.querySelectorAll("tr");
     const maxColumns = rows.reduce((max, row) => {
       return Math.max(row.children.length, max);
@@ -117,8 +123,12 @@ class TableContainer extends BlockEmbed {
   }
 
   deleteColumn(index) {
-    if (this == null || this.domNode.firstElementChild == null) return;
-    Array.from(this.domNode.children).forEach((row) => {
+    if (
+      this == null ||
+      this.domNode.firstElementChild.firstElementChild == null
+    )
+      return;
+    Array.from(this.domNode.firstElementChild.children).forEach((row) => {
       const cell = row.children[index];
       if (cell != null) {
         cell.remove();
@@ -127,21 +137,30 @@ class TableContainer extends BlockEmbed {
   }
 
   insertColumn() {
-    if (this == null || this.domNode.firstElementChild == null) return;
-    Array.from(this.domNode.children).forEach((row) => {
+    if (
+      this == null ||
+      this.domNode.firstElementChild.firstElementChild == null
+    )
+      return;
+    Array.from(this.domNode.firstElementChild.children).forEach((row) => {
       const value = TableCell.formats(row.firstElementChild);
       const cell = TableCell.create(value);
-
-      //   always adds column to the rightside end
+      // always adds column on the right
       row.appendChild(cell);
     });
   }
 
   insertRow() {
-    if (this == null || this.domNode.firstElementChild == null) return;
+    if (
+      this == null ||
+      this.domNode.firstElementChild.firstElementChild == null
+    )
+      return;
     const id = tableId("row");
     var row = TableRow.create(id);
-    Array.from(this.domNode.firstElementChild.children).forEach(() => {
+    Array.from(
+      this.domNode.firstElementChild.firstElementChild.children
+    ).forEach(() => {
       var cell = TableCell.create();
       row.appendChild(cell);
     });
@@ -149,9 +168,6 @@ class TableContainer extends BlockEmbed {
     this.domNode.appendChild(row);
   }
 }
-
-TableContainer.allowedChildren = [TableRow];
-TableRow.requiredContainer = TableContainer;
 
 TableRow.allowedChildren = [TableCell];
 TableCell.requiredContainer = TableRow;
@@ -177,7 +193,7 @@ class Table extends Module {
       if (value == "add_row") {
         this.insertRow();
       } else if (value == "add_column") {
-        this.insertColumnRight();
+        this.insertColumn();
       } else if (value == "delete_row") {
         this.deleteRow();
       } else if (value == "delete_column") {
@@ -185,20 +201,19 @@ class Table extends Module {
       }
     });
     this.listenBalanceCells();
-    this.tableInstancesMap = new Map();
   }
 
   deleteColumn() {
-    const [table, row, cell] = this.getTable();
+    const [table, , row, cell] = this.getTable();
     if (cell == null) return;
-    const column = row.children[cell];
+    const column = Array.from(row.children).indexOf(cell);
     table.deleteColumn(column);
     this.quill.update(Quill.sources.USER);
   }
 
   deleteRow() {
-    const [, row] = this.getTable();
-    if (row == null) return;
+    const [, , row] = this.getTable();
+    if (row == null || row.nodeName !== "TR") return;
     row.remove();
     this.quill.update(Quill.sources.USER);
   }
@@ -207,7 +222,7 @@ class Table extends Module {
     // get table closest to the cursor
     let closestTable;
     let minDistance = Infinity;
-    tables.forEach((t) => {
+    Array.from(tables).forEach((t) => {
       var tableIndex = this.quill.getIndex(t);
       var distance = Math.abs(index - tableIndex);
       if (distance < minDistance) {
@@ -220,30 +235,27 @@ class Table extends Module {
 
   getTable(range = this.quill.getSelection()) {
     if (range == null) {
-      console.log("range is null");
-      return [null, null, null, -1];
+      return [null, null, null, null, -1];
     }
     let tables = this.quill.scroll.descendants(TableContainer);
     var table = this.getClosestTable(tables, range.index);
     if (table == null || table.domNode.nodeName !== TableContainer.tagName) {
-      return [null, null, null, -1];
+      return [null, null, null, null, -1];
     }
-    var row = table.domNode.lastElementChild;
-    var cell = row.lastElementChild;
-    return [table, row, cell, 1];
+    var body = table.domNode.firstElementChild;
+    var cell = currentCell;
+    var row = cell.parentElement;
+
+    return [table, body, row, cell, 1];
   }
 
   insertColumn() {
-    const range = this.quill.getSelection();
-    const [table, row, cell] = this.getTable(range);
+    var range = this.quill.getSelection();
+    const [table, , row, cell] = this.getTable(range);
     if (cell == null) return;
-    const column = Array.from(row.children).indexOf(cell);
-    table.insertColumn(column + offset);
+    table.insertColumn();
     this.quill.update(Quill.sources.USER);
     let shift = Array.from(row.parentElement.children).indexOf(row);
-    if (offset === 0) {
-      shift += 1;
-    }
     this.quill.setSelection(
       range.index + shift,
       range.length,
@@ -253,7 +265,7 @@ class Table extends Module {
 
   insertRow() {
     const range = this.quill.getSelection();
-    const [table, row, cell] = this.getTable(range);
+    const [table, , row, cell] = this.getTable(range);
     if (cell == null) return;
     table.insertRow();
     this.quill.update(Quill.sources.USER);
@@ -276,6 +288,7 @@ class Table extends Module {
     var tableElem = document.getElementById(tableContainerId);
 
     if (tableElem) {
+      var tbody = tableElem.appendChild(document.createElement("tbody"));
       for (let i = 0; i < rows; i++) {
         var row = TableRow.create();
 
@@ -283,8 +296,7 @@ class Table extends Module {
           var cell = TableCell.create();
           row.appendChild(cell);
         }
-
-        tableElem.appendChild(row);
+        tbody.appendChild(row);
       }
     }
 
@@ -309,5 +321,14 @@ class Table extends Module {
     });
   }
 }
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (document.querySelector("table")) {
+    document.querySelectorAll("td.ql-table").forEach((cell) => {
+      cell.addEventListener("dblclick", editContents);
+      cell.addEventListener("click", updateCurrentCell);
+    });
+  }
+});
 Table.register();
 Quill.register("modules/table", Table, true);

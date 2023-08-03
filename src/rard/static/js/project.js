@@ -268,9 +268,9 @@ function initRichTextEditor($item) {
           edit_table: function (value) {
             console.log(value);
             if (value == "add_row") {
-              this.quill.modules.table.insertRowBelow();
+              this.quill.modules.table.insertRow();
             } else if (value == "add_column") {
-              this.quill.modules.table.insertColumnRight();
+              this.quill.modules.table.insertColumn();
             } else if (value == "delete_row") {
               this.quill.modules.table.deleteRow();
             } else if (value == "delete_column") {
