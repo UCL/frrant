@@ -333,18 +333,49 @@ button.insert {
   color: #007bff;
 }
 \0305 {
+  /* vincula symbol looks short in new font */
   width: 120%;
 }
-.highlighted-note {
+.ql-editor .custom-columns {
+  column-count: 2;
+  column-gap: 20px;
+}
+.highlighted-note-valid {
   border-radius: 1px;
   background: #f0f4f6;
   box-shadow: 2px 2px 4px #f3f2f2, -2px -2px 4px #ffffff;
   cursor: pointer;
   color: #1cac1c;
 }
+.highlighted-note-missing {
+  border-radius: 1px;
+  background: #f0f4f6;
+  box-shadow: 2px 2px 4px #f3f2f2, -2px -2px 4px #ffffff;
+  cursor: pointer;
+  color: #ae3b18;
+}
 .text-object-preview p {
   padding: 0.1rem;
   margin: 0.1rem;
+}
+
+.ql-editor .ql-table {
+  border: 1px solid black;
+  padding: 0.3rem;
+}
+table.ql-table {
+  table-layout: fixed;
+  border-collapse: collapse;
+  min-height: 10rem;
+  min-width: 100%;
+}
+.ql-table td {
+  height: 5rem;
+  cursor: pointer;
+}
+.ql-edit_table .ql-picker-label {
+  width: 125%;
+  margin-top: 0.3rem;
 }
 
 /**** extras ****/
