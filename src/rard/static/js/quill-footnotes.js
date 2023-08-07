@@ -143,9 +143,11 @@ class Footnote extends Module {
   }
 
   hasIndicatorChildren(node) {
-    for (var child of Array.from(node.children)) {
-      if (child.classList && child.classList.contains("footnote-indicator")) {
-        return true;
+    if (node.children) {
+      for (var child of Array.from(node.children)) {
+        if (child.classList && child.classList.contains("footnote-indicator")) {
+          return true;
+        }
       }
     }
     return false;
@@ -200,6 +202,11 @@ class Footnote extends Module {
         if (footnoteIndicator) {
           footnoteIndicator.id = `footnote-indicator-${expectedNumber}`;
           footnoteIndicator.textContent = `${expectedNumber} `;
+          footnoteIndicator.setAttribute("title", footnote.textContent);
+          footnoteIndicator.setAttribute(
+            "data-original-title",
+            footnote.textContent
+          );
         }
 
         expectedNumber++;
@@ -259,16 +266,26 @@ class Footnote extends Module {
   }
 
   editNote(e) {
+    var regex = /^(\d+)\.\s*(.*)/;
+
+    var noteContent = e.target.textContent.match(regex)[2];
+    console.log(noteContent);
     var updateContent = prompt(
-      `Update footnote: ${e.target.innerText}\n If you'd like to remove it, delete the contents.`,
-      `${e.target.innerText}`
+      `Update footnote: ${noteContent}\n If you'd like to remove it, delete the contents.`,
+      `${noteContent}`
     );
     if (updateContent !== null) {
+      let id = e.target.id.match(/\d+/)[0];
       if (updateContent.trim() !== "") {
-        e.target.innerText = updateContent;
+        e.target.innerText = `${id}. ${updateContent}`;
+        document
+          .getElementById(`footnote-indicator-${id}`)
+          .setAttribute("title", updateContent);
+        document
+          .getElementById(`footnote-indicator-${id}`)
+          .setAttribute("data-original-title", updateContent);
       } else {
         // delete the note and indicator if they remove the content
-        let id = e.target.id.match(/\d+/)[0];
         e.target.remove();
         document.getElementById(`footnote-indicator-${id}`).remove();
         this.cleanFootnoteNumbers();
