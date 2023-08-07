@@ -135,25 +135,37 @@ class Footnote extends Module {
 
   removeFootnote(node) {
     let footnoteID = node.id.match(/\d+/)[0];
-    if (node.classList && node.classList.contains("footnote-indicator")) {
-      let footnoteElement = document.getElementById(`footnote-${footnoteID}`);
-      if (footnoteElement) {
-        footnoteElement.remove();
+    let footnoteElement = document.getElementById(`footnote-${footnoteID}`);
+    if (footnoteElement) {
+      footnoteElement.remove();
+      return true;
+    }
+  }
+
+  hasIndicatorChildren(node) {
+    for (var child of Array.from(node.children)) {
+      if (child.classList && child.classList.contains("footnote-indicator")) {
         return true;
       }
     }
+    return false;
   }
+
   processMutations(mutationsList) {
     for (const mutation of mutationsList) {
       if (mutation.type === "childList" && mutation.removedNodes.length > 0) {
         let node = mutation.removedNodes[0];
-        if (node.id && node.id.includes("footnote")) {
+        if (
+          (node.classList && node.classList.contains("footnote-indicator")) ||
+          this.hasIndicatorChildren(node) == true
+        ) {
           this.removeFootnote(node);
         }
       }
     }
     return true;
   }
+
   handleDeletion(mutationsList) {
     let hasFinished = this.processMutations(mutationsList);
     if (hasFinished) {
