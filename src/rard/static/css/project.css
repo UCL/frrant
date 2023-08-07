@@ -210,7 +210,7 @@ table.books-widget .book-order {
 }
 @font-face {
   font-family: Alphabetum;
-  src: url("/static/fonts/ALPHABETUM_v_12.00.otf") format("opentype");
+  src: url("{% static 'fonts/ALPHABETUM_v_12.00.otf' %}") format("opentype");
 }
 
 @font-face {
