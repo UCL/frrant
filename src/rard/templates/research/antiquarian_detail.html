@@ -37,247 +37,163 @@
 
 {% block inner %}
 
-    {% with editing as disable_link_controls %}
-    {% with request.user|has_lock:object as has_object_lock %}
+      {% with request.user|has_lock:object as has_object_lock %}
 
 
-    {% if editing %}
-    {% include 'research/partials/disable_main_links.css' %}
-    {% endif %}
-
-
-    <hr>
-    <section>
-        <div class='d-flex justify-content-between mb-3'>
-            <div>
-                <h5>{% trans 'Details' %}</h5>
+        <hr>
+        <section>
+            <div class='d-flex justify-content-between mb-3'>
+                <div>
+                    <h5>{% trans 'Details' %}</h5>
+                </div>
+                <div>
+                    {% if perms.research.change_antiquarian and has_object_lock %}
+                    <a href='{% url "antiquarian:update" object.pk %}'>{% trans 'Edit' %}</a>
+                    {% endif %}
+                </div>
             </div>
-            <div>
-                {% if perms.research.change_antiquarian and has_object_lock %}
-                <a href='{% url "antiquarian:update" object.pk %}'>{% trans 'Edit' %}</a>
+
+            <dl class="row mb-0">
+                <dt class="col-sm-3">{% trans 'Name' %}</dt>
+                <dd class="col-sm-9">{{ object.name }}</dd>
+
+                <dt class="col-sm-3">{% trans 'Name for Alphabetisation' %}</dt>
+                <dd class="col-sm-9">{{ object.order_name }}</dd>
+
+                <dt class="col-sm-3">{% trans 'RE Number' %}</dt>
+                <dd class="col-sm-9">{{ object.re_code|default:'-' }}</dd>
+
+                <dt class="col-sm-3">{% trans 'Relevant Dates' %}</dt>
+                <dd class="col-sm-9">
+                    {{ object.display_date_range|default:'-' }}
+                </dd>
+                <dt class="col-sm-3">{% trans 'Year for Ordering' %}</dt>
+                <dd class="col-sm-9">{{ object.order_year }}</dd>
+
+            </dl>
+            <p>
+                <small>
+                {% include 'research/partials/render_last_modified_info.html' with object=object %}
+                </small>
+            </p>
+        </section>
+        <section>
+            <dl class="row mb-0">
+                <dt class="col-sm-3">{% trans 'Concordances' %}</dt>
+                <dd class="col-sm-7">
+                    {% if object.antiquarianconcordance_set.count == 0 %}
+                        None
+                    {% endif %}
+                    {% for concordance in object.antiquarianconcordance_set.all %}
+                        <div class='d-flex justify-content-between mb-3'>
+                        <div>{{ concordance }}</div>
+                        <div>
+                            {% if perms.research.add_antiquarianconcordance and has_object_lock %}
+                            <form novalidate class='form-inline' action='{% url "antiquarian:delete_concordance" concordance.pk %}' method='POST'>
+                                {% csrf_token %}
+                                <div class='form-row align-items-center'>
+                                    {% if perms.research.change_antiquarianconcordance %}
+                                    <a href='{% url "antiquarian:update_concordance" concordance.pk %}'>Edit</a>
+                                    {% endif %}
+                                    {% if perms.research.delete_concordance %}
+                                    <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+                                        data-what='concordance'>{% trans 'Delete' %}</button>
+                                    {% endif %}
+                                    <a class='ml-2' href='{{ concordance.history_url }}'><small><i class='fas fa-list'></i> Changelog</small></a>
+                                </div>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </dd>
+                {% if perms.research.add_antiquarianconcordance and has_object_lock %}
+                <dd class="col-sm-2 actions"><a style='float:right' href='{% url "antiquarian:create_concordance" object.pk %}'>Add</a></dd>
                 {% endif %}
+            </dl>
+
+        </section>
+        <hr>
+        <section>
+
+            <div class='d-flex justify-content-between w-100'>
+                <div>
+                    <h5 class='mb-3 mr-3'>{% trans 'Introduction' %}</h5>
+                </div>
+                <div>
+                    {% if perms.research.change_antiquarian and has_object_lock %}
+                    <button
+                      class="btn text-primary p-0 ml-2"
+                      hx-get="{% url 'antiquarian:update_introduction' object.pk %}"
+                      hx-target=".introduction-container"
+                      hx-swap="innerHTML">{% trans 'Edit' %}</button>
+                    {% endif %}
+                </div>
             </div>
-        </div>
+            <div class="introduction-container rich-text-form-container">
+                {% include 'research/partials/text_object_preview.html' with text_object=object.introduction %}
+            </div>
 
-        <dl class="row mb-0">
-            <dt class="col-sm-3">{% trans 'Name' %}</dt>
-            <dd class="col-sm-9">{{ object.name }}</dd>
+        </section>
 
-            <dt class="col-sm-3">{% trans 'Name for Alphabetisation' %}</dt>
-            <dd class="col-sm-9">{{ object.order_name }}</dd>
+        <hr>
+        {% comment %}
+            <section>
 
-            <dt class="col-sm-3">{% trans 'RE Number' %}</dt>
-            <dd class="col-sm-9">{{ object.re_code|default:'-' }}</dd>
-
-            <dt class="col-sm-3">{% trans 'Relevant Dates' %}</dt>
-            <dd class="col-sm-9">
-                {{ object.display_date_range|default:'-' }}
-            </dd>
-            <dt class="col-sm-3">{% trans 'Year for Ordering' %}</dt>
-            <dd class="col-sm-9">{{ object.order_year }}</dd>
-
-        </dl>
-        <p>
-            <small>
-            {% include 'research/partials/render_last_modified_info.html' with object=object %}
-            </small>
-        </p>
-    </section>
-    <section>
-        <dl class="row mb-0">
-            <dt class="col-sm-3">{% trans 'Concordances' %}</dt>
-            <dd class="col-sm-7">
-                {% if object.antiquarianconcordance_set.count == 0 %}
-                    None
-                {% endif %}
-                {% for concordance in object.antiquarianconcordance_set.all %}
-                    <div class='d-flex justify-content-between mb-3'>
-                    <div>{{ concordance }}</div>
+                <div class='d-flex justify-content-between mb-3'>
                     <div>
-                        {% if perms.research.add_antiquarianconcordance and has_object_lock %}
-                        <form novalidate class='form-inline' action='{% url "antiquarian:delete_concordance" concordance.pk %}' method='POST'>
-                            {% csrf_token %}
-                            <div class='form-row align-items-center'>
-                                {% if perms.research.change_antiquarianconcordance %}
-                                <a href='{% url "antiquarian:update_concordance" concordance.pk %}'>Edit</a>
-                                {% endif %}
-                                {% if perms.research.delete_concordance %}
-                                <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
-                                    data-what='concordance'>{% trans 'Delete' %}</button>
-                                {% endif %}
-                                <a class='ml-2' href='{{ concordance.history_url }}'><small><i class='fas fa-list'></i> Changelog</small></a>
-                            </div>
-                        </form>
+                        <h5>{% trans 'Works' %}</h5>
+                    </div>
+                    <div>
+                        {% if perms.research.change_antiquarian and has_object_lock %}
+                            {% if perms.research.add_work %}
+                            <a href='{% url "antiquarian:create_work" object.pk %}'>{% trans 'Add' %}</a> |
+                            {% endif %}
+                        <a href='{% url "antiquarian:update_works" object.pk %}'>{% trans 'Edit' %}</a>
                         {% endif %}
                     </div>
                 </div>
+
+                {% for work in object.ordered_works.all %}
+
+                {% include 'research/partials/work_list_item.html' with work=work %}
+
                 {% endfor %}
-            </dd>
-            {% if perms.research.add_antiquarianconcordance and has_object_lock %}
-            <dd class="col-sm-2 actions"><a style='float:right' href='{% url "antiquarian:create_concordance" object.pk %}'>Add</a></dd>
-            {% endif %}
-        </dl>
+            </section>
 
-    </section>
-    <hr>
-    <section>
 
-        {% if editing == 'introduction' %}
-        <div class='d-flex justify-content-between w-100'>
-            <div>
-                <h5 class='mb-3 mr-3'>{% trans 'Introduction' %}</h5>
+            <hr>
+        {% endcomment %}
+
+        <section>
+            <div class='d-flex justify-content-between mb-3'>
+                <div>
+                    <h5>{% trans 'Ordered Material' %}</h5>
+                </div>
+                <div>
+                </div>
             </div>
+
+            {% include 'research/partials/ordered_work_area.html' with antiquarian=object can_edit=perms.research.change_antiquarian has_object_lock=has_object_lock %}
+
+        </section>
+
+        <hr>
+
+        <section id="bibliography">
+          <div class='d-flex justify-content-between mb-3'>
             <div>
+              <h5>{% trans 'Bibliography' %}</h5>
             </div>
-        </div>
-
-        <div>
-            {% if perms.research.change_antiquarian and has_object_lock %}
-
-            <form novalidate enctype="multipart/form-data" autocomplete='off' action='{% url "antiquarian:update_introduction" object.pk %}' class="form" method='POST'>
-                {% csrf_token %}
-                    {% bootstrap_field form.introduction_text field_class='d-none' show_label=False %}
-                    {% include 'research/partials/rich_text_editor.html' with field=form.introduction_text enable_mentions=True %}
-
-                <button type="submit" class="btn btn-primary inline-save-button">
-                        {% trans 'Save' %}
-                </button>
-                <a class='ml-3 inline-cancel-button' href='{% url "antiquarian:detail" object.pk %}'>{% trans 'Cancel' %}</a>
-            </form>
-
-            {% endif %}
-
-        </div>
-        {% else %}
-
-
-        <div class='d-flex justify-content-between w-100'>
-            <div>
-                <h5 class='mb-3 mr-3'>{% trans 'Introduction' %}</h5>
+            <div id="bib-buttons-area">
+              {% if has_object_lock and perms.research.change_bibliographyitem %}
+                <button type="button" class='btn text-primary p-0 ml-2' hx-get="{% url "antiquarian:refresh_bibliography" pk=antiquarian.pk %}" hx-trigger="click">{% trans 'Refresh bibliography from mentions' %}</button>
+              {% endif %}
             </div>
-            <div>
-                {% if perms.research.change_antiquarian and has_object_lock %}
-                <a href='{% url "antiquarian:update_introduction" object.pk %}'>{% trans 'Edit' %}</a>
-                {% endif %}
-            </div>
-        </div>
-        <div>
-            {% include 'research/partials/text_object_preview.html' with text_object=object.introduction %}
-        </div>
+          </div>
+          {% include 'research/partials/antiquarian_bibliography_list.html' with bibliography_items=object.bibliography_items %}
+        </section>
 
-        {% endif %}
-
-    </section>
-
-    <hr>
-{% comment %}
-    <section>
-
-        <div class='d-flex justify-content-between mb-3'>
-            <div>
-                <h5>{% trans 'Works' %}</h5>
-            </div>
-            <div>
-                {% if perms.research.change_antiquarian and has_object_lock %}
-                    {% if perms.research.add_work %}
-                    <a href='{% url "antiquarian:create_work" object.pk %}'>{% trans 'Add' %}</a> |
-                    {% endif %}
-                <a href='{% url "antiquarian:update_works" object.pk %}'>{% trans 'Edit' %}</a>
-                {% endif %}
-            </div>
-        </div>
-
-        {% for work in object.ordered_works.all %}
-
-        {% include 'research/partials/work_list_item.html' with work=work %}
-
-        {% endfor %}
-    </section>
-
-
-    <hr>
-{% endcomment %}
-
-    <section>
-        <div class='d-flex justify-content-between mb-3'>
-            <div>
-                <h5>{% trans 'Ordered Material' %}</h5>
-            </div>
-        </div>
-
-        {% include 'research/partials/ordered_work_area.html' with antiquarian=object can_edit=perms.research.change_antiquarian has_object_lock=has_object_lock %}
-
-    </section>
-
-    <hr>
-
-{% comment %}
-    <section>
-        <div class='d-flex justify-content-between mb-3'>
-            <div>
-                <h5>{% trans 'Ordered Testimonia' %}</h5>
-            </div>
-            <div>
-                {% if perms.research.change_antiquarian and has_object_lock %}
-                <a href='{% url "testimonium:create" %}'>{% trans 'Add' %}</a>
-                {% endif %}
-            </div>
-        </div>
-
-        {% for link in object.testimoniumlinks.all %}
-
-        {% include 'research/partials/testimonium_link_list_item.html' with link=link testimonium=link.linked can_edit=perms.research.change_antiquarian has_object_lock=has_object_lock %}
-
-        {% endfor %}
-
-    </section>
-
-
-    <hr>
-
-    <section>
-        <div class='d-flex justify-content-between mb-3'>
-            <div>
-                <h5>{% trans 'Ordered Fragments' %}</h5>
-            </div>
-            <div>
-                {% if perms.research.change_antiquarian and has_object_lock %}
-                <a href='{% url "fragment:create" %}'>{% trans 'Add' %}</a>
-                {% endif %}
-            </div>
-        </div>
-
-        {% for link in object.fragmentlinks.all %}
-
-        {% include 'research/partials/fragment_link_list_item.html' with link=link fragment=link.linked can_edit=perms.research.change_antiquarian has_object_lock=has_object_lock %}
-
-        {% endfor %}
-    </section>
-
-
-
-    <hr>
-
-{% endcomment %}
-    <section>
-        <div class='d-flex justify-content-between mb-3'>
-            <div>
-                <h5>{% trans 'Bibliography' %}</h5>
-            </div>
-            <div>
-                {% if perms.research.change_antiquarian and has_object_lock %}
-                <a href='{% url "antiquarian:create_bibliography" object.pk %}'>{% trans 'Add' %}</a>
-                {% endif %}
-            </div>
-        </div>
-        {% for item in object.bibliography_items.all %}
-
-        {% include 'research/partials/bibliography_list_item.html' with can_edit=perms.research.change_antiquarian has_object_lock=has_object_lock %}
-
-        {% endfor %}
-    </section>
-
-    {% endwith %}
-    {% endwith %}
+      {% endwith %}
 
 {% endblock %}

@@ -5,7 +5,11 @@ from django.urls import reverse
 
 from rard.research.models import Antiquarian, Testimonium, Work
 from rard.research.models.base import TestimoniumLink
-from rard.research.views import RemoveTestimoniumLinkView, TestimoniumAddWorkLinkView
+from rard.research.views import (
+    RemoveTestimoniumLinkView,
+    TestimoniumAddWorkLinkView,
+    TestimoniumUpdateWorkLinkView,
+)
 from rard.users.tests.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
@@ -77,6 +81,25 @@ class TestTestimoniumAddWorkLinkView(TestCase):
         self.assertIn(
             "research.change_testimonium",
             TestimoniumAddWorkLinkView.permission_required,
+        )
+
+
+class TestTestimoniumUpdateWorkLinkView(TestCase):
+    def test_success_url(self):
+        testimonium = Testimonium.objects.create(name="name")
+        work = Work.objects.create(name="name")
+        TestimoniumLink.objects.create(work=work, testimonium=testimonium)
+
+        view = TestimoniumUpdateWorkLinkView()
+        request = RequestFactory().get("/")
+        request.user = UserFactory.create()
+
+        view.request = request
+        view.testimonium = testimonium
+
+        self.assertEqual(
+            view.get_success_url(),
+            reverse("testimonium:detail", kwargs={"pk": testimonium.pk}),
         )
 
 

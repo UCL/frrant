@@ -2,7 +2,6 @@ from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ObjectDoesNotExist
 from simple_history.models import HistoricalRecords
 
-from rard.research.models import Antiquarian
 from rard.research.models.mixins import HistoryModelMixin
 from rard.utils.basemodel import BaseModel, DynamicTextField
 
@@ -19,11 +18,9 @@ class TextObjectField(HistoryModelMixin, BaseModel):
 
     comments = GenericRelation("Comment", related_query_name="text_fields")
 
-    references = GenericRelation("BibliographyItem", related_query_name="text_fields")
-
     def get_history_title(self):
         obj = self.get_related_object()
-        if isinstance(obj, Antiquarian):
+        if obj.__class__.__name__ in ["Antiquarian", "Work", "Book"]:
             return "Introduction"
         return "Commentary"
 
@@ -42,12 +39,30 @@ class TextObjectField(HistoryModelMixin, BaseModel):
                 pass
         return None
 
+    def save(self, *args, **kwargs):
+        # Update links generated from mentions each time we save
+        self.link_bibliography_mentions_in_content()
+
+        # save the parent object so the plain intro/commentary is
+        # updated for search purposes.
+        obj = self.get_related_object()
+        if obj:
+            obj.save()
+        super().save(*args, **kwargs)
+
     @property
     def fragment(self):
         from rard.research.models import Fragment
 
         related = self.get_related_object()
         return related if isinstance(related, Fragment) else None
+
+    @property
+    def anonymousfragment(self):
+        from rard.research.models import AnonymousFragment
+
+        related = self.get_related_object()
+        return related if isinstance(related, AnonymousFragment) else None
 
     @property
     def testimonium(self):
@@ -62,3 +77,17 @@ class TextObjectField(HistoryModelMixin, BaseModel):
 
         related = self.get_related_object()
         return related if isinstance(related, Antiquarian) else None
+
+    @property
+    def work(self):
+        from rard.research.models import Work
+
+        related = self.get_related_object()
+        return related if isinstance(related, Work) else None
+
+    @property
+    def book(self):
+        from rard.research.models import Book
+
+        related = self.get_related_object()
+        return related if isinstance(related, Book) else None

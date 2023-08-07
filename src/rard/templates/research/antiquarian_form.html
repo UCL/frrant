@@ -23,6 +23,10 @@
             {% include 'research/partials/rich_text_editor.html' with field=form.introduction_text enable_mentions=True %}
         {% endif %}
 
+        {% if form.bibliography_items %}
+            {% bootstrap_field form.bibliography_items %}
+        {% endif %}
+
       <button type="submit" class="btn btn-primary">
             {% if object %}
                 {% trans 'Save' %}

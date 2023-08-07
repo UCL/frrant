@@ -1,5 +1,16 @@
 {% extends "research/base.html" %}
-{% load i18n bootstrap4 %}
+{% load i18n bootstrap4 static humanize %}
+{% block title %}
+{% if object %}
+{{ object }}:
+    {% trans 'Updating' %}
+{% else %}
+{% if work %}
+{{ work }}:
+{% endif %}
+New Book
+{% endif %}
+{% endblock %}
 
 {% block heading %}
     {% if object %}
@@ -18,9 +29,19 @@
 {% endblock %}
 
 {% block inner %}
+
     <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
         {% csrf_token %}
-        {% bootstrap_form form %}
+        {% bootstrap_field form.order_year %}
+        {% bootstrap_field form.date_range %}
+        {% bootstrap_field form.order %}
+        {% bootstrap_field form.number %}
+        {% bootstrap_field form.subtitle %}
+
+        {% if form.introduction_text %}
+            {% bootstrap_field form.introduction_text field_class='d-none' %}
+            {% include 'research/partials/rich_text_editor.html' with field=form.introduction_text enable_mentions=True %}
+        {% endif %}
         <button type="submit" class="btn btn-primary">
             {% if object %}
                 {% trans 'Save' %}

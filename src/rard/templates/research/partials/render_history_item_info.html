@@ -7,6 +7,7 @@
 
         {# some special intervention like commandline does not show a system user #}
         by <a target='_blank' href='{{ history_item.history_user.get_absolute_url }}'>{{ history_item.history_user }}</a>
-
+    {% if history_item.history_date%}
+     on {{ history_item.history_date }}
+     {% endif %}
     {% endif %}
-        on {{ history_item.history_date }}

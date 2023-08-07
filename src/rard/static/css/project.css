@@ -348,3 +348,14 @@ button.insert {
   display: flex;
   justify-content: space-between;
 }
+
+#bib-inline-form.htmx-added {
+  opacity: 0;
+  max-height: 0;
+}
+
+#bib-inline-form {
+  opacity: 1;
+  max-height: 50vh;
+  transition: max-height 1s ease-out, opacity 1s ease-out;
+}

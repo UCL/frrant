@@ -3,7 +3,7 @@
 
 <div class='row mb-3 mt-n3 editor-area'>
     <div class='col h-fill' style='min-height: {% if min_height %}{{ min_height }}{% else %}400{% endif %}px; padding-bottom: {% if padding_bottom != None %}{{ padding_bottom }}{% else %}60{% endif %}px;'>
-        <div id='{{ field.auto_id }}_editor' {% if object_class %}data-class='{{ object_class }}'{% endif %} {% if object_id %}data-object='{{ object_id }}'{% endif %} class='rich-editor {% if enable_mentions %}enable-mentions{% endif %} {% if enable_apparatus_criticus %}enable-apparatus-criticus{% endif %}' spellcheck="false"  id='{{ field.auto_id }}_rich_editor_content' data-for='{{ field.auto_id }}'>
+        <div id='{{ field.auto_id }}_editor' {% if object_class %}data-class='{{ object_class }}'{% endif %} {% if object_id %}data-object='{{ object_id }}'{% endif %} class='rich-editor {% if enable_mentions %}enable-mentions{% endif %} {% if enable_apparatus_criticus %}enable-apparatus-criticus{% endif %}' spellcheck="false"  id='{{ field.auto_id }}_rich_editor_content' data-for='{{ field.auto_id }}' data-model-field='{{ field.name }}'>
         </div>
         <div class='text-muted'>
           {% if enable_mentions %}

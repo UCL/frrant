@@ -1,0 +1,19 @@
+{% load i18n bootstrap4 static %}
+
+<form id="bib-inline-form" class="card card-body" novalidate autocomplete='off' hx-indicator="#spinner" hx-target="#bib-outer" hx-swap="innerHTML" hx-post='{{ request.path }}'>
+  {% csrf_token %}
+  {% bootstrap_field form.bibliography_items %}
+  <div>
+    <button type="submit" class="btn btn-primary">{% trans 'Add' %}
+      <span id="spinner" class="spinner-border spinner-border-sm htmx-indicator" role="status" aria-hidden="true"></span>
+    </button>
+    <button
+      type="button"
+      class="btn btn-sm btn-outline-secondary inline-cancel-button"
+      _="on click transition #bib-inline-form's max-height to 0 then remove #bib-inline-form then show .bib-edit-button"
+      name="cancel"
+      value="cancel">
+        {% trans 'Cancel' %}
+    </button>
+  </div>
+</form>

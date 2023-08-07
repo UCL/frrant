@@ -13,9 +13,10 @@ from rard.research.models.base import (
     FragmentLink,
     TestimoniumLink,
 )
-from rard.research.models.mixins import HistoryModelMixin
+from rard.research.models.mixins import HistoryModelMixin, TextObjectFieldMixin
 from rard.utils.basemodel import BaseModel, DatedModel, LockableModel, OrderableModel
 from rard.utils.decorators import disable_for_loaddata
+from rard.utils.text_processors import make_plain_text
 
 
 class WorkManager(models.Manager):
@@ -30,7 +31,9 @@ class WorkManager(models.Manager):
         ).order_by(models.F(("authors")).asc(nulls_first=True), "name", "order_year")
 
 
-class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
+class Work(
+    HistoryModelMixin, TextObjectFieldMixin, DatedModel, LockableModel, BaseModel
+):
     history = HistoricalRecords()
 
     def related_lock_object(self):
@@ -49,6 +52,14 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
 
     unknown = models.BooleanField(default=False)
 
+    introduction = models.OneToOneField(
+        "TextObjectField",
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="introduction_for_%(class)s",
+    )
+    plain_introduction = models.TextField(blank=False, default="")
+
     @property
     def unknown_book(self):
         return self.book_set.filter(unknown=True).first()
@@ -61,6 +72,11 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
     def __str__(self):
         author_str = ", ".join([a.name for a in self.antiquarian_set.all()])
         return "{}: {}".format(author_str or "Anonymous", self.name)
+
+    def save(self, *args, **kwargs):
+        if self.introduction:
+            self.plain_introduction = make_plain_text(self.introduction.content)
+        super().save(*args, **kwargs)
 
     def get_absolute_url(self):
         return reverse("work:detail", kwargs={"pk": self.pk})
@@ -208,7 +224,9 @@ class Work(HistoryModelMixin, DatedModel, LockableModel, BaseModel):
             antiquarian.reindex_fragment_and_testimonium_links()
 
 
-class Book(HistoryModelMixin, DatedModel, BaseModel, OrderableModel):
+class Book(
+    HistoryModelMixin, TextObjectFieldMixin, DatedModel, BaseModel, OrderableModel
+):
     history = HistoricalRecords()
 
     def related_lock_object(self):
@@ -223,6 +241,14 @@ class Book(HistoryModelMixin, DatedModel, BaseModel, OrderableModel):
     subtitle = models.CharField(max_length=128, blank=True)
 
     unknown = models.BooleanField(default=False)
+
+    introduction = models.OneToOneField(
+        "TextObjectField",
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="introduction_for_%(class)s",
+    )
+    plain_introduction = models.TextField(blank=False, default="")
 
     def __str__(self):
         if self.subtitle and self.number:
@@ -244,6 +270,11 @@ class Book(HistoryModelMixin, DatedModel, BaseModel, OrderableModel):
     def get_anchor_id(self):
         return slugify(self.__str__())
 
+    def save(self, *args, **kwargs):
+        if self.introduction:
+            self.plain_introduction = make_plain_text(self.introduction.content)
+        super().save(*args, **kwargs)
+
     def reindex_related_links(self):
         """Following a change, ensure all links to this book have a distinct
         zero-indexed order in this book."""
@@ -264,11 +295,11 @@ class Book(HistoryModelMixin, DatedModel, BaseModel, OrderableModel):
 
 @disable_for_loaddata
 def create_unknown_book(sender, instance, **kwargs):
-    unknown_book = Book.objects.create(
-        subtitle="Unknown Book", unknown=True, work=instance
-    )
-    unknown_book.save()
-    instance.book_set.add(unknown_book)
+    if not instance.unknown_book:
+        unknown_book = Book.objects.create(
+            subtitle="Unknown Book", unknown=True, work=instance
+        )
+        unknown_book.save()
 
 
 @disable_for_loaddata
@@ -299,5 +330,7 @@ def handle_deleted_book(sender, instance, **kwargs):
 
 
 post_save.connect(create_unknown_book, sender=Work)
+Work.init_text_object_fields()
+Book.init_text_object_fields()
 post_save.connect(handle_reordered_books, sender=Book)
 post_delete.connect(handle_deleted_book, sender=Book)

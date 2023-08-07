@@ -1,6 +1,8 @@
 {% extends "research/detail_base.html" %}
-{% load i18n object_lock links_for_work %}
-{% block title %}Work: {{object.name}} ({{object.antiquarian_set.first}}) {% endblock %}
+{% load i18n object_lock links_for_work bootstrap4 static humanize %}
+{% block title %}Work: {{object.name}} ({{object.antiquarian_set.first}})
+{% if editing == 'introduction' %}: Editing Introduction {% endif %}
+{% endblock %}
 {% block heading %}
 {% if object.antiquarian_set.count %}
 <div class='mb-2'>
@@ -41,17 +43,39 @@
     <hr>
     <section id="work-info">
         <div class='d-flex justify-content-between mb-3'>
-            <div>
-                <h5>{% trans 'Details' %}</h5>
-            </div>
-            <div>
-                {% if perms.research.change_work and has_object_lock %}
-                <a href='{% url "work:update" object.pk %}'>{% trans 'Edit' %}</a>
-                {% endif %}
-            </div>
+          <div>
+              <h5>{% trans 'Details' %}</h5>
+          </div>
+          <div>
+              {% if perms.research.change_work and has_object_lock %}
+              <a href='{% url "work:update" object.pk %}'>{% trans 'Edit Details' %}</a>
+              {% endif %}
+          </div>
         </div>
 
-        <dl class="row mb-0">
+        {% with intro_length=object.introduction.content|striptags|length %}
+        <div class='d-flex justify-content-between mb-3'>
+          {% if perms.research.change_work and has_object_lock %}
+          <button
+            class="btn text-primary p-0 htmx-get-button"
+            _="on click hide .htmx-get-button"
+            hx-get="{% url 'work:update_introduction' object.pk %}"
+            hx-target=".introduction-container"
+            hx-swap="innerHTML">
+            {% if intro_length > 0 %}
+            {% trans 'Edit Introduction' %}
+            {% else %}
+            {% trans 'Add Introduction' %}
+            {% endif %}
+          </button>
+          {% endif %}
+        </div>
+        <div class="introduction-container rich-text-form-container mb-3">
+            {% include 'research/partials/text_object_preview.html' with text_object=object.introduction hide_empty=True %}
+        </div>
+        {% endwith %}
+
+        <dl class="row mb-0 mt-4">
             <dt class="col-sm-3">{% trans 'Name of Work' %}</dt>
             <dd class="col-sm-9">{{ object.name }}</dd>
 
@@ -113,25 +137,9 @@
 
     </section>
 
-    {% comment %}
-    <hr>
     <section>
-        <div class='d-flex justify-content-between mb-3'>
-            <div>
-                <h5>{% trans 'Antiquarians' %}</h5>
-            </div>
-        </div>
-
-        {% for antiquarian in object.antiquarian_set.all %}
-
-        {% include 'research/partials/antiquarian_list_item.html' %}
-
-        {% endfor %}
-    </section>
-
-    {% endcomment %}
-
-    <section> {% if perms.research.change_work and has_object_lock %}
+      <hr>
+      {% if perms.research.change_work and has_object_lock %}
       {% include 'research/partials/ordered_book_area.html' with ordered_materials=ordered_materials can_edit=perms.research.change_work has_object_lock=has_object_lock %}
       {% else %}
       {% include 'research/partials/ordered_book_area.html' with ordered_materials=cleaned_materials %}

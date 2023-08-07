@@ -1,11 +1,14 @@
+import re
+
 from django import forms
 from django.core.exceptions import FieldDoesNotExist
-from django.forms import inlineformset_factory
+from django.forms import ModelMultipleChoiceField, inlineformset_factory
 from django.utils.translation import gettext_lazy as _
 
 from rard.research.models import (
     AnonymousFragment,
     Antiquarian,
+    BibliographyItem,
     Book,
     CitingAuthor,
     CitingWork,
@@ -39,11 +42,16 @@ def _validate_reference_order(ro):
         )
 
 
-class AntiquarianIntroductionForm(forms.ModelForm):
-    class Meta:
-        model = Antiquarian
-        fields = ("name",)  # need to specify at least one field
+class BibliographyModelMultipleChoiceField(ModelMultipleChoiceField):
+    CLEANR = re.compile("<.*?>")
 
+    def label_from_instance(self, obj):
+        # year is optional, leave it out and take tags out of title, trim if long
+        ttl = obj.author_surnames[:30] + ":- " + re.sub(self.CLEANR, "", obj.title)
+        return (ttl[:75] + "..") if len(ttl) > 75 else ttl
+
+
+class IntroductionFormBase(forms.ModelForm):
     introduction_text = forms.CharField(
         widget=forms.Textarea,
         required=False,
@@ -57,15 +65,19 @@ class AntiquarianIntroductionForm(forms.ModelForm):
             self.fields[
                 "introduction_text"
             ].initial = self.instance.introduction.content
-        self.fields["name"].required = False
 
     def save(self, commit=True):
+        instance = super().save(commit=False)
         if commit:
-            instance = super().save(commit=False)  # no need to save owner
-            # introduction will have been created at this point
             instance.introduction.content = self.cleaned_data["introduction_text"]
             instance.introduction.save()
         return instance
+
+
+class AntiquarianIntroductionForm(IntroductionFormBase):
+    class Meta:
+        model = Antiquarian
+        fields = ()
 
 
 class AntiquarianDetailsForm(forms.ModelForm):
@@ -79,6 +91,33 @@ class AntiquarianDetailsForm(forms.ModelForm):
             "order_year",
         )
         labels = {"order_name": "Name for alphabetisation"}
+
+
+class AntiquarianLinkBibliographyItemForm(forms.ModelForm):
+    class Meta:
+        model = Antiquarian
+        fields = ["bibliography_items"]
+
+    bibliography_items = BibliographyModelMultipleChoiceField(
+        queryset=BibliographyItem.objects.all(),
+        widget=forms.SelectMultiple,
+        required=True,
+    )
+
+    def clean_bibliography_items(self):
+        """Add initial bibliography items so we only add new ones"""
+        data = self.cleaned_data["bibliography_items"]
+        return data.union(self.instance.bibliography_items.all())
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Init the existing bib item set and exclude these from queryset
+        self.fields[
+            "bibliography_items"
+        ].initial = self.instance.bibliography_items.all()
+        self.fields["bibliography_items"].queryset = BibliographyItem.objects.exclude(
+            antiquarians=self.instance.pk
+        )
 
 
 class AntiquarianCreateForm(forms.ModelForm):
@@ -250,6 +289,12 @@ class WorkForm(forms.ModelForm):
 
     books = BooksField(widget=BooksWidget, required=False)
 
+    introduction_text = forms.CharField(
+        widget=forms.Textarea,
+        required=False,
+        label="Introduction",
+    )
+
     class Meta:
         model = Work
         fields = (
@@ -260,6 +305,7 @@ class WorkForm(forms.ModelForm):
             "date_range",
             "order_year",
             "books",
+            "introduction_text",
         )
         labels = {"name": "Name of Work"}
 
@@ -269,6 +315,15 @@ class WorkForm(forms.ModelForm):
         # on the form
         if self.instance and self.instance.pk:
             self.fields["antiquarians"].initial = self.instance.antiquarian_set.all()
+
+        if self.instance.introduction:
+            self.fields[
+                "introduction_text"
+            ].initial = self.instance.introduction.content
+        else:
+            self.fields["introduction_text"].attrs = {
+                "placeholder": "introduction for work"
+            }
 
     def clean(self):
         cleaned_data = super().clean()
@@ -293,11 +348,44 @@ class WorkForm(forms.ModelForm):
                 )
         return cleaned_data
 
+    def save(self, commit=True):
+        instance = super().save(commit)
+        if commit:
+            instance.save_without_historical_record()
+            # introduction will have been created at this point
+            instance.introduction.content = self.cleaned_data["introduction_text"]
+            instance.introduction.save_without_historical_record()
+        return instance
+
 
 class BookForm(forms.ModelForm):
+    introduction_text = forms.CharField(
+        widget=forms.Textarea,
+        required=False,
+        label="Introduction",
+    )
+
     class Meta:
         model = Book
-        exclude = ("work",)
+        fields = (
+            "order_year",
+            "date_range",
+            "order",
+            "number",
+            "subtitle",
+            "introduction_text",
+        )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.introduction:
+            self.fields[
+                "introduction_text"
+            ].initial = self.instance.introduction.content
+        else:
+            self.fields["introduction_text"].attrs = {
+                "placeholder": "introduction for book"
+            }
 
     def clean(self):
         cleaned_data = super().clean()
@@ -307,7 +395,29 @@ class BookForm(forms.ModelForm):
             ERR = _("Please give a number or a subtitle.")
             self.add_error("number", ERR)
             self.add_error("subtitle", ERR)
+
         return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit)
+        if commit:
+            instance.save_without_historical_record()
+            # introduction will have been created at this point
+            instance.introduction.content = self.cleaned_data["introduction_text"]
+            instance.introduction.save_without_historical_record()
+        return instance
+
+
+class WorkIntroductionForm(IntroductionFormBase):
+    class Meta:
+        model = Work
+        fields = ()
+
+
+class BookIntroductionForm(IntroductionFormBase):
+    class Meta:
+        model = Book
+        fields = ()
 
 
 class CommentForm(forms.ModelForm):
@@ -566,6 +676,49 @@ class TestimoniumAntiquariansForm(HistoricalFormBase):
         fields = ()
 
 
+class BibliographyItemInlineForm(HistoricalFormBase):
+    class Meta:
+        model = BibliographyItem
+        fields = (
+            "authors",
+            "author_surnames",
+            "year",
+            "title",
+        )
+
+
+class BibliographyItemForm(HistoricalFormBase):
+    antiquarians = forms.ModelMultipleChoiceField(
+        widget=forms.CheckboxSelectMultiple,
+        queryset=Antiquarian.objects.all(),
+        required=False,
+    )
+
+    citing_authors = forms.ModelMultipleChoiceField(
+        widget=forms.CheckboxSelectMultiple,
+        queryset=CitingAuthor.objects.all(),
+        required=False,
+    )
+
+    class Meta:
+        model = BibliographyItem
+        fields = (
+            "authors",
+            "author_surnames",
+            "year",
+            "title",
+            "antiquarians",
+            "citing_authors",
+        )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # if editing a bibliography item init the antiquarian and citing_author sets
+        if self.instance and self.instance.pk:
+            self.fields["antiquarians"].initial = self.instance.antiquarians.all()
+            self.fields["citing_authors"].initial = self.instance.citing_authors.all()
+
+
 class FragmentForm(HistoricalFormBase):
     class Meta:
         model = Fragment
@@ -805,7 +958,17 @@ class CitingAuthorUpdateForm(forms.ModelForm):
             "date_range",
         )
 
+    bibliography_items = BibliographyModelMultipleChoiceField(
+        widget=forms.CheckboxSelectMultiple,
+        queryset=BibliographyItem.objects.all(),
+        required=False,
+    )
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.instance and self.instance.is_anonymous_citing_author():
-            self.fields["order_name"].disabled = True
+        if self.instance:
+            self.fields[
+                "bibliography_items"
+            ].initial = self.instance.bibliography_items.all()
+            if self.instance.is_anonymous_citing_author():
+                self.fields["order_name"].disabled = True
