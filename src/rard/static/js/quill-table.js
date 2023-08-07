@@ -165,7 +165,7 @@ class TableContainer extends BlockEmbed {
       row.appendChild(cell);
     });
     // always adds a row at the bottom
-    this.domNode.appendChild(row);
+    this.domNode.firstElementChild.appendChild(row);
   }
 }
 
