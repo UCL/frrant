@@ -12,10 +12,9 @@
         </div>
 
         {% if not hide_last_modified %}
-        <small class='text-muted'>{% include 'research/partials/render_last_modified_info.html' with object=text_object %}</small>
+        <small class='text-muted mt-2 ml-2'>{% include 'research/partials/render_last_modified_info.html' with object=text_object %}</small>
         {% endif %}
     </div>
-    <small class='text-muted mt-2 ml-2'>{% include 'research/partials/render_last_modified_info.html' with object=text_object %}</small>
 
 </div>
 {% endif %}
