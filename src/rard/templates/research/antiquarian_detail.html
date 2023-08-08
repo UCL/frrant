@@ -137,34 +137,6 @@
         </section>
 
         <hr>
-        {% comment %}
-            <section>
-
-                <div class='d-flex justify-content-between mb-3'>
-                    <div>
-                        <h5>{% trans 'Works' %}</h5>
-                    </div>
-                    <div>
-                        {% if perms.research.change_antiquarian and has_object_lock %}
-                            {% if perms.research.add_work %}
-                            <a href='{% url "antiquarian:create_work" object.pk %}'>{% trans 'Add' %}</a> |
-                            {% endif %}
-                        <a href='{% url "antiquarian:update_works" object.pk %}'>{% trans 'Edit' %}</a>
-                        {% endif %}
-                    </div>
-                </div>
-
-                {% for work in object.ordered_works.all %}
-
-                {% include 'research/partials/work_list_item.html' with work=work %}
-
-                {% endfor %}
-            </section>
-
-
-            <hr>
-        {% endcomment %}
-
         <section>
             <div class='d-flex justify-content-between mb-3'>
                 <div>
