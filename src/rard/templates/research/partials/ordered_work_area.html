@@ -1,28 +1,43 @@
 {% load i18n links_for_work %}
-
-
 {% with object=antiquarian %}
 
-      <div class='ordered-list parent-ordering-group'>
+<div class='ordered-list parent-ordering-group'>
 
-        <div class='ordered-list'>
+    <div class='ordered-list'>
         <ul class='parent-ordering-group'>
 
-          {% with utlinks=object|testimonium_links_for_work:object.unknown_work %}
+            {% with utlinks=object|testimonium_links_for_work:object.unknown_work %}
 
             {% for link in utlinks %}
                 {% include 'research/partials/testimonium_link_list_item.html' with link=link link_text=link.get_display_name|safe can_edit=can_edit has_object_lock=has_object_lock %}
             {% endfor %}
 
-          {% endwith %}
+            {% endwith %}
 
         </ul>
-        </div>
+    </div>
 
-        {% for work in object.ordered_works.all %}
+    {% for work in object.ordered_works.all %}
 
-        <div class='drop-target' data-pos='{{ forloop.counter0 }}' data-objecttype='work'>
-        </div>
+    <div class='drop-target' data-pos='{{ forloop.counter0 }}' data-objecttype='work'>
+    </div>
+
+    <div id='work_{{ work.pk }}' class='parent-ordering-group drag-item ordered-list-item' draggable='false' data-work='{{ work.pk }}' data-antiquarian='{{ object.pk }}' data-objecttype='work' data-pos='{{ forloop.counter0 }}'>
+        {% with tlinks=object|testimonium_links_for_work:work %}
+        {% with flinks=object|fragment_links_for_work:work %}
+        {% with alinks=object|appositum_links_for_work:work %}
+        <div class='d-flex justify-content-between w-100'>
+            <div>
+                {% if work.unknown == True and not flinks and not tlinks and not alinks %}
+                {% elif work.unknown == True %}
+                <b class='my-3 mr-3'><a href='{% url "work:detail" work.pk %}'>{{ work.name }}</a></b>
+
+                {% else %}
+                <b class='my-3 mr-3'><a href='{% url "work:detail" work.pk %}'>{{ work.name }}</a></b>
+
+                {% if can_edit and has_object_lock %}
+                <button type='button' class='drag-handle btn btn-light btn-sm' style='cursor: move;' data-pos='{{ forloop.counter0 }}'><i class='fas fa-bars'></i></button>
+
 
             <div id='work_{{ work.pk }}' class='parent-ordering-group drag-item ordered-list-item' draggable='false' data-work='{{ work.pk }}' data-antiquarian='{{ object.pk }}' data-objecttype='work' data-pos='{{ forloop.counter0 }}'>
                 <div class='d-flex justify-content-between w-100'>
@@ -60,48 +75,62 @@
                     {% include 'research/partials/text_object_preview.html' with text_object=work.introduction truncate=200 hide_last_modified=True%}
                 {% endif %}
 
-                <ul>
-                    <div class='ordered-list'>
-
-                        {% if tlinks %}
-                        {% for link in tlinks %}
-                            {% include 'research/partials/testimonium_link_list_item.html' with link=link link_text=link.get_work_display_name_full|safe can_edit=False has_object_lock=has_object_lock %}
-                        {% endfor %}
-                        {% endif %}
-
-                        {% if flinks %}
-                        {% for link in flinks %}
-                            {% include 'research/partials/fragment_link_list_item.html' with link=link  link_text=link.get_work_display_name_full|safe can_edit=False has_object_lock=has_object_lock %}
-                        {% endfor %}
-                        {% endif %}
-
-                        {% if alinks %}
-                        {% for link in alinks %}
-                            {% include 'research/partials/appositum_fragment_link_list_item.html' with link=link link_text=link.get_work_display_name_full|safe can_edit=can_edit has_object_lock=has_object_lock %}
-                        {% endfor %}
-                        {% endif %}
-
-                        {% if not flinks and not tlinks and not alinks %}
-                        {% if work.unknown == False %}
-                        <div class='text-muted my-3 ml-4'><em>No linked material for this work</em></div>
-                        {% endif %}
-                        {% endif %}
-
-                    {% endwith %}
-                    {% endwith %}
-                    {% endwith %}
-                    </div>
-                </ul>
             </div>
-
-        {% if forloop.last %}
-        {# add drop target at end #}
-        <div class='drop-target' data-pos='{{ forloop.counter }}' data-objecttype='work'>
+            <div>
+                {% if can_edit and has_object_lock %}
+                <a href='{% url "anonymous_fragment:create_appositum_for" "work" work.pk %}'>{% trans 'Create Appositum' %}</a>
+                {% endif %}
+            </div>
         </div>
+
+        {% if work.introduction and not work.unknown %}
+        {% include 'research/partials/text_object_preview.html' with text_object=work.introduction truncate=True %}
         {% endif %}
 
-        {% endfor %}
 
-      </div>
+        <ul>
+            <div class='ordered-list'>
+
+                {% if tlinks %}
+                {% for link in tlinks %}
+                    {% include 'research/partials/testimonium_link_list_item.html' with link=link link_text=link.get_work_display_name_full|safe can_edit=False has_object_lock=has_object_lock %}
+                {% endfor %}
+                {% endif %}
+
+                {% if flinks %}
+                {% for link in flinks %}
+                    {% include 'research/partials/fragment_link_list_item.html' with link=link  link_text=link.get_work_display_name_full|safe can_edit=False has_object_lock=has_object_lock %}
+                {% endfor %}
+                {% endif %}
+
+                {% if alinks %}
+                {% for link in alinks %}
+                    {% include 'research/partials/appositum_fragment_link_list_item.html' with link=link link_text=link.get_work_display_name_full|safe can_edit=can_edit has_object_lock=has_object_lock %}
+                {% endfor %}
+                {% endif %}
+
+                {% if not flinks and not tlinks and not alinks %}
+                {% if work.unknown == False %}
+                <div class='text-muted my-3 ml-4'><em>No linked material for this work</em></div>
+                {% endif %}
+                {% endif %}
+
+
+            </div>
+        </ul>
+        {% endwith %}
+        {% endwith %}
+        {% endwith %}
+    </div>
+
+    {% if forloop.last %}
+    {# add drop target at end #}
+    <div class='drop-target' data-pos='{{ forloop.counter }}' data-objecttype='work'>
+    </div>
+    {% endif %}
+
+    {% endfor %}
+
+</div>
 
 {% endwith %}

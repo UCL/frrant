@@ -300,7 +300,7 @@ def create_unknown_book(sender, instance, **kwargs):
             subtitle="Unknown Book", unknown=True, work=instance
         )
         unknown_book.save()
-
+        # call function to make sure unknown book contents are collated
 
 @disable_for_loaddata
 def handle_reordered_books(sender, instance, **kwargs):

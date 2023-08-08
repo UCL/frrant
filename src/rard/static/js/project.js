@@ -177,9 +177,9 @@ $("body").on("submit", "form", function (e) {
   $(this).data("submitted", true);
 });
 
-Quill.register("modules/mention", quillMention);
+Quill.register("modules/mention", quillMention, true);
 var icons = Quill.import("ui/icons");
-// import fontawesome icons for the undo/redo buttons
+// import fontawesome button icons
 icons["undo"] =
   '<i class="fa fa-undo fa-xs align-text-top" aria-hidden="true"></i>';
 icons["redo"] =
@@ -187,6 +187,8 @@ icons["redo"] =
 // and for the vinculum buttons
 icons["vinculum_on"] = "V\u0305";
 icons["vinculum_off"] = "V";
+icons["footnote"] = '<i class="far fa-comment-alt"></i>';
+icons["table"] = '<i class="fas fa-table">+</i>';
 
 async function suggestPeople(searchTerm) {
   // call backend synchonously here and wait
@@ -243,8 +245,38 @@ function initRichTextEditor($item) {
           [{ list: "ordered" }, { list: "bullet" }],
           [{ align: [] }],
           ["clean"],
+          ["footnote"],
+          ["table"],
+          [
+            {
+              edit_table: [
+                "add_row",
+                "add_column",
+                "delete_row",
+                "delete_column",
+              ],
+            },
+          ],
         ],
         handlers: {
+          footnote: function () {
+            this.quill.modules.footnote.insertFootnote();
+          },
+          table: function (value) {
+            this.quill.modules.table.insertTable();
+          },
+          edit_table: function (value) {
+            console.log(value);
+            if (value == "add_row") {
+              this.quill.modules.table.insertRow();
+            } else if (value == "add_column") {
+              this.quill.modules.table.insertColumn();
+            } else if (value == "delete_row") {
+              this.quill.modules.table.deleteRow();
+            } else if (value == "delete_column") {
+              this.quill.modules.table.deleteColumn();
+            }
+          },
           undo: function (value) {
             this.quill.history.undo();
           },
@@ -284,6 +316,8 @@ function initRichTextEditor($item) {
           },
         },
       },
+      footnote: true,
+      table: true,
     },
   };
 
@@ -325,8 +359,6 @@ function initRichTextEditor($item) {
       renderItem(item, searchTerm) {
         // allows you to control how the item is displayed
         let list_display = item.list_display || item.value;
-        console.log("list_display:");
-        console.log(list_display);
         return `${list_display}`;
       },
     };
@@ -341,6 +373,19 @@ function initRichTextEditor($item) {
   var html = $for.text();
   $item.find(".ql-editor").html(html);
   $for.hide();
+
+  // translates custom dropdown in toolbar
+  var tablePickerItems = Array.prototype.slice.call(
+    document.querySelectorAll(".ql-edit_table .ql-picker-item")
+  );
+  tablePickerItems.forEach(
+    (item) =>
+      //console.log(item.dataset)
+      (item.textContent = item.dataset.value)
+  );
+  document.querySelector(".ql-edit_table .ql-picker-label").innerHTML =
+    `<i class="fas fa-table"></i>:edit` +
+    document.querySelector(".ql-edit_table .ql-picker-label").innerHTML;
 
   $("body").on("submit", "form", function (e) {
     let html = $item.find(".ql-editor").html();
