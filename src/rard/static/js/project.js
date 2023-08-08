@@ -179,7 +179,7 @@ $("body").on("submit", "form", function (e) {
 
 Quill.register("modules/mention", quillMention, true);
 var icons = Quill.import("ui/icons");
-// import fontawesome icons buttons
+// import fontawesome button icons
 icons["undo"] =
   '<i class="fa fa-undo fa-xs align-text-top" aria-hidden="true"></i>';
 icons["redo"] =
