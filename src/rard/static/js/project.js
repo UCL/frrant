@@ -359,8 +359,6 @@ function initRichTextEditor($item) {
       renderItem(item, searchTerm) {
         // allows you to control how the item is displayed
         let list_display = item.list_display || item.value;
-        console.log("list_display:");
-        console.log(list_display);
         return `${list_display}`;
       },
     };

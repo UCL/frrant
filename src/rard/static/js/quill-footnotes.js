@@ -269,7 +269,6 @@ class Footnote extends Module {
     var regex = /^(\d+)\.\s*(.*)/;
 
     var noteContent = e.target.textContent.match(regex)[2];
-    console.log(noteContent);
     var updateContent = prompt(
       `Update footnote: ${noteContent}\n If you'd like to remove it, delete the contents.`,
       `${noteContent}`
