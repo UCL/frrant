@@ -1,0 +1,18 @@
+{% load i18n bootstrap4 %}
+
+<form
+  id="introduction-inline-form"
+  class="form"
+  novalidate
+  autocomplete='off'
+  hx-post="{{ request.path }}"
+  hx-target="closest .introduction-container"
+  hx-swap="innerHTML">
+    {% csrf_token %}
+        {% bootstrap_field form.introduction_text field_class='d-none' show_label=false %}
+        {% include 'research/partials/rich_text_editor.html' with field=form.introduction_text enable_mentions=True %}
+
+  <button type="submit" class="btn btn-primary">
+    {% trans 'Save' %}
+  </button>
+</form>

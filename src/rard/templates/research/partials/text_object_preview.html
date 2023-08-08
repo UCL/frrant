@@ -1,4 +1,6 @@
 {# Assumes a context object named 'text_object' #}
+
+{% if text_object.content|striptags|length > 0 or not hide_empty %}
 <div class="card bg-light{% if truncate %} mt-0 mb-0 p-2{% else %} mt-3 mb-2 {% endif %} text-object-preview">
     <div class="card-body {% if truncate %} p-1 {% endif %}">
         <div class='card-text alphabetum'>
@@ -8,7 +10,12 @@
             {{ text_object.render_content|safe }}
             {% endif %}
         </div>
+
+        {% if not hide_last_modified %}
+        <small class='text-muted'>{% include 'research/partials/render_last_modified_info.html' with object=text_object %}</small>
+        {% endif %}
     </div>
     <small class='text-muted mt-2 ml-2'>{% include 'research/partials/render_last_modified_info.html' with object=text_object %}</small>
 
 </div>
+{% endif %}
