@@ -39,48 +39,55 @@
                 <button type='button' class='drag-handle btn btn-light btn-sm' style='cursor: move;' data-pos='{{ forloop.counter0 }}'><i class='fas fa-bars'></i></button>
 
 
-            <div id='work_{{ work.pk }}' class='parent-ordering-group drag-item ordered-list-item' draggable='false' data-work='{{ work.pk }}' data-antiquarian='{{ object.pk }}' data-objecttype='work' data-pos='{{ forloop.counter0 }}'>
-                <div class='d-flex justify-content-between w-100'>
-                    {% with tlinks=object|testimonium_links_for_work:work %}
-                    {% with flinks=object|fragment_links_for_work:work %}
-                    {% with alinks=object|appositum_links_for_work:work %}
+                <div id='work_{{ work.pk }}' class='parent-ordering-group drag-item ordered-list-item' draggable='false' data-work='{{ work.pk }}' data-antiquarian='{{ object.pk }}' data-objecttype='work' data-pos='{{ forloop.counter0 }}'>
+                    <div class='d-flex justify-content-between w-100'>
+                        {% with tlinks=object|testimonium_links_for_work:work %}
+                        {% with flinks=object|fragment_links_for_work:work %}
+                        {% with alinks=object|appositum_links_for_work:work %}
 
-                    <div>
-                        {% if work.unknown == True and not flinks and not tlinks and not alinks %}
-                        {% elif work.unknown == True %}
-                        <b class='my-3 mr-3'><a href='{% url "work:detail" work.pk %}'>{{ work.name }}</a></b>
+                        <div>
+                            {% if work.unknown == True and not flinks and not tlinks and not alinks %}
+                            {% elif work.unknown == True %}
+                            <b class='my-3 mr-3'><a href='{% url "work:detail" work.pk %}'>{{ work.name }}</a></b>
 
-                        {% else %}
-                        <b class='my-3 mr-3'><a href='{% url "work:detail" work.pk %}'>{{ work.name }}</a></b>
+                            {% else %}
+                            <b class='my-3 mr-3'><a href='{% url "work:detail" work.pk %}'>{{ work.name }}</a></b>
 
-                        {% if can_edit and has_object_lock %}
-                        <button type='button' class='drag-handle btn btn-light btn-sm' style='cursor: move;' data-pos='{{ forloop.counter0 }}'><i class='fas fa-bars'></i></button>
+                            {% if can_edit and has_object_lock %}
+                            <button type='button' class='drag-handle btn btn-light btn-sm' style='cursor: move;' data-pos='{{ forloop.counter0 }}'><i class='fas fa-bars'></i></button>
 
-                        <button data-work='{{ work.pk }}' data-antiquarian='{{ object.pk }}' data-objecttype='work'
-                            data-pos='{{ forloop.counter0 }}' type='button' class='btn btn-light btn-sm' {% if forloop.first or disable_link_controls %}disabled{% endif %} name='work_up'><i class='fas fa-caret-up'></i></button>
-                        <button data-work='{{ work.pk }}' data-antiquarian='{{ object.pk }}' data-objecttype='work'
-                            data-pos='{{ forloop.counter0 }}' type='button' class='btn btn-light btn-sm' {% if forloop.last or disable_link_controls %}disabled{% endif %} name='work_down'><i class='fas fa-caret-down'></i></button>
-                        {% endif %}
-                        {% endif %}
+                            <button data-work='{{ work.pk }}' data-antiquarian='{{ object.pk }}' data-objecttype='work'
+                                data-pos='{{ forloop.counter0 }}' type='button' class='btn btn-light btn-sm' {% if forloop.first or disable_link_controls %}disabled{% endif %} name='work_up'><i class='fas fa-caret-up'></i></button>
+                            <button data-work='{{ work.pk }}' data-antiquarian='{{ object.pk }}' data-objecttype='work'
+                                data-pos='{{ forloop.counter0 }}' type='button' class='btn btn-light btn-sm' {% if forloop.last or disable_link_controls %}disabled{% endif %} name='work_down'><i class='fas fa-caret-down'></i></button>
+                            {% endif %}
+                            {% endif %}
+                        </div>
 
+                        <div>
+                            {% if can_edit and has_object_lock %}
+                            <a href='{% url "anonymous_fragment:create_appositum_for" "work" work.pk %}'>{% trans 'Create Appositum' %}</a>
+                            {% endif %}
+                        </div>
+                        {% endwith %}
+                        {% endwith %}
+                        {% endwith %}
                     </div>
-                    <div>
-                        {% if can_edit and has_object_lock %}
-                        <a href='{% url "anonymous_fragment:create_appositum_for" "work" work.pk %}'>{% trans 'Create Appositum' %}</a>
-                        {% endif %}
-                    </div>
-                </div>
+
+                {% endif %}
+                {% endif %}
 
                 {% if work.introduction and not work.unknown %}
                     {% include 'research/partials/text_object_preview.html' with text_object=work.introduction truncate=200 hide_last_modified=True%}
                 {% endif %}
 
             </div>
-            <div>
-                {% if can_edit and has_object_lock %}
-                <a href='{% url "anonymous_fragment:create_appositum_for" "work" work.pk %}'>{% trans 'Create Appositum' %}</a>
-                {% endif %}
-            </div>
+
+                <div>
+                    {% if can_edit and has_object_lock %}
+                    <a href='{% url "anonymous_fragment:create_appositum_for" "work" work.pk %}'>{% trans 'Create Appositum' %}</a>
+                    {% endif %}
+                </div>
         </div>
 
         {% if work.introduction and not work.unknown %}
@@ -115,7 +122,6 @@
                 {% endif %}
                 {% endif %}
 
-
             </div>
         </ul>
         {% endwith %}
@@ -130,7 +136,5 @@
     {% endif %}
 
     {% endfor %}
-
 </div>
-
 {% endwith %}
