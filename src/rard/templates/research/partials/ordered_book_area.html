@@ -14,7 +14,7 @@
           {% endif %}
       </h5>
       {% endif %}
-      {% if perms.research.change_work and has_object_lock %}
+      {% if perms.research.change_work and has_object_lock and not book.unknown %}
       <button
         class="btn text-primary p-0 ml-2 htmx-get-button"
         _="on click hide .htmx-get-button"
@@ -29,9 +29,12 @@
       </button>
       {% endif %}
     </div>
+
+    {% if not book.unknown %}
     <div class="introduction-container rich-text-form-container">
         {% include 'research/partials/text_object_preview.html' with text_object=book.introduction hide_empty=True %}
     </div>
+    {% endif %}
 
     <div>
     {% if content.fragments %}

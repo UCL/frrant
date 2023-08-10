@@ -137,8 +137,9 @@
 
     </section>
 
+    <hr>
+
     <section>
-      <hr>
       {% if perms.research.change_work and has_object_lock %}
       {% include 'research/partials/ordered_book_area.html' with ordered_materials=ordered_materials can_edit=perms.research.change_work has_object_lock=has_object_lock %}
       {% else %}
