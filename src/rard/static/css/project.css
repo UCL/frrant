@@ -325,7 +325,7 @@ button.insert {
   padding-bottom: 2rem;
   position: absolute;
   bottom: 0;
-  height: 10rem;
+  min-height: 5rem;
   overflow: scroll;
   width: 90%;
 }
@@ -335,10 +335,6 @@ button.insert {
 \0305 {
   /* vincula symbol looks short in new font */
   width: 120%;
-}
-.ql-editor .custom-columns {
-  column-count: 2;
-  column-gap: 20px;
 }
 .highlighted-note-valid {
   border-radius: 1px;
@@ -357,6 +353,9 @@ button.insert {
 .text-object-preview p {
   padding: 0;
   margin: 0;
+}
+#contentModal {
+  display: none;
 }
 
 .ql-editor .ql-table {

@@ -351,8 +351,8 @@ function initRichTextEditor($item) {
             object_id,
             object_class
           );
-          console.log("lines:");
-          console.dir(lines);
+          // console.log("lines:");
+          // console.dir(lines);
           renderList(lines);
         }
       },
@@ -424,15 +424,18 @@ window.addEventListener("beforeunload", function (e) {
 
 // If swapping form containing rich text editor with htmx
 // we need to initialise it
-document.addEventListener('htmx:afterSettle', function(evt) {
+document.addEventListener("htmx:afterSettle", function (evt) {
   verb = evt.detail.requestConfig.verb;
-  console.log(evt);
-  if (evt.detail.target.classList.contains("rich-text-form-container") && verb == "get") {
+  // console.log(evt);
+  if (
+    evt.detail.target.classList.contains("rich-text-form-container") &&
+    verb == "get"
+  ) {
     initRichTextEditors();
-  };
-  if (verb=="post" && evt.detail.successful) {
-    $(".htmx-get-button").show();  // Show edit button again
-    $('[data-toggle="tooltip"]').tooltip();  // Enable tooltips in updated content
+  }
+  if (verb == "post" && evt.detail.successful) {
+    $(".htmx-get-button").show(); // Show edit button again
+    $('[data-toggle="tooltip"]').tooltip(); // Enable tooltips in updated content
   }
 });
 
