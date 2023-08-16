@@ -72,6 +72,11 @@ urlpatterns = [
         views.RefreshOriginalTextContentView.as_view(),
         name="refresh_original_text_content",
     ),
+    path(
+        "render-editor-modal-template/",
+        views.render_editor_modal_template,
+        name="render_editor_modal_template",
+    ),
     # path("comment/<pk>/delete/", views.CommentDeleteView.as_view(), name="delete_comment"),
     # path("text-field/<pk>/comments/", views.TextObjectFieldCommentListView.as_view(), name="list_comments_on_text"),
     path(

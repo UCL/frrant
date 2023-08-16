@@ -77,7 +77,7 @@ from .fragment import (
     UnlinkedFragmentListView,
 )
 from .history import HistoryListView
-from .home import HomeView
+from .home import HomeView, render_editor_modal_template
 from .mention import MentionSearchView
 from .original_text import (
     AnonymousFragmentOriginalTextCreateView,
@@ -204,6 +204,7 @@ __all__ = [
     "OriginalTextUpdateAuthorView",
     "OriginalTextUpdateView",
     "RemoveAppositumLinkView",
+    "render_editor_modal_template",
     "SearchView",
     "RemoveTestimoniumLinkView",
     "TestimoniumAddWorkLinkView",

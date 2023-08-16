@@ -1,4 +1,5 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.shortcuts import render
 from django.views.generic import ListView, TemplateView
 
 from rard.research.models import Fragment
@@ -28,3 +29,12 @@ class AnonymousListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
             .annotate(topic=F("topics__name"))
             .order_by("topic", "topiclink__order")
         )
+
+
+def render_editor_modal_template(request):
+    from rard.utils.context_processors import symbols_context
+
+    context = symbols_context(request)
+    print(context)
+
+    return render(request, "research/partials/render_editor_modal_base.html")
