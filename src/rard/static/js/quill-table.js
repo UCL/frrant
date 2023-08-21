@@ -7,12 +7,19 @@ var Block = Quill.import("blots/block");
 var Container = Quill.import("blots/container");
 var Delta = Quill.import("delta");
 
-function editContents(e) {
-  var updateContent = prompt(
-    `Update cell content or set blank.`,
-    `${e.target.innerText}`
-  );
-  return (e.target.innerText = updateContent);
+async function editContents(e) {
+  var updateContent;
+  if (e.target.closest("#editContentModal")) {
+    updateContent = prompt(
+      `Update cell content or set blank.`,
+      `${e.target.innerHTML}`
+    );
+  } else updateContent = await addModal(e.target.innerHTML);
+  if (updateContent == "delete") {
+    return (e.target.innerHTML = "");
+  }
+
+  return (e.target.innerHTML = updateContent);
 }
 
 var currentCell;
@@ -173,7 +180,7 @@ TableRow.allowedChildren = [TableCell];
 TableCell.requiredContainer = TableRow;
 
 function tableId(elem) {
-  const id = Math.random().toString(36).slice(2, 6);
+  var id = Math.random().toString(36).slice(2, 6);
   return `${elem}-${id}`;
 }
 
@@ -201,6 +208,10 @@ class Table extends Module {
       }
     });
     this.listenBalanceCells();
+    const tableObserver = new MutationObserver(
+      this.processMutations.bind(this)
+    );
+    tableObserver.observe(this.quill.root, { childList: true, subtree: true });
   }
 
   deleteColumn() {
@@ -320,15 +331,28 @@ class Table extends Module {
       });
     });
   }
+
+  processMutations(mutationsList) {
+    for (var mutation of mutationsList) {
+      if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
+        for (const addedNode of mutation.addedNodes) {
+          if (addedNode.classList && addedNode.classList.contains("ql-table")) {
+            // add listeners to existing table cells
+            if (addedNode.closest("table")) {
+              addedNode
+                .closest("table")
+                .querySelectorAll("td.ql-table")
+                .forEach((tableCell) => {
+                  tableCell.addEventListener("dblclick", editContents);
+                  tableCell.addEventListener("click", updateCurrentCell);
+                });
+            }
+          }
+        }
+      }
+    }
+  }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  if (document.querySelector("table")) {
-    document.querySelectorAll("td.ql-table").forEach((cell) => {
-      cell.addEventListener("dblclick", editContents);
-      cell.addEventListener("click", updateCurrentCell);
-    });
-  }
-});
 Table.register();
 Quill.register("modules/table", Table, true);

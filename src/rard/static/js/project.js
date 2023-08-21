@@ -184,7 +184,7 @@ icons["undo"] =
   '<i class="fa fa-undo fa-xs align-text-top" aria-hidden="true"></i>';
 icons["redo"] =
   '<i class="fa fa-redo fa-xs align-text-top" aria-hidden="true"></i>';
-// and for the vinculum buttons
+// and for the custom buttons
 icons["vinculum_on"] = "V\u0305";
 icons["vinculum_off"] = "V";
 icons["footnote"] = '<i class="far fa-comment-alt"></i>';
@@ -374,18 +374,11 @@ function initRichTextEditor($item) {
   $item.find(".ql-editor").html(html);
   $for.hide();
 
-  // translates custom dropdown in toolbar
+  // translates custom table dropdown in toolbar
   var tablePickerItems = Array.prototype.slice.call(
     document.querySelectorAll(".ql-edit_table .ql-picker-item")
   );
-  tablePickerItems.forEach(
-    (item) =>
-      //console.log(item.dataset)
-      (item.textContent = item.dataset.value)
-  );
-  document.querySelector(".ql-edit_table .ql-picker-label").innerHTML =
-    `<i class="fas fa-table"></i>:edit` +
-    document.querySelector(".ql-edit_table .ql-picker-label").innerHTML;
+  tablePickerItems.forEach((item) => (item.textContent = item.dataset.value));
 
   $("body").on("submit", "form", function (e) {
     let html = $item.find(".ql-editor").html();
@@ -404,6 +397,8 @@ function initRichTextEditors() {
     let $elem = $(this);
     initRichTextEditor($elem);
   });
+  // make sure tooltips are enabled
+  $('[data-toggle="tooltip"]').tooltip();
 }
 
 initRichTextEditors();
@@ -518,10 +513,17 @@ function togglePicker() {
 
 function openForm() {
   document.getElementById("myForm").style.display = "block";
+  if (document.getElementById("modalPicker")) {
+    console.log("open modal picker");
+    document.getElementById("modalPicker").style.display = "block";
+  }
 }
 
 function closeForm() {
   document.getElementById("myForm").style.display = "none";
+  if (document.getElementById("modalPicker")) {
+    document.getElementById("modalPicker").style.display = "none";
+  }
 }
 
 function allowDrop(ev) {

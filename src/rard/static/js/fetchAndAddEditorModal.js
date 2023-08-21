@@ -9,13 +9,10 @@ async function getModalTemplate() {
 }
 
 async function addModal(content) {
+  var modalContainer = document.createElement("div");
+  var modalHTML = await getModalTemplate();
+  modalContainer.innerHTML = modalHTML;
   return new Promise((resolve) => {
-    var modalContainer = document.createElement("div");
-    // var modalHTML = await getModalTemplate();
-    // modalContainer.innerHTML = modalHTML;
-    getModalTemplate().then((modalHTML) => {
-      modalContainer.innerHTML = modalHTML;
-    });
     document.body.appendChild(modalContainer);
     $(modalContainer).find(".modal").modal({
       backdrop: "static",
@@ -25,22 +22,30 @@ async function addModal(content) {
     setTimeout(() => {
       if (modalContainer.querySelector(".ql-editor")) {
         var modalQlEditor = modalContainer.querySelector(".ql-editor");
-        modalQlEditor.innerText = content;
+        modalQlEditor.innerHTML = content;
+        modalQlEditor.focus();
       }
-    }, 50);
+    }, 15);
 
     modalContainer
       .querySelector("#update-content-button")
       .addEventListener("click", () => {
-        content = modalContainer.querySelector(".ql-editor").innerText;
+        // update content on save
+        content = modalContainer.querySelector(".ql-editor").innerHTML;
+        $("#editContentModal").modal("hide");
+      });
+    modalContainer
+      .querySelector("#delete-content")
+      .addEventListener("click", () => {
+        // update content on save
+        content = "delete";
         $("#editContentModal").modal("hide");
       });
 
     // listen for when it's closed
     $("#editContentModal").on("hidden.bs.modal", function (e) {
       $(this).remove(); // Remove the modal from the DOM
-      console.log(content);
-      return content;
+      resolve(content);
     });
   });
 }
