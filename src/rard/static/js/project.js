@@ -217,7 +217,7 @@ async function getApparatusCriticusLines(searchTerm, object_id, object_class) {
     dataType: "json",
     async: false,
     success: function (data, textStatus, jqXHR) {
-      console.log("success " + data);
+      // console.log("success " + data);
       matches = data;
     },
     error: function (e) {
@@ -513,17 +513,10 @@ function togglePicker() {
 
 function openForm() {
   document.getElementById("myForm").style.display = "block";
-  if (document.getElementById("modalPicker")) {
-    console.log("open modal picker");
-    document.getElementById("modalPicker").style.display = "block";
-  }
 }
 
 function closeForm() {
   document.getElementById("myForm").style.display = "none";
-  if (document.getElementById("modalPicker")) {
-    document.getElementById("modalPicker").style.display = "none";
-  }
 }
 
 function allowDrop(ev) {
