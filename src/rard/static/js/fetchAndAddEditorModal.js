@@ -1,11 +1,29 @@
 async function getModalTemplate() {
   try {
-    const response = await fetch("/render-editor-modal-template/");
+    var currentPage = window.location.pathname;
+    const response = await fetch(
+      `/render-editor-modal-template/?sourcePage=${currentPage}`
+    );
     return response.text();
   } catch (error) {
     console.error("Error fetching modal template:", error);
     return null;
   }
+}
+
+function addSymbolPickerToModal() {
+  var symbolPicker = document.body.querySelector("#myForm");
+  var modal = document.getElementById("editContentModal");
+  modal.appendChild(symbolPicker);
+}
+
+function replaceSymbolPickerInBody() {
+  var originalSymbolPickerContainer =
+    document.body.querySelector(".container.mt-5");
+  var modalPicker = document
+    .getElementById("editContentModal")
+    .querySelector("#myForm");
+  originalSymbolPickerContainer.appendChild(modalPicker);
 }
 
 async function addModal(content) {
@@ -18,12 +36,13 @@ async function addModal(content) {
       backdrop: "static",
     }); // init the modal
     // init the editor
-    initRichTextEditor($("#content-editor"));
+    initRichTextEditor($("#modal-content-editor"));
     setTimeout(() => {
       if (modalContainer.querySelector(".ql-editor")) {
         var modalQlEditor = modalContainer.querySelector(".ql-editor");
         modalQlEditor.innerHTML = content;
         modalQlEditor.focus();
+        addSymbolPickerToModal();
       }
     }, 15);
 
@@ -44,6 +63,7 @@ async function addModal(content) {
 
     // listen for when it's closed
     $("#editContentModal").on("hidden.bs.modal", function (e) {
+      replaceSymbolPickerInBody();
       $(this).remove(); // Remove the modal from the DOM
       resolve(content);
     });
