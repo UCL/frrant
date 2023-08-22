@@ -40,6 +40,11 @@ async function addModal(content) {
     setTimeout(() => {
       if (modalContainer.querySelector(".ql-editor")) {
         var modalQlEditor = modalContainer.querySelector(".ql-editor");
+
+        modalContainer
+          .querySelector(".ql-toolbar")
+          .querySelector("button.ql-footnote").style.display = "none";
+
         modalQlEditor.innerHTML = content;
         modalQlEditor.focus();
         addSymbolPickerToModal();
