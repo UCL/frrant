@@ -1,5 +1,3 @@
-console.log(modalUrl);
-
 async function getModalTemplate() {
   try {
     var currentPage = window.location.pathname;
