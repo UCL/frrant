@@ -82,7 +82,6 @@ class Footnote extends Module {
     this.footnoteArea = this.editorArea.querySelector(`.footnote-area`);
 
     const footnoteContent = await addModal("");
-    // prompt("Enter footnote content:");
     if (footnoteContent) {
       // insert a superscripted indicator in the text editor, space after is intended
       this.quill.insertEmbed(index, "footnote-indicator", `${footnoteNumber} `);

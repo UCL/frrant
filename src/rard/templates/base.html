@@ -45,6 +45,9 @@
     {% endblock %}
 
     {% block head %}
+    <script>
+      const modalUrl = "{% url 'render_editor_modal_template' %}";
+    </script>
     {% endblock %}
   </head>
 

@@ -1,9 +1,9 @@
+console.log(modalUrl);
+
 async function getModalTemplate() {
   try {
     var currentPage = window.location.pathname;
-    const response = await fetch(
-      `/render-editor-modal-template/?sourcePage=${currentPage}`
-    );
+    const response = await fetch(`${modalUrl}?sourcePage=${currentPage}`);
     return response.text();
   } catch (error) {
     console.error("Error fetching modal template:", error);
