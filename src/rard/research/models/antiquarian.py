@@ -8,6 +8,7 @@ from simple_history.models import HistoricalRecords
 from rard.research.models.mixins import HistoryModelMixin, TextObjectFieldMixin
 from rard.utils.basemodel import BaseModel, DatedModel, LockableModel, OrderableModel
 from rard.utils.decorators import disable_for_loaddata
+from rard.utils.shared_functions import collate_unknown
 from rard.utils.text_processors import make_plain_text
 
 
@@ -402,6 +403,8 @@ def create_unknown_work(sender, instance, **kwargs):
         # update existing
         instance.unknown_work.antiquarian_set.add(instance)
         instance.unknown_work.save()
+
+    collate_unknown(instance)
 
 
 @disable_for_loaddata

@@ -16,6 +16,7 @@ from rard.research.models.base import (
 from rard.research.models.mixins import HistoryModelMixin, TextObjectFieldMixin
 from rard.utils.basemodel import BaseModel, DatedModel, LockableModel, OrderableModel
 from rard.utils.decorators import disable_for_loaddata
+from rard.utils.shared_functions import collate_unknown
 from rard.utils.text_processors import make_plain_text
 
 
@@ -300,7 +301,8 @@ def create_unknown_book(sender, instance, **kwargs):
             subtitle="Unknown Book", unknown=True, work=instance
         )
         unknown_book.save()
-        # call function to make sure unknown book contents are collated
+    collate_unknown(instance)
+
 
 @disable_for_loaddata
 def handle_reordered_books(sender, instance, **kwargs):

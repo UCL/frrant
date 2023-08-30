@@ -40,3 +40,46 @@ def reassign_to_unknown(worklink):
     worklink.definite_work = False
     worklink.definite_book = False
     worklink.save()
+
+
+def collate_unknown(instance):
+    """This makes sure there's only one unknown work/book per antiquarian/work and combines contents if otherwise"""
+    if instance.__class__.__name__ == "Antiquarian":
+        unknown_works = instance.works.filter(unknown=True)
+        if unknown_works.count() > 1:
+            designated_unknown = unknown_works.first()
+            other_unknown_works = unknown_works.exclude(pk=designated_unknown.pk)
+
+            for uw in other_unknown_works:
+                transfer_links(instance.fragmentlinks.all(), uw, designated_unknown)
+                transfer_links(instance.testimoniumlinks.all(), uw, designated_unknown)
+                transfer_links(
+                    instance.appositumfragmentlinks.all(), uw, designated_unknown
+                )
+
+            other_unknown_works.delete()
+
+    elif instance.__class__.__name__ == "Work":
+        unknown_books = instance.book_set.filter(unknown=True)
+        if unknown_books.count() > 1:
+            designated_unknown = unknown_books.first()
+            other_unknown_books = unknown_books.exclude(pk=designated_unknown.pk)
+
+            for ub in other_unknown_books:
+                transfer_links(
+                    ub.antiquarian_book_fragmentlinks.all(), ub, designated_unknown
+                )
+                transfer_links(ub.testimoniumlinks.all(), ub, designated_unknown)
+                transfer_links(
+                    ub.antiquarian_book_appositumfragmentlinks.all(),
+                    ub,
+                    designated_unknown,
+                )
+
+            other_unknown_books.delete()
+
+
+def transfer_links(links, source_object, target_object):
+    for link in links:
+        link.work = target_object
+        link.save()
