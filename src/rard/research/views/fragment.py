@@ -370,6 +370,7 @@ class UnlinkedFragmentListView(LoginRequiredMixin, PermissionRequiredMixin, List
     model = Fragment
     permission_required = "research.view_fragment"
     template_name = "research/unlinkedfragment_list.html"
+    paginate_by = 15
 
     def get_queryset(self):
         """Queryset should include all unlinked fragments."""
