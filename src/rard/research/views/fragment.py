@@ -320,8 +320,11 @@ class AnonymousFragmentListView(LoginRequiredMixin, PermissionRequiredMixin, Lis
         qs = qs.annotate(
             citing_author=F("fragment__original_texts__citing_work__author")
         )
-        # Sort by reference order
-        return qs.order_by("fragment__original_texts__reference_order")
+        # Sort by citing author then reference order
+        return qs.order_by(
+            "fragment__original_texts__citing_work__author",
+            "fragment__original_texts__reference_order",
+        )
 
     def get_context_data(self, *args, **kwargs):
         context_data = super().get_context_data(*args, **kwargs)
