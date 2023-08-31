@@ -108,7 +108,7 @@ table.books-widget .book-order {
   box-shadow: -6px 6px 12px #c5c5c5, 6px -6px 12px #fbfbfb;
 }
 .sidenav {
-  background-color: rgba(218, 213, 212, 0.724);
+  background-color: rgba(218, 213, 212, 0.15);
 }
 .navbar-brand {
   white-space: normal; /* Allow text to wrap */
@@ -116,7 +116,7 @@ table.books-widget .book-order {
   font-weight: 600;
   color: #413f3f !important;
   font-size: 1.6rem;
-  max-width: 50vw;
+  max-width: 55vw;
 }
 .content-area {
   background: #f8fcfd;
