@@ -37,6 +37,92 @@ table.books-widget .book-order {
 }
 
 /**** base ****/
+.subtle-bg {
+  background: radial-gradient(
+        35.36% 35.36% at 100% 25%,
+        #0000 66%,
+        rgba(237, 228, 228, 0.34) 68% 70%,
+        #0000 72%
+      )
+      60px 60px / calc(2 * 60px) calc(2 * 60px),
+    radial-gradient(
+        35.36% 35.36% at 0 75%,
+        #0000 66%,
+        rgba(237, 228, 228, 0.34) 68% 70%,
+        #0000 72%
+      )
+      60px 60px / calc(2 * 60px) calc(2 * 60px),
+    radial-gradient(
+        35.36% 35.36% at 100% 25%,
+        #0000 66%,
+        rgba(237, 228, 228, 0.34) 68% 70%,
+        #0000 72%
+      )
+      0 0 / calc(2 * 60px) calc(2 * 60px),
+    radial-gradient(
+        35.36% 35.36% at 0 75%,
+        #0000 66%,
+        rgba(237, 228, 228, 0.34) 68% 70%,
+        #0000 72%
+      )
+      0 0 / calc(2 * 60px) calc(2 * 60px),
+    repeating-conic-gradient(#f8fcfd 0 25%, #0000 0 50%) 0 0 / calc(2 * 60px)
+      calc(2 * 60px),
+    radial-gradient(#0000 66%, rgba(237, 228, 228, 0.34) 68% 70%, #0000 72%) 0
+      calc(60px / 2) / 60px 60px #f8fcfd;
+}
+.bg-stone.navbar {
+  background: radial-gradient(
+        35.36% 35.36% at 100% 25%,
+        #0000 66%,
+        rgba(247, 251, 252, 0.46) 68% 70%,
+        #0000 72%
+      )
+      60px 60px / calc(2 * 60px) calc(2 * 60px),
+    radial-gradient(
+        35.36% 35.36% at 0 75%,
+        #0000 66%,
+        rgba(247, 251, 252, 0.46) 68% 70%,
+        #0000 72%
+      )
+      60px 60px / calc(2 * 60px) calc(2 * 60px),
+    radial-gradient(
+        35.36% 35.36% at 100% 25%,
+        #0000 66%,
+        rgba(247, 251, 252, 0.46) 68% 70%,
+        #0000 72%
+      )
+      0 0 / calc(2 * 60px) calc(2 * 60px),
+    radial-gradient(
+        35.36% 35.36% at 0 75%,
+        #0000 66%,
+        rgba(247, 251, 252, 0.46) 68% 70%,
+        #0000 72%
+      )
+      0 0 / calc(2 * 60px) calc(2 * 60px),
+    repeating-conic-gradient(#e6e6e4 0 25%, #0000 0 50%) 0 0 / calc(2 * 60px)
+      calc(2 * 60px),
+    radial-gradient(#0000 66%, rgba(247, 251, 252, 0.46) 68% 70%, #0000 72%) 0
+      calc(60px / 2) / 60px 60px #e6e6e4;
+
+  box-shadow: -6px 6px 12px #c5c5c5, 6px -6px 12px #fbfbfb;
+}
+.sidenav {
+  background-color: rgba(218, 213, 212, 0.724);
+}
+.navbar-brand {
+  white-space: normal; /* Allow text to wrap */
+  font-family: "Noto Serif", serif;
+  font-weight: 600;
+  color: #413f3f !important;
+  font-size: 1.6rem;
+  max-width: 50vw;
+}
+.content-area {
+  background: #f8fcfd;
+  box-shadow: 0 0 10px 10px #f8fcfd47;
+}
+
 .toggle-element,
 .toggle-switch {
   display: none;

@@ -29,8 +29,8 @@
 </div>
 
 <div class='row'>
-  <div class='col-md-2 mb-5'>
-    <nav class='nav flex-column'>
+  <div class='col-md-2 mb-5 bg-light sidenav'>
+    <nav class='nav flex-column mr-5'>
       {% if perms.research.view_antiquarian %}
       <a class='nav-link {% if "antiquarian" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
         href='{% url "antiquarian:list" %}'>
