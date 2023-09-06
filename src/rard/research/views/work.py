@@ -246,3 +246,19 @@ class BookDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
 
     def get_success_url(self, *args, **kwargs):
         return reverse("work:detail", kwargs={"pk": self.object.work.pk})
+
+
+def fetch_books(request):
+    from django.http import HttpResponse
+
+    pk = request.GET.get("work", None)
+    work = Work.objects.get(pk=pk)
+    books = work.book_set.all()
+    print(books)
+
+    books_options_html = ""
+    for book in books:
+        books_options_html += f'<option value="{book.pk}">{book}</option>'
+
+    # Return the HTML content as a response
+    return HttpResponse(books_options_html)

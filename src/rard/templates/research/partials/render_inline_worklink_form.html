@@ -9,8 +9,8 @@
         {% bootstrap_field form.definite_antiquarian field_class="toggle-definite" %}
     </div>
     <div class="inline-worklink__form-field">
-        <input type='hidden' name='work' value='{{ form.instance.work.pk }}' />
-        <p>{{form.instance.work.name}}</p>
+        {% bootstrap_field form.work %}
+
         {% bootstrap_field form.definite_work field_class="toggle-definite" %}
     </div>
     <div class="book-details">

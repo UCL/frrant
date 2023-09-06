@@ -3,6 +3,7 @@ import re
 from django import forms
 from django.core.exceptions import FieldDoesNotExist
 from django.forms import ModelMultipleChoiceField, inlineformset_factory
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from rard.research.models import (
@@ -806,8 +807,8 @@ class BaseLinkWorkForm(forms.ModelForm):
 
         if antiquarian:
             self.fields["antiquarian"].initial = antiquarian
+            self.fields["work"].queryset = antiquarian.works.all()
             if update is not True:
-                self.fields["work"].queryset = antiquarian.works.all()
                 self.fields["definite_antiquarian"].initial = definite_antiquarian
         else:
             self.fields["work"].queryset = Work.objects.none()
@@ -824,13 +825,24 @@ class BaseLinkWorkForm(forms.ModelForm):
             else:
                 self.fields["work"].initial = None
 
+            self.fields["work"].widget.attrs.update(
+                {
+                    "hx-get": reverse("work:fetch_books"),
+                    "hx-swap": "innerHTML",
+                    "hx-trigger": "change",
+                    "hx-target": "select#id_book",
+                }
+            )
             self.fields["book"].queryset = work.book_set.all()
         else:
             self.fields["book"].queryset = Book.objects.none()
             if update is not True:
                 self.fields["book"].disabled = True
                 self.fields["definite_book"].widget.attrs["disabled"] = True
+
         if book:
+            if self.fields["definite_book"] is True:
+                self.fields["book"].disabled = True
             if book.unknown:
                 self.fields["definite_book"].widget.attrs["disabled"] = True
 
