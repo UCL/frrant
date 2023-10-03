@@ -249,16 +249,18 @@ class BookDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
 
 
 def fetch_books(request):
-    from django.http import HttpResponse
+    from django.shortcuts import render
 
     pk = request.GET.get("work", None)
     work = Work.objects.get(pk=pk)
     books = work.book_set.all()
-    print(books)
 
-    books_options_html = ""
-    for book in books:
-        books_options_html += f'<option value="{book.pk}">{book}</option>'
+    # books_options_html = "<option value>----------</option>"
+    # for book in books:
+    #         books_options_html += f'<option value="{book.pk}">{book}</option>'
 
-    # Return the HTML content as a response
-    return HttpResponse(books_options_html)
+    #     response = HttpResponse(books_options_html, content_type="text/html")
+
+    return render(
+        request, "research/partials/render_htmx_book_field.html", {"books": books}
+    )

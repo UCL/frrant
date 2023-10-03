@@ -901,6 +901,7 @@ class FragmentUpdateWorkLinkView(
             self.object.definite_work = data["definite_work"]
             self.object.definite_book = data["definite_book"]
             self.object.book = data["book"]
+            self.object.work = data["work"]
 
             self.object.save()
 

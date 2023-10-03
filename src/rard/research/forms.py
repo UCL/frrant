@@ -787,6 +787,7 @@ class BaseLinkWorkForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        print("kwargs", kwargs)
         update = kwargs.pop("update")
         antiquarian = kwargs.pop("antiquarian")
         work = kwargs.pop("work")
@@ -848,11 +849,14 @@ class BaseLinkWorkForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        print(cleaned_data)
         work = cleaned_data.get("work")
+        print(work)
         if work is None:
             antiquarian = cleaned_data.get("antiquarian")
             work = antiquarian.unknown_work
         book = cleaned_data.get("book")
+        print(book)
         if book is None:
             book = work.unknown_book
         definite_work = cleaned_data.get("definite_work")

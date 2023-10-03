@@ -8,12 +8,11 @@
        <p> {{form.instance.antiquarian}}</p>
         {% bootstrap_field form.definite_antiquarian field_class="toggle-definite" %}
     </div>
-    <div class="inline-worklink__form-field">
+    <div class="inline-worklink__form-field work-details">
         {% bootstrap_field form.work %}
-
         {% bootstrap_field form.definite_work field_class="toggle-definite" %}
     </div>
-    <div class="book-details">
+    <div class="inline-worklink__form-field book-details">
         {% bootstrap_field form.book %}
         {% bootstrap_field form.definite_book  field_class="toggle-definite" %}
     </div>
