@@ -13,7 +13,7 @@ from rard.research.models import (
     TextObjectField,
     Work,
 )
-from rard.research.models.antiquarian import WorkLink
+from rard.research.models.antiquarian import WorkLink, collate_unknown
 from rard.research.models.base import FragmentLink, TestimoniumLink
 
 pytestmark = pytest.mark.django_db
@@ -222,6 +222,18 @@ class TestAntiquarian(TestCase):
         # bib init should have been removed, and all those mentioned by related
         # objects should be added.
         self.assertQuerysetEqual(aq1.bibliography_items.all(), target_bibs)
+
+    def test_collate_unknown(self):
+        data = {"name": "John Smith", "re_code": "smitre001"}
+        a = Antiquarian.objects.create(**data)
+        original_unknown = a.unknown_work
+        additional_unknown = Work.objects.create(unknown=True, name="Unknown Work")
+        additional_unknown.antiquarian_set.add(a)
+        additional_unknown.save()
+        self.assertEqual(a.works.filter(unknown=True).count(), 2)
+        collate_unknown(a)
+        self.assertEqual(a.works.filter(unknown=True).count(), 1)
+        self.assertEqual(original_unknown.pk, a.unknown_work.pk)
 
 
 class TestWorkLink(TestCase):
