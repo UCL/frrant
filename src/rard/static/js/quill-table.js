@@ -25,6 +25,11 @@ async function editContents(e) {
 var currentCell;
 function updateCurrentCell(e) {
   currentCell = e.target;
+  currentCell
+    .closest("table")
+    .querySelectorAll("td")
+    .forEach((cell) => cell.classList.remove("selected-cell"));
+  currentCell.classList.add("selected-cell");
 }
 
 class TableCell extends BlockEmbed {

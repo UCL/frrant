@@ -390,6 +390,10 @@ table.ql-table {
 .ql-table td {
   height: 5rem;
   cursor: pointer;
+  caret-color: transparent;
+}
+.ql-table td.selected-cell {
+  background-color: #f2f2f2;
 }
 .ql-edit_table .ql-picker-label {
   width: 125%;
