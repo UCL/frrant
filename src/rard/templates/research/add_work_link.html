@@ -45,10 +45,10 @@
         <input type='hidden' name='definite_work' {% if definite_work %} value={{ definite_work }} {% endif %}/>
 
 
-        <button type="submit" class="btn btn-primary">
+        <button type="submit" class="btn btn-primary" {%if not antiquarian.pk %} disabled {%endif%}>
             {% trans 'Create' %}
         </button>
-        <button name='another' type="submit" class="btn btn-outline-primary">
+        <button name='another' type="submit" class="btn btn-outline-primary"{%if not antiquarian.pk %} disabled {%endif%}>
             {% trans 'Create and add another' %}
         </button>
 
