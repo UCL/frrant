@@ -8,7 +8,7 @@ from simple_history.models import HistoricalRecords
 from rard.research.models.mixins import HistoryModelMixin, TextObjectFieldMixin
 from rard.utils.basemodel import BaseModel, DatedModel, LockableModel, OrderableModel
 from rard.utils.decorators import disable_for_loaddata
-from rard.utils.shared_functions import collate_links
+from rard.utils.shared_functions import collate_uw_links
 from rard.utils.text_processors import make_plain_text
 
 
@@ -396,7 +396,7 @@ def collate_unknown(instance):
         designated_unknown = unknown_works.first()
         other_unknown_works = unknown_works.exclude(pk=designated_unknown.pk)
 
-        collate_links(instance, designated_unknown)
+        collate_uw_links(instance, designated_unknown)
         other_unknown_works.delete()
 
 
