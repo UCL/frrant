@@ -345,15 +345,6 @@ class Table extends Module {
                 .forEach((tableCell) => {
                   tableCell.addEventListener("dblclick", editContents);
                   tableCell.addEventListener("click", updateCurrentCell);
-                  // prevent keyboard input
-                  tableCell.addEventListener("keydown", function (e) {
-                    e.preventDefault();
-                    console.log(e);
-                  });
-                  tableCell.addEventListener("keypress", function (e) {
-                    e.preventDefault();
-                    console.log(e);
-                  });
                 });
             }
           }
