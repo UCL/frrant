@@ -42,20 +42,14 @@ def reassign_to_unknown(worklink):
     worklink.save()
 
 
-def combine_links(ulist, instance, designated_unknown):
-    for unknown_instance in ulist:
-        transfer_links(
-            instance.fragmentlinks.all(), unknown_instance, designated_unknown
-        )
-        transfer_links(
-            instance.testimoniumlinks.all(), unknown_instance, designated_unknown
-        )
-        transfer_links(
-            instance.appositumfragmentlinks.all(), unknown_instance, designated_unknown
-        )
+def collate_links(instance, designated_unknown):
+    """Used in the collate_unknown functions on Ant/Work models"""
+    transfer_links(instance.fragmentlinks.all(), designated_unknown)
+    transfer_links(instance.testimoniumlinks.all(), designated_unknown)
+    transfer_links(instance.appositumfragmentlinks.all(), designated_unknown)
 
 
-def transfer_links(links, source_object, target_object):
+def transfer_links(links, target_object):
     for link in links:
         link.work = target_object
         link.save()
