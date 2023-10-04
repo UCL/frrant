@@ -303,9 +303,8 @@ def collate_unknown(instance):
         designated_unknown = unknown_books.first()
         other_unknown_books = unknown_books.exclude(pk=designated_unknown.pk)
 
-    collate_links(instance, designated_unknown)
-
-    other_unknown_books.delete()
+        collate_links(instance, designated_unknown)
+        other_unknown_books.delete()
 
 
 @disable_for_loaddata

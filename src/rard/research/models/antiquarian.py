@@ -396,8 +396,8 @@ def collate_unknown(instance):
         designated_unknown = unknown_works.first()
         other_unknown_works = unknown_works.exclude(pk=designated_unknown.pk)
 
-    collate_links(instance, designated_unknown)
-    other_unknown_works.delete()
+        collate_links(instance, designated_unknown)
+        other_unknown_works.delete()
 
 
 @disable_for_loaddata
