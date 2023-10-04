@@ -314,7 +314,7 @@ def handle_deleted_book(sender, instance, **kwargs):
     """When a book is deleted, any links should be updated to point to
     the work's unknown book. If however the whole work is being deleted,
     and this is the result of a cascade, we want to do nothing.
-    
+
     We can check this by seeing if the work has an unknown book. It should
     only not have an unknown book in the event that we're part way through
     deleting the work."""
@@ -330,7 +330,7 @@ def handle_deleted_book(sender, instance, **kwargs):
                 if link.book is None:
                     link.book = link.work.unknown_book
                     link.save()
-        
+
             work.unknown_book.reindex_related_links()
             work.reindex_related_links()
 
