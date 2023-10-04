@@ -32,19 +32,6 @@ class AnonymousListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
 
 
 def render_editor_modal_template(request):
-    import re
+    """view for the modal since it needs to be fetched"""
 
-    from rard.utils.context_processors import symbols_context
-
-    context = symbols_context(request)
-    source_page = request.GET.get("sourcePage")
-    source_page = source_page.replace("-", "")
-    pattern = r"/(\w+)/(\d+)/"
-    match = re.search(pattern, source_page)
-    if match:
-        context["object_class"] = match.group(1)
-        context["object_id"] = int(match.group(2))
-
-    return render(
-        request, "research/partials/render_editor_modal_base.html", context=context
-    )
+    return render(request, "research/partials/render_editor_modal_base.html")
