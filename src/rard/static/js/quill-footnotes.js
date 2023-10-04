@@ -158,6 +158,7 @@ class Footnote extends Module {
 
         if (
           (node.classList && node.classList.contains("footnote")) ||
+          (node.classList && node.classList.contains("footnote-indicator")) ||
           this.hasIndicatorChildren(node) == true
         ) {
           return this.removeFootnote(node);
