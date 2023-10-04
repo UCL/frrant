@@ -391,6 +391,8 @@ table.ql-table {
   height: 5rem;
   cursor: pointer;
   caret-color: transparent;
+  min-width: 7vw;
+  max-width: 10vw;
 }
 .ql-editor.ql-table td.selected-cell {
   background-color: #f2f2f2;
