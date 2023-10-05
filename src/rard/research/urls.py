@@ -90,6 +90,11 @@ urlpatterns = [
                     ),
                     path("<pk>/", views.AntiquarianDetailView.as_view(), name="detail"),
                     path(
+                        "<pk>/introduction/", 
+                        views.AntiquarianIntroductionView.as_view(), 
+                        name="introduction",
+                        ),
+                    path(
                         "<pk>/update/",
                         views.AntiquarianUpdateView.as_view(),
                         name="update",
