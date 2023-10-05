@@ -18,6 +18,7 @@ from rard.research.views.mixins import (
     CanLockMixin,
     CheckLockMixin,
     TextObjectFieldUpdateMixin,
+    TextObjectFieldViewMixin,
 )
 
 
@@ -125,6 +126,13 @@ class WorkUpdateIntroductionView(TextObjectFieldUpdateMixin, WorkUpdateView):
     def dispatch(self, request, *args, **kwargs):
         self.create_intro_if_does_not_exist()
         return super().dispatch(request, *args, **kwargs)
+    
+    
+class WorkIntroductionView(TextObjectFieldViewMixin):
+    model = Work
+    permission_required = ("research.view_work",)
+    textobject_field = "introduction"
+    hide_empty = False
 
 
 @method_decorator(require_POST, name="dispatch")
@@ -234,6 +242,13 @@ class BookUpdateIntroductionView(TextObjectFieldUpdateMixin, BookUpdateView):
     def dispatch(self, request, *args, **kwargs):
         self.create_intro_if_does_not_exist()
         return super().dispatch(request, *args, **kwargs)
+
+
+class BookIntroductionView(TextObjectFieldViewMixin):
+    model = Book
+    permission_required = ("research.view_book",)
+    textobject_field = "introduction"
+    hide_empty = False
 
 
 @method_decorator(require_POST, name="dispatch")
