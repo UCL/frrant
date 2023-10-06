@@ -394,8 +394,8 @@ table.ql-table {
   min-width: 7vw;
   max-width: 10vw;
 }
-.ql-editor.ql-table td.selected-cell {
-  background-color: #f2f2f2;
+.ql-editor td.selected-cell.ql-table {
+  background-color: #d9dbdc;
 }
 .ql-edit_table .ql-picker-label {
   width: 125%;
