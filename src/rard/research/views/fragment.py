@@ -46,6 +46,7 @@ from rard.research.views.mixins import (
     CheckLockMixin,
     GetWorkLinkRequestDataMixin,
     TextObjectFieldUpdateMixin,
+    TextObjectFieldViewMixin,
 )
 from rard.utils.convertors import (
     convert_anonymous_fragment_to_fragment,
@@ -644,6 +645,12 @@ class FragmentUpdateCommentaryView(TextObjectFieldUpdateMixin, FragmentUpdateVie
     textobject_field = "commentary"
     template_name = "research/inline_forms/commentary_form.html"
     hide_empty = False
+    
+class FragmentCommentaryView(TextObjectFieldViewMixin):
+    model = Fragment
+    permission_required = ("research.view_fragment",)
+    textobject_field = "commentary"
+    hide_empty = False
 
 
 class AnonymousFragmentUpdateCommentaryView(
@@ -652,6 +659,13 @@ class AnonymousFragmentUpdateCommentaryView(
     form_class = AnonymousFragmentCommentaryForm
     textobject_field = "commentary"
     template_name = "research/inline_forms/commentary_form.html"
+    hide_empty = False
+
+
+class AnonymousFragmentCommentaryView(TextObjectFieldViewMixin):
+    model = AnonymousFragment
+    permission_required = ("research.view_fragment",)
+    textobject_field = "commentary"
     hide_empty = False
 
 

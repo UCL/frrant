@@ -90,6 +90,11 @@ urlpatterns = [
                     ),
                     path("<pk>/", views.AntiquarianDetailView.as_view(), name="detail"),
                     path(
+                        "<pk>/introduction/", 
+                        views.AntiquarianIntroductionView.as_view(), 
+                        name="introduction",
+                        ),
+                    path(
                         "<pk>/update/",
                         views.AntiquarianUpdateView.as_view(),
                         name="update",
@@ -214,6 +219,16 @@ urlpatterns = [
                         name="delete_book",
                     ),
                     path(
+                        "book/<pk>/introduction/",
+                        views.BookIntroductionView.as_view(),
+                        name="book_introduction",
+                    ),
+                    path(
+                        "<pk>/introduction/",
+                        views.WorkIntroductionView.as_view(),
+                        name="introduction",
+                    ),
+                    path(
                         "<pk>/update/introduction/",
                         views.WorkUpdateIntroductionView.as_view(),
                         name="update_introduction",
@@ -245,6 +260,11 @@ urlpatterns = [
                         "update-link/<pk>",
                         views.FragmentUpdateWorkLinkView.as_view(),
                         name="update_fragment_link",
+                    ),
+                    path(
+                        "<pk>/commentary/",
+                        views.FragmentCommentaryView.as_view(),
+                        name="commentary",
                     ),
                     path(
                         "<pk>/update/commentary/",
@@ -319,6 +339,11 @@ urlpatterns = [
                         name="unlink_apposita",
                     ),
                     path(
+                        "<pk>/commentary/",
+                        views.AnonymousFragmentCommentaryView.as_view(),
+                        name="commentary",
+                    ),
+                    path(
                         "<pk>/update/",
                         views.AnonymousFragmentUpdateView.as_view(),
                         name="update",
@@ -374,6 +399,11 @@ urlpatterns = [
                         "update-link/<pk>",
                         views.TestimoniumUpdateWorkLinkView.as_view(),
                         name="update_testimonium_link",
+                    ),
+                    path(
+                        "<pk>/commentary/",
+                        views.TestimoniumCommentaryView.as_view(),
+                        name="commentary",
                     ),
                     path(
                         "<pk>/update/commentary/",
