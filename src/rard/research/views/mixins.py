@@ -153,13 +153,14 @@ class GetWorkLinkRequestDataMixin:
 
         return values
 
+
 class TextObjectFieldViewMixin(DetailView):
     template_name = "research/partials/text_object_preview.html"
-    model=None
+    model = None
     hx_trigger = None
     textobject_field = None
     hide_empty = False
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["hide_empty"] = self.hide_empty
@@ -167,7 +168,7 @@ class TextObjectFieldViewMixin(DetailView):
         if self.textobject_field:
             context["text_object"] = getattr(context["object"], self.textobject_field)
         return context
-    
+
 
 class TextObjectFieldUpdateMixin(object):
     template_name = "research/inline_forms/introduction_form.html"
@@ -203,7 +204,9 @@ class TextObjectFieldUpdateMixin(object):
         else:
             model_namespace = model_name
             url_name = self.textobject_field
-        context["cancel_url"] = reverse(f"{model_namespace}:{url_name}", args=[self.object.id])
+        context["cancel_url"] = reverse(
+            f"{model_namespace}:{url_name}", args=[self.object.id]
+        )
         if self.textobject_field:
             context["text_object"] = getattr(context["object"], self.textobject_field)
         return context

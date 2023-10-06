@@ -645,7 +645,8 @@ class FragmentUpdateCommentaryView(TextObjectFieldUpdateMixin, FragmentUpdateVie
     textobject_field = "commentary"
     template_name = "research/inline_forms/commentary_form.html"
     hide_empty = False
-    
+
+
 class FragmentCommentaryView(TextObjectFieldViewMixin):
     model = Fragment
     permission_required = ("research.view_fragment",)

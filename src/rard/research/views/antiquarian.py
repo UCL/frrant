@@ -209,13 +209,13 @@ class AntiquarianUpdateIntroductionView(
     form_class = AntiquarianIntroductionForm
     hx_trigger = "intro-updated"
     textobject_field = "introduction"
-    
+
 
 class AntiquarianIntroductionView(TextObjectFieldViewMixin):
     model = Antiquarian
     permission_required = ("research.view_antiquarian",)
     textobject_field = "introduction"
-    
+
 
 @method_decorator(require_POST, name="dispatch")
 class AntiquarianDeleteView(

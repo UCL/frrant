@@ -126,8 +126,8 @@ class WorkUpdateIntroductionView(TextObjectFieldUpdateMixin, WorkUpdateView):
     def dispatch(self, request, *args, **kwargs):
         self.create_intro_if_does_not_exist()
         return super().dispatch(request, *args, **kwargs)
-    
-    
+
+
 class WorkIntroductionView(TextObjectFieldViewMixin):
     model = Work
     permission_required = ("research.view_work",)
