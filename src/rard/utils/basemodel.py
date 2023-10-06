@@ -34,7 +34,7 @@ class DynamicTextField(TextField):
                 links = soup.find_all("span", class_="mention")
 
                 for link in links:
-                    print("got link %s" % link)
+                    # print("got link %s" % link)
                     item_to_replace = link.find("span", contenteditable="false")
                     if not item_to_replace:
                         # format of the link is not as we expect so

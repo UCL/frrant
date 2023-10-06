@@ -22,6 +22,7 @@ from rard.research.views.mixins import (
     CheckLockMixin,
     GetWorkLinkRequestDataMixin,
     TextObjectFieldUpdateMixin,
+    TextObjectFieldViewMixin,
 )
 from rard.utils.shared_functions import reassign_to_unknown
 
@@ -94,6 +95,13 @@ class TestimoniumUpdateCommentaryView(
     form_class = TestimoniumCommentaryForm
     textobject_field = "commentary"
     template_name = "research/inline_forms/commentary_form.html"
+    hide_empty = False
+
+
+class TestimoniumCommentaryView(TextObjectFieldViewMixin):
+    model = Testimonium
+    permission_required = ("research.view_testimonium",)
+    textobject_field = "commentary"
     hide_empty = False
 
 

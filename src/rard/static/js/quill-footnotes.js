@@ -2,6 +2,12 @@ var Module = Quill.import("core/module");
 var BlockEmbed = Quill.import("blots/block/embed");
 var Parchment = Quill.import("parchment");
 
+function identifier() {
+  var id = Math.random().toString(36).slice(2, 6);
+  return id;
+}
+const footnoteAreaID = identifier();
+
 // create custom blot for superscript footnote indicator
 class FootnoteIndicator extends BlockEmbed {
   static blotName = "footnote-indicator";
@@ -17,6 +23,7 @@ class FootnoteIndicator extends BlockEmbed {
     node.setAttribute("data-toggle", "tooltip");
     node.setAttribute("data-placement", "top");
     node.setAttribute("contenteditable", "false");
+    node.setAttribute("data-html", "true");
     return node;
   }
   static value(node) {
@@ -30,7 +37,8 @@ class FootnoteArea extends BlockEmbed {
 
   static create(value) {
     const node = super.create(value);
-    node.id = "footnote-area"; // edit styling in CSS
+    node.id = `footnote-area-${footnoteAreaID}`;
+    node.classList.add("footnote-area"); // edit styling in CSS
     node.textContent = value;
     node.innerHTML = "<hr>";
     return node;
@@ -42,7 +50,6 @@ class FootnoteArea extends BlockEmbed {
 
 Quill.register("formats/footnote-indicator", FootnoteIndicator, true);
 Quill.register("formats/footnote-area", FootnoteArea, true);
-
 class Footnote extends Module {
   constructor(quill, options) {
     super(quill, options);
@@ -50,82 +57,71 @@ class Footnote extends Module {
     this.toolbar = quill.getModule("toolbar");
     this.toolbar.addHandler("footnote", this.insertFootnote.bind(this));
 
+    this.editorArea = this.quill.container;
+
     const observer = new MutationObserver(this.handleDeletion.bind(this));
     observer.observe(this.quill.root, { childList: true, subtree: true });
-    document.addEventListener("DOMContentLoaded", () => {
-      // add highlight and edit listeners to existing notes
-      if (document.getElementById("footnote-area")) {
-        document.querySelectorAll(".footnote").forEach((footnote) => {
-          footnote.addEventListener("mouseenter", this.addHighlight);
-          footnote.addEventListener("mouseleave", this.removeHighlight);
-          footnote.addEventListener("click", this.editNote);
-        });
-      }
-    });
   }
 
   countFootnotes() {
     var footnoteCounter;
-    if (document.querySelector(".footnote-indicator")) {
-      var indicators = document.querySelectorAll(".footnote-indicator");
+    if (this.editorArea.querySelector(".footnote-indicator")) {
+      var indicators = this.editorArea.querySelectorAll(".footnote-indicator");
       return (footnoteCounter = indicators.length + 1);
     } else return (footnoteCounter = 1); // if no indicators
   }
 
-  insertFootnote() {
+  async insertFootnote() {
     var footnoteNumber = this.countFootnotes();
     const range = this.quill.getSelection();
     const index = range ? range.index : this.quill.getLength();
-
-    if (!document.getElementById("footnote-area")) {
+    if (!this.editorArea.querySelector(`.footnote-area`)) {
       // create the footnote area inside the ql-editor if it doesn't exist
       this.quill.insertEmbed(this.quill.getLength(), "footnote-area", "");
     }
-    this.footnoteArea = document.getElementById("footnote-area");
+    this.footnoteArea = this.editorArea.querySelector(`.footnote-area`);
 
-    const footnoteContent = prompt("Enter footnote content:");
+    const footnoteContent = await addModal("");
     if (footnoteContent) {
       // insert a superscripted indicator in the text editor, space after is intended
       this.quill.insertEmbed(index, "footnote-indicator", `${footnoteNumber} `);
 
-      // this.quill.setSelection(index + 1);
-      const cursorPosition = index + 1; // Set the desired cursor position
+      const cursorPosition = index + 1;
       this.quill.setSelection(cursorPosition);
 
-      // Add the ql-cursor class to the selected range to style the cursor
       const range = this.quill.getSelection();
       range.length = 0; // Remove the selection
       range.index = cursorPosition; // Set the index to the cursor position
       this.quill.setSelection(range);
 
       // create the content of the footnote in the footnote area
-      const footnoteElement = document.createElement("p");
+      const footnoteElement = document.createElement("article");
       footnoteElement.classList = "footnote";
       footnoteElement.id = `footnote-${footnoteNumber}`;
-      footnoteElement.textContent = `${footnoteNumber}. ${footnoteContent}`;
+      footnoteElement.innerHTML = `<span class="footnote-number">${footnoteNumber}. </span>${footnoteContent}`;
 
       // insert it in the correct location in the list
       var nextFootnoteIndicator = this.findNextIndicator(footnoteNumber);
       if (nextFootnoteIndicator) {
         const footnoteID = nextFootnoteIndicator.id.match(/\d+/)[0];
-        const nextFootNoteItem = document.getElementById(
-          `footnote-${footnoteID}`
+        const nextFootNoteItem = this.editorArea.querySelector(
+          `#footnote-${footnoteID}`
         );
         this.footnoteArea.insertBefore(footnoteElement, nextFootNoteItem);
       } else this.footnoteArea.appendChild(footnoteElement);
 
       // add tooltip content
-      var indicatorElement = document.getElementById(
-        `footnote-indicator-${footnoteNumber}`
+      var indicatorElement = this.editorArea.querySelector(
+        `#footnote-indicator-${footnoteNumber}`
       );
-      indicatorElement.setAttribute("title", footnoteContent);
+      indicatorElement.setAttribute(
+        "data-original-title",
+        footnoteElement.innerHTML.trim()
+      );
       // add highlight and edit listeners
       footnoteElement.addEventListener("mouseenter", this.addHighlight);
       footnoteElement.addEventListener("mouseleave", this.removeHighlight);
       footnoteElement.addEventListener("click", this.editNote);
-
-      indicatorElement.addEventListener("mouseenter", this.addHighlight);
-      indicatorElement.addEventListener("mouseleave", this.removeHighlight);
 
       this.cleanFootnoteNumbers();
       footnoteNumber++;
@@ -135,11 +131,13 @@ class Footnote extends Module {
 
   removeFootnote(node) {
     let footnoteID = node.id.match(/\d+/)[0];
-    let footnoteElement = document.getElementById(`footnote-${footnoteID}`);
+    let footnoteElement = this.editorArea.querySelector(
+      `#footnote-${footnoteID}`
+    );
     if (footnoteElement) {
       footnoteElement.remove();
       return true;
-    }
+    } else return true;
   }
 
   hasIndicatorChildren(node) {
@@ -154,30 +152,51 @@ class Footnote extends Module {
   }
 
   processMutations(mutationsList) {
-    for (const mutation of mutationsList) {
+    for (var mutation of mutationsList) {
       if (mutation.type === "childList" && mutation.removedNodes.length > 0) {
         let node = mutation.removedNodes[0];
+
         if (
+          (node.classList && node.classList.contains("footnote")) ||
           (node.classList && node.classList.contains("footnote-indicator")) ||
           this.hasIndicatorChildren(node) == true
         ) {
-          this.removeFootnote(node);
+          return this.removeFootnote(node);
+        }
+      }
+      if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
+        for (const addedNode of mutation.addedNodes) {
+          if (
+            addedNode.classList &&
+            addedNode.classList.contains("footnote-area")
+          ) {
+            // add highlight and edit listeners to existing notes
+            if (this.editorArea.querySelector(`.footnote-area`)) {
+              this.editorArea
+                .querySelector(`.footnote-area`)
+                .querySelectorAll(".footnote")
+                .forEach((footnote) => {
+                  footnote.addEventListener("mouseenter", this.addHighlight);
+                  footnote.addEventListener("mouseleave", this.removeHighlight);
+                  footnote.addEventListener("click", this.editNote);
+                });
+            }
+          }
         }
       }
     }
-    return true;
   }
 
   handleDeletion(mutationsList) {
     let hasFinished = this.processMutations(mutationsList);
     if (hasFinished) {
-      this.cleanFootnoteNumbers();
+      return this.cleanFootnoteNumbers();
     }
   }
 
   cleanFootnoteNumbers() {
-    var footnotes = document.querySelectorAll("p.footnote");
-    var footnoteIndicators = document.querySelectorAll(
+    var footnotes = this.editorArea.querySelectorAll("article.footnote");
+    var footnoteIndicators = this.editorArea.querySelectorAll(
       "sup.footnote-indicator"
     );
     var expectedNumber = 1;
@@ -189,23 +208,18 @@ class Footnote extends Module {
 
         // update the footnote number if the element is still there
         if (footnote) {
-          var originalText = footnote.textContent;
-          var newText = `${expectedNumber}.${originalText
-            .split(".")
-            .slice(1)
-            .join(".")}`;
+          var footnoteNumber = footnote.querySelector(".footnote-number");
+          footnoteNumber.textContent = `${expectedNumber}. `;
           footnote.id = `footnote-${expectedNumber}`;
-          footnote.textContent = newText;
         }
 
         // update the indicator if the element is still there
         if (footnoteIndicator) {
           footnoteIndicator.id = `footnote-indicator-${expectedNumber}`;
           footnoteIndicator.textContent = `${expectedNumber} `;
-          footnoteIndicator.setAttribute("title", footnote.textContent);
           footnoteIndicator.setAttribute(
             "data-original-title",
-            footnote.textContent
+            footnote.innerHTML.trim()
           );
         }
 
@@ -218,11 +232,11 @@ class Footnote extends Module {
     // When inserting a new footnote and there are other footnotes
     // this will find the next indicator and return it so the note
     // is inserted in the correct place
-    var newIndicator = document.getElementById(
-      `footnote-indicator-${footnoteNumber}`
+    var newIndicator = this.editorArea.querySelector(
+      `#footnote-indicator-${footnoteNumber}`
     );
     // if it's the last indicator in the editor, return null
-    var allIndicators = document.querySelectorAll(".footnote-indicator");
+    var allIndicators = this.editorArea.querySelectorAll(".footnote-indicator");
     if (newIndicator == allIndicators[allIndicators.length - 1]) {
       return null;
     }
@@ -232,9 +246,12 @@ class Footnote extends Module {
   }
 
   addHighlight(e) {
+    var footnoteArea = e.target.parentElement;
+    var editorArea = footnoteArea.parentElement;
+
     var noteID = e.target.id.match(/\d+/)[0];
-    var indicator = document.getElementById(`footnote-indicator-${noteID}`);
-    var footnote = document.getElementById(`footnote-${noteID}`);
+    var indicator = editorArea.querySelector(`#footnote-indicator-${noteID}`);
+    var footnote = footnoteArea.querySelector(`#footnote-${noteID}`);
     // add a highlight class to the elements - ensure this is in your CSS file
     if (footnote && indicator) {
       footnote.classList.add("highlighted-note-valid");
@@ -249,9 +266,12 @@ class Footnote extends Module {
     }
   }
   removeHighlight(e) {
+    var footnoteArea = e.target.parentElement;
+    var editorArea = footnoteArea.parentElement;
+
     var noteID = e.target.id.match(/\d+/)[0];
-    var indicator = document.getElementById(`footnote-indicator-${noteID}`);
-    var footnote = document.getElementById(`footnote-${noteID}`);
+    var indicator = editorArea.querySelector(`#footnote-indicator-${noteID}`);
+    var footnote = footnoteArea.querySelector(`#footnote-${noteID}`);
     if (footnote && indicator) {
       footnote.classList.remove("highlighted-note-valid");
       indicator.classList.remove("highlighted-note-valid");
@@ -265,31 +285,34 @@ class Footnote extends Module {
     }
   }
 
-  editNote(e) {
-    var regex = /^(\d+)\.\s*(.*)/;
-
-    var noteContent = e.target.textContent.match(regex)[2];
-    var updateContent = prompt(
-      `Update footnote: ${noteContent}\n If you'd like to remove it, delete the contents.`,
-      `${noteContent}`
+  async editNote(e) {
+    var selectedFootnote = e.target.closest(".footnote");
+    var footnoteArea = selectedFootnote.parentElement;
+    var editorArea = footnoteArea.parentElement;
+    var noteContent = selectedFootnote.innerHTML.replace(
+      /<span class="footnote-number">.*<\/span>\s*/,
+      ""
     );
+    var updateContent = await addModal(noteContent);
+
+    var regex = /<p[^>]*>/i;
+    let id = selectedFootnote.id.match(/\d+/)[0];
     if (updateContent !== null) {
-      let id = e.target.id.match(/\d+/)[0];
-      if (updateContent.trim() !== "") {
-        e.target.innerText = `${id}. ${updateContent}`;
-        document
-          .getElementById(`footnote-indicator-${id}`)
-          .setAttribute("title", updateContent);
-        document
-          .getElementById(`footnote-indicator-${id}`)
-          .setAttribute("data-original-title", updateContent);
+      if (updateContent == "delete") {
+        selectedFootnote.remove();
+        editorArea.querySelector(`#footnote-indicator-${id}`).remove();
       } else {
-        // delete the note and indicator if they remove the content
-        e.target.remove();
-        document.getElementById(`footnote-indicator-${id}`).remove();
-        this.cleanFootnoteNumbers();
+        selectedFootnote.innerHTML = updateContent
+          .replace(regex, `<span class="footnote-number">${id}. </span>$&`)
+          .trim();
+        editorArea
+          .querySelector(`#footnote-indicator-${id}`)
+          .setAttribute(
+            "data-original-title",
+            selectedFootnote.innerHTML.trim()
+          );
       }
-    } else return e.target.innerText;
+    } else return selectedFootnote.innerHTML;
   }
 }
 

@@ -108,6 +108,7 @@
                     {% endif %}
                     <br><small>{{ book.display_date_range }}</small></div>
                   <div>
+                    {% if not book.unknown %}
                     <form novalidate class='form-inline' action='{% url "work:delete_book" book.pk %}' method='POST'>
                       {% csrf_token %}
                       <div class='form-row align-items-center'>
@@ -119,6 +120,7 @@
                               data-what='book'>{% trans 'Delete' %}</button>
                         {% endif %}
                         <a class='ml-2' href='{{ book.history_url }}'><small><i class='fas fa-list'></i> Changelog</small></a>
+                      {% endif %}
                       </div>
                     </form>
                   </div>
@@ -137,8 +139,9 @@
 
     </section>
 
+    <hr>
+
     <section>
-      <hr>
       {% if perms.research.change_work and has_object_lock %}
       {% include 'research/partials/ordered_book_area.html' with ordered_materials=ordered_materials can_edit=perms.research.change_work has_object_lock=has_object_lock %}
       {% else %}

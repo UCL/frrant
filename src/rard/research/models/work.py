@@ -326,22 +326,27 @@ def handle_reordered_books(sender, instance, **kwargs):
 @disable_for_loaddata
 def handle_deleted_book(sender, instance, **kwargs):
     """When a book is deleted, any links should be updated to point to
-    the work's unknown book, except where this is the unknown book
-    (in which case the whole work is presumably being deleted."""
-    print(f"Handling deleted book {instance}")
+    the work's unknown book. If however the whole work is being deleted,
+    and this is the result of a cascade, we want to do nothing.
+
+    We can check this by seeing if the work has an unknown book. It should
+    only not have an unknown book in the event that we're part way through
+    deleting the work."""
     if not instance.unknown:
         work = instance.work
-        related_links = chain(
-            work.antiquarian_work_fragmentlinks.all(),
-            work.antiquarian_work_testimoniumlinks.all(),
-            work.antiquarian_work_appositumfragmentlinks.all(),
-        )
-        for link in related_links:
-            if link.book is None:
-                link.book = link.work.unknown_book
-                link.save()
-        work.unknown_book.reindex_related_links()
-        work.reindex_related_links()
+        if work.unknown_book:
+            related_links = chain(
+                work.antiquarian_work_fragmentlinks.all(),
+                work.antiquarian_work_testimoniumlinks.all(),
+                work.antiquarian_work_appositumfragmentlinks.all(),
+            )
+            for link in related_links:
+                if link.book is None:
+                    link.book = link.work.unknown_book
+                    link.save()
+
+            work.unknown_book.reindex_related_links()
+            work.reindex_related_links()
 
 
 post_save.connect(create_unknown_book, sender=Work)

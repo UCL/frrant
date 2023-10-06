@@ -48,6 +48,9 @@
     {% endblock %}
 
     {% block head %}
+    <script>
+      const modalUrl = "{% url 'render_editor_modal_template' %}";
+    </script>
     {% endblock %}
   </head>
 
@@ -127,6 +130,7 @@
       <script src="https://quill-mention.github.io/quill-mention/quill.mention.min.js"></script>
       <script src="{% static 'js/quill-footnotes.js'%}"></script>
       <script src="{% static 'js/quill-table.js'%}" ></script>
+      <script src="{% static 'js/fetchAndAddEditorModal.js'%}" ></script>
 
       <!-- urls provided to project.js -->
       <script>
