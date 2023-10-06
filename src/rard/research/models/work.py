@@ -16,6 +16,7 @@ from rard.research.models.base import (
 from rard.research.models.mixins import HistoryModelMixin, TextObjectFieldMixin
 from rard.utils.basemodel import BaseModel, DatedModel, LockableModel, OrderableModel
 from rard.utils.decorators import disable_for_loaddata
+from rard.utils.shared_functions import collate_ub_links
 from rard.utils.text_processors import make_plain_text
 
 
@@ -294,13 +295,26 @@ class Book(
 
 
 @disable_for_loaddata
+def collate_unknown(instance):
+    """This makes sure there's only one unknown book per work and combines contents if otherwise"""
+    unknown_books = instance.book_set.filter(unknown=True)
+
+    if unknown_books.count() > 1:
+        designated_unknown = unknown_books.first()
+        other_unknown_books = unknown_books.exclude(pk=designated_unknown.pk)
+
+        collate_ub_links(instance, designated_unknown)
+        other_unknown_books.delete()
+
+
+@disable_for_loaddata
 def create_unknown_book(sender, instance, **kwargs):
     if not instance.unknown_book:
         unknown_book = Book.objects.create(
             subtitle="Unknown Book", unknown=True, work=instance
         )
-        # call function to make sure unknown book contents are collated
         unknown_book.save()
+    collate_unknown(instance)
 
 
 @disable_for_loaddata

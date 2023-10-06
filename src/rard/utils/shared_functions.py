@@ -40,3 +40,25 @@ def reassign_to_unknown(worklink):
     worklink.definite_work = False
     worklink.definite_book = False
     worklink.save()
+
+
+def collate_uw_links(instance, designated_unknown):
+    """Used in the collate_unknown functions on Ant/Work models"""
+    transfer_links(instance.fragmentlinks.all(), designated_unknown)
+    transfer_links(instance.testimoniumlinks.all(), designated_unknown)
+    transfer_links(instance.appositumfragmentlinks.all(), designated_unknown)
+
+
+def collate_ub_links(instance, designated_unknown):
+    """Used in the collate_unknown functions on Ant/Work models"""
+    transfer_links(instance.antiquarian_work_fragmentlinks.all(), designated_unknown)
+    transfer_links(instance.antiquarian_work_testimoniumlinks.all(), designated_unknown)
+    transfer_links(
+        instance.antiquarian_work_appositumfragmentlinks.all(), designated_unknown
+    )
+
+
+def transfer_links(links, target_object):
+    for link in links:
+        link.work = target_object
+        link.save()

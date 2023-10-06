@@ -1,5 +1,8 @@
 {% extends "research/list_base.html" %}
 {% load i18n object_lock get_history get_object_class get_full_path_with_page %}
+{% block title %}
+    {% trans 'History for ' %}{{ object.get_history_title }}
+{% endblock %}
 
 {% block heading %}
     {% trans 'History for ' %}{{ object.get_history_title }}
