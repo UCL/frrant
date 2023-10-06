@@ -677,6 +677,7 @@ class TestimoniumAntiquariansForm(HistoricalFormBase):
 
 
 class BibliographyItemInlineForm(HistoricalFormBase):
+    title = forms.CharField(widget=forms.Textarea(attrs={'rows':1}))
     class Meta:
         model = BibliographyItem
         fields = (
