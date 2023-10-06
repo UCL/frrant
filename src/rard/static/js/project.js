@@ -184,7 +184,7 @@ icons["undo"] =
   '<i class="fa fa-undo fa-xs align-text-top" aria-hidden="true"></i>';
 icons["redo"] =
   '<i class="fa fa-redo fa-xs align-text-top" aria-hidden="true"></i>';
-// and for the vinculum buttons
+// and for the custom buttons
 icons["vinculum_on"] = "V\u0305";
 icons["vinculum_off"] = "V";
 icons["footnote"] = '<i class="far fa-comment-alt"></i>';
@@ -217,7 +217,7 @@ async function getApparatusCriticusLines(searchTerm, object_id, object_class) {
     dataType: "json",
     async: false,
     success: function (data, textStatus, jqXHR) {
-      console.log("success " + data);
+      // console.log("success " + data);
       matches = data;
     },
     error: function (e) {
@@ -351,8 +351,8 @@ function initRichTextEditor($item) {
             object_id,
             object_class
           );
-          console.log("lines:");
-          console.dir(lines);
+          // console.log("lines:");
+          // console.dir(lines);
           renderList(lines);
         }
       },
@@ -374,18 +374,11 @@ function initRichTextEditor($item) {
   $item.find(".ql-editor").html(html);
   $for.hide();
 
-  // translates custom dropdown in toolbar
+  // translates custom table dropdown in toolbar
   var tablePickerItems = Array.prototype.slice.call(
     document.querySelectorAll(".ql-edit_table .ql-picker-item")
   );
-  tablePickerItems.forEach(
-    (item) =>
-      //console.log(item.dataset)
-      (item.textContent = item.dataset.value)
-  );
-  document.querySelector(".ql-edit_table .ql-picker-label").innerHTML =
-    `<i class="fas fa-table"></i>:edit` +
-    document.querySelector(".ql-edit_table .ql-picker-label").innerHTML;
+  tablePickerItems.forEach((item) => (item.textContent = item.dataset.value));
 
   $("body").on("submit", "form", function (e) {
     let html = $item.find(".ql-editor").html();
@@ -404,6 +397,8 @@ function initRichTextEditors() {
     let $elem = $(this);
     initRichTextEditor($elem);
   });
+  // make sure tooltips are enabled
+  $('[data-toggle="tooltip"]').tooltip();
 }
 
 initRichTextEditors();
@@ -424,15 +419,18 @@ window.addEventListener("beforeunload", function (e) {
 
 // If swapping form containing rich text editor with htmx
 // we need to initialise it
-document.addEventListener('htmx:afterSettle', function(evt) {
+document.addEventListener("htmx:afterSettle", function (evt) {
   verb = evt.detail.requestConfig.verb;
-  console.log(evt);
-  if (evt.detail.target.classList.contains("rich-text-form-container") && verb == "get") {
+  // console.log(evt);
+  if (
+    evt.detail.target.classList.contains("rich-text-form-container") &&
+    verb == "get"
+  ) {
     initRichTextEditors();
-  };
-  if (verb=="post" && evt.detail.successful) {
-    $(".htmx-get-button").show();  // Show edit button again
-    $('[data-toggle="tooltip"]').tooltip();  // Enable tooltips in updated content
+  }
+  if (verb == "post" && evt.detail.successful) {
+    $(".htmx-get-button").show(); // Show edit button again
+    $('[data-toggle="tooltip"]').tooltip(); // Enable tooltips in updated content
   }
 });
 

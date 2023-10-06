@@ -17,11 +17,7 @@
     </select>
 
     <div class='mt-3 symbol-area'>
-
         {# Create the 'All symbols' group first #}
-
-
-        {# Then the groups #}
         {% with symbols=all_symbols %}
         <div class="symbol-palette" id="palette-0">
             {% for symbol in symbols %}
@@ -32,7 +28,7 @@
             {% endfor %}
         </div>
         {% endwith %}
-
+        {# Then the groups #}
         {% for group in symbol_groups %}
             {% with symbols=group.symbol_set.all %}
             <div class="symbol-palette" id="palette-{{ forloop.counter }}">

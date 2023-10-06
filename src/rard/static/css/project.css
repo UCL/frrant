@@ -99,6 +99,7 @@ table.books-widget .book-order {
 }
 .symbol-area {
   overflow-x: hidden;
+  z-index: 13;
 }
 
 /* Add styles to the form container */
@@ -106,12 +107,14 @@ table.books-widget .book-order {
   max-width: 300px;
   padding: 10px;
   background-color: white;
+  z-index: 13;
 }
 
 .symbol-palette {
   display: none;
   max-height: 33vh;
   overflow-y: auto;
+  z-index: 13;
 }
 
 /* .ordered-list-item:first-of-type .form-group [name*='up']  {
@@ -149,17 +152,15 @@ table.books-widget .book-order {
 
 .symbol-popup.picker.open {
   display: block;
+  z-index: 13;
 }
 .symbol-popup.picker {
   display: none;
 }
 
-/* .open-button.picker.open {
-  /* background-color: #4CAF50; */
-/* background-color: #007bff; */
-
 .open-button.picker {
   background-color: #007bff;
+  z-index: 5;
 }
 .open-button.picker:after {
   font-family: "Font Awesome 5 Free";
@@ -307,6 +308,7 @@ button.insert {
 .ql-editor {
   background-color: white !important;
   font-size: 18px;
+  min-height: 50vh;
 }
 .ql-mention-list-container {
   max-height: 400px;
@@ -318,27 +320,30 @@ button.insert {
 .rich-editor {
   font-family: Alphabetum !important;
 }
-#footnote-area {
+.ql-editor .footnote-area {
   font-size: 80%;
   color: #808080;
   padding-top: 1.5rem;
   padding-bottom: 2rem;
+  margin-top: 1.5rem;
   position: absolute;
   bottom: 0;
-  height: 10rem;
+  min-height: 5rem;
   overflow: scroll;
   width: 90%;
 }
 .footnote-indicator {
   color: #007bff;
 }
+.footnote-number {
+  display: inline;
+}
+.footnote-number + p {
+  display: inline;
+}
 \0305 {
   /* vincula symbol looks short in new font */
   width: 120%;
-}
-.ql-editor .custom-columns {
-  column-count: 2;
-  column-gap: 20px;
 }
 .highlighted-note-valid {
   border-radius: 1px;
@@ -358,6 +363,19 @@ button.insert {
   padding: 0;
   margin: 0;
 }
+.text-object-preview .footnote-area {
+  font-size: 80%;
+  color: #808080;
+  margin-top: 1.5rem;
+}
+
+#editContentModal {
+  display: block;
+}
+
+.modal-body .rich-editor {
+  min-height: 20rem;
+}
 
 .ql-editor .ql-table {
   border: 1px solid black;
@@ -372,10 +390,20 @@ table.ql-table {
 .ql-table td {
   height: 5rem;
   cursor: pointer;
+  caret-color: transparent;
+  min-width: 7vw;
+  max-width: 10vw;
+}
+.ql-editor.ql-table td.selected-cell {
+  background-color: #f2f2f2;
 }
 .ql-edit_table .ql-picker-label {
   width: 125%;
   margin-top: 0.3rem;
+}
+.ql-edit_table .ql-picker-label::after {
+  content: "edit table";
+  /* font-family: "Arial, Helvetica, sans-serif,Font Awesome 5 Free"; */
 }
 
 /**** extras ****/

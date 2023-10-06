@@ -15,4 +15,7 @@
   <button type="submit" class="btn btn-primary">
     {% trans 'Save' %}
   </button>
+  <button type="button" class="btn btn-secondary" hx-get="{{ cancel_url }}" _="on click show .htmx-get-button">
+    {% trans 'Cancel' %}
+  </button>
 </form>
