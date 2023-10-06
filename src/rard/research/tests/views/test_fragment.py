@@ -399,12 +399,8 @@ class TestMoveAnonymousTopicLinkView(TestCase):
 class TestOrderAnonymousFragmentListView(TestCase):
     def setUp(self):
         # create two citing works
-        self.ca1 = CitingAuthor.objects.create(
-            name="Eleanor Rigby", order_name="Eleanor Rigby"
-        )
-        self.ca2 = CitingAuthor.objects.create(
-            name="Dr. Monsoon", order_name="Dr. Monsoon"
-        )
+        self.ca1 = CitingAuthor.objects.create(name="Alice", order_name="Alice")
+        self.ca2 = CitingAuthor.objects.create(name="Bob", order_name="Bob")
         self.cw1 = CitingWork.objects.create(title="cw1", author=self.ca1)
         self.cw2 = CitingWork.objects.create(title="cw2", author=self.ca2)
 
@@ -418,7 +414,7 @@ class TestOrderAnonymousFragmentListView(TestCase):
             content="content",
             citing_work=self.cw1,
             owner=self.af1,
-            reference_order="1.1.1",
+            reference_order="7.1.1",
         )
         self.ot2 = OriginalText.objects.create(
             content="more content",
@@ -426,12 +422,32 @@ class TestOrderAnonymousFragmentListView(TestCase):
             owner=self.af2,
             reference_order="3.5.7",
         )
-        self.af3.original_texts.add(self.ot1)
+        self.ot3 = OriginalText.objects.create(
+            content="more content",
+            citing_work=self.cw2,
+            owner=self.af3,
+            reference_order="6.5.7",
+        )
+        self.ot4 = OriginalText.objects.create(
+            content="more content",
+            citing_work=self.cw2,
+            owner=self.af3,
+            reference_order="2.5.8",
+        )
+        self.af1.original_texts.add(self.ot1)
+        self.af2.original_texts.add(self.ot2)
+        self.af3.original_texts.add(self.ot4, self.ot3)
+
         # Create topic and add all 3 anon frags
         self.top1 = Topic.objects.create(name="top1")
         self.af1.topics.add(self.top1)
         self.af2.topics.add(self.top1)
         self.af3.topics.add(self.top1)
+
+        # get related AnonymousTopicLinks
+        self.aftl1 = AnonymousTopicLink.objects.get(fragment=self.af1)
+        self.aftl2 = AnonymousTopicLink.objects.get(fragment=self.af2)
+        self.aftl3 = AnonymousTopicLink.objects.get(fragment=self.af3)
 
     def test_context_data_default_ordering(self):
         url = reverse("anonymous_fragment:list")
@@ -470,4 +486,9 @@ class TestOrderAnonymousFragmentListView(TestCase):
         self.assertNotEqual(
             list(standard_response.context_data["object_list"].all()),
             list(response.context_data["object_list"].all()),
+        )
+
+        self.assertQuerysetEqual(
+            response.context_data["object_list"],
+            [self.aftl1, self.aftl3, self.aftl2, self.aftl3],
         )
