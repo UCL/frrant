@@ -303,7 +303,6 @@ def create_unknown_book(sender, instance, **kwargs):
         unknown_book.save()
 
 
-
 @disable_for_loaddata
 def handle_reordered_books(sender, instance, **kwargs):
     # reindex links for antiquarian
