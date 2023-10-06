@@ -54,8 +54,8 @@ from .concordance import (
 from .fragment import (
     AddAppositumFragmentLinkView,
     AddAppositumGeneralLinkView,
-    AnonymousFragmentConvertToFragmentView,
     AnonymousFragmentCommentaryView,
+    AnonymousFragmentConvertToFragmentView,
     AnonymousFragmentCreateView,
     AnonymousFragmentDeleteView,
     AnonymousFragmentDetailView,
