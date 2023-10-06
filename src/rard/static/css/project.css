@@ -418,6 +418,13 @@ table.ql-table {
 
 #bib-inline-form {
   opacity: 1;
-  max-height: 50vh;
+  max-height: 60vh;
   transition: max-height 1s ease-out, opacity 1s ease-out;
+}
+
+#bib-inline-form textarea {
+  overflow: auto;
+  max-height: 6rem;
+  min-height: 3rem;
+  resize: vertical;
 }
