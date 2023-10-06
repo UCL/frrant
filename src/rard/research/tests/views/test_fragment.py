@@ -8,6 +8,7 @@ from rard.research.models import (
     AnonymousFragment,
     AnonymousTopicLink,
     Antiquarian,
+    CitingAuthor,
     CitingWork,
     Fragment,
     OriginalText,
@@ -17,6 +18,7 @@ from rard.research.models.base import AppositumFragmentLink, FragmentLink
 from rard.research.models.text_object_field import TextObjectField
 from rard.research.views import (
     AnonymousFragmentConvertToFragmentView,
+    AnonymousFragmentListView,
     FragmentCreateView,
     FragmentDeleteView,
     FragmentDetailView,
@@ -392,3 +394,80 @@ class TestMoveAnonymousTopicLinkView(TestCase):
         request = RequestFactory().post("/", data=data)
         request.user = UserFactory.create()
         self.assertRaises(Http404, view, request)
+
+
+class TestOrderAnonymousFragmentListView(TestCase):
+    def setUp(self):
+        # create two citing works
+        self.ca1 = CitingAuthor.objects.create(
+            name="Eleanor Rigby", order_name="Eleanor Rigby"
+        )
+        self.ca2 = CitingAuthor.objects.create(
+            name="Dr. Monsoon", order_name="Dr. Monsoon"
+        )
+        self.cw1 = CitingWork.objects.create(title="cw1", author=self.ca1)
+        self.cw2 = CitingWork.objects.create(title="cw2", author=self.ca2)
+
+        # Create 3 anon frags
+        self.af1 = AnonymousFragment.objects.create(name="af1")
+        self.af2 = AnonymousFragment.objects.create(name="af2")
+        self.af3 = AnonymousFragment.objects.create(name="af3")
+
+        # Create original texts
+        self.ot1 = OriginalText.objects.create(
+            content="content",
+            citing_work=self.cw1,
+            owner=self.af1,
+            reference_order="1.1.1",
+        )
+        self.ot2 = OriginalText.objects.create(
+            content="more content",
+            citing_work=self.cw2,
+            owner=self.af2,
+            reference_order="3.5.7",
+        )
+        self.af3.original_texts.add(self.ot1)
+        # Create topic and add all 3 anon frags
+        self.top1 = Topic.objects.create(name="top1")
+        self.af1.topics.add(self.top1)
+        self.af2.topics.add(self.top1)
+        self.af3.topics.add(self.top1)
+
+    def test_context_data_default_ordering(self):
+        url = reverse("anonymous_fragment:list")
+        request = RequestFactory().get(url)
+        request.user = UserFactory.create()
+        response = AnonymousFragmentListView.as_view()(request)
+
+        self.assertEqual(response.context_data["display_order"], "by_topic")
+
+    def test_context_data_reference_ordering(self):
+        url = reverse("anonymous_fragment:list")
+        data = {
+            "display_order": "by_reference",
+        }
+        request = RequestFactory().get(url, data=data)
+        request.user = UserFactory.create()
+
+        response = AnonymousFragmentListView.as_view()(request)
+
+        self.assertEqual(response.context_data["display_order"], "by_reference")
+
+    def test_compare_orders(self):
+        url = reverse("anonymous_fragment:list")
+
+        data = {
+            "display_order": "by_reference",
+        }
+        standard_request = RequestFactory().get(url)
+        standard_request.user = UserFactory.create()
+        standard_response = AnonymousFragmentListView.as_view()(standard_request)
+
+        request = RequestFactory().get(url, data=data)
+        request.user = UserFactory.create()
+        response = AnonymousFragmentListView.as_view()(request)
+
+        self.assertNotEqual(
+            list(standard_response.context_data["object_list"].all()),
+            list(response.context_data["object_list"].all()),
+        )
