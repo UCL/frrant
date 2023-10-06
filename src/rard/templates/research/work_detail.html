@@ -43,66 +43,37 @@
     <hr>
     <section id="work-info">
         <div class='d-flex justify-content-between mb-3'>
-            <div>
-                <h5>{% trans 'Details' %}</h5>
-            </div>
-            <div>
-                {% if perms.research.change_work and has_object_lock %}
-                <a href='{% url "work:update" object.pk %}'>{% trans 'Edit' %}</a>
-                {% endif %}
-            </div>
-        </div>
-
-        {% comment %} <section> {% endcomment %}
-        {% if editing == 'introduction' %}
+          <div>
+              <h5>{% trans 'Details' %}</h5>
+          </div>
           <div>
               {% if perms.research.change_work and has_object_lock %}
-              <form novalidate enctype="multipart/form-data" autocomplete='off' action='{% url "work:update_introduction" object.pk %}' class="form" method='POST'>
-                  {% csrf_token %}
-                  <div class="pb-3">
-                      {% bootstrap_field form.introduction_text field_class='d-none' show_label=False %}
-                      {% include 'research/partials/rich_text_editor.html' with object_id=object.pk object_class='work' field=form.introduction_text enable_mentions=True %}
-                  </div>
-                  <button type="submit" class="btn btn-primary inline-save-button">
-                          {% trans 'Save' %}
-                  </button>
-                  <a class='ml-3 inline-cancel-button' href='{% url "work:detail" object.pk %}'>{% trans 'Cancel' %}</a>
-              </form>
+              <a href='{% url "work:update" object.pk %}'>{% trans 'Edit Details' %}</a>
               {% endif %}
           </div>
-          {% else %}
-          {% if object.introduction %}
-          <div class='d-flex justify-content-between mb-3'>
-              <small>
-                  {% if perms.research.change_work and has_object_lock %}
-                  <a href='{% url "work:update_introduction" object.pk %}'>{% if object.introduction.content.strip|length > 11 %}
-                    {% trans 'Edit Introduction' %}
-                    {% else %}
-                    {% trans 'Add Introduction' %}
-                    {% endif %}
-                </a>
-                  {% endif %}
-              </small>
-          </div>
-          {% if object.introduction.content.strip|length > 11 %}
-          <div>
-              {% include 'research/partials/text_object_preview.html' with text_object=object.introduction %}
-          </div>
-          {% endif %}
-          {% else %}
-          <div class='d-flex justify-content-between mb-3'>
-            <small>
-                {% if perms.research.change_work and has_object_lock %}
-                {% with editing='introduction' %}
-                <a href='{% url "work:update_introduction" object.pk %}'>{% trans 'Add Introduction' %}</a>
-                {% endwith %}
-                {% endif %}
-            </small>
         </div>
-          {% endif %}{% endif %}
 
-
-      {% comment %} </section> {% endcomment %}
+        {% with intro_length=object.introduction.content|striptags|length %}
+        <div class='d-flex justify-content-between mb-3'>
+          {% if perms.research.change_work and has_object_lock %}
+          <button
+            class="btn text-primary p-0 htmx-get-button"
+            _="on click hide .htmx-get-button"
+            hx-get="{% url 'work:update_introduction' object.pk %}"
+            hx-target=".introduction-container"
+            hx-swap="innerHTML">
+            {% if intro_length > 0 %}
+            {% trans 'Edit Introduction' %}
+            {% else %}
+            {% trans 'Add Introduction' %}
+            {% endif %}
+          </button>
+          {% endif %}
+        </div>
+        <div class="introduction-container rich-text-form-container mb-3">
+            {% include 'research/partials/text_object_preview.html' with text_object=object.introduction hide_empty=True %}
+        </div>
+        {% endwith %}
 
         <dl class="row mb-0 mt-4">
             <dt class="col-sm-3">{% trans 'Name of Work' %}</dt>
@@ -137,6 +108,7 @@
                     {% endif %}
                     <br><small>{{ book.display_date_range }}</small></div>
                   <div>
+                    {% if not book.unknown %}
                     <form novalidate class='form-inline' action='{% url "work:delete_book" book.pk %}' method='POST'>
                       {% csrf_token %}
                       <div class='form-row align-items-center'>
@@ -148,6 +120,7 @@
                               data-what='book'>{% trans 'Delete' %}</button>
                         {% endif %}
                         <a class='ml-2' href='{{ book.history_url }}'><small><i class='fas fa-list'></i> Changelog</small></a>
+                      {% endif %}
                       </div>
                     </form>
                   </div>
@@ -166,25 +139,10 @@
 
     </section>
 
-    {% comment %}
     <hr>
+
     <section>
-        <div class='d-flex justify-content-between mb-3'>
-            <div>
-                <h5>{% trans 'Antiquarians' %}</h5>
-            </div>
-        </div>
-
-        {% for antiquarian in object.antiquarian_set.all %}
-
-        {% include 'research/partials/antiquarian_list_item.html' %}
-
-        {% endfor %}
-    </section>
-
-    {% endcomment %}
-
-    <section> {% if perms.research.change_work and has_object_lock %}
+      {% if perms.research.change_work and has_object_lock %}
       {% include 'research/partials/ordered_book_area.html' with ordered_materials=ordered_materials can_edit=perms.research.change_work has_object_lock=has_object_lock %}
       {% else %}
       {% include 'research/partials/ordered_book_area.html' with ordered_materials=cleaned_materials %}

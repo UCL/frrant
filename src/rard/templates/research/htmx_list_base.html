@@ -1,0 +1,54 @@
+{% load get_full_path_with_page %}
+
+<div id="pagination-list__container">
+
+{% block page_controls %}
+  <div class="d-flex w-100 mb-3">
+    <div class='mr-auto'>
+      Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+
+      {% if page_obj.has_other_pages %}
+        (Page
+          {% for page in page_obj.paginator.page_range %}
+            {% if page_obj.number == page %}
+              <button class="btn btn-link" disabled>{{ page }}</button>
+            {% else %}
+              <button class="btn btn-link" hx-get="{{ request|get_full_path_with_page:page }}" hx-target="#pagination-list__container" hx-swap="innerHTML">{{ page }}</button>
+            {% endif %}
+          {% endfor %})
+
+        ({% if page_obj.has_previous %}
+          <button class="btn btn-link" hx-get='{{ request|get_full_path_with_page:page_obj.previous_page_number }}' hx-target="#pagination-list__container" hx-swap="innerHTML">prev</button>
+        {% else %}
+          <button class="btn btn-link" disabled>prev</button>
+        {% endif %}
+        |
+        {% if page_obj.has_next %}
+          <button class="btn btn-link" hx-get='{{ request|get_full_path_with_page:page_obj.next_page_number }}' hx-target="#pagination-list__container" hx-swap="innerHTML">next</button>
+        {% else %}
+          <button class="btn btn-link" disabled>next</button>
+        {% endif %})
+      {% endif %}
+
+    </div>
+    <div class='ml-auto text-muted'>
+      {% block displaying %}
+        {% if page_obj.has_other_pages %}
+          Displaying {{ page_obj.start_index }} to {{ page_obj.end_index }} of {{ page_obj.paginator.count }} item{{ page_obj.paginator.count|pluralize }}
+        {% else %}
+          Displaying {{ page_obj.paginator.count }} item{{ page_obj.paginator.count|pluralize }}
+        {% endif %}
+      {% endblock %}
+    </div>
+  </div>
+
+{% endblock page_controls %}
+
+{% block items %}
+{% if page_obj.paginator.count == 0 %}
+  No items found
+{% endif %}
+
+{% endblock items %}
+
+</div>

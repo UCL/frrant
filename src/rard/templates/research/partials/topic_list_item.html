@@ -6,7 +6,7 @@
 </div>
 <div id='topic_{{ topic.pk }}' data-topic='{{ topic.pk }}' draggable='false' data-objecttype='topic' data-pos='{{ forloop.counter0 }}' class='drag-item ordered-list-item rard-list-item d-flex justify-content-between'>
     <div>
-        <li>
+        <li class="unstyled">
             {% with topic.name as link_text %}
                 {% if perms.research.view_topic %}
                 <a href='{% url "topic:detail" topic.slug %}'>{{ link_text }}</a>

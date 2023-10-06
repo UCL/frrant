@@ -16,6 +16,7 @@ from rard.research.models.base import (
 from rard.research.models.mixins import HistoryModelMixin, TextObjectFieldMixin
 from rard.utils.basemodel import BaseModel, DatedModel, LockableModel, OrderableModel
 from rard.utils.decorators import disable_for_loaddata
+from rard.utils.shared_functions import collate_ub_links
 from rard.utils.text_processors import make_plain_text
 
 
@@ -294,12 +295,26 @@ class Book(
 
 
 @disable_for_loaddata
+def collate_unknown(instance):
+    """This makes sure there's only one unknown book per work and combines contents if otherwise"""
+    unknown_books = instance.book_set.filter(unknown=True)
+
+    if unknown_books.count() > 1:
+        designated_unknown = unknown_books.first()
+        other_unknown_books = unknown_books.exclude(pk=designated_unknown.pk)
+
+        collate_ub_links(instance, designated_unknown)
+        other_unknown_books.delete()
+
+
+@disable_for_loaddata
 def create_unknown_book(sender, instance, **kwargs):
-    unknown_book = Book.objects.create(
-        subtitle="Unknown Book", unknown=True, work=instance
-    )
-    unknown_book.save()
-    instance.book_set.add(unknown_book)
+    if not instance.unknown_book:
+        unknown_book = Book.objects.create(
+            subtitle="Unknown Book", unknown=True, work=instance
+        )
+        unknown_book.save()
+    collate_unknown(instance)
 
 
 @disable_for_loaddata
@@ -311,22 +326,27 @@ def handle_reordered_books(sender, instance, **kwargs):
 @disable_for_loaddata
 def handle_deleted_book(sender, instance, **kwargs):
     """When a book is deleted, any links should be updated to point to
-    the work's unknown book, except where this is the unknown book
-    (in which case the whole work is presumably being deleted."""
-    print(f"Handling deleted book {instance}")
+    the work's unknown book. If however the whole work is being deleted,
+    and this is the result of a cascade, we want to do nothing.
+
+    We can check this by seeing if the work has an unknown book. It should
+    only not have an unknown book in the event that we're part way through
+    deleting the work."""
     if not instance.unknown:
         work = instance.work
-        related_links = chain(
-            work.antiquarian_work_fragmentlinks.all(),
-            work.antiquarian_work_testimoniumlinks.all(),
-            work.antiquarian_work_appositumfragmentlinks.all(),
-        )
-        for link in related_links:
-            if link.book is None:
-                link.book = link.work.unknown_book
-                link.save()
-        work.unknown_book.reindex_related_links()
-        work.reindex_related_links()
+        if work.unknown_book:
+            related_links = chain(
+                work.antiquarian_work_fragmentlinks.all(),
+                work.antiquarian_work_testimoniumlinks.all(),
+                work.antiquarian_work_appositumfragmentlinks.all(),
+            )
+            for link in related_links:
+                if link.book is None:
+                    link.book = link.work.unknown_book
+                    link.save()
+
+            work.unknown_book.reindex_related_links()
+            work.reindex_related_links()
 
 
 post_save.connect(create_unknown_book, sender=Work)

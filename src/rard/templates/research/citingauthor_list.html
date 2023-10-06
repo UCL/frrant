@@ -1,5 +1,8 @@
 {% extends "research/list_base.html" %}
 {% load i18n show_citing_info %}
+{% block title %}
+    {% trans 'Citing Authors' %}
+{% endblock %}
 
 {% block heading %}
     {% trans 'Citing Authors' %}
@@ -44,7 +47,9 @@
                     </div>
                     <div class='rard-list-item-actions'>
                     </div>
+                    <hr>
                 </div>
+
 
             {% endwith %}
         {% endifchanged %}

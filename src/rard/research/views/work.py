@@ -14,7 +14,12 @@ from rard.research.forms import (
     WorkIntroductionForm,
 )
 from rard.research.models import Book, TextObjectField, Work
-from rard.research.views.mixins import CanLockMixin, CheckLockMixin
+from rard.research.views.mixins import (
+    CanLockMixin,
+    CheckLockMixin,
+    TextObjectFieldUpdateMixin,
+    TextObjectFieldViewMixin,
+)
 
 
 class WorkListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
@@ -101,11 +106,13 @@ class WorkUpdateView(
         return super().form_valid(form)
 
 
-class WorkUpdateIntroductionView(WorkUpdateView):
+class WorkUpdateIntroductionView(TextObjectFieldUpdateMixin, WorkUpdateView):
     model = Work
     form_class = WorkIntroductionForm
     permission_required = ("research.change_work",)
-    template_name = "research/work_detail.html"
+    hx_trigger = "intro-updated"
+    textobject_field = "introduction"
+    hide_empty = True
 
     def create_intro_if_does_not_exist(self, *args, **kwargs):
         # If a TOF is not created for the introduction an error will be
@@ -120,14 +127,12 @@ class WorkUpdateIntroductionView(WorkUpdateView):
         self.create_intro_if_does_not_exist()
         return super().dispatch(request, *args, **kwargs)
 
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
-        context.update(
-            {
-                "editing": "introduction",
-            }
-        )
-        return context
+
+class WorkIntroductionView(TextObjectFieldViewMixin):
+    model = Work
+    permission_required = ("research.view_work",)
+    textobject_field = "introduction"
+    hide_empty = False
 
 
 @method_decorator(require_POST, name="dispatch")
@@ -217,11 +222,13 @@ class BookUpdateView(
         return context
 
 
-class BookUpdateIntroductionView(BookUpdateView):
+class BookUpdateIntroductionView(TextObjectFieldUpdateMixin, BookUpdateView):
     model = Book
     form_class = BookIntroductionForm
     permission_required = ("research.change_book",)
-    template_name = "research/book_form.html"
+    hx_trigger = "intro-updated"
+    textobject_field = "introduction"
+    hide_empty = True
 
     def create_intro_if_does_not_exist(self, *args, **kwargs):
         # If a TOF is not created for the introduction an error will be
@@ -236,15 +243,12 @@ class BookUpdateIntroductionView(BookUpdateView):
         self.create_intro_if_does_not_exist()
         return super().dispatch(request, *args, **kwargs)
 
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
-        context.update(
-            {
-                "editing": "introduction",
-                "has_object_lock": True,
-            }
-        )
-        return context
+
+class BookIntroductionView(TextObjectFieldViewMixin):
+    model = Book
+    permission_required = ("research.view_book",)
+    textobject_field = "introduction"
+    hide_empty = False
 
 
 @method_decorator(require_POST, name="dispatch")

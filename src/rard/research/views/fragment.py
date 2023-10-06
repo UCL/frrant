@@ -45,6 +45,8 @@ from rard.research.views.mixins import (
     CanLockMixin,
     CheckLockMixin,
     GetWorkLinkRequestDataMixin,
+    TextObjectFieldUpdateMixin,
+    TextObjectFieldViewMixin,
 )
 from rard.utils.convertors import (
     convert_anonymous_fragment_to_fragment,
@@ -319,8 +321,11 @@ class AnonymousFragmentListView(LoginRequiredMixin, PermissionRequiredMixin, Lis
         qs = qs.annotate(
             citing_author=F("fragment__original_texts__citing_work__author")
         )
-        # Sort by reference order
-        return qs.order_by("fragment__original_texts__reference_order")
+        # Sort by citing author then reference order
+        return qs.order_by(
+            "fragment__original_texts__citing_work__author",
+            "fragment__original_texts__reference_order",
+        )
 
     def get_context_data(self, *args, **kwargs):
         context_data = super().get_context_data(*args, **kwargs)
@@ -369,6 +374,7 @@ class UnlinkedFragmentListView(LoginRequiredMixin, PermissionRequiredMixin, List
     model = Fragment
     permission_required = "research.view_fragment"
     template_name = "research/unlinkedfragment_list.html"
+    paginate_by = 15
 
     def get_queryset(self):
         """Queryset should include all unlinked fragments."""
@@ -638,6 +644,36 @@ class AnonymousFragmentUpdateView(FragmentUpdateView):
         return reverse("anonymous_fragment:detail", kwargs={"pk": self.object.pk})
 
 
+class FragmentUpdateCommentaryView(TextObjectFieldUpdateMixin, FragmentUpdateView):
+    form_class = FragmentCommentaryForm
+    textobject_field = "commentary"
+    template_name = "research/inline_forms/commentary_form.html"
+    hide_empty = False
+
+
+class FragmentCommentaryView(TextObjectFieldViewMixin):
+    model = Fragment
+    permission_required = ("research.view_fragment",)
+    textobject_field = "commentary"
+    hide_empty = False
+
+
+class AnonymousFragmentUpdateCommentaryView(
+    TextObjectFieldUpdateMixin, AnonymousFragmentUpdateView
+):
+    form_class = AnonymousFragmentCommentaryForm
+    textobject_field = "commentary"
+    template_name = "research/inline_forms/commentary_form.html"
+    hide_empty = False
+
+
+class AnonymousFragmentCommentaryView(TextObjectFieldViewMixin):
+    model = AnonymousFragment
+    permission_required = ("research.view_fragment",)
+    textobject_field = "commentary"
+    hide_empty = False
+
+
 @method_decorator(require_POST, name="dispatch")
 class AnonymousFragmentConvertToFragmentView(
     CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, View
@@ -698,38 +734,6 @@ class FragmentUpdateAntiquariansView(FragmentUpdateView):
     permission_required = ("research.change_fragment",)
     # use a different template showing fewer fields
     template_name = "research/fragment_antiquarians_form.html"
-
-
-class FragmentUpdateCommentaryView(FragmentUpdateView):
-    model = Fragment
-    form_class = FragmentCommentaryForm
-    permission_required = ("research.change_fragment",)
-    template_name = "research/fragment_detail.html"
-
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
-        context.update(
-            {
-                "editing": "commentary",
-            }
-        )
-        return context
-
-
-class AnonymousFragmentUpdateCommentaryView(AnonymousFragmentUpdateView):
-    model = AnonymousFragment
-    form_class = AnonymousFragmentCommentaryForm
-    permission_required = ("research.change_fragment",)
-    template_name = "research/anonymousfragment_detail.html"
-
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
-        context.update(
-            {
-                "editing": "commentary",
-            }
-        )
-        return context
 
 
 class FragmentAddWorkLinkView(

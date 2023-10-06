@@ -177,16 +177,18 @@ $("body").on("submit", "form", function (e) {
   $(this).data("submitted", true);
 });
 
-Quill.register("modules/mention", quillMention);
+Quill.register("modules/mention", quillMention, true);
 var icons = Quill.import("ui/icons");
-// import fontawesome icons for the undo/redo buttons
+// import fontawesome button icons
 icons["undo"] =
   '<i class="fa fa-undo fa-xs align-text-top" aria-hidden="true"></i>';
 icons["redo"] =
   '<i class="fa fa-redo fa-xs align-text-top" aria-hidden="true"></i>';
-// and for the vinculum buttons
+// and for the custom buttons
 icons["vinculum_on"] = "V\u0305";
 icons["vinculum_off"] = "V";
+icons["footnote"] = '<i class="far fa-comment-alt"></i>';
+icons["table"] = '<i class="fas fa-table">+</i>';
 
 async function suggestPeople(searchTerm) {
   // call backend synchonously here and wait
@@ -215,7 +217,7 @@ async function getApparatusCriticusLines(searchTerm, object_id, object_class) {
     dataType: "json",
     async: false,
     success: function (data, textStatus, jqXHR) {
-      console.log("success " + data);
+      // console.log("success " + data);
       matches = data;
     },
     error: function (e) {
@@ -243,8 +245,38 @@ function initRichTextEditor($item) {
           [{ list: "ordered" }, { list: "bullet" }],
           [{ align: [] }],
           ["clean"],
+          ["footnote"],
+          ["table"],
+          [
+            {
+              edit_table: [
+                "add_row",
+                "add_column",
+                "delete_row",
+                "delete_column",
+              ],
+            },
+          ],
         ],
         handlers: {
+          footnote: function () {
+            this.quill.modules.footnote.insertFootnote();
+          },
+          table: function (value) {
+            this.quill.modules.table.insertTable();
+          },
+          edit_table: function (value) {
+            console.log(value);
+            if (value == "add_row") {
+              this.quill.modules.table.insertRow();
+            } else if (value == "add_column") {
+              this.quill.modules.table.insertColumn();
+            } else if (value == "delete_row") {
+              this.quill.modules.table.deleteRow();
+            } else if (value == "delete_column") {
+              this.quill.modules.table.deleteColumn();
+            }
+          },
           undo: function (value) {
             this.quill.history.undo();
           },
@@ -284,6 +316,8 @@ function initRichTextEditor($item) {
           },
         },
       },
+      footnote: true,
+      table: true,
     },
   };
 
@@ -317,16 +351,14 @@ function initRichTextEditor($item) {
             object_id,
             object_class
           );
-          console.log("lines:");
-          console.dir(lines);
+          // console.log("lines:");
+          // console.dir(lines);
           renderList(lines);
         }
       },
       renderItem(item, searchTerm) {
         // allows you to control how the item is displayed
         let list_display = item.list_display || item.value;
-        console.log("list_display:");
-        console.log(list_display);
         return `${list_display}`;
       },
     };
@@ -335,15 +367,28 @@ function initRichTextEditor($item) {
   new Quill("#" + $item.attr("id"), config);
 
   var for_id = $item.data("for");
+  var model_field = $item.data("model-field");
   var $for = $(`#${for_id}`);
 
   var html = $for.text();
   $item.find(".ql-editor").html(html);
   $for.hide();
 
+  // translates custom table dropdown in toolbar
+  var tablePickerItems = Array.prototype.slice.call(
+    document.querySelectorAll(".ql-edit_table .ql-picker-item")
+  );
+  tablePickerItems.forEach((item) => (item.textContent = item.dataset.value));
+
   $("body").on("submit", "form", function (e) {
     let html = $item.find(".ql-editor").html();
     $for.text(html);
+  });
+  // When using htmx we can't hook into on submit,
+  // add html to post parameters directly instead
+  $("body").on("htmx:configRequest", function (e) {
+    let html = $item.find(".ql-editor").html();
+    e.detail.parameters[model_field] = html;
   });
 }
 
@@ -352,6 +397,8 @@ function initRichTextEditors() {
     let $elem = $(this);
     initRichTextEditor($elem);
   });
+  // make sure tooltips are enabled
+  $('[data-toggle="tooltip"]').tooltip();
 }
 
 initRichTextEditors();
@@ -368,6 +415,23 @@ document.addEventListener("DOMContentLoaded", function (event) {
 
 window.addEventListener("beforeunload", function (e) {
   sessionStorage.setItem("scrollpos", window.scrollY);
+});
+
+// If swapping form containing rich text editor with htmx
+// we need to initialise it
+document.addEventListener("htmx:afterSettle", function (evt) {
+  verb = evt.detail.requestConfig.verb;
+  // console.log(evt);
+  if (
+    evt.detail.target.classList.contains("rich-text-form-container") &&
+    verb == "get"
+  ) {
+    initRichTextEditors();
+  }
+  if (verb == "post" && evt.detail.successful) {
+    $(".htmx-get-button").show(); // Show edit button again
+    $('[data-toggle="tooltip"]').tooltip(); // Enable tooltips in updated content
+  }
 });
 
 if (!String.prototype.HTMLDecode) {

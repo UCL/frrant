@@ -21,6 +21,8 @@ from rard.research.views.mixins import (
     CanLockMixin,
     CheckLockMixin,
     GetWorkLinkRequestDataMixin,
+    TextObjectFieldUpdateMixin,
+    TextObjectFieldViewMixin,
 )
 from rard.utils.shared_functions import reassign_to_unknown
 
@@ -87,20 +89,20 @@ class TestimoniumUpdateAntiquariansView(TestimoniumUpdateView):
     template_name = "research/testimonium_antiquarians_form.html"
 
 
-class TestimoniumUpdateCommentaryView(TestimoniumUpdateView):
-    model = Testimonium
+class TestimoniumUpdateCommentaryView(
+    TextObjectFieldUpdateMixin, TestimoniumUpdateView
+):
     form_class = TestimoniumCommentaryForm
-    permission_required = ("research.change_testimonium",)
-    template_name = "research/testimonium_detail.html"
+    textobject_field = "commentary"
+    template_name = "research/inline_forms/commentary_form.html"
+    hide_empty = False
 
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
-        context.update(
-            {
-                "editing": "commentary",
-            }
-        )
-        return context
+
+class TestimoniumCommentaryView(TextObjectFieldViewMixin):
+    model = Testimonium
+    permission_required = ("research.view_testimonium",)
+    textobject_field = "commentary"
+    hide_empty = False
 
 
 class TestimoniumAddWorkLinkView(

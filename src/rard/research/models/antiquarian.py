@@ -1,6 +1,5 @@
 import itertools
 
-from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.db.models.signals import m2m_changed, post_delete, post_save, pre_delete
 from django.urls import reverse
@@ -9,6 +8,7 @@ from simple_history.models import HistoricalRecords
 from rard.research.models.mixins import HistoryModelMixin, TextObjectFieldMixin
 from rard.utils.basemodel import BaseModel, DatedModel, LockableModel, OrderableModel
 from rard.utils.decorators import disable_for_loaddata
+from rard.utils.shared_functions import collate_uw_links
 from rard.utils.text_processors import make_plain_text
 
 
@@ -146,8 +146,8 @@ class Antiquarian(
         through="TestimoniumLink",
     )
 
-    bibliography_items = GenericRelation(
-        "BibliographyItem", related_query_name="bibliography_items"
+    bibliography_items = models.ManyToManyField(
+        "BibliographyItem", related_name="antiquarians", blank=True
     )
 
     @property
@@ -356,6 +356,49 @@ class Antiquarian(
 
             self.reindex_null_fragment_and_testimonium_links()
 
+    def refresh_bibliography_items_from_mentions(self):
+        """Antiquarian bibliography should be derived from bibliography
+        items mentioned in:
+        - the antiquarian's introduction
+        - the introduction to works by that antiquarian, and introductions
+          to any books belonging to those works
+        - commentaries belonging to any fragments, testimonia, or
+          apposita linked to that antiquarian
+        """
+        self.bibliography_items.clear()  # Start with a blank slate
+        # Link bib mentions from introduction
+        self.introduction.link_bibliography_mentions_in_content()
+        # Now loop through linked items
+        for fr in self.fragments.distinct():
+            fr.commentary.link_bibliography_mentions_in_content()
+        for tt in self.testimonia.distinct():
+            tt.commentary.link_bibliography_mentions_in_content()
+        anon_list = []
+        for app_link in self.appositumfragmentlinks.all():
+            an = app_link.anonymous_fragment
+            if an not in anon_list:
+                an.commentary.link_bibliography_mentions_in_content()
+                anon_list.append(an)
+        for work in self.works.all():
+            if work.introduction:
+                work.introduction.link_bibliography_mentions_in_content()
+            for book in work.book_set.all():
+                if book.introduction:
+                    book.introduction.link_bibliography_mentions_in_content()
+
+
+@disable_for_loaddata
+def collate_unknown(instance):
+    """This makes sure there's only one unknown work per antiquarian and combines contents if otherwise"""
+    unknown_works = instance.works.filter(unknown=True)
+
+    if unknown_works.count() > 1:
+        designated_unknown = unknown_works.first()
+        other_unknown_works = unknown_works.exclude(pk=designated_unknown.pk)
+
+        collate_uw_links(instance, designated_unknown)
+        other_unknown_works.delete()
+
 
 @disable_for_loaddata
 def create_unknown_work(sender, instance, **kwargs):
@@ -373,6 +416,8 @@ def create_unknown_work(sender, instance, **kwargs):
         # update existing
         instance.unknown_work.antiquarian_set.add(instance)
         instance.unknown_work.save()
+
+    collate_unknown(instance)
 
 
 @disable_for_loaddata

@@ -1,7 +1,10 @@
 from datetime import timedelta
 
 from django.http import Http404
+from django.shortcuts import render
+from django.urls import reverse
 from django.utils import timezone
+from django.views.generic import DetailView
 
 from rard.research.models import Antiquarian, Work
 
@@ -149,3 +152,61 @@ class GetWorkLinkRequestDataMixin:
         values["update"] = self.is_update
 
         return values
+
+
+class TextObjectFieldViewMixin(DetailView):
+    template_name = "research/partials/text_object_preview.html"
+    model = None
+    hx_trigger = None
+    textobject_field = None
+    hide_empty = False
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["hide_empty"] = self.hide_empty
+        context["object_class"] = self.object._meta.model_name
+        if self.textobject_field:
+            context["text_object"] = getattr(context["object"], self.textobject_field)
+        return context
+
+
+class TextObjectFieldUpdateMixin(object):
+    template_name = "research/inline_forms/introduction_form.html"
+    success_template_name = "research/partials/text_object_preview.html"
+    hx_trigger = None
+    textobject_field = None
+    hide_empty = False
+
+    def form_valid(self, form):
+        self.object = form.save()
+        context = self.get_context_data()
+        response = render(
+            self.request, template_name=self.success_template_name, context=context
+        )
+        # Add htmx trigger for client side response to update
+        if self.hx_trigger:
+            response["HX-Trigger"] = self.hx_trigger
+        return response
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["hide_empty"] = self.hide_empty
+        model_name = self.object._meta.model_name
+        context["object_class"] = model_name
+        # Horrible hack to deal with anonymous fragment namespace not being the same as model_name
+        if model_name == "anonymousfragment":
+            model_namespace = "anonymous_fragment"
+            url_name = self.textobject_field
+        # Another horrible hack to deal with books not having their own namespace
+        elif model_name == "book":
+            model_namespace = "work"
+            url_name = "book_introduction"
+        else:
+            model_namespace = model_name
+            url_name = self.textobject_field
+        context["cancel_url"] = reverse(
+            f"{model_namespace}:{url_name}", args=[self.object.id]
+        )
+        if self.textobject_field:
+            context["text_object"] = getattr(context["object"], self.textobject_field)
+        return context

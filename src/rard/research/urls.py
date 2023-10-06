@@ -72,6 +72,11 @@ urlpatterns = [
         views.RefreshOriginalTextContentView.as_view(),
         name="refresh_original_text_content",
     ),
+    path(
+        "render-editor-modal-template/",
+        views.render_editor_modal_template,
+        name="render_editor_modal_template",
+    ),
     # path("comment/<pk>/delete/", views.CommentDeleteView.as_view(), name="delete_comment"),
     # path("text-field/<pk>/comments/", views.TextObjectFieldCommentListView.as_view(), name="list_comments_on_text"),
     path(
@@ -85,6 +90,11 @@ urlpatterns = [
                     ),
                     path("<pk>/", views.AntiquarianDetailView.as_view(), name="detail"),
                     path(
+                        "<pk>/introduction/",
+                        views.AntiquarianIntroductionView.as_view(),
+                        name="introduction",
+                    ),
+                    path(
                         "<pk>/update/",
                         views.AntiquarianUpdateView.as_view(),
                         name="update",
@@ -93,6 +103,16 @@ urlpatterns = [
                         "<pk>/update/introduction/",
                         views.AntiquarianUpdateIntroductionView.as_view(),
                         name="update_introduction",
+                    ),
+                    path(
+                        "<pk>/bibliography/",
+                        views.BibliographySectionView.as_view(),
+                        name="bibliography",
+                    ),
+                    path(
+                        "<pk>/refresh_bibliography/",
+                        views.refresh_bibliography_from_mentions,
+                        name="refresh_bibliography",
                     ),
                     path(
                         "<pk>/delete/",
@@ -110,8 +130,8 @@ urlpatterns = [
                         name="update_works",
                     ),
                     path(
-                        "<pk>/bibliograpny/create/",
-                        views.AntiquarianBibliographyCreateView.as_view(),
+                        "<pk>/bibliography/create/",
+                        views.BibliographyCreateView.as_view(),
                         name="create_bibliography",
                     ),
                     path(
@@ -140,7 +160,23 @@ urlpatterns = [
         include(
             (
                 [
+                    path("", views.BibliographyOverviewView.as_view(), name="overview"),
                     path("list/", views.BibliographyListView.as_view(), name="list"),
+                    path(
+                        "create/",
+                        views.BibliographyCreateView.as_view(),
+                        name="create",
+                    ),
+                    path(
+                        "create-inline/",
+                        views.BibliographyCreateInlineView.as_view(),
+                        name="create_inline",
+                    ),
+                    path(
+                        "<pk>/",
+                        views.BibliographyDetailView.as_view(),
+                        name="detail",
+                    ),
                     path(
                         "<pk>/update/",
                         views.BibliographyUpdateView.as_view(),
@@ -183,6 +219,16 @@ urlpatterns = [
                         name="delete_book",
                     ),
                     path(
+                        "book/<pk>/introduction/",
+                        views.BookIntroductionView.as_view(),
+                        name="book_introduction",
+                    ),
+                    path(
+                        "<pk>/introduction/",
+                        views.WorkIntroductionView.as_view(),
+                        name="introduction",
+                    ),
+                    path(
                         "<pk>/update/introduction/",
                         views.WorkUpdateIntroductionView.as_view(),
                         name="update_introduction",
@@ -214,6 +260,11 @@ urlpatterns = [
                         "update-link/<pk>",
                         views.FragmentUpdateWorkLinkView.as_view(),
                         name="update_fragment_link",
+                    ),
+                    path(
+                        "<pk>/commentary/",
+                        views.FragmentCommentaryView.as_view(),
+                        name="commentary",
                     ),
                     path(
                         "<pk>/update/commentary/",
@@ -288,6 +339,11 @@ urlpatterns = [
                         name="unlink_apposita",
                     ),
                     path(
+                        "<pk>/commentary/",
+                        views.AnonymousFragmentCommentaryView.as_view(),
+                        name="commentary",
+                    ),
+                    path(
                         "<pk>/update/",
                         views.AnonymousFragmentUpdateView.as_view(),
                         name="update",
@@ -343,6 +399,11 @@ urlpatterns = [
                         "update-link/<pk>",
                         views.TestimoniumUpdateWorkLinkView.as_view(),
                         name="update_testimonium_link",
+                    ),
+                    path(
+                        "<pk>/commentary/",
+                        views.TestimoniumCommentaryView.as_view(),
+                        name="commentary",
                     ),
                     path(
                         "<pk>/update/commentary/",

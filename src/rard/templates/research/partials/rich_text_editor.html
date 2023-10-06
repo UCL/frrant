@@ -3,7 +3,7 @@
 
 <div class='row mb-3 mt-n3 editor-area'>
     <div class='col h-fill' style='min-height: {% if min_height %}{{ min_height }}{% else %}400{% endif %}px; padding-bottom: {% if padding_bottom != None %}{{ padding_bottom }}{% else %}60{% endif %}px;'>
-        <div id='{{ field.auto_id }}_editor' {% if object_class %}data-class='{{ object_class }}'{% endif %} {% if object_id %}data-object='{{ object_id }}'{% endif %} class='rich-editor {% if enable_mentions %}enable-mentions{% endif %} {% if enable_apparatus_criticus %}enable-apparatus-criticus{% endif %}' spellcheck="false"  id='{{ field.auto_id }}_rich_editor_content' data-for='{{ field.auto_id }}'>
+        <div id='{{ field.auto_id }}_editor' {% if object_class %}data-class='{{ object_class }}'{% endif %} {% if object_id %}data-object='{{ object_id }}'{% endif %} class='rich-editor {% if enable_mentions %}enable-mentions{% endif %} {% if enable_apparatus_criticus %}enable-apparatus-criticus{% endif %}' spellcheck="false"  id='{{ field.auto_id }}_rich_editor_content' data-for='{{ field.auto_id }}' data-model-field='{{ field.name }}'>
         </div>
         <div class='text-muted'>
           {% if enable_mentions %}
@@ -29,6 +29,27 @@
               <small>Enter a, b, c for the index of the original text where if than one exists for this object</small>
               {% endif %}
           {% endif %}
-        </div>
+          <small
+            data-toggle="tooltip"
+            data-html="true"
+            title="
+              • To edit a footnote's contents, click on it in the footnotes section of the editor <br>
+              • Hover an indicator to see the note's contents <br>
+              • If you add a table to a footnote please ensure there is enough whitespace between the main content and the footnote area so they don't overlap <br>
+              • Footnotes are not available inside tables"
+            >Footnote hints <i class="bi bi-info-circle"></i></small>
+            <small
+            data-toggle="tooltip"
+            data-html="true"
+            title="
+              • <b>Double click a cell to edit it</b> <br>
+              • To delete a table, backspace on it <br>
+              • Adding rows always appends to the bottom and columns always to the rightmost end <br>
+              • Cells will resize based on content <br>
+              • Footnotes are not available inside tables
+              "
+            >Table hints <i class="bi bi-info-circle"></i></small>
+          </div>
     </div>
 </div>
+<br>

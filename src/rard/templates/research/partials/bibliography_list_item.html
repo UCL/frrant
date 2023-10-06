@@ -1,4 +1,5 @@
-{# Assumes context objects named 'item', 'has_object_lock' and 'can_edit' #}
+{# Assumes context object named 'item' #}
+{#bibliography now not a child of only antiquarian, so can't edit from here#}
 
 {% load i18n humanize %}
 
@@ -6,26 +7,10 @@
 <div class='rard-list-item'>
     <div class='row'>
 
-            <div class="col-sm-3">{{ item.authors }}</div>
+            <div class="col-sm-3"><a href='{% url "bibliography:detail" item.pk %}'>{{ item.authors }}</a></div>
             <div class="col-sm-2">{% if item.year %}{{ item.year }}{% endif %}</div>
-            <div class="col-sm-4">{{ item.title|safe }}</div>
-            <div class="col-sm-3">
-                {% if can_edit and has_object_lock %}
-                <form novalidate style='float:right' class='form-inline' action='{% url "bibliography:delete" item.pk %}' method='POST'>
-                    <a data-placement="top" data-toggle='tooltip' title='Show changelog' class='text-muted' href='{{ item.history_url }}'><i class='fas fa-list'></i></a>
+            <div class="col-sm-4"><a href='{% url "bibliography:detail" item.pk %}'>{{ item.title|safe }}</a></div>
 
-                    <a class='ml-2' href='{% url "bibliography:update" item.pk %}'>Edit</a>
-                    {% csrf_token %}
-                    <div class='form-group ml-2'>
-                        <button type='submit' class='btn btn-item text-danger confirm-delete p-0'
-                            data-what='bibliography item'>{% trans 'Delete' %}</button>
-                    </div>
-                </form>
-                {% endif %}
 
-            </div>
-            <div class='col'>
-
-            </div>
     </div>
 </div>

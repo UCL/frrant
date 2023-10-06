@@ -1,12 +1,13 @@
 from django.contrib.auth.context_processors import PermWrapper
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import Http404, HttpResponseRedirect, JsonResponse
+from django.http import Http404, HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 from django.views.generic import ListView, View
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
@@ -18,14 +19,14 @@ from rard.research.forms import (
     AntiquarianUpdateWorksForm,
     WorkForm,
 )
-from rard.research.models import (
-    Antiquarian,
-    AntiquarianConcordance,
-    BibliographyItem,
-    Book,
-    Work,
+from rard.research.models import Antiquarian, AntiquarianConcordance, Book, Work
+from rard.research.views.mixins import (
+    CanLockMixin,
+    CheckLockMixin,
+    DateOrderMixin,
+    TextObjectFieldUpdateMixin,
+    TextObjectFieldViewMixin,
 )
-from rard.research.views.mixins import CanLockMixin, CheckLockMixin, DateOrderMixin
 
 
 class AntiquarianListView(
@@ -199,27 +200,21 @@ class AntiquarianUpdateView(
     permission_required = ("research.change_antiquarian",)
     form_class = AntiquarianDetailsForm
 
-    def get_success_url(self, *args, **kwargs):
-        return reverse("antiquarian:detail", kwargs={"pk": self.object.pk})
 
-
-class AntiquarianUpdateIntroductionView(AntiquarianUpdateView):
+class AntiquarianUpdateIntroductionView(
+    TextObjectFieldUpdateMixin, AntiquarianUpdateView
+):
     model = Antiquarian
     permission_required = ("research.change_antiquarian",)
     form_class = AntiquarianIntroductionForm
-    template_name = "research/antiquarian_detail.html"
+    hx_trigger = "intro-updated"
+    textobject_field = "introduction"
 
-    def get_success_url(self, *args, **kwargs):
-        return reverse("antiquarian:detail", kwargs={"pk": self.get_object().pk})
 
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
-        context.update(
-            {
-                "editing": "introduction",
-            }
-        )
-        return context
+class AntiquarianIntroductionView(TextObjectFieldViewMixin):
+    model = Antiquarian
+    permission_required = ("research.view_antiquarian",)
+    textobject_field = "introduction"
 
 
 @method_decorator(require_POST, name="dispatch")
@@ -229,54 +224,6 @@ class AntiquarianDeleteView(
     model = Antiquarian
     permission_required = ("research.delete_antiquarian",)
     success_url = reverse_lazy("antiquarian:list")
-
-
-class AntiquarianBibliographyCreateView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, CreateView
-):
-    # the view attribute that needs to be checked for a lock
-    check_lock_object = "antiquarian"
-
-    model = BibliographyItem
-    fields = (
-        "authors",
-        "author_surnames",
-        "year",
-        "title",
-    )
-    permission_required = (
-        "research.change_antiquarian",
-        "research.add_bibliographyitem",
-    )
-
-    def get_success_url(self, *args, **kwargs):
-        return reverse("antiquarian:detail", kwargs={"pk": self.antiquarian.pk})
-
-    def dispatch(self, *args, **kwargs):
-        # need to ensure the lock-checked attribute is initialised in dispatch
-        self.get_antiquarian()
-        return super().dispatch(*args, **kwargs)
-
-    def form_valid(self, form):
-        # self.antiquarian = self.get_antiquarian()
-        item = form.save(commit=False)
-        item.parent = self.antiquarian
-        # self.antiquarian.bibliography_items.add(item)
-        return super().form_valid(form)
-
-    def get_antiquarian(self, *args, **kwargs):
-        if not getattr(self, "antiquarian", False):
-            self.antiquarian = get_object_or_404(Antiquarian, pk=self.kwargs.get("pk"))
-        return self.antiquarian
-
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
-        context.update(
-            {
-                "antiquarian": self.antiquarian,
-            }
-        )
-        return context
 
 
 class AntiquarianWorksUpdateView(
@@ -416,3 +363,25 @@ class AntiquarianConcordanceDeleteView(
 
     def get_success_url(self, *args, **kwargs):
         return self.object.antiquarian.get_absolute_url()
+
+
+@require_GET
+@login_required
+@permission_required("research.change_antiquarian")
+def refresh_bibliography_from_mentions(request, pk):
+    """Given the pk of an Antiquarian object, call its
+    refresh_bibliography_items_from_mentions method to
+    parse DynamicTextFields for mentions of bibliography
+    items and link these directly."""
+    try:
+        antiquarian = Antiquarian.objects.get(pk=pk)
+    except Antiquarian.DoesNotExist:
+        raise Http404("No Antiquarians found matching the query")
+
+    antiquarian.refresh_bibliography_items_from_mentions()
+
+    response = HttpResponse(
+        status=204,
+    )
+    response.headers["HX-Trigger"] = "refreshed-bibliography"
+    return response

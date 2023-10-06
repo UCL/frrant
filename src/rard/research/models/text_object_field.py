@@ -18,8 +18,6 @@ class TextObjectField(HistoryModelMixin, BaseModel):
 
     comments = GenericRelation("Comment", related_query_name="text_fields")
 
-    references = GenericRelation("BibliographyItem", related_query_name="text_fields")
-
     def get_history_title(self):
         obj = self.get_related_object()
         if obj.__class__.__name__ in ["Antiquarian", "Work", "Book"]:
@@ -42,7 +40,11 @@ class TextObjectField(HistoryModelMixin, BaseModel):
         return None
 
     def save(self, *args, **kwargs):
-        # save the parent object so the plain intro/commentary is processed
+        # Update links generated from mentions each time we save
+        self.link_bibliography_mentions_in_content()
+
+        # save the parent object so the plain intro/commentary is
+        # updated for search purposes.
         obj = self.get_related_object()
         if obj:
             obj.save()
@@ -54,6 +56,13 @@ class TextObjectField(HistoryModelMixin, BaseModel):
 
         related = self.get_related_object()
         return related if isinstance(related, Fragment) else None
+
+    @property
+    def anonymousfragment(self):
+        from rard.research.models import AnonymousFragment
+
+        related = self.get_related_object()
+        return related if isinstance(related, AnonymousFragment) else None
 
     @property
     def testimonium(self):
