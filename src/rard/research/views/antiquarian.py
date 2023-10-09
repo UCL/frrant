@@ -25,6 +25,7 @@ from rard.research.views.mixins import (
     CheckLockMixin,
     DateOrderMixin,
     TextObjectFieldUpdateMixin,
+    TextObjectFieldViewMixin,
 )
 
 
@@ -207,6 +208,12 @@ class AntiquarianUpdateIntroductionView(
     permission_required = ("research.change_antiquarian",)
     form_class = AntiquarianIntroductionForm
     hx_trigger = "intro-updated"
+    textobject_field = "introduction"
+
+
+class AntiquarianIntroductionView(TextObjectFieldViewMixin):
+    model = Antiquarian
+    permission_required = ("research.view_antiquarian",)
     textobject_field = "introduction"
 
 
