@@ -806,7 +806,6 @@ class BaseLinkWorkForm(forms.ModelForm):
         if update:
             antiquarian = kwargs["initial"]["antiquarian"]
             work = kwargs["initial"]["work"]
-            book = kwargs["initial"]["book"]
             if "data" in kwargs:
                 # this is where the new values are
                 work = Work.objects.get(pk=kwargs["data"]["work"])
