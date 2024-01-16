@@ -16,7 +16,6 @@ from rard.research.models.base import (
 from rard.research.models.mixins import HistoryModelMixin, TextObjectFieldMixin
 from rard.utils.basemodel import BaseModel, DatedModel, LockableModel, OrderableModel
 from rard.utils.decorators import disable_for_loaddata
-
 from rard.utils.shared_functions import collate_ub_links
 from rard.utils.text_processors import make_plain_text
 
