@@ -11,6 +11,7 @@ from rard.research.models import (
     Work,
 )
 from rard.research.models.base import FragmentLink, TestimoniumLink
+from rard.research.models.work import collate_unknown
 
 pytestmark = pytest.mark.django_db
 
@@ -361,6 +362,22 @@ class TestWork(TestCase):
         work.delete()
         with self.assertRaises(TextObjectField.DoesNotExist):
             TextObjectField.objects.get(pk=introduction_pk)
+
+    def test_collate_unknown(self):
+        data = {
+            "name": "workname",
+            "subtitle": "Subtitle",
+        }
+        w = Work.objects.create(**data)
+        original_unknown = w.unknown_book
+        additional_unknown = Book.objects.create(
+            unknown=True, subtitle="Unknown Book", work=w
+        )
+        additional_unknown.save()
+        self.assertEqual(w.book_set.filter(unknown=True).count(), 2)
+        collate_unknown(w)
+        self.assertEqual(w.book_set.filter(unknown=True).count(), 1)
+        self.assertEqual(original_unknown.pk, w.unknown_book.pk)
 
 
 class TestBook(TestCase):
