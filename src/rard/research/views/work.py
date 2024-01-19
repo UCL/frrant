@@ -270,12 +270,6 @@ def fetch_books(request):
     work = Work.objects.get(pk=pk)
     books = work.book_set.all()
 
-    # books_options_html = "<option value>----------</option>"
-    # for book in books:
-    #         books_options_html += f'<option value="{book.pk}">{book}</option>'
-
-    #     response = HttpResponse(books_options_html, content_type="text/html")
-
     return render(
         request, "research/partials/render_htmx_book_field.html", {"books": books}
     )
