@@ -928,20 +928,12 @@ class AppositumFragmentLinkForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-
-        self.fields["linked_to"].initial = Fragment.objects.all()
-
-    def get_fragment_queryset(self):
-        queryset = Fragment.objects.all()
-
-        # Example filter based on some condition
-        antiquarian_id = self.cleaned_data.get("antiquarian")
-        if antiquarian_id:
-            queryset = queryset.filter(antiquarian_id=antiquarian_id)
-
-        # Add more filters as needed (e.g., Work, Book)
-
-        return queryset
+        self.fields["linked_to"].widget = forms.Select(
+            attrs={
+                "id": "search-results",
+            },
+            choices=[("", "Results will appear here")],
+        )
 
 
 class CitingWorkCreateForm(forms.ModelForm):

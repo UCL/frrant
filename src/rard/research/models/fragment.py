@@ -141,6 +141,7 @@ class Fragment(HistoryModelMixin, HistoricalBaseModel, DatedModel):
     def save(self, *args, **kwargs):
         if self.commentary:
             self.plain_commentary = make_plain_text(self.commentary.content)
+
         super().save(*args, **kwargs)
 
     def __str__(self):
