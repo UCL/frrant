@@ -187,6 +187,8 @@ icons["redo"] =
 // and for the custom buttons
 icons["vinculum_on"] = "V\u0305";
 icons["vinculum_off"] = "V";
+icons["underdot_on"] = "U\u0323";
+icons["underdot_off"] = "U";
 icons["footnote"] = '<i class="far fa-comment-alt"></i>';
 icons["table"] = '<i class="fas fa-table">+</i>';
 
@@ -241,6 +243,7 @@ function initRichTextEditor($item) {
           [{ undo: "undo" }, { redo: "redo" }],
           ["bold", "italic", "underline", "strike"],
           [{ vinculum_on: "vinculum_on" }, { vinculum_off: "vinculum_off" }],
+          [{ underdot_on: "underdot_on" }, { underdot_off: "underdot_off" }],
           [{ script: "super" }, { script: "sub" }],
           [{ list: "ordered" }, { list: "bullet" }],
           [{ align: [] }],
@@ -306,6 +309,37 @@ function initRichTextEditor($item) {
                 let html = "";
                 for (let i = 0; i < text.length; i++) {
                   if (text[i] != "\u0305") {
+                    html += text[i];
+                  }
+                }
+                this.quill.deleteText(range.index, range.length);
+                this.quill.insertText(range.index, html);
+              }
+            }
+          },
+          underdot_on: function (value) {
+            var range = this.quill.getSelection();
+            if (range) {
+              if (range.length > 0) {
+                var text = this.quill.getText(range.index, range.length);
+                let html = "";
+                for (let i = 0; i < text.length; i++) {
+                  html += text[i] + "\u0323";
+                }
+                this.quill.deleteText(range.index, range.length);
+                this.quill.insertText(range.index, html);
+              }
+            }
+          },
+          underdot_off: function (value) {
+            var range = this.quill.getSelection();
+            if (range) {
+              if (range.length > 0) {
+                var text = this.quill.getText(range.index, range.length);
+
+                let html = "";
+                for (let i = 0; i < text.length; i++) {
+                  if (text[i] != "\u0323") {
                     html += text[i];
                   }
                 }
