@@ -39,22 +39,12 @@ class TextObjectField(HistoryModelMixin, BaseModel):
                 pass
         return None
 
-    def save(self, *args, **kwargs):
-        # Update links generated from mentions each time we save
-        self.link_bibliography_mentions_in_content()
-        self.update_mentions()
-
-        # save the parent object so the plain intro/commentary is
-        # updated for search purposes.
-        obj = self.get_related_object()
-        if obj:
-            obj.save()
-        super().save(*args, **kwargs)
-
     fragment_testimonia_mentions = []
 
     def update_mentions(self):
+        # get the items currently mentioned in the TOF
         found_mention_items = self.get_fragment_testimonia_mentions()
+        # Compare the list of currently found to previously found items and if they differ, update
         if self.fragment_testimonia_mentions != found_mention_items:
             items_to_remove = [
                 item
@@ -73,9 +63,23 @@ class TextObjectField(HistoryModelMixin, BaseModel):
                 self.fragment_testimonia_mentions.remove(item)
 
         for item in to_set:
-            item.mentioned_in.add(self)
-            self.fragment_testimonia_mentions.append(item)
+            item.mentioned_in.add(self)  # add this TOF to the item found via m2m
+            self.fragment_testimonia_mentions.append(
+                item
+            )  # add the found object to the list
         return self.fragment_testimonia_mentions
+
+    def save(self, *args, **kwargs):
+        # Update links generated from mentions each time we save
+        self.link_bibliography_mentions_in_content()
+        self.update_mentions()
+
+        # save the parent object so the plain intro/commentary is
+        # updated for search purposes.
+        obj = self.get_related_object()
+        if obj:
+            obj.save()
+        super().save(*args, **kwargs)
 
     @property
     def fragment(self):

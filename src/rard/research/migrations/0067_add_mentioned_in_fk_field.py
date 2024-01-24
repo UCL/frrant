@@ -3,6 +3,13 @@
 from django.db import migrations, models
 
 
+# def update_mentions(apps, schema_editor):
+#     TextObjectField = apps.get_model("research", "TextObjectField")
+#     # this should trigger the mentions to be generated
+#     for text_object in TextObjectField.objects.all():
+#         text_object.update_mentions()
+
+
 class Migration(migrations.Migration):
     dependencies = [
         ("research", "0066_remove_bibliography_item_gfk"),
@@ -24,4 +31,5 @@ class Migration(migrations.Migration):
             name="mentioned_in",
             field=models.ManyToManyField(blank=True, to="research.TextObjectField"),
         ),
+        # migrations.RunPython(update_mentions, migrations.RunPython.noop),
     ]
