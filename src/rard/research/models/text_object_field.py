@@ -42,6 +42,7 @@ class TextObjectField(HistoryModelMixin, BaseModel):
     def save(self, *args, **kwargs):
         # Update links generated from mentions each time we save
         self.link_bibliography_mentions_in_content()
+        self.update_mentions()
 
         # save the parent object so the plain intro/commentary is
         # updated for search purposes.
@@ -49,6 +50,32 @@ class TextObjectField(HistoryModelMixin, BaseModel):
         if obj:
             obj.save()
         super().save(*args, **kwargs)
+
+    fragment_testimonia_mentions = []
+
+    def update_mentions(self):
+        found_mention_items = self.get_fragment_testimonia_mentions()
+        if self.fragment_testimonia_mentions != found_mention_items:
+            items_to_remove = [
+                item
+                for item in self.fragment_testimonia_mentions
+                if item not in found_mention_items
+            ]
+
+            return self.set_fragment_testimonia_mentions(
+                found_mention_items, items_to_remove
+            )
+
+    def set_fragment_testimonia_mentions(self, to_set, to_remove):
+        for item in self.fragment_testimonia_mentions:
+            if item in to_remove:
+                item.mentioned_in.remove(self)
+                self.fragment_testimonia_mentions.remove(item)
+
+        for item in to_set:
+            item.mentioned_in.add(self)
+            self.fragment_testimonia_mentions.append(item)
+        return self.fragment_testimonia_mentions
 
     @property
     def fragment(self):
