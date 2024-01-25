@@ -21,7 +21,7 @@
             <form novalidate style='margin-left:auto' class='form-inline' action='{% url "fragment:delete" fragment.pk %}' method='POST'>
                 {% csrf_token %}
                 <div class='form-group'>
-                    <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+                    <button type='submit' class='btn btn-link text-danger {% if object.mentioned_in.all %}confirm-delete-mentions {% else %} confirm-delete {% endif %} p-0 ml-2'
                         data-what='fragment'>{% trans 'Delete' %}</button>
                 </div>
             </form>
@@ -254,7 +254,7 @@
     {% if object.mentioned_in.all %}
     <hr>
 
-    <section>
+    <section id="mentions">
         <div class='d-flex justify-content-between mb-3'>
             <div>
                 <h5>{% trans 'Mentions' %}</h5>
