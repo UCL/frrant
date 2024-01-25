@@ -117,12 +117,14 @@ $("body").on("submit", "form", function (e) {
       document
         .getElementById("mentions")
         .scrollIntoView({ behavior: "smooth" });
+
       return confirm(
         "Are you sure you want to delete this " +
           what +
-          "? It is mentioned in the following places."
+          "? It has been mentioned elsewhere. Deletion cannot be undone."
       );
     }
+
     if ($clicked.hasClass("confirm-delete")) {
       let what = $clicked.data("what") || "object";
       return confirm(
