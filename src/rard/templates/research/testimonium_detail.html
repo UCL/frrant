@@ -21,7 +21,7 @@
             <form novalidate class='form-inline' action='{% url "testimonium:delete" testimonium.pk %}' method='POST'>
                 {% csrf_token %}
                 <div class='form-group'>
-                    <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+                    <button type='submit' class='btn btn-link text-danger {% if object.mentioned_in.all %}confirm-delete-mentions {% else %} confirm-delete {% endif %} p-0 ml-2'
                         data-what='testimonium'>{% trans 'Delete' %}</button>
                 </div>
             </form>
