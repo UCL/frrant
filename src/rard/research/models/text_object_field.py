@@ -27,21 +27,14 @@ class TextObjectField(HistoryModelMixin, BaseModel):
     def __str__(self):
         return self.content
 
-    def get_related_object(self, exclude_properties=False):
+    def get_related_object(self):
         # what model instance owns this text object field?
         related_fields = [
-            f for f in self._meta.get_fields() if f.auto_created and not f.concrete
+            f
+            for f in self._meta.get_fields()
+            if f.auto_created and not f.concrete and not f.many_to_many
         ]
         for field in related_fields:
-            if exclude_properties and field.name in [
-                "fragment",
-                "anonymousfragment",
-                "work",
-                "book",
-                "testimonium",
-                "antiquarian",
-            ]:
-                continue
             try:
                 return getattr(self, field.name)
             except ObjectDoesNotExist:
@@ -94,40 +87,40 @@ class TextObjectField(HistoryModelMixin, BaseModel):
     def fragment(self):
         from rard.research.models import Fragment
 
-        related = self.get_related_object(exclude_properties=True)
+        related = self.get_related_object("one_to_one")
         return related if isinstance(related, Fragment) else None
 
     @property
     def anonymousfragment(self):
         from rard.research.models import AnonymousFragment
 
-        related = self.get_related_object(exclude_properties=True)
+        related = self.get_related_object()
         return related if isinstance(related, AnonymousFragment) else None
 
     @property
     def testimonium(self):
         from rard.research.models import Testimonium
 
-        related = self.get_related_object(exclude_properties=True)
+        related = self.get_related_object()
         return related if isinstance(related, Testimonium) else None
 
     @property
     def antiquarian(self):
         from rard.research.models import Antiquarian
 
-        related = self.get_related_object(exclude_properties=True)
+        related = self.get_related_object()
         return related if isinstance(related, Antiquarian) else None
 
     @property
     def work(self):
         from rard.research.models import Work
 
-        related = self.get_related_object(exclude_properties=True)
+        related = self.get_related_object()
         return related if isinstance(related, Work) else None
 
     @property
     def book(self):
         from rard.research.models import Book
 
-        related = self.get_related_object(exclude_properties=True)
+        related = self.get_related_object()
         return related if isinstance(related, Book) else None

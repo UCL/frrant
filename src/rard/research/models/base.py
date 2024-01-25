@@ -541,7 +541,9 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
 
     images = models.ManyToManyField("Image", blank=True)
 
-    mentioned_in = models.ManyToManyField("TextObjectField", blank=True)
+    mentioned_in = models.ManyToManyField(
+        "TextObjectField", blank=True, related_name="%(class)s_mentions"
+    )
 
     @property
     def mentioned_in_list(self):

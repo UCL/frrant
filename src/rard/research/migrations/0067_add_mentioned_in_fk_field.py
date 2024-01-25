@@ -60,17 +60,29 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="anonymousfragment",
             name="mentioned_in",
-            field=models.ManyToManyField(blank=True, to="research.TextObjectField"),
+            field=models.ManyToManyField(
+                blank=True,
+                to="research.TextObjectField",
+                related_name="%(class)s_mentions",
+            ),
         ),
         migrations.AddField(
             model_name="fragment",
             name="mentioned_in",
-            field=models.ManyToManyField(blank=True, to="research.TextObjectField"),
+            field=models.ManyToManyField(
+                blank=True,
+                to="research.TextObjectField",
+                related_name="%(class)s_mentions",
+            ),
         ),
         migrations.AddField(
             model_name="testimonium",
             name="mentioned_in",
-            field=models.ManyToManyField(blank=True, to="research.TextObjectField"),
+            field=models.ManyToManyField(
+                blank=True,
+                to="research.TextObjectField",
+                related_name="%(class)s_mentions",
+            ),
         ),
         migrations.RunPython(update_mentions, migrations.RunPython.noop),
     ]
