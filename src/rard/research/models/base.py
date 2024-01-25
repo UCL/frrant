@@ -548,7 +548,13 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
     @property
     def mentioned_in_list(self):
         mentions = [
-            (m.get_related_object(), m.get_related_object().__class__.__name__.lower())
+            (
+                m.get_related_object(),
+                "anonymous_fragment"
+                if m.get_related_object().__class__.__name__.lower()
+                == "anonymousfragment"
+                else m.get_related_object().__class__.__name__.lower(),
+            )
             for m in self.mentioned_in.all()
         ]
         return mentions
