@@ -992,11 +992,17 @@ class MoveAnonymousTopicLinkView(LoginRequiredMixin, View):
 
 
 def fetch_fragments(request):
+    # Mention search methods expect a list of search terms so split on space
     query = request.GET.get("search-fragments")
-    if "unlinked" in query:
-        fragments = MentionSearchView.unlinked_fragment_search(query)
+    if query:
+        search_terms = query.split(" ")
+        if "unlinked" in search_terms:
+            fragments = MentionSearchView.unlinked_fragment_search(search_terms)
+        else:
+            fragments = MentionSearchView.fragment_search(search_terms)
     else:
-        fragments = MentionSearchView.fragment_search(query)
+        # empty query => empty fragment queryset
+        fragments = Fragment.objects.none()
 
     return render(
         request,
