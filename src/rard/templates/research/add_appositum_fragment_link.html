@@ -13,7 +13,8 @@
     <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
         {% csrf_token %}
         <input type="text" id="search-fragments" name="search-fragments" placeholder="Start typing to search for fragments..." hx-get="{% url 'fragment:fetch_fragments' %}" hx-trigger="keyup delay:500ms changed" hx-swap="innerHTML" hx-target="#search-results" class="form-control">
-
+        <small class="text-muted">You may search by antiquarian name and include a number referring to the fragment number, eg. "publius 12". For unlinked, search "unlinked" </small>
+        <br></br>
         {% bootstrap_field form.linked_to %}
 
 
