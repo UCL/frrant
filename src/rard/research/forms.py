@@ -809,7 +809,8 @@ class BaseLinkWorkForm(forms.ModelForm):
             if "data" in kwargs:
                 # this is where the new values are
                 work = Work.objects.get(pk=kwargs["data"]["work"])
-                book = Book.objects.get(pk=kwargs["data"]["book"])
+                if kwargs["data"]["book"]:
+                    book = Book.objects.get(pk=kwargs["data"]["book"])
 
         if antiquarian:
             self.fields["antiquarian"].initial = antiquarian
