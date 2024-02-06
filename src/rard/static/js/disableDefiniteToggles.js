@@ -20,12 +20,16 @@ workSelectElems.forEach((select) => {
     var target = e.target;
     var value = target.selectedOptions[0].innerText;
     var parentElem = target.closest(".work-details");
-    var definiteBookToggle = parentElem.querySelector("#id_definite_work");
+    var definiteWorkToggle = parentElem.querySelector("#id_definite_work");
+    var parentForm = target.closest("form");
+    var definiteBookToggle = parentForm.querySelector("#id_definite_book");
 
     if (value.toString().toLowerCase().includes("unknown")) {
+      definiteWorkToggle.disabled = true;
+      definiteWorkToggle.checked = false;
       definiteBookToggle.disabled = true;
       definiteBookToggle.checked = false;
-    } else definiteBookToggle.disabled = false;
+    } else definiteWorkToggle.disabled = false;
   };
 });
 
