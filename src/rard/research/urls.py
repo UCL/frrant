@@ -297,6 +297,11 @@ urlpatterns = [
                         views.FragmentOriginalTextCreateView.as_view(),
                         name="create_original_text",
                     ),
+                    path(
+                        "fetch-fragments",
+                        views.fetch_fragments,
+                        name="fetch_fragments",
+                    ),
                     # include common urls here
                     path("", include(common_patterns)),
                 ],

@@ -41,6 +41,7 @@ from rard.research.models import (
 )
 from rard.research.models.base import AppositumFragmentLink, FragmentLink
 from rard.research.models.fragment import AnonymousTopicLink
+from rard.research.views.mention import MentionSearchView
 from rard.research.views.mixins import (
     CanLockMixin,
     CheckLockMixin,
@@ -988,3 +989,23 @@ class MoveAnonymousTopicLinkView(LoginRequiredMixin, View):
                 raise Http404
 
         raise Http404
+
+
+def fetch_fragments(request):
+    # Mention search methods expect a list of search terms so split on space
+    query = request.GET.get("search-fragments")
+    if query:
+        search_terms = query.split(" ")
+        if "unlinked" in search_terms:
+            fragments = MentionSearchView.unlinked_fragment_search(search_terms)
+        else:
+            fragments = MentionSearchView.fragment_search(search_terms)
+    else:
+        # empty query => empty fragment queryset
+        fragments = Fragment.objects.none()
+
+    return render(
+        request,
+        "research/partials/htmx_fragment_results.html",
+        {"fragments": fragments},
+    )

@@ -78,6 +78,7 @@ from .fragment import (
     RemoveFragmentLinkView,
     UnlinkedFragmentConvertToAnonymousView,
     UnlinkedFragmentListView,
+    fetch_fragments,
 )
 from .history import HistoryListView
 from .home import HomeView, render_editor_modal_template
@@ -205,6 +206,7 @@ __all__ = [
     "FragmentUpdateView",
     "FragmentUpdateWorkLinkView",
     "FragmentUpdateAntiquariansView",
+    "fetch_fragments",
     "HistoryListView",
     "HomeView",
     "MentionSearchView",
