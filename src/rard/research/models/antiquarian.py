@@ -390,7 +390,7 @@ class Antiquarian(
 @disable_for_loaddata
 def collate_unknown(instance):
     """This makes sure there's only one unknown work per antiquarian and combines contents if otherwise"""
-    unknown_works = instance.works.filter(unknown=True)
+    unknown_works = instance.works.filter(unknown=True).order_by("pk")
 
     if unknown_works.count() > 1:
         designated_unknown = unknown_works.first()
