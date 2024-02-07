@@ -238,6 +238,11 @@ urlpatterns = [
                         views.BookUpdateIntroductionView.as_view(),
                         name="update_book_introduction",
                     ),
+                    path(
+                        "fetch-books",
+                        views.fetch_books,
+                        name="fetch_books",
+                    ),
                 ],
                 "research",
             ),

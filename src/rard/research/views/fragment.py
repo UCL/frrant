@@ -880,7 +880,7 @@ class FragmentUpdateWorkLinkView(
 ):
     check_lock_object = "fragment"
     model = FragmentLink
-    template_name = "research/partials/render_inline_worklink_form.html"
+    template_name = "research/inline_forms/render_inline_worklink_form.html"
     form_class = FragmentLinkWorkForm
     is_update = True
     permission_required = "research.change_fragment"
@@ -917,6 +917,7 @@ class FragmentUpdateWorkLinkView(
             self.object.definite_work = data["definite_work"]
             self.object.definite_book = data["definite_book"]
             self.object.book = data["book"]
+            self.object.work = data["work"]
 
             self.object.save()
 

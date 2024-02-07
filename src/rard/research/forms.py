@@ -3,6 +3,7 @@ import re
 from django import forms
 from django.core.exceptions import FieldDoesNotExist
 from django.forms import ModelMultipleChoiceField, inlineformset_factory
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from rard.research.models import (
@@ -788,14 +789,16 @@ class BaseLinkWorkForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        # First remove the form kwargs added by GetWorkLinkRequestDataMixin
         update = kwargs.pop("update")
         antiquarian = kwargs.pop("antiquarian")
         work = kwargs.pop("work")
-        book = kwargs.get("book")
+        book = kwargs.pop("book")
         definite_antiquarian = kwargs.pop("definite_antiquarian")
         definite_work = kwargs.pop("definite_work")
-
         super().__init__(*args, **kwargs)
+
+        # Setup fields
         self.fields["book"].required = False
         self.fields["work"].required = False
         self.fields["definite_antiquarian"] = forms.BooleanField(required=False)
@@ -803,35 +806,58 @@ class BaseLinkWorkForm(forms.ModelForm):
         self.fields["definite_book"] = forms.BooleanField(required=False)
 
         if update:
-            antiquarian = kwargs["initial"]["antiquarian"]
-            work = kwargs["initial"]["work"]
+            # We don't need empty labels on select widgets if it's an update
+            self.fields["antiquarian"].empty_label = None
+            self.fields["work"].empty_label = None
+            self.fields["book"].empty_label = None
+
+            if "data" in kwargs:
+                # Get Work and Book from post data
+                if work_id := kwargs["data"]["work"]:
+                    work = Work.objects.get(pk=work_id)
+                if book_id := kwargs["data"]["book"]:
+                    book = Book.objects.get(pk=book_id)
+                antiquarian = Antiquarian.objects.get(pk=kwargs["data"]["antiquarian"])
+            else:
+                # Get everything from initial
+                antiquarian = kwargs["initial"]["antiquarian"]
+                definite_antiquarian = kwargs["initial"]["definite_antiquarian"]
+                work = kwargs["initial"]["work"]
+                definite_work = kwargs["initial"]["definite_work"]
+                book = kwargs["initial"]["book"]
 
         if antiquarian:
             self.fields["antiquarian"].initial = antiquarian
-            if update is not True:
-                self.fields["work"].queryset = antiquarian.works.all()
-                self.fields["definite_antiquarian"].initial = definite_antiquarian
+            self.fields["work"].queryset = antiquarian.works.all()
+            self.fields["definite_antiquarian"].initial = definite_antiquarian
         else:
             self.fields["work"].queryset = Work.objects.none()
-            if update is not True:
-                self.fields["work"].disabled = True
-                self.fields["definite_work"].widget.attrs["disabled"] = True
+            self.fields["work"].disabled = True
+            self.fields["definite_work"].widget.attrs["disabled"] = True
+            self.fields["book"].disabled = True
+            self.fields["definite_book"].widget.attrs["disabled"] = True
 
         if work:
-            if work.unknown:
-                self.fields["definite_work"].widget.attrs["disabled"] = True
-            if antiquarian:
-                self.fields["work"].initial = work
-                self.fields["definite_work"].initial = definite_work
-            else:
-                self.fields["work"].initial = None
-
+            self.fields["work"].initial = work
             self.fields["book"].queryset = work.book_set.all()
+            self.fields["definite_work"].initial = definite_work
+            if work.unknown:
+                # Neither work or book can be definite
+                self.fields["definite_work"].widget.attrs["disabled"] = True
+                self.fields["definite_book"].widget.attrs["disabled"] = True
+            self.fields["work"].widget.attrs.update(
+                {
+                    "hx-get": reverse("work:fetch_books"),
+                    "hx-swap": "innerHTML",
+                    "hx-trigger": "change",
+                    "hx-target": "select#id_book",
+                }
+            )
         else:
             self.fields["book"].queryset = Book.objects.none()
-            if update is not True:
-                self.fields["book"].disabled = True
-                self.fields["definite_book"].widget.attrs["disabled"] = True
+            self.fields["book"].disabled = True
+            self.fields["definite_book"].widget.attrs["disabled"] = True
+
         if book:
             if book.unknown:
                 self.fields["definite_book"].widget.attrs["disabled"] = True

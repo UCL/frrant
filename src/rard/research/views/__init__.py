@@ -131,6 +131,7 @@ from .work import (
     WorkListView,
     WorkUpdateIntroductionView,
     WorkUpdateView,
+    fetch_books,
 )
 
 __all__ = [
@@ -248,4 +249,5 @@ __all__ = [
     "refresh_bibliography_from_mentions",
     "WorkUpdateIntroductionView",
     "WorkIntroductionView",
+    "fetch_books",
 ]

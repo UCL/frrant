@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.generic import DetailView
 
-from rard.research.models import Antiquarian, Work
+from rard.research.models import Antiquarian, Book, Work
 
 
 class DateOrderMixin:
@@ -134,6 +134,20 @@ class GetWorkLinkRequestDataMixin:
         else:
             return False
 
+    def get_book(self, *args, **kwargs):
+        # look for book in the GET or POST parameters
+        self.book = None
+        if self.request.method == "GET":
+            book_pk = self.request.GET.get("book", None)
+        elif self.request.method == "POST":
+            book_pk = self.request.POST.get("book", None)
+        if book_pk:
+            try:
+                self.book = Book.objects.get(pk=book_pk)
+            except Book.DoesNotExist:
+                raise Http404
+        return self.book
+
     def get_definite_book(self, *args, **kwargs):
         # look for definite_book in the GET or POST parameters
         if self.request.method == "GET":
@@ -147,6 +161,7 @@ class GetWorkLinkRequestDataMixin:
         values = super().get_form_kwargs()
         values["antiquarian"] = self.get_antiquarian()
         values["work"] = self.get_work()
+        values["book"] = self.get_book()
         values["definite_antiquarian"] = self.get_definite_antiquarian()
         values["definite_work"] = self.get_definite_work()
         values["update"] = self.is_update

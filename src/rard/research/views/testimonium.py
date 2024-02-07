@@ -176,7 +176,7 @@ class TestimoniumUpdateWorkLinkView(
 ):
     check_lock_object = "testimonium"
     model = TestimoniumLink
-    template_name = "research/partials/render_inline_worklink_form.html"
+    template_name = "research/inline_forms/render_inline_worklink_form.html"
     form_class = TestimoniumLinkWorkForm
     is_update = True
     permission_required = "research.change_testimonium"
