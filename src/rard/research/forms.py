@@ -655,9 +655,6 @@ class AnonymousFragmentCommentaryForm(CommentaryFormBase):
 
 
 class HistoricalFormBase(forms.ModelForm):
-    class Meta:
-        readonly_fields = ("mentioned_in",)
-
     def save(self, commit=True):
         instance = super().save(commit=False)
         if commit:

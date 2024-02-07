@@ -112,6 +112,19 @@ $("body").on("submit", "form", function (e) {
           "It will be reassigned to Unknown Work if there are no other links to this antiquarian.\n This cannot be undone."
       );
     }
+    if ($clicked.hasClass("confirm-delete-mentions")) {
+      let what = $clicked.data("what") || "object";
+      document
+        .getElementById("mentions")
+        .scrollIntoView({ behavior: "smooth" });
+
+      return confirm(
+        "Are you sure you want to delete this " +
+          what +
+          "? It has been mentioned elsewhere. Deletion cannot be undone."
+      );
+    }
+
     if ($clicked.hasClass("confirm-delete")) {
       let what = $clicked.data("what") || "object";
       return confirm(

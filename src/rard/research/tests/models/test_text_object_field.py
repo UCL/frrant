@@ -118,3 +118,24 @@ class TestTextObjectField(TestCase):
         self.assertIn((antiquarian, "antiquarian"), fragment.mentioned_in_list)
         self.assertIn((antiquarian, "antiquarian"), anon_frag.mentioned_in_list)
         self.assertIn((antiquarian, "antiquarian"), testimonium.mentioned_in_list)
+
+        # check deletion
+        mention_html = (
+            f"<span class='mention' data-id='{fragment.id}'"
+            "data-target='fragment'>Test fragment mention</span>"
+        )
+        antiquarian.introduction.content = mention_html
+        antiquarian.introduction.save()
+        self.assertQuerysetEqual(
+            antiquarian.introduction.fragment_mentions.all(), [fragment]
+        )
+        self.assertNotIn(
+            testimonium, antiquarian.introduction.testimonium_mentions.all()
+        )
+        self.assertNotIn(
+            anon_frag, antiquarian.introduction.anonymousfragment_mentions.all()
+        )
+        # check the reverse relationship via m2m was established
+        self.assertIn((antiquarian, "antiquarian"), fragment.mentioned_in_list)
+        self.assertNotIn((antiquarian, "antiquarian"), anon_frag.mentioned_in_list)
+        self.assertNotIn((antiquarian, "antiquarian"), testimonium.mentioned_in_list)

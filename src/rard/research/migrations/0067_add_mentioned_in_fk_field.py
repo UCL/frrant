@@ -26,6 +26,7 @@ def get_fragment_testimonia_mentions(text_object_field, apps):
                 pass
     return linked_items
 
+
 def set_mentions(text_object_field, apps):
     found_mention_items = get_fragment_testimonia_mentions(text_object_field, apps)
     for item in found_mention_items:
@@ -38,6 +39,7 @@ def set_mentions(text_object_field, apps):
                     pass
                 else:
                     raise
+
 
 def update_mentions(apps, schema_editor):
     TextObjectField = apps.get_model("research", "TextObjectField")
