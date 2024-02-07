@@ -25,24 +25,26 @@ class DynamicTextField(TextField):
 
             def get_fragment_testimonia_mentions(self):
                 """This finds all mentions of (A)F&T, identifies the
-                original objects and returns them as a list"""
+                original objects and returns them as a dictionary of lists:
+                {
+                    "fragments": [],
+                    "testimonia": [],
+                    "anonymousfragments": []
+                }
+                """
                 value = getattr(self, field_name)
                 soup = bs4.BeautifulSoup(value, features="html.parser")
                 mentions = soup.find_all("span", class_="mention")
-                valid_models = ["fragment", "anonymousfragment", "testimonium"]
-                linked_items = []
+                linked_items = {
+                    "fragment": [],
+                    "anonymousfragment": [],
+                    "testimonium": [],
+                }
                 for item in mentions:
                     model = item.attrs.get("data-target", None)
                     pk = item.attrs.get("data-id", None)
-                    if model in valid_models and pk:
-                        try:
-                            model = apps.get_model(
-                                app_label="research", model_name=model
-                            )
-                            m = model.objects.get(pk=int(pk))
-                            linked_items.append(m)
-                        except ObjectDoesNotExist:
-                            pass
+                    if model in linked_items.keys() and pk:
+                        linked_items[model].append(pk)
                 return linked_items
 
             def update_editable_mentions(self, save=True):
