@@ -6,11 +6,11 @@ from django.db import migrations, models, IntegrityError
 from psycopg2 import errors
 
 
-def get_fragment_testimonia_mentions(self, apps):
+def get_fragment_testimonia_mentions(text_obj, apps):
     """This finds all mentions of (A)F&T, identifies the
     original objects and returns them as a list"""
 
-    soup = bs4.BeautifulSoup(self.content, features="html.parser")
+    soup = bs4.BeautifulSoup(text_obj.content, features="html.parser")
     mentions = soup.find_all("span", class_="mention")
     valid_models = ["fragment", "anonymousfragment", "testimonium"]
     linked_items = []
@@ -27,21 +27,21 @@ def get_fragment_testimonia_mentions(self, apps):
     return linked_items
 
 
-def set_mentions(self, apps):
-    found_mention_items = get_fragment_testimonia_mentions(self, apps)
-    self.fragment_testimonia_mentions = []
+def set_mentions(text_obj, apps):
+    found_mention_items = get_fragment_testimonia_mentions(text_obj, apps)
+    text_obj.fragment_testimonia_mentions = []
     for item in found_mention_items:
-        if self not in item.mentioned_in.all():
+        if text_obj not in item.mentioned_in.all():
             try:
-                item.mentioned_in.add(self)
-                self.fragment_testimonia_mentions.append(item)
+                item.mentioned_in.add(text_obj)
+                text_obj.fragment_testimonia_mentions.append(item)
             except IntegrityError as e:
                 if isinstance(e.__cause__, errors.UniqueViolation):
                     print(f"Duplicate entry detected: {e}")
                     pass
                 else:
                     raise
-    return self.fragment_testimonia_mentions
+    return text_obj.fragment_testimonia_mentions
 
 
 def update_mentions(apps, schema_editor):
