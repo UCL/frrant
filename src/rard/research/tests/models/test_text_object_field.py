@@ -104,12 +104,16 @@ class TestTextObjectField(TestCase):
         )
         antiquarian.introduction.content = mention_html
         antiquarian.introduction.save()
-        ftm = antiquarian.introduction.fragment_testimonia_mentions
         # check the items are in the fragment_testimonia_mentions of TOF
-        self.assertEqual(len(ftm), 3)
-        self.assertIn(fragment, ftm)
-        self.assertIn(anon_frag, ftm)
-        self.assertIn(testimonium, ftm)
+        self.assertQuerysetEqual(
+            antiquarian.introduction.fragment_mentions.all(), [fragment]
+        )
+        self.assertQuerysetEqual(
+            antiquarian.introduction.testimonium_mentions.all(), [testimonium]
+        )
+        self.assertQuerysetEqual(
+            antiquarian.introduction.anonymousfragment_mentions.all(), [anon_frag]
+        )
         # check the reverse relationship via m2m was established
         self.assertIn((antiquarian, "antiquarian"), fragment.mentioned_in_list)
         self.assertIn((antiquarian, "antiquarian"), anon_frag.mentioned_in_list)

@@ -1,5 +1,6 @@
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import IntegrityError
 from simple_history.models import HistoricalRecords
 
 from rard.research.models.mixins import HistoryModelMixin
@@ -41,40 +42,33 @@ class TextObjectField(HistoryModelMixin, BaseModel):
                 pass
         return None
 
-    fragment_testimonia_mentions = []
-
     def update_mentions(self):
         # get the items currently mentioned in the TOF
         found_mention_items = self.get_fragment_testimonia_mentions()
-        # Compare the list of currently found to previously found items and if they differ, update
-        if self.fragment_testimonia_mentions != found_mention_items:
-            items_to_remove = [
-                item
-                for item in self.fragment_testimonia_mentions
-                if item not in found_mention_items
-            ]
 
-            return self.set_fragment_testimonia_mentions(
-                found_mention_items, items_to_remove
-            )
-
-    def set_fragment_testimonia_mentions(self, to_set, to_remove):
-        for item in self.fragment_testimonia_mentions:
-            if item in to_remove:
-                item.mentioned_in.remove(self)
-                self.fragment_testimonia_mentions.remove(item)
-
-        for item in to_set:
-            item.mentioned_in.add(self)  # add this TOF to the item found via m2m
-            self.fragment_testimonia_mentions.append(
-                item
-            )  # add the found object to the list
-        return self.fragment_testimonia_mentions
+        # iterate through fragment, testimonium and anonymousfragment classes
+        for class_name, found_pks in found_mention_items.items():
+            # get related queryset
+            class_mentions_queryset = getattr(self, class_name + "_mentions")
+            for instance in class_mentions_queryset.all():
+                if instance.pk not in found_pks:
+                    # Fragment instance is no longer mentioned so remove it
+                    instance.mentioned_in.remove(self)
+                else:
+                    # Fragment instance is mentioned so remove from found_pks
+                    found_pks.remove(instance.pk)
+            # found_pks should now only contain new mentions
+            for pk in found_pks:
+                try:
+                    class_mentions_queryset.add(pk)
+                except IntegrityError:
+                    pass
 
     def save(self, *args, **kwargs):
         # Update links generated from mentions each time we save
         self.link_bibliography_mentions_in_content()
-        self.update_mentions()
+        if not self._state.adding:
+            self.update_mentions()
 
         # save the parent object so the plain intro/commentary is
         # updated for search purposes.
