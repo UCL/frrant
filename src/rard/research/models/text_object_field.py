@@ -87,7 +87,7 @@ class TextObjectField(HistoryModelMixin, BaseModel):
     def fragment(self):
         from rard.research.models import Fragment
 
-        related = self.get_related_object("one_to_one")
+        related = self.get_related_object()
         return related if isinstance(related, Fragment) else None
 
     @property
