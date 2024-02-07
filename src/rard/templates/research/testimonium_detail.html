@@ -184,17 +184,8 @@
     {% if object.mentioned_in.all %}
     <hr>
 
-    <section>
-        <div class='d-flex justify-content-between mb-3'>
-            <div>
-                <h5>{% trans 'Mentions' %}</h5>
-                <p class="text-muted">This testimonium was mentioned in the following items</p>
-            </div>
-        </div>
-        {% for mention in object.mentioned_in_list %}
-            <li class="unstyled"><a href="{% url mention.1|add:':detail' mention.0.pk %}">{{ mention.0 }}</a></li>
-        {% endfor %}
-    </section>
+    {% include 'research/partials/section/mentions_section.html' with object=object obj_name="testimonium" %}
+
     {% endif %}
 
 
