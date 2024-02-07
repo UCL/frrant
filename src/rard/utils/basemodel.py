@@ -23,6 +23,30 @@ class DynamicTextField(TextField):
         if not self.null:
             field_name = self.name
 
+            def get_fragment_testimonia_mentions(self):
+                """This finds all mentions of (A)F&T, identifies the
+                original objects and returns them as a dictionary of lists:
+                {
+                    "fragments": [],
+                    "testimonia": [],
+                    "anonymousfragments": []
+                }
+                """
+                value = getattr(self, field_name)
+                soup = bs4.BeautifulSoup(value, features="html.parser")
+                mentions = soup.find_all("span", class_="mention")
+                linked_items = {
+                    "fragment": [],
+                    "anonymousfragment": [],
+                    "testimonium": [],
+                }
+                for item in mentions:
+                    model = item.attrs.get("data-target", None)
+                    pk = item.attrs.get("data-id", None)
+                    if model in linked_items.keys() and pk:
+                        linked_items[model].append(pk)
+                return linked_items
+
             def update_editable_mentions(self, save=True):
                 from rard.research.models import OriginalText
 
@@ -278,6 +302,11 @@ class DynamicTextField(TextField):
                 cls,
                 f"link_bibliography_mentions_in_{self.name}",
                 link_bibliography_mentions,
+            )
+            setattr(
+                cls,
+                "get_fragment_testimonia_mentions",
+                get_fragment_testimonia_mentions,
             )
 
 

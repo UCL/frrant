@@ -1,0 +1,12 @@
+{% load i18n %}
+<section id="mentions">
+    <div class='d-flex justify-content-between mb-3'>
+        <div>
+            <h5>{% trans 'Mentions' %}</h5>
+            <p class="text-muted">This {{obj_name}} was mentioned in the following items</p>
+        </div>
+    </div>
+    {% for mention in object.mentioned_in_list %}
+        <li class="pb-2" style="list-style-type:circle;"><a href="{{ mention.get_absolute_url }}">{{ mention }}</a></li>
+    {% endfor %}
+</section>

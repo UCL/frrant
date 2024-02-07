@@ -1,5 +1,6 @@
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import IntegrityError
 from simple_history.models import HistoricalRecords
 
 from rard.research.models.mixins import HistoryModelMixin
@@ -30,7 +31,9 @@ class TextObjectField(HistoryModelMixin, BaseModel):
     def get_related_object(self):
         # what model instance owns this text object field?
         related_fields = [
-            f for f in self._meta.get_fields() if f.auto_created and not f.concrete
+            f
+            for f in self._meta.get_fields()
+            if f.auto_created and not f.concrete and not f.many_to_many
         ]
         for field in related_fields:
             try:
@@ -39,9 +42,33 @@ class TextObjectField(HistoryModelMixin, BaseModel):
                 pass
         return None
 
+    def update_mentions(self):
+        # get the items currently mentioned in the TOF
+        found_mention_items = self.get_fragment_testimonia_mentions()
+
+        # iterate through fragment, testimonium and anonymousfragment classes
+        for class_name, found_pks in found_mention_items.items():
+            # get related queryset
+            class_mentions_queryset = getattr(self, class_name + "_mentions")
+            for instance in class_mentions_queryset.all():
+                if instance.pk not in found_pks:
+                    # Fragment instance is no longer mentioned so remove it
+                    instance.mentioned_in.remove(self)
+                else:
+                    # Fragment instance is mentioned so remove from found_pks
+                    found_pks.remove(instance.pk)
+            # found_pks should now only contain new mentions
+            for pk in found_pks:
+                try:
+                    class_mentions_queryset.add(pk)
+                except IntegrityError:
+                    pass
+
     def save(self, *args, **kwargs):
         # Update links generated from mentions each time we save
         self.link_bibliography_mentions_in_content()
+        if not self._state.adding:
+            self.update_mentions()
 
         # save the parent object so the plain intro/commentary is
         # updated for search purposes.

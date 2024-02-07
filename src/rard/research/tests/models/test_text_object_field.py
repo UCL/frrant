@@ -8,6 +8,7 @@ from rard.research.models import (
     Testimonium,
     TextObjectField,
 )
+from rard.research.models.fragment import AnonymousFragment
 
 pytestmark = pytest.mark.django_db
 
@@ -66,7 +67,7 @@ class TestTextObjectField(TestCase):
         """When BibliographyItems are mentioned in an Antiquarian
         Introduction, a link between those items and the Antiquarian
         should be created when it is saved."""
-        antiquarian = Antiquarian.objects.create(name="name")
+        antiquarian = Antiquarian.objects.create(name="name", re_code="bibant")
         # ID should equal 1
         bibliography_item = BibliographyItem.objects.create(
             authors="The authors",
@@ -83,3 +84,58 @@ class TestTextObjectField(TestCase):
         # After saving the introduction, the bibliography item should have been
         # added to the antiquarian.bibliography_items
         self.assertEqual(antiquarian.bibliography_items.first(), bibliography_item)
+
+    def test_update_mentions(self):
+        """When an (Anonymous) Fragment or Testimonium gets mentioned in an introduction or commentary,
+        upon saving, the mentions should be identified and relevant links should be created
+        """
+        antiquarian = Antiquarian.objects.create(name="a1", re_code="mentionsant")
+        fragment = Fragment.objects.create(name="f1")
+        anon_frag = AnonymousFragment.objects.create(name="af1")
+        testimonium = Testimonium.objects.create(name="t1")
+
+        mention_html = (
+            f"<span class='mention' data-id='{fragment.id}'"
+            "data-target='fragment'>Test fragment mention</span>"
+            f"<span class='mention' data-id='{anon_frag.id}'"
+            "data-target='anonymousfragment'>Test anonymus fragment mention</span>"
+            f"<span class='mention' data-id='{testimonium.id}'"
+            "data-target='testimonium'>Test testimonium mention</span>"
+        )
+        antiquarian.introduction.content = mention_html
+        antiquarian.introduction.save()
+        # check the items are in the fragment_testimonia_mentions of TOF
+        self.assertQuerysetEqual(
+            antiquarian.introduction.fragment_mentions.all(), [fragment]
+        )
+        self.assertQuerysetEqual(
+            antiquarian.introduction.testimonium_mentions.all(), [testimonium]
+        )
+        self.assertQuerysetEqual(
+            antiquarian.introduction.anonymousfragment_mentions.all(), [anon_frag]
+        )
+        # check the reverse relationship via m2m was established
+        self.assertIn((antiquarian), fragment.mentioned_in_list)
+        self.assertIn((antiquarian), anon_frag.mentioned_in_list)
+        self.assertIn((antiquarian), testimonium.mentioned_in_list)
+
+        # check deletion
+        mention_html = (
+            f"<span class='mention' data-id='{fragment.id}'"
+            "data-target='fragment'>Test fragment mention</span>"
+        )
+        antiquarian.introduction.content = mention_html
+        antiquarian.introduction.save()
+        self.assertQuerysetEqual(
+            antiquarian.introduction.fragment_mentions.all(), [fragment]
+        )
+        self.assertNotIn(
+            testimonium, antiquarian.introduction.testimonium_mentions.all()
+        )
+        self.assertNotIn(
+            anon_frag, antiquarian.introduction.anonymousfragment_mentions.all()
+        )
+        # check the reverse relationship via m2m was established
+        self.assertIn((antiquarian), fragment.mentioned_in_list)
+        self.assertNotIn((antiquarian), anon_frag.mentioned_in_list)
+        self.assertNotIn((antiquarian), testimonium.mentioned_in_list)
