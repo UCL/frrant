@@ -22,7 +22,7 @@
             <form novalidate style='margin-left:auto' class='form-inline' action='{% url "anonymous_fragment:delete" object.pk %}' method='POST'>
                 {% csrf_token %}
                 <div class='form-group'>
-                    <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+                    <button type='submit' class='btn btn-link text-danger {% if object.mentioned_in.all %}confirm-delete-mentions {% else %} confirm-delete {% endif %} p-0 ml-2'
                         data-what='anonymous fragment'>{% trans 'Delete' %}</button>
                 </div>
             </form>
@@ -130,7 +130,7 @@
                         <a href='{% url "anonymous_fragment:update_original_text" original_text.pk %}'>Details</a>
                         {% endif %}
                         {% if perms.research.delete_originaltext %}
-                        <button type='submit' class='btn btn-link text-danger {% if object.mentioned_in.all %}confirm-delete-mentions {% else %} confirm-delete {% endif %} p-0 ml-2' data-what='original text'>{% trans 'Delete' %}</button>
+                        <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2' data-what='original text'>{% trans 'Delete' %}</button>
                         {% endif %}
                     </div>
                 </form>
