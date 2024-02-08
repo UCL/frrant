@@ -118,11 +118,12 @@ $("body").on("submit", "form", function (e) {
         .getElementById("mentions")
         .scrollIntoView({ behavior: "smooth" });
 
-      return confirm(
-        "Are you sure you want to delete this " +
+      alert(
+        "You cannot delete this " +
           what +
-          "? It has been mentioned elsewhere. Deletion cannot be undone."
+          ". It has been mentioned elsewhere. Please clean up the links and mentions and try again."
       );
+      return false;
     }
 
     if ($clicked.hasClass("confirm-delete")) {
