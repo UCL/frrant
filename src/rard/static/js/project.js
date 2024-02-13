@@ -241,37 +241,7 @@ async function getApparatusCriticusLines(searchTerm, object_id, object_class) {
   });
   return matches;
 }
-function textnode(node, delta) {
-  if (node.data) {
-    // console.log(
-    //   "textnode: node:",
-    //   node,
-    //   "node data",
-    //   node.nodeType,
-    //   node.nodeValue,
-    //   "delta",
-    //   delta
-    // );
-    const textContent = node.data; // Get text content of the text node
-    const newDelta = new Delta().insert(textContent); // Create a new Delta with the text content
-    return delta.compose(newDelta);
-  }
-  return delta;
-}
-function elemnode(node, delta) {
-  if (node.data) {
-    console.log(
-      "elemnode: node:"
-      //   node,
-      //   "node data",
-      //   node.data,
-      //   "delta",
-      //   delta
-    );
-    return delta;
-  }
-  return delta;
-}
+
 function initRichTextEditor($item) {
   let config = {
     theme: "snow",
@@ -395,12 +365,6 @@ function initRichTextEditor($item) {
       },
       footnote: true,
       table: true,
-      clipboard: {
-        matchers: [
-          [Node.ELEMENT_NODE, elemnode],
-          [Node.TEXT_NODE, textnode],
-        ],
-      },
     },
   };
 
@@ -457,8 +421,8 @@ function initRichTextEditor($item) {
   $item.find(".ql-editor").html(html);
   $for.hide();
 
+  // This removes the weird br header element that gets pasted
   var editor = $item.find(".ql-editor").get(0);
-
   editor.addEventListener("paste", function (event) {
     var h4brElem = this.querySelector("h4 br");
     h4brElem.remove();
@@ -479,8 +443,6 @@ function initRichTextEditor($item) {
   $("body").on("htmx:configRequest", function (e) {
     let html = $item.find(".ql-editor").html();
     e.detail.parameters[model_field] = html;
-
-    console.log(html);
   });
 }
 
