@@ -422,6 +422,13 @@ function initRichTextEditor($item) {
   $item.find(".ql-editor").html(html);
   $for.hide();
 
+  // This removes the weird br header element that gets pasted
+  var editor = $item.find(".ql-editor").get(0);
+  editor.addEventListener("paste", function (event) {
+    var h4brElem = this.querySelector("h4 br");
+    h4brElem.remove();
+  });
+
   // translates custom table dropdown in toolbar
   var tablePickerItems = Array.prototype.slice.call(
     document.querySelectorAll(".ql-edit_table .ql-picker-item")
