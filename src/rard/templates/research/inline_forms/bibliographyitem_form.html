@@ -14,6 +14,8 @@
     </div>
   </div>
   {% bootstrap_field form.title %}
+  {% include 'research/partials/rich_text_editor.html' with field=form.title enable_mentions=False max_height=100 min_height=1 extra_classes="bib-title mt-2" %}
+
     {% comment %} {% bootstrap_field form.antiquarians %}
     {% bootstrap_field form.citing_authors %} {% endcomment %}
   <div>
