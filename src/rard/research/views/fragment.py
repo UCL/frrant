@@ -1010,3 +1010,39 @@ def fetch_fragments(request):
         "research/partials/htmx_fragment_results.html",
         {"fragments": fragments},
     )
+
+
+def duplicate_fragment(request, pk):
+    from rard.research.models import OriginalText
+
+    print("req:", request, "pk:", pk)
+    # Get the original fragment
+    original_fragment = get_object_or_404(Fragment, pk=pk)
+    original_original_text = original_fragment.original_texts.first()
+
+    print(original_original_text)
+
+    new_original_text = OriginalText.objects.create(
+        # Copy all properties from the original original_text
+        **{
+            field.name: getattr(original_original_text, field.name)
+            for field in original_original_text._meta.fields
+            if field.name != "id"  # Exclude copying the ID field
+        }
+    )
+
+    # Create a new fragment with the same original text
+    new_fragment = Fragment.objects.create()
+    print(new_fragment.pk)
+
+    new_fragment.original_texts.add(new_original_text)
+
+    # Duplicate relationships to topics
+    for topic in original_fragment.topics.all():
+        new_fragment.topics.add(topic)
+
+    print(new_fragment)
+
+    return JsonResponse(
+        {"success": True, "message": "Fragment duplicated successfully"}
+    )

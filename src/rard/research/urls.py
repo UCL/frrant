@@ -296,6 +296,7 @@ urlpatterns = [
                         views.UnlinkedFragmentConvertToAnonymousView.as_view(),
                         name="convert_to_anonymous",
                     ),
+                    path("<pk>/duplicate", views.duplicate_fragment, name="duplicate"),
                     path("<pk>/", views.FragmentDetailView.as_view(), name="detail"),
                     path(
                         "<pk>/create-original-text/",

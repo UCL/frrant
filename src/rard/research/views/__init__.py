@@ -78,6 +78,7 @@ from .fragment import (
     RemoveFragmentLinkView,
     UnlinkedFragmentConvertToAnonymousView,
     UnlinkedFragmentListView,
+    duplicate_fragment,
     fetch_fragments,
 )
 from .history import HistoryListView
@@ -208,6 +209,7 @@ __all__ = [
     "FragmentUpdateWorkLinkView",
     "FragmentUpdateAntiquariansView",
     "fetch_fragments",
+    "duplicate_fragment",
     "HistoryListView",
     "HomeView",
     "MentionSearchView",
