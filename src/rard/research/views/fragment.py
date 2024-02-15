@@ -1013,36 +1013,74 @@ def fetch_fragments(request):
 
 
 def duplicate_fragment(request, pk):
-    from rard.research.models import OriginalText
-
-    print("req:", request, "pk:", pk)
-    # Get the original fragment
-    original_fragment = get_object_or_404(Fragment, pk=pk)
-    original_original_text = original_fragment.original_texts.first()
-
-    print(original_original_text)
-
-    new_original_text = OriginalText.objects.create(
-        # Copy all properties from the original original_text
-        **{
-            field.name: getattr(original_original_text, field.name)
-            for field in original_original_text._meta.fields
-            if field.name != "id"  # Exclude copying the ID field
-        }
+    from rard.research.models import (
+        ApparatusCriticusItem,
+        Concordance,
+        OriginalText,
+        Reference,
     )
 
+    # Get the original fragment
+    original_fragment = get_object_or_404(Fragment, pk=pk)
+    original_original_texts = original_fragment.original_texts.all()
+
+    new_original_texts = []
+
+    for i in range(len(original_original_texts)):
+        # Create a dictionary to hold the values for the new OriginalText object
+        new_original_text_data = {}
+
+        # Iterate over the fields of the OriginalText model
+        for field in original_original_texts[i]._meta.fields:
+            # Exclude the ID field
+            if field.name == "id":
+                continue
+
+            field_value = getattr(original_original_texts[i], field.name)
+
+            # For ForeignKey fields, copy the related object
+            if field.is_relation and field_value is not None:
+                field_value = field_value
+
+            # Store the field name and value in the dictionary
+            new_original_text_data[field.name] = field_value
+
+        # Create a new OriginalText object with the copied values
+        new_original_text = OriginalText.objects.create(**new_original_text_data)
+        new_original_texts.append(new_original_text)
+
+        # Recreate References for new OT
+        for reference in original_original_texts[i].references.all():
+            Reference.objects.create(
+                editor=reference.editor,
+                reference_position=reference.reference_position,
+                original_text=new_original_text,
+            )
+        # Recreate concordances for new OT
+        for concordance in Concordance.objects.filter(
+            original_text=original_original_texts[i]
+        ):
+            Concordance.objects.create(
+                source=concordance.source,
+                identifier=concordance.identifier,
+                original_text=new_original_text,
+            )
+        # Recreate apparatus critici for new OT
+        for apcrit in ApparatusCriticusItem.objects.filter(
+            object_id=original_original_texts[i].pk
+        ):
+            ApparatusCriticusItem.objects.create(
+                content=apcrit.content,
+                object_id=new_original_text.pk,
+                parent=new_original_text,
+            )
     # Create a new fragment with the same original text
     new_fragment = Fragment.objects.create()
-    print(new_fragment.pk)
 
-    new_fragment.original_texts.add(new_original_text)
+    new_fragment.original_texts.set(new_original_texts)
 
     # Duplicate relationships to topics
     for topic in original_fragment.topics.all():
         new_fragment.topics.add(topic)
 
-    print(new_fragment)
-
-    return JsonResponse(
-        {"success": True, "message": "Fragment duplicated successfully"}
-    )
+    return redirect("fragment:detail", pk=new_fragment.pk)
