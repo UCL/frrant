@@ -1033,7 +1033,7 @@ def duplicate_fragment(request, pk):
         # Iterate over the fields of the OriginalText model
         for field in original_original_texts[i]._meta.fields:
             # Exclude the ID field
-            if field.name == "id":
+            if field.name in ["id", "created", "modified"]:
                 continue
 
             field_value = getattr(original_original_texts[i], field.name)
@@ -1074,9 +1074,25 @@ def duplicate_fragment(request, pk):
                 object_id=new_original_text.pk,
                 parent=new_original_text,
             )
-    # Create a new fragment with the same original text
-    new_fragment = Fragment.objects.create()
 
+    # Create a new fragment with the same values as original
+    new_fragment_data = {}
+    for field in original_fragment._meta.fields:
+        # Exclude unique fields
+        if field.name in [
+            "id",
+            "created",
+            "modified",
+            "commentary",
+        ]:
+            continue
+
+        field_value = getattr(original_fragment, field.name)
+
+        new_fragment_data[field.name] = field_value
+
+    new_fragment = Fragment.objects.create(**new_fragment_data)
+    # Attach the original texts
     new_fragment.original_texts.set(new_original_texts)
 
     # Duplicate relationships to topics
