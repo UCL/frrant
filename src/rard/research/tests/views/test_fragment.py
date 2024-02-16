@@ -14,6 +14,7 @@ from rard.research.models import (
     OriginalText,
     Reference,
     Topic,
+    Translation,
 )
 from rard.research.models.base import AppositumFragmentLink, FragmentLink
 from rard.research.models.linkable import ApparatusCriticusItem
@@ -524,34 +525,62 @@ class TestFragmentDuplicationView(TestCase):
             content_type_id=12,
             reference_order="reference order",
         )
-        self.c = Concordance.objects.create(
+        self.con = Concordance.objects.create(
             original_text=self.ot, source="tester", identifier="123"
         )
-        self.ac = ApparatusCriticusItem.objects.create(
+        self.apc = ApparatusCriticusItem.objects.create(
             parent=self.ot, content="critical test", object_id=23
         )
-        self.r = Reference.objects.create(editor="test", original_text=self.ot)
-        self.t = Topic.objects.create(name="topic1")
-        self.f = Fragment.objects.create(name="test fragment")
-        self.f.topics.add(self.t)
-        self.f.original_texts.add(self.ot)
+        self.tr = Translation.objects.create(
+            translated_text="translation of text", original_text=self.ot
+        )
+        self.ref = Reference.objects.create(editor="test", original_text=self.ot)
+        self.topic = Topic.objects.create(name="topic1")
+        self.frag = Fragment.objects.create(name="test fragment")
+        self.frag.topics.add(self.topic)
+        self.frag.original_texts.add(self.ot)
 
-    def test_duplication(self):
-        url = reverse("fragment:duplicate", kwargs={"pk": self.f.pk})
-        request = RequestFactory().get(url)
-        request.user = UserFactory.create()
-        response = duplicate_fragment(request, pk=self.f.pk)
-        duplicate_pk = response.url.split("/")[-2]
-        duplicate_frag = Fragment.objects.get(pk=duplicate_pk)
-
-        for field in duplicate_frag._meta.fields:
+    def compare_model_objects(self, original, duplicate):
+        for field in original._meta.fields:
             if field.name in [
                 "id",
                 "created",
                 "modified",
+                "commentary",
+                "object_id",
+                "original_text",
             ]:
                 continue
-            print(field.name)
-            value1 = getattr(duplicate_frag, field.name)
-            value2 = getattr(self.f, field.name)
-            self.assertEqual(value1, value2)
+            if field.is_relation and getattr(original, field.name) is not None:
+                # If the field is a relation and is not None, recursively compare the related objects
+                related_original = getattr(original, field.name)
+                related_duplicate = getattr(duplicate, field.name)
+                self.compare_model_objects(related_original, related_duplicate)
+            else:
+                # For regular fields or null relations, compare their values
+                value1 = getattr(original, field.name)
+                value2 = getattr(duplicate, field.name)
+                self.assertEqual(value1, value2)
+
+    def test_duplication(self):
+        url = reverse("fragment:duplicate", kwargs={"pk": self.frag.pk})
+        request = RequestFactory().get(url)
+        request.user = UserFactory.create()
+        response = duplicate_fragment(request, pk=self.frag.pk)
+        duplicate_pk = response.url.split("/")[-2]
+        duplicate_frag = Fragment.objects.get(pk=duplicate_pk)
+        duplicate_ot = duplicate_frag.original_texts.first()
+        duplicate_ref = duplicate_ot.references.first()
+        duplicate_apc = duplicate_ot.apparatus_criticus_items.first()
+        duplicate_con = duplicate_ot.concordances.first()
+        duplicate_tr = Translation.objects.filter(original_text=duplicate_ot).first()
+
+        self.compare_model_objects(self.frag, duplicate_frag)
+        self.assertEqual(
+            list(self.frag.topics.all()), list(duplicate_frag.topics.all())
+        )
+        self.compare_model_objects(self.ot, duplicate_ot)
+        self.compare_model_objects(self.ref, duplicate_ref)
+        self.compare_model_objects(self.apc, duplicate_apc)
+        self.compare_model_objects(self.con, duplicate_con)
+        self.compare_model_objects(self.tr, duplicate_tr)

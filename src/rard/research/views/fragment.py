@@ -1013,11 +1013,14 @@ def fetch_fragments(request):
 
 
 def duplicate_fragment(request, pk):
+    from django.contrib.contenttypes.models import ContentType
+
     from rard.research.models import (
         ApparatusCriticusItem,
         Concordance,
         OriginalText,
         Reference,
+        Translation,
     )
 
     # Get the original fragment
@@ -1042,10 +1045,9 @@ def duplicate_fragment(request, pk):
             if field.is_relation and field_value is not None:
                 field_value = field_value
 
-            # Store the field name and value in the dictionary
             new_original_text_data[field.name] = field_value
 
-        # Create a new OriginalText object with the copied values
+        # Create a new OT object with the copied values
         new_original_text = OriginalText.objects.create(**new_original_text_data)
         new_original_texts.append(new_original_text)
 
@@ -1056,24 +1058,60 @@ def duplicate_fragment(request, pk):
                 reference_position=reference.reference_position,
                 original_text=new_original_text,
             )
-        # Recreate concordances for new OT
-        for concordance in Concordance.objects.filter(
-            original_text=original_original_texts[i]
-        ):
-            Concordance.objects.create(
-                source=concordance.source,
-                identifier=concordance.identifier,
-                original_text=new_original_text,
-            )
-        # Recreate apparatus critici for new OT
-        for apcrit in ApparatusCriticusItem.objects.filter(
-            object_id=original_original_texts[i].pk
-        ):
-            ApparatusCriticusItem.objects.create(
-                content=apcrit.content,
-                object_id=new_original_text.pk,
-                parent=new_original_text,
-            )
+
+        # Copy relationships to Concordances, Ap Crit & Translations
+        model_details = {
+            Concordance: {
+                "filter_name": "original_text",
+                "filter_value": original_original_texts[i],
+                "ot_fieldname": "original_text",
+            },
+            ApparatusCriticusItem: {
+                "filter_name": "object_id",
+                "filter_value": original_original_texts[i].pk,
+                "ot_fieldname": "parent",
+            },
+            Translation: {
+                "filter_name": "original_text",
+                "filter_value": original_original_texts[i],
+                "ot_fieldname": "original_text",
+            },
+        }
+
+        for model_class in model_details.keys():
+            model_info = model_details[model_class]
+            filter_name = model_info["filter_name"]
+            filter_value = model_info["filter_value"]
+            ot_fieldname = model_info["ot_fieldname"]
+
+            new_model_data = {}
+            for original_item in model_class.objects.filter(
+                **{filter_name: filter_value}
+            ):
+                for field in original_item._meta.fields:
+                    # Exclude some fields
+                    if field.name in [
+                        "id",
+                        "created",
+                        "modified",
+                        ot_fieldname,
+                        "content_type",
+                    ]:
+                        continue
+
+                    field_value = getattr(original_item, field.name)
+                    new_model_data[field.name] = field_value
+
+                new_model_data[
+                    ot_fieldname
+                ] = new_original_text  # make sure to assign new OT in place of the old one (field skipped above)
+
+                new_model = model_class.objects.create(**new_model_data)
+                # specific handling of content_type since we don't want to create a new instance
+                if hasattr(model_class, "content_type") and model_class.content_type:
+                    new_model.content_type = ContentType.objects.get(
+                        pk=original_item.content_type.pk
+                    )
 
     # Create a new fragment with the same values as original
     new_fragment_data = {}
