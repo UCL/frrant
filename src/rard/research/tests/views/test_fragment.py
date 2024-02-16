@@ -525,6 +525,15 @@ class TestFragmentDuplicationView(TestCase):
             content_type_id=12,
             reference_order="reference order",
         )
+        self.ot2 = OriginalText.objects.create(
+            content="Original Text2 test",
+            apparatus_criticus_blank=False,
+            apparatus_criticus="here be the app crit",
+            object_id=121,
+            citing_work=self.cw,
+            content_type_id=14,
+            reference_order="reference order",
+        )
         self.con = Concordance.objects.create(
             original_text=self.ot, source="tester", identifier="123"
         )
@@ -539,6 +548,9 @@ class TestFragmentDuplicationView(TestCase):
         self.frag = Fragment.objects.create(name="test fragment")
         self.frag.topics.add(self.topic)
         self.frag.original_texts.add(self.ot)
+        self.anonfrag = AnonymousFragment.objects.create(name="test anonfragment")
+        self.anonfrag.topics.add(self.topic)
+        self.anonfrag.original_texts.add(self.ot2)
 
     def compare_model_objects(self, original, duplicate):
         for field in original._meta.fields:
@@ -562,11 +574,12 @@ class TestFragmentDuplicationView(TestCase):
                 value2 = getattr(duplicate, field.name)
                 self.assertEqual(value1, value2)
 
-    def test_duplication(self):
+    def test_fragment_duplication(self):
         url = reverse("fragment:duplicate", kwargs={"pk": self.frag.pk})
         request = RequestFactory().get(url)
         request.user = UserFactory.create()
         response = duplicate_fragment(request, pk=self.frag.pk)
+
         duplicate_pk = response.url.split("/")[-2]
         duplicate_frag = Fragment.objects.get(pk=duplicate_pk)
         duplicate_ot = duplicate_frag.original_texts.first()
@@ -584,3 +597,28 @@ class TestFragmentDuplicationView(TestCase):
         self.compare_model_objects(self.apc, duplicate_apc)
         self.compare_model_objects(self.con, duplicate_con)
         self.compare_model_objects(self.tr, duplicate_tr)
+
+
+def test_anonymous_fragment_duplication(self):
+    url = reverse("fragment:duplicate", kwargs={"pk": self.anonfrag.pk})
+    request = RequestFactory().get(url)
+    request.user = UserFactory.create()
+    response = duplicate_fragment(request, pk=self.anonfrag.pk)
+
+    duplicate_pk = response.url.split("/")[-2]
+    duplicate_frag = Fragment.objects.get(pk=duplicate_pk)
+    duplicate_ot = duplicate_frag.original_texts.first()
+    duplicate_ref = duplicate_ot.references.first()
+    duplicate_apc = duplicate_ot.apparatus_criticus_items.first()
+    duplicate_con = duplicate_ot.concordances.first()
+    duplicate_tr = Translation.objects.filter(original_text=duplicate_ot).first()
+
+    self.compare_model_objects(self.anonfrag, duplicate_frag)
+    self.assertEqual(
+        list(self.anonfrag.topics.all()), list(duplicate_frag.topics.all())
+    )
+    self.compare_model_objects(self.ot, duplicate_ot)
+    self.compare_model_objects(self.ref, duplicate_ref)
+    self.compare_model_objects(self.apc, duplicate_apc)
+    self.compare_model_objects(self.con, duplicate_con)
+    self.compare_model_objects(self.tr, duplicate_tr)

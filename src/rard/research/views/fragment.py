@@ -1129,12 +1129,13 @@ def duplicate_fragment(request, pk):
 
         new_fragment_data[field.name] = field_value
 
-    new_fragment = Fragment.objects.create(**new_fragment_data)
+    new_fragment = Fragment.objects.create(
+        **new_fragment_data
+    )  # might need to specify anonfrag
     # Attach the original texts
     new_fragment.original_texts.set(new_original_texts)
 
     # Duplicate relationships to topics
-    for topic in original_fragment.topics.all():
-        new_fragment.topics.add(topic)
+    new_fragment.topics.set(original_fragment.topics.all())
 
     return redirect("fragment:detail", pk=new_fragment.pk)
