@@ -157,6 +157,7 @@
     <hr>
 
     <section>
+        {% comment %} will need to hide this in final version {% endcomment %}
       <div class='d-flex justify-content-between mb-3'>
         <div>
             <h5>{% trans 'Commentary' %}</h5>
@@ -176,7 +177,25 @@
     </div>
     </section>
 
-
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+          <div>
+              <h5>{% trans 'See Also' %}</h5>
+          </div>
+          <div>
+              {% if perms.research.change_fragment and has_object_lock %}
+              <button
+                class="btn text-primary p-0 ml-2"
+                hx-get="{% url 'anonymous_fragment:update_commentary' object.pk %}"
+                hx-target=".introduction-container"
+                hx-swap="innerHTML">{% trans 'Edit' %}</button>
+              {% endif %}
+          </div>
+      </div>
+      <div class="introduction-container rich-text-form-container">
+        {% include 'research/partials/text_object_preview.html' with text_object=object.public_commentary_mentions %}
+      </div>
+      </section>
     <hr>
 
     <section>
