@@ -1024,7 +1024,11 @@ def duplicate_fragment(request, pk):
     )
 
     # Get the original fragment
-    original_fragment = get_object_or_404(Fragment, pk=pk)
+
+    if "anonymous" in request.path:
+        original_fragment = get_object_or_404(AnonymousFragment, pk=pk)
+    else:
+        original_fragment = get_object_or_404(Fragment, pk=pk)
     original_original_texts = original_fragment.original_texts.all()
 
     new_original_texts = []
@@ -1122,6 +1126,8 @@ def duplicate_fragment(request, pk):
             "created",
             "modified",
             "commentary",
+            "order",  # anon frags have this
+            "model",
         ]:
             continue
 
@@ -1129,9 +1135,7 @@ def duplicate_fragment(request, pk):
 
         new_fragment_data[field.name] = field_value
 
-    new_fragment = Fragment.objects.create(
-        **new_fragment_data
-    )  # might need to specify anonfrag
+    new_fragment = Fragment.objects.create(**new_fragment_data)
     # Attach the original texts
     new_fragment.original_texts.set(new_original_texts)
 

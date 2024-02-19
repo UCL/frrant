@@ -369,6 +369,7 @@ urlpatterns = [
                         views.AnonymousFragmentDeleteView.as_view(),
                         name="delete",
                     ),
+                    path("<pk>/duplicate", views.duplicate_fragment, name="duplicate"),
                     path(
                         "<pk>/convert-to-fragment/",
                         views.AnonymousFragmentConvertToFragmentView.as_view(),

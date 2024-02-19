@@ -537,13 +537,23 @@ class TestFragmentDuplicationView(TestCase):
         self.con = Concordance.objects.create(
             original_text=self.ot, source="tester", identifier="123"
         )
+        self.con = Concordance.objects.create(
+            original_text=self.ot2, source="tester", identifier="123"
+        )
         self.apc = ApparatusCriticusItem.objects.create(
             parent=self.ot, content="critical test", object_id=23
+        )
+        self.apc2 = ApparatusCriticusItem.objects.create(
+            parent=self.ot2, content="critical test", object_id=23
         )
         self.tr = Translation.objects.create(
             translated_text="translation of text", original_text=self.ot
         )
+        self.tr2 = Translation.objects.create(
+            translated_text="translation of text", original_text=self.ot2
+        )
         self.ref = Reference.objects.create(editor="test", original_text=self.ot)
+        self.ref2 = Reference.objects.create(editor="test", original_text=self.ot2)
         self.topic = Topic.objects.create(name="topic1")
         self.frag = Fragment.objects.create(name="test fragment")
         self.frag.topics.add(self.topic)
@@ -561,6 +571,8 @@ class TestFragmentDuplicationView(TestCase):
                 "commentary",
                 "object_id",
                 "original_text",
+                "order",
+                "model",
             ]:
                 continue
             if field.is_relation and getattr(original, field.name) is not None:
@@ -598,27 +610,32 @@ class TestFragmentDuplicationView(TestCase):
         self.compare_model_objects(self.con, duplicate_con)
         self.compare_model_objects(self.tr, duplicate_tr)
 
+    def test_anonymous_fragment_duplication(self):
+        url = reverse(
+            "anonymous_fragment:duplicate",
+            kwargs={
+                "pk": self.anonfrag.pk,
+            },
+        )
+        request = RequestFactory().get(url)
+        request.user = UserFactory.create()
+        response = duplicate_fragment(request, pk=self.anonfrag.pk)
 
-def test_anonymous_fragment_duplication(self):
-    url = reverse("fragment:duplicate", kwargs={"pk": self.anonfrag.pk})
-    request = RequestFactory().get(url)
-    request.user = UserFactory.create()
-    response = duplicate_fragment(request, pk=self.anonfrag.pk)
+        duplicate_pk = response.url.split("/")[-2]
+        duplicate_frag = Fragment.objects.get(pk=duplicate_pk)
+        duplicate_ot = duplicate_frag.original_texts.first()
+        duplicate_ref = duplicate_ot.references.first()
 
-    duplicate_pk = response.url.split("/")[-2]
-    duplicate_frag = Fragment.objects.get(pk=duplicate_pk)
-    duplicate_ot = duplicate_frag.original_texts.first()
-    duplicate_ref = duplicate_ot.references.first()
-    duplicate_apc = duplicate_ot.apparatus_criticus_items.first()
-    duplicate_con = duplicate_ot.concordances.first()
-    duplicate_tr = Translation.objects.filter(original_text=duplicate_ot).first()
+        duplicate_apc = duplicate_ot.apparatus_criticus_items.first()
+        duplicate_con = duplicate_ot.concordances.first()
+        duplicate_tr = Translation.objects.filter(original_text=duplicate_ot).first()
 
-    self.compare_model_objects(self.anonfrag, duplicate_frag)
-    self.assertEqual(
-        list(self.anonfrag.topics.all()), list(duplicate_frag.topics.all())
-    )
-    self.compare_model_objects(self.ot, duplicate_ot)
-    self.compare_model_objects(self.ref, duplicate_ref)
-    self.compare_model_objects(self.apc, duplicate_apc)
-    self.compare_model_objects(self.con, duplicate_con)
-    self.compare_model_objects(self.tr, duplicate_tr)
+        self.compare_model_objects(self.anonfrag, duplicate_frag)
+        self.assertEqual(
+            list(self.anonfrag.topics.all()), list(duplicate_frag.topics.all())
+        )
+        self.compare_model_objects(self.ot2, duplicate_ot)
+        self.compare_model_objects(self.ref, duplicate_ref)
+        self.compare_model_objects(self.apc, duplicate_apc)
+        self.compare_model_objects(self.con, duplicate_con)
+        self.compare_model_objects(self.tr, duplicate_tr)

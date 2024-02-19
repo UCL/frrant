@@ -41,7 +41,7 @@
                     >{% trans 'Make non-anonymous' %}</button>
                 </div>
             </form>
-            <form novalidate style='margin-left:auto' class='form-inline' action='{% url "fragment:duplicate" object.pk %}' method='POST'>
+            <form novalidate style='margin-left:auto' class='form-inline' action='{% url "anonymous_fragment:duplicate" object.pk %}' method='POST'>
                 {% csrf_token %}
                 <div class='form-group'>
                     <button type='submit' class='btn btn-link text-info p-0 ml-2'
