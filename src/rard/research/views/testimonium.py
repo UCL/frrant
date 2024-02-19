@@ -13,6 +13,7 @@ from rard.research.forms import (
     TestimoniumCommentaryForm,
     TestimoniumForm,
     TestimoniumLinkWorkForm,
+    TestimoniumPublicCommentaryForm,
 )
 from rard.research.models import Antiquarian, Testimonium
 from rard.research.models.base import TestimoniumLink
@@ -95,6 +96,15 @@ class TestimoniumUpdateCommentaryView(
     form_class = TestimoniumCommentaryForm
     textobject_field = "commentary"
     template_name = "research/inline_forms/commentary_form.html"
+    hide_empty = False
+
+
+class TestimoniumUpdatePublicCommentaryView(
+    TextObjectFieldUpdateMixin, TestimoniumUpdateView
+):
+    form_class = TestimoniumPublicCommentaryForm
+    textobject_field = "public_commentary_mentions"
+    template_name = "research/inline_forms/public_commentary_form.html"
     hide_empty = False
 
 

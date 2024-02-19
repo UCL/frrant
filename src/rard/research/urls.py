@@ -277,6 +277,11 @@ urlpatterns = [
                         name="update_commentary",
                     ),
                     path(
+                        "<pk>/update/public-commentary/",
+                        views.FragmentUpdatePublicCommentaryView.as_view(),
+                        name="update_public_commentary",
+                    ),
+                    path(
                         "<pk>/link-work/",
                         views.FragmentAddWorkLinkView.as_view(),
                         name="add_work_link",
@@ -364,6 +369,11 @@ urlpatterns = [
                         name="update_commentary",
                     ),
                     path(
+                        "<pk>/update/public-commentary/",
+                        views.AnonymousFragmentUpdatePublicCommentaryView.as_view(),
+                        name="update_public_commentary",
+                    ),
+                    path(
                         "<pk>/delete/",
                         views.AnonymousFragmentDeleteView.as_view(),
                         name="delete",
@@ -419,6 +429,11 @@ urlpatterns = [
                         "<pk>/update/commentary/",
                         views.TestimoniumUpdateCommentaryView.as_view(),
                         name="update_commentary",
+                    ),
+                    path(
+                        "<pk>/update/public-commentary/",
+                        views.TestimoniumUpdateCommentaryView.as_view(),
+                        name="update_public_commentary",
                     ),
                     path(
                         "<pk>/link-work/",

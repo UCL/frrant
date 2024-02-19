@@ -21,12 +21,14 @@ from django.views.generic.edit import DeleteView, UpdateView
 from rard.research.forms import (
     AnonymousFragmentCommentaryForm,
     AnonymousFragmentForm,
+    AnonymousFragmentPublicCommentaryForm,
     AppositumFragmentLinkForm,
     AppositumGeneralLinkForm,
     FragmentAntiquariansForm,
     FragmentCommentaryForm,
     FragmentForm,
     FragmentLinkWorkForm,
+    FragmentPublicCommentaryForm,
     OriginalTextForm,
     ReferenceFormset,
 )
@@ -652,6 +654,15 @@ class FragmentUpdateCommentaryView(TextObjectFieldUpdateMixin, FragmentUpdateVie
     hide_empty = False
 
 
+class FragmentUpdatePublicCommentaryView(
+    TextObjectFieldUpdateMixin, FragmentUpdateView
+):
+    form_class = FragmentPublicCommentaryForm
+    textobject_field = "public_commentary_mentions"
+    template_name = "research/inline_forms/public_commentary_form.html"
+    hide_empty = False
+
+
 class FragmentCommentaryView(TextObjectFieldViewMixin):
     model = Fragment
     permission_required = ("research.view_fragment",)
@@ -665,6 +676,15 @@ class AnonymousFragmentUpdateCommentaryView(
     form_class = AnonymousFragmentCommentaryForm
     textobject_field = "commentary"
     template_name = "research/inline_forms/commentary_form.html"
+    hide_empty = False
+
+
+class AnonymousFragmentUpdatePublicCommentaryView(
+    TextObjectFieldUpdateMixin, AnonymousFragmentUpdateView
+):
+    form_class = AnonymousFragmentPublicCommentaryForm
+    textobject_field = "public_commentary_mentions"
+    template_name = "research/inline_forms/public_commentary_form.html"
     hide_empty = False
 
 

@@ -655,6 +655,49 @@ class AnonymousFragmentCommentaryForm(CommentaryFormBase):
         fields = ()
 
 
+class PublicCommentaryFormBase(forms.ModelForm):
+    commentary_text = forms.CharField(
+        widget=forms.Textarea,
+        required=False,
+        label="Public Commentary",
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.public_commentary_mentions:
+            self.fields[
+                "commentary_text"
+            ].initial = self.instance.public_commentary_mentions.content
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if commit:
+            # commentary will have been created at this point via post_save
+            instance.public_commentary_mentions.content = self.cleaned_data[
+                "commentary_text"
+            ]
+            instance.public_commentary_mentions.save()
+        return instance
+
+
+class FragmentPublicCommentaryForm(PublicCommentaryFormBase):
+    class Meta:
+        model = Fragment
+        fields = ()
+
+
+class TestimoniumPublicCommentaryForm(PublicCommentaryFormBase):
+    class Meta:
+        model = Testimonium
+        fields = ()
+
+
+class AnonymousFragmentPublicCommentaryForm(PublicCommentaryFormBase):
+    class Meta:
+        model = AnonymousFragment
+        fields = ()
+
+
 class HistoricalFormBase(forms.ModelForm):
     def save(self, commit=True):
         instance = super().save(commit=False)
