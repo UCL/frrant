@@ -670,6 +670,13 @@ class FragmentCommentaryView(TextObjectFieldViewMixin):
     hide_empty = False
 
 
+class FragmentPublicCommentaryView(TextObjectFieldViewMixin):
+    model = Fragment
+    permission_required = ("research.view_fragment",)
+    textobject_field = "public_commentary_mentions"
+    hide_empty = False
+
+
 class AnonymousFragmentUpdateCommentaryView(
     TextObjectFieldUpdateMixin, AnonymousFragmentUpdateView
 ):
@@ -692,6 +699,13 @@ class AnonymousFragmentCommentaryView(TextObjectFieldViewMixin):
     model = AnonymousFragment
     permission_required = ("research.view_fragment",)
     textobject_field = "commentary"
+    hide_empty = False
+
+
+class AnonymousFragmentPublicCommentaryView(TextObjectFieldViewMixin):
+    model = AnonymousFragment
+    permission_required = ("research.view_fragment",)
+    textobject_field = "public_commentary_mentions"
     hide_empty = False
 
 
