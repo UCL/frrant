@@ -175,9 +175,16 @@
     <div class="commentary-container rich-text-form-container">
       {% include 'research/partials/text_object_preview.html' with text_object=object.commentary %}
     </div>
+
+
     </section>
+    {% if perms.research.change_fragment and has_object_lock %}
     <br>
-    <section>
+    <div class="custom-control custom-switch">
+        <input type="checkbox" class="custom-control-input" id="togglePublicCommentary">
+        <label class="custom-control-label text-muted" for="togglePublicCommentary">Show Public Commentary</label>
+      </div>
+    <section class="public-commentary-section" style="display:none;">
         <div class='d-flex justify-content-between mb-3'>
           <div>
               <h5>{% trans 'See Also' %}</h5>
@@ -192,10 +199,26 @@
               {% endif %}
           </div>
       </div>
+      {% if object.public_commentary_mentions.approved %}
       <div class="public-commentary-container rich-text-form-container">
         {% include 'research/partials/text_object_preview.html' with text_object=object.public_commentary_mentions %}
       </div>
+      {% endif %}
       </section>
+      {% endif %}
+      <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            document.getElementById("togglePublicCommentary").addEventListener("change", function() {
+                var publicCommentarySection = document.querySelector(".public-commentary-section");
+                // Toggle the visibility of the .public-commentary-section based on the checkbox state
+                if (this.checked) {
+                    publicCommentarySection.style.display = "block";
+                } else {
+                    publicCommentarySection.style.display = "none";
+                }
+            });
+        });
+      </script>
     <hr>
 
     <section>
