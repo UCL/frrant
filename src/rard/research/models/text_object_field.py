@@ -120,6 +120,6 @@ class TextObjectField(HistoryModelMixin, BaseModel):
         return related if isinstance(related, Book) else None
 
 
-class PublicCommentaryMentions(BaseModel):
+class PublicCommentaryMentions(models.Model):
     content = DynamicTextField(default="", blank=True)
     approved = models.BooleanField(default=False)
