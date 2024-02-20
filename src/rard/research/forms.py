@@ -662,7 +662,11 @@ class PublicCommentaryFormBase(forms.ModelForm):
         required=False,
         label="Public Commentary",
     )
-    approved = forms.BooleanField(label="approved", required=False)
+    approved = forms.BooleanField(
+        label="approved",
+        required=False,
+        help_text="By approving, you consent to the general public to view this on the final website.",
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
