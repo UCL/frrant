@@ -135,7 +135,7 @@
             <h5>{% trans 'Commentary' %}</h5>
         </div>
         <div>
-            {% if perms.research.change_fragment and has_object_lock %}
+            {% if perms.research.change_testimonium and has_object_lock %}
             <button
               class="btn text-primary p-0 ml-2"
               hx-get="{% url 'testimonium:update_commentary' object.pk %}"
@@ -148,7 +148,7 @@
       {% include 'research/partials/text_object_preview.html' with text_object=object.commentary %}
     </div>
     </section>
-    {% if perms.research.change_fragment and has_object_lock %}
+    {% if perms.research.change_testimonium and has_object_lock %}
     <br>
     <div class="custom-control custom-switch">
         <input type="checkbox" class="custom-control-input" id="togglePublicCommentary">
@@ -160,7 +160,7 @@
               <h5>{% trans 'See Also' %}</h5>
           </div>
           <div>
-              {% if perms.research.change_fragment and has_object_lock %}
+              {% if perms.research.change_testimonium and has_object_lock %}
               <button
                 class="btn text-primary p-0 ml-2"
                 hx-get="{% url 'anonymous_fragment:update_public_commentary' object.pk %}"
@@ -207,7 +207,7 @@
         {% for antiquarian, contents in link_object.items %}
         {% with links=contents.0 %}
         {% with definite_ant=contents.1 %}
-            {% include 'research/partials/linked_antiquarian.html' with antiquarian=antiquarian linked_field='testimonium' object=object definite_antiquarian=definite_ant  can_edit=perms.research.change_fragment has_object_lock=has_object_lock %}
+            {% include 'research/partials/linked_antiquarian.html' with antiquarian=antiquarian linked_field='testimonium' object=object definite_antiquarian=definite_ant  can_edit=perms.research.change_testimonium has_object_lock=has_object_lock %}
 
             <div class="pl-4 mb-4 mt-0">
             {% for link in links %}
