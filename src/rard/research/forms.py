@@ -16,6 +16,7 @@ from rard.research.models import (
     Comment,
     Fragment,
     OriginalText,
+    PublicCommentaryMentions,
     Reference,
     Testimonium,
     Work,
@@ -661,6 +662,7 @@ class PublicCommentaryFormBase(forms.ModelForm):
         required=False,
         label="Public Commentary",
     )
+    approved = forms.BooleanField(label="approved", required=False)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -668,14 +670,24 @@ class PublicCommentaryFormBase(forms.ModelForm):
             self.fields[
                 "commentary_text"
             ].initial = self.instance.public_commentary_mentions.content
+            self.fields[
+                "approved"
+            ].initial = self.instance.public_commentary_mentions.approved
 
     def save(self, commit=True):
         instance = super().save(commit=False)
+        if not instance.public_commentary_mentions:
+            pcm = PublicCommentaryMentions.objects.create(
+                content=self.cleaned_data["commentary_text"]
+            )
+            instance.public_commentary_mentions = pcm
+
         if commit:
-            # commentary will have been created at this point via post_save
+            instance.save()
             instance.public_commentary_mentions.content = self.cleaned_data[
                 "commentary_text"
             ]
+            instance.public_commentary_mentions.approved = self.cleaned_data["approved"]
             instance.public_commentary_mentions.save()
         return instance
 
