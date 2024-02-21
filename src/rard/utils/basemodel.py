@@ -47,7 +47,25 @@ class DynamicTextField(TextField):
                         linked_items[model].append(pk)
                 return linked_items
 
-            # reassign_mentions(self,original,new)
+            def reassign_mentions(self, original, new):
+                value = getattr(self, field_name)
+                soup = soup = bs4.BeautifulSoup(value, features="html.parser")
+                mentions = soup.find_all("span", class_="mention")
+                for item in mentions:
+                    model = item.attrs.get("data-target", None)
+                    pk = item.attrs.get("data-id", None)
+                    if model == original.__class__.__name__ and str(pk) == str(
+                        original.pk
+                    ):
+                        # Update the data-target and data-id attributes with new values
+                        item["data-target"] = new.__class__.__name__
+                        item["data-id"] = str(new.pk)
+
+                    modified_value = str(soup)
+
+                    setattr(self, field_name, modified_value)
+                    return self.save()
+
             # self.soup(find original pk, replace with new pk)
             # save() --should update the rest for us
 
@@ -312,6 +330,7 @@ class DynamicTextField(TextField):
                 "get_fragment_testimonia_mentions",
                 get_fragment_testimonia_mentions,
             )
+            setattr(cls, "reassign_mentions", reassign_mentions)
 
 
 class ObjectLock(models.Model):
