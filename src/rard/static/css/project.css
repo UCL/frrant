@@ -396,6 +396,9 @@ button.insert {
   font-size: 18px;
   min-height: 50vh;
 }
+.bib-title .ql-editor {
+  min-height: 0;
+}
 .ql-mention-list-container {
   max-height: 400px;
   overflow-y: auto;
