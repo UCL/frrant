@@ -47,6 +47,10 @@ class DynamicTextField(TextField):
                         linked_items[model].append(pk)
                 return linked_items
 
+            # reassign_mentions(self,original,new)
+            # self.soup(find original pk, replace with new pk)
+            # save() --should update the rest for us
+
             def update_editable_mentions(self, save=True):
                 from rard.research.models import OriginalText
 

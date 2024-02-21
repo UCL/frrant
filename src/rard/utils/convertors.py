@@ -31,6 +31,12 @@ def transfer_data_between_fragments(source, destination):
     destination.commentary = commentary
 
 
+# def transfer_mentions(original,new)
+# for TOF in original.metioned_in.all():
+# TOF.reassign_mention(original,new) --in basemodel.py
+# mentions should then just update
+
+
 def convert_appositum_link_to_fragment_link(appositum_link, fragment):
     """
     Creates a new FragmentLink based on the AppositumFragmentLink data and
@@ -61,6 +67,8 @@ def convert_unlinked_fragment_to_anonymous_fragment(fragment):
     anonymous_fragment = AnonymousFragment.objects.create()
     transfer_data_between_fragments(fragment, anonymous_fragment)
     anonymous_fragment.save()
+    # copy over mentions and update rtf of where mentioned
+    # transfer_mentions(original,new)
     fragment.delete()
     reindex_anonymous_fragments()
     anonymous_fragment.refresh_from_db()
@@ -74,6 +82,7 @@ def convert_anonymous_fragment_to_fragment(anonymous_fragment):
 
     fragment = Fragment.objects.create()
     transfer_data_between_fragments(anonymous_fragment, fragment)
+    # also transfer mentions here
 
     # If there are AppositumFragmentLinks convert them to FragmentLinks
     for link in anonymous_fragment.appositumfragmentlinks_from.all():
