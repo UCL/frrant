@@ -48,23 +48,32 @@ class DynamicTextField(TextField):
                 return linked_items
 
             def reassign_mentions(self, original, new):
+                print("Reassigning mentions")
                 value = getattr(self, field_name)
                 soup = soup = bs4.BeautifulSoup(value, features="html.parser")
                 mentions = soup.find_all("span", class_="mention")
                 for item in mentions:
-                    model = item.attrs.get("data-target", None)
+                    print("item:", item)
+                    model_name = item.attrs.get("data-target", None)
                     pk = item.attrs.get("data-id", None)
-                    if model == original.__class__.__name__ and str(pk) == str(
-                        original.pk
-                    ):
+                    # if model == original.__class__.__name__ and str(pk) == str(
+                    #     original.pk
+                    # ):
+                    model = apps.get_model(app_label="research", model_name=model_name)
+
+                    if model.objects.get(pk=pk) == original:
+                        print("found mention for original:", item)
                         # Update the data-target and data-id attributes with new values
                         item["data-target"] = new.__class__.__name__
                         item["data-id"] = str(new.pk)
+                        print(item["data-target"], item["data-id"])
+                        print("updated item?:", item)
 
-                    modified_value = str(soup)
+                        modified_value = str(soup)
+                        print("new soup:", soup)
 
-                    setattr(self, field_name, modified_value)
-                    return self.save()
+                        setattr(self, field_name, modified_value)
+                        return self.save()
 
             # self.soup(find original pk, replace with new pk)
             # save() --should update the rest for us
