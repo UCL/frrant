@@ -1118,7 +1118,6 @@ def duplicate_fragment(request, pk, model_name):
             "commentary",
             "plain_commentary",
             "order",  # anon frags have this
-            # "model",
         ]:
             continue
 
