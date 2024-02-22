@@ -41,7 +41,7 @@ class DynamicTextField(TextField):
                     "testimonium": [],
                 }
                 for item in mentions:
-                    model = item.attrs.get("data-target", None)
+                    model = item.attrs.get("data-target", None).lower()
                     pk = item.attrs.get("data-id", None)
                     if model in linked_items.keys() and pk:
                         linked_items[model].append(pk)
@@ -62,7 +62,13 @@ class DynamicTextField(TextField):
                         # Update the data-target and data-id attributes with new values
                         item["data-target"] = new.__class__.__name__
                         item["data-id"] = str(new.pk)
-                        print("\nupdated:", item["data-target"], item["data-id"])
+                        item["data-value"] = new.get_display_name()
+                        print(
+                            "\nupdated:",
+                            item["data-target"],
+                            item["data-id"],
+                            item["data-value"],
+                        )
 
                         modified_value = str(soup)
                         print("\nnew soup:", soup)
