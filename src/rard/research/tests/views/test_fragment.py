@@ -9,18 +9,17 @@ from rard.research.models import (
     AnonymousTopicLink,
     Antiquarian,
     ApparatusCriticusItem,
-    AppositumFragmentLink,
     CitingAuthor,
     CitingWork,
     Concordance,
     Fragment,
-    FragmentLink,
     OriginalText,
     Reference,
     TextObjectField,
     Topic,
     Translation,
 )
+from rard.research.models.base import AppositumFragmentLink, FragmentLink
 from rard.research.views import (
     AnonymousFragmentConvertToFragmentView,
     AnonymousFragmentListView,
@@ -517,22 +516,21 @@ class TestOrderAnonymousFragmentListView(TestCase):
 class TestFragmentDuplicationView(TestCase):
     def setUp(self):
         self.cw = CitingWork.objects.create(title="citing work title")
+        self.topic = Topic.objects.create(name="topic1")
+        self.frag = Fragment.objects.create(name="test fragment")
+        self.frag.topics.add(self.topic)
+        self.anonfrag = AnonymousFragment.objects.create(name="test anonfragment")
+        self.anonfrag.topics.add(self.topic)
         self.ot = OriginalText.objects.create(
+            owner=self.frag,
             content="Original Text test",
-            apparatus_criticus_blank=False,
-            apparatus_criticus="here be the app crit",
-            object_id=111,
             citing_work=self.cw,
-            content_type_id=12,
             reference_order="reference order",
         )
         self.ot2 = OriginalText.objects.create(
+            owner=self.anonfrag,
             content="Original Text2 test",
-            apparatus_criticus_blank=False,
-            apparatus_criticus="here be the app crit",
-            object_id=121,
             citing_work=self.cw,
-            content_type_id=14,
             reference_order="reference order",
         )
         self.con = Concordance.objects.create(
@@ -555,13 +553,6 @@ class TestFragmentDuplicationView(TestCase):
         )
         self.ref = Reference.objects.create(editor="test", original_text=self.ot)
         self.ref2 = Reference.objects.create(editor="test", original_text=self.ot2)
-        self.topic = Topic.objects.create(name="topic1")
-        self.frag = Fragment.objects.create(name="test fragment")
-        self.frag.topics.add(self.topic)
-        self.frag.original_texts.add(self.ot)
-        self.anonfrag = AnonymousFragment.objects.create(name="test anonfragment")
-        self.anonfrag.topics.add(self.topic)
-        self.anonfrag.original_texts.add(self.ot2)
 
     def compare_model_objects(self, original, duplicate):
         for field in original._meta.fields:
@@ -570,14 +561,15 @@ class TestFragmentDuplicationView(TestCase):
                 "created",
                 "modified",
                 "commentary",
+                "plain_commentary",
                 "object_id",
                 "original_text",
                 "order",
                 "model",
             ]:
                 continue
-            if field.is_relation and getattr(original, field.name) is not None:
-                # If the field is a relation and is not None, recursively compare the related objects
+            if field.is_relation and getattr(original, field.name):
+                # If the field is a relation, compare the related objects
                 related_original = getattr(original, field.name)
                 related_duplicate = getattr(duplicate, field.name)
                 self.compare_model_objects(related_original, related_duplicate)
@@ -588,10 +580,12 @@ class TestFragmentDuplicationView(TestCase):
                 self.assertEqual(value1, value2)
 
     def test_fragment_duplication(self):
-        url = reverse("fragment:duplicate", kwargs={"pk": self.frag.pk})
+        url = reverse(
+            "fragment:duplicate", kwargs={"pk": self.frag.pk, "model_name": "fragment"}
+        )
         request = RequestFactory().get(url)
         request.user = UserFactory.create()
-        response = duplicate_fragment(request, pk=self.frag.pk)
+        response = duplicate_fragment(request, pk=self.frag.pk, model_name="fragment")
 
         duplicate_pk = response.url.split("/")[-2]
         duplicate_frag = Fragment.objects.get(pk=duplicate_pk)
@@ -614,13 +608,13 @@ class TestFragmentDuplicationView(TestCase):
     def test_anonymous_fragment_duplication(self):
         url = reverse(
             "anonymous_fragment:duplicate",
-            kwargs={
-                "pk": self.anonfrag.pk,
-            },
+            kwargs={"pk": self.anonfrag.pk, "model_name": "anonymousfragment"},
         )
         request = RequestFactory().get(url)
         request.user = UserFactory.create()
-        response = duplicate_fragment(request, pk=self.anonfrag.pk)
+        response = duplicate_fragment(
+            request, pk=self.anonfrag.pk, model_name="anonymousfragment"
+        )
 
         duplicate_pk = response.url.split("/")[-2]
         duplicate_frag = Fragment.objects.get(pk=duplicate_pk)

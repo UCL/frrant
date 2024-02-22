@@ -1,6 +1,5 @@
 from django.contrib.auth.context_processors import PermWrapper
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import BadRequest, ObjectDoesNotExist
 from django.db.models import F
 from django.http import (
@@ -1032,21 +1031,17 @@ def duplicate_fragment(request, pk, model_name):
 
     new_original_texts = []
 
-    for i in range(len(original_original_texts)):
+    for text in original_original_texts:
         # Create a dictionary to hold the values for the new OriginalText object
         new_original_text_data = {}
 
         # Iterate over the fields of the OriginalText model
-        for field in original_original_texts[i]._meta.fields:
+        for field in text._meta.fields:
             # Exclude the ID field
             if field.name in ["id", "created", "modified"]:
                 continue
 
-            field_value = getattr(original_original_texts[i], field.name)
-
-            # For ForeignKey fields, copy the related object
-            if field.is_relation and field_value is not None:
-                field_value = field_value
+            field_value = getattr(text, field.name)
 
             new_original_text_data[field.name] = field_value
 
@@ -1055,7 +1050,7 @@ def duplicate_fragment(request, pk, model_name):
         new_original_texts.append(new_original_text)
 
         # Recreate References for new OT
-        for reference in original_original_texts[i].references.all():
+        for reference in text.references.all():
             Reference.objects.create(
                 editor=reference.editor,
                 reference_position=reference.reference_position,
@@ -1066,17 +1061,17 @@ def duplicate_fragment(request, pk, model_name):
         model_details = {
             Concordance: {
                 "filter_name": "original_text",
-                "filter_value": original_original_texts[i],
+                "filter_value": text,
                 "ot_fieldname": "original_text",
             },
             ApparatusCriticusItem: {
-                "filter_name": "object_id",
-                "filter_value": original_original_texts[i].pk,
+                "filter_name": "original_text",
+                "filter_value": text.pk,
                 "ot_fieldname": "parent",
             },
             Translation: {
                 "filter_name": "original_text",
-                "filter_value": original_original_texts[i],
+                "filter_value": text,
                 "ot_fieldname": "original_text",
             },
         }
@@ -1099,6 +1094,7 @@ def duplicate_fragment(request, pk, model_name):
                         "modified",
                         ot_fieldname,
                         "content_type",
+                        "object_id",
                     ]:
                         continue
 
@@ -1109,12 +1105,7 @@ def duplicate_fragment(request, pk, model_name):
                     ot_fieldname
                 ] = new_original_text  # make sure to assign new OT in place of the old one (field skipped above)
 
-                new_model = model_class.objects.create(**new_model_data)
-                # specific handling of content_type since we don't want to create a new instance
-                if hasattr(model_class, "content_type") and model_class.content_type:
-                    new_model.content_type = ContentType.objects.get(
-                        pk=original_item.content_type.pk
-                    )
+                model_class.objects.create(**new_model_data)
 
     # Create a new fragment with the same values as original
     new_fragment_data = {}
@@ -1125,8 +1116,9 @@ def duplicate_fragment(request, pk, model_name):
             "created",
             "modified",
             "commentary",
+            "plain_commentary",
             "order",  # anon frags have this
-            "model",
+            # "model",
         ]:
             continue
 
