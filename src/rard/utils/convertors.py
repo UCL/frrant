@@ -35,6 +35,7 @@ def transfer_mentions(original, new):
     if original.mentioned_in:
         for tof in original.mentioned_in.all():
             tof.reassign_mentions(original, new)
+            tof.update_content_mentions()
             tof.update_mentions()
 
 
