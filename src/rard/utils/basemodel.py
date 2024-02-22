@@ -53,30 +53,22 @@ class DynamicTextField(TextField):
                 soup = soup = bs4.BeautifulSoup(value, features="html.parser")
                 mentions = soup.find_all("span", class_="mention")
                 for item in mentions:
-                    print("item:", item)
                     model_name = item.attrs.get("data-target", None)
                     pk = item.attrs.get("data-id", None)
-                    # if model == original.__class__.__name__ and str(pk) == str(
-                    #     original.pk
-                    # ):
                     model = apps.get_model(app_label="research", model_name=model_name)
-
+                    print("item:", model, pk)
                     if model.objects.get(pk=pk) == original:
                         print("found mention for original:", item)
                         # Update the data-target and data-id attributes with new values
                         item["data-target"] = new.__class__.__name__
                         item["data-id"] = str(new.pk)
-                        print(item["data-target"], item["data-id"])
-                        print("updated item?:", item)
+                        print("\nupdated:", item["data-target"], item["data-id"])
 
                         modified_value = str(soup)
-                        print("new soup:", soup)
+                        print("\nnew soup:", soup)
 
                         setattr(self, field_name, modified_value)
-                        return self.save()
-
-            # self.soup(find original pk, replace with new pk)
-            # save() --should update the rest for us
+                        self.save()
 
             def update_editable_mentions(self, save=True):
                 from rard.research.models import OriginalText
