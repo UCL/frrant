@@ -53,11 +53,13 @@ class TextObjectField(HistoryModelMixin, BaseModel):
             # get related queryset
             class_mentions_queryset = getattr(self, class_name + "_mentions")
             for instance in class_mentions_queryset.all():
-                print(instance)
+                print("instance info TOF:", instance.__class__.name, instance.pk, "\n")
                 try:
-                    get_object_or_404(instance)
+                    get_object_or_404(instance.__class__, pk=instance.pk)
                 except Http404:
-                    instance.mentioned_in.remove(self)
+                    instance.mentioned_in.remove(
+                        self
+                    )  # if instance no longer exists, remove it from mentioned_in
                 if instance.pk not in found_pks:
                     # Fragment instance is no longer mentioned so remove it
                     instance.mentioned_in.remove(self)
