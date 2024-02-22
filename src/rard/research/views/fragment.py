@@ -1018,12 +1018,16 @@ def fetch_fragments(request):
     )
 
 
-def duplicate_fragment(request, pk):
+def duplicate_fragment(request, pk, model_name):
     # Get the original fragment
-    if "anonymous" in request.path:
+    if model_name == "anonymousfragment":
         original_fragment = get_object_or_404(AnonymousFragment, pk=pk)
-    else:
+
+    elif model_name == "fragment":
         original_fragment = get_object_or_404(Fragment, pk=pk)
+    else:
+        raise BadRequest("model name not recognised")
+
     original_original_texts = original_fragment.original_texts.all()
 
     new_original_texts = []
