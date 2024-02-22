@@ -32,8 +32,10 @@ def transfer_data_between_fragments(source, destination):
 
 
 def transfer_mentions(original, new):
-    for tof in original.metioned_in.all():
-        tof.reassign_mentions(original, new)
+    if original.mentioned_in:
+        for tof in original.mentioned_in.all():
+            tof.reassign_mentions(original, new)
+            tof.update_mentions()
 
 
 # mentions should then just update
