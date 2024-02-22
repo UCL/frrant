@@ -1,5 +1,6 @@
 from django.contrib.auth.context_processors import PermWrapper
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import BadRequest, ObjectDoesNotExist
 from django.db.models import F
 from django.http import (
@@ -33,10 +34,15 @@ from rard.research.forms import (
 from rard.research.models import (
     AnonymousFragment,
     Antiquarian,
+    ApparatusCriticusItem,
     CitingAuthor,
     CitingWork,
+    Concordance,
     Fragment,
+    OriginalText,
+    Reference,
     Topic,
+    Translation,
     Work,
 )
 from rard.research.models.base import AppositumFragmentLink, FragmentLink
@@ -1013,18 +1019,7 @@ def fetch_fragments(request):
 
 
 def duplicate_fragment(request, pk):
-    from django.contrib.contenttypes.models import ContentType
-
-    from rard.research.models import (
-        ApparatusCriticusItem,
-        Concordance,
-        OriginalText,
-        Reference,
-        Translation,
-    )
-
     # Get the original fragment
-
     if "anonymous" in request.path:
         original_fragment = get_object_or_404(AnonymousFragment, pk=pk)
     else:

@@ -8,18 +8,19 @@ from rard.research.models import (
     AnonymousFragment,
     AnonymousTopicLink,
     Antiquarian,
+    ApparatusCriticusItem,
+    AppositumFragmentLink,
     CitingAuthor,
     CitingWork,
+    Concordance,
     Fragment,
+    FragmentLink,
     OriginalText,
     Reference,
+    TextObjectField,
     Topic,
     Translation,
 )
-from rard.research.models.base import AppositumFragmentLink, FragmentLink
-from rard.research.models.linkable import ApparatusCriticusItem
-from rard.research.models.original_text import Concordance
-from rard.research.models.text_object_field import TextObjectField
 from rard.research.views import (
     AnonymousFragmentConvertToFragmentView,
     AnonymousFragmentListView,
@@ -30,8 +31,8 @@ from rard.research.views import (
     FragmentUpdateView,
     MoveAnonymousTopicLinkView,
     UnlinkedFragmentConvertToAnonymousView,
+    duplicate_fragment,
 )
-from rard.research.views.fragment import duplicate_fragment
 from rard.users.tests.factories import UserFactory
 from rard.utils.convertors import (
     FragmentIsNotConvertible,
