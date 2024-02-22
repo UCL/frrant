@@ -175,7 +175,9 @@ class TestFragmentSuccessUrls(TestCase):
         # Simulate the behavior of the duplicate_fragment view
         request = RequestFactory().get("/")
         request.user = UserFactory.create()
-        response = duplicate_fragment(request, original_fragment.pk)
+        response = duplicate_fragment(
+            request, original_fragment.pk, model_name="fragment"
+        )
         duplicate_pk = response.url.split("/")[-2]
 
         expected_url = reverse(
