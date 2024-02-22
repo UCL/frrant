@@ -178,7 +178,9 @@ class TestFragmentSuccessUrls(TestCase):
         response = duplicate_fragment(request, original_fragment.pk)
         duplicate_pk = response.url.split("/")[-2]
 
-        expected_url = reverse("fragment:detail", kwargs={"pk": duplicate_pk})
+        expected_url = reverse(
+            "fragment:detail", kwargs={"pk": duplicate_pk, "model_name": "fragment"}
+        )
 
         self.assertEqual(response.url, expected_url)
         self.assertEqual(response.status_code, 302)
