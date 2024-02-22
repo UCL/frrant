@@ -296,7 +296,12 @@ urlpatterns = [
                         views.UnlinkedFragmentConvertToAnonymousView.as_view(),
                         name="convert_to_anonymous",
                     ),
-                    path("<pk>/duplicate", views.duplicate_fragment, {"model_name":"fragment"}, name="duplicate"),
+                    path(
+                        "<pk>/duplicate",
+                        views.duplicate_fragment,
+                        {"model_name": "fragment"},
+                        name="duplicate",
+                    ),
                     path("<pk>/", views.FragmentDetailView.as_view(), name="detail"),
                     path(
                         "<pk>/create-original-text/",
@@ -369,7 +374,12 @@ urlpatterns = [
                         views.AnonymousFragmentDeleteView.as_view(),
                         name="delete",
                     ),
-                    path("<pk>/duplicate", views.duplicate_fragment, {"model_name":"anonymousfragment"}, name="duplicate"),
+                    path(
+                        "<pk>/duplicate",
+                        views.duplicate_fragment,
+                        {"model_name": "anonymousfragment"},
+                        name="duplicate",
+                    ),
                     path(
                         "<pk>/convert-to-fragment/",
                         views.AnonymousFragmentConvertToFragmentView.as_view(),
