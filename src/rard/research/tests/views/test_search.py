@@ -548,3 +548,30 @@ class TestSearchView(TestCase):
         self.assertEqual(do_search(view.antiquarian_search, "interesting"), [a11])
         self.assertEqual(do_search(view.work_search, "interesting"), [w11])
         self.assertEqual(do_search(view.book_search, "interesting"), [b11])
+
+    def test_unicode_stripped(self):
+        def do_search(search_function, keywords):
+            return list(search_function(SearchView.Term(keywords)))
+
+        view = SearchView()
+        cw = CitingWork.objects.create(title="citing_work")
+        a12 = Antiquarian.objects.create(name="boring person", re_code="11")
+        a12.introduction.content = "ÂÑϒĺqūě"
+
+        f3 = Fragment.objects.create()
+        f3.commentary = TextObjectField.objects.create(content="ĹĭōṇЄḷ ώὰs Ᾰ gΌῸd ὲgg")
+
+        ot3 = OriginalText.objects.create(
+            content="Õh Ṭọ hάvë pļāĭñ těxt",
+            citing_work=cw,
+            owner=f3,
+        )
+
+        Translation.objects.create(original_text=ot3, translated_text="Ὼῤῥῠ")
+
+        a12.save()
+        f3.save()
+
+        self.assertEqual(do_search(view.antiquarian_search, "antique"), [a12])
+        self.assertEqual(do_search(view.fragment_search, "lionel"), [f3])
+        self.assertEqual(do_search(view.fragment_search, "plain"), [f3])
