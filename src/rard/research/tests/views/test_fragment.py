@@ -200,6 +200,34 @@ class TestFragmentConvertViews(TestCase):
         self.unlinked_fragment = self.create_fragment(Fragment, "ufr")
         self.linked_fragment = self.create_fragment(Fragment, "lfr", linked=True)
 
+        self.mentioning_fragment = self.create_fragment(Fragment, "f mentioner")
+        self.mentioning_fragment.commentary = TextObjectField.objects.create(
+            content=(
+                f"<p><span class='mention' data-denotation-char='@'' "
+                f"data-id={self.unlinked_fragment.pk} "
+                f"data-index='0' data-target='Fragment' "
+                f"data-value='{self.unlinked_fragment.get_display_name()}'><span contenteditable='false'>"
+                f"<span class='ql-mention-denotation-char'>@</span>{self.unlinked_fragment.get_display_name()}"
+                f"</span></span> </p>"
+            )
+        )
+        self.mentioning_fragment.commentary.save()
+
+        self.mentioning_anonymous_fragment = self.create_fragment(
+            Fragment, "af mentioner"
+        )
+        self.mentioning_anonymous_fragment.commentary = TextObjectField.objects.create(
+            content=(
+                f"<p><span class='mention' data-denotation-char='@'' "
+                f"data-id={self.unlinked_anonymous_fragment.pk} "
+                f"data-index='0' data-target='Fragment' "
+                f"data-value='{self.unlinked_anonymous_fragment.get_display_name()}'><span contenteditable='false'>"
+                f"<span class='ql-mention-denotation-char'>@</span>{self.unlinked_anonymous_fragment.get_display_name()}"
+                f"</span></span> </p>"
+            )
+        )
+        self.mentioning_anonymous_fragment.commentary.save()
+
     def create_fragment(self, model, name, linked=False):
         fragment = model.objects.create(name=name)
         citing_work = CitingWork.objects.create(title="title")
@@ -288,6 +316,58 @@ class TestFragmentConvertViews(TestCase):
         new_fragment.save()
         self.assertEqual(ufr_topic.order, 0)
         self.assertEqual(new_fragment.order, 0)
+
+    def test_converted_unlinked_retains_mentions(self):
+        """Make sure newly created anon frag has the same mentions as original"""
+        mentioned_in = self.unlinked_fragment.mentioned_in_list
+        self.assertIn(
+            self.unlinked_fragment.get_display_name(),
+            self.mentioning_fragment.commentary.content,
+        )
+        new_fragment = convert_unlinked_fragment_to_anonymous_fragment(
+            self.unlinked_fragment
+        )
+        new_fragment.save()
+        self.mentioning_fragment.commentary.refresh_from_db()
+        self.assertEqual(mentioned_in, new_fragment.mentioned_in_list)
+        self.assertNotIn(
+            self.unlinked_fragment.get_display_name(),
+            self.mentioning_fragment.commentary.content,
+        )
+        self.assertIn(str(new_fragment.pk), self.mentioning_fragment.commentary.content)
+        self.assertIn(
+            new_fragment.get_display_name(), self.mentioning_fragment.commentary.content
+        )
+        self.assertIn(self.mentioning_fragment, new_fragment.mentioned_in_list)
+
+    def test_converted_anonymous_retains_mentions(self):
+        """Make sure newly created frag has the same mentions as original"""
+        mentioned_in = self.unlinked_anonymous_fragment.mentioned_in_list
+        self.assertIn(
+            self.unlinked_anonymous_fragment.get_display_name(),
+            self.mentioning_anonymous_fragment.commentary.content,
+        )
+        new_fragment = convert_anonymous_fragment_to_fragment(
+            self.unlinked_anonymous_fragment
+        )
+        new_fragment.save()
+
+        self.mentioning_anonymous_fragment.commentary.refresh_from_db()
+        self.assertEqual(mentioned_in, new_fragment.mentioned_in_list)
+        self.assertNotIn(
+            self.unlinked_anonymous_fragment.get_display_name(),
+            self.mentioning_anonymous_fragment.commentary.content,
+        )
+        self.assertIn(
+            str(new_fragment.pk), self.mentioning_anonymous_fragment.commentary.content
+        )
+        self.assertIn(
+            new_fragment.get_display_name(),
+            self.mentioning_anonymous_fragment.commentary.content,
+        )
+        self.assertIn(
+            self.mentioning_anonymous_fragment, new_fragment.mentioned_in_list
+        )
 
 
 class TestMoveAnonymousTopicLinkView(TestCase):
