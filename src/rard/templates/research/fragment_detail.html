@@ -187,8 +187,9 @@
         <div class="commentary-container rich-text-form-container">
           {% include 'research/partials/text_object_preview.html' with text_object=object.commentary %}
         </div>
-
     </section>
+
+
     {% if perms.research.change_fragment and has_object_lock %}
     <br>
     <div class="custom-control custom-switch">
