@@ -1,0 +1,7 @@
+{% if fragments %}
+  {% for frag in fragments %}
+        <option value="{{frag.pk}}">{{frag}}</option>
+  {% endfor %}
+{% else %}
+  <option value="" selected="">Results will appear here</option>
+{% endif %}

@@ -541,6 +541,15 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
 
     images = models.ManyToManyField("Image", blank=True)
 
+    mentioned_in = models.ManyToManyField(
+        "TextObjectField", blank=True, related_name="%(class)s_mentions"
+    )
+
+    @property
+    def mentioned_in_list(self):
+        mentions = [m.get_related_object() for m in self.mentioned_in.all()]
+        return mentions
+
     def __str__(self):
         return self.get_display_name()
 

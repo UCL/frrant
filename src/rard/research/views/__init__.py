@@ -78,6 +78,7 @@ from .fragment import (
     RemoveFragmentLinkView,
     UnlinkedFragmentConvertToAnonymousView,
     UnlinkedFragmentListView,
+    fetch_fragments,
 )
 from .history import HistoryListView
 from .home import HomeView, render_editor_modal_template
@@ -130,6 +131,7 @@ from .work import (
     WorkListView,
     WorkUpdateIntroductionView,
     WorkUpdateView,
+    fetch_books,
 )
 
 __all__ = [
@@ -205,6 +207,7 @@ __all__ = [
     "FragmentUpdateView",
     "FragmentUpdateWorkLinkView",
     "FragmentUpdateAntiquariansView",
+    "fetch_fragments",
     "HistoryListView",
     "HomeView",
     "MentionSearchView",
@@ -246,4 +249,5 @@ __all__ = [
     "refresh_bibliography_from_mentions",
     "WorkUpdateIntroductionView",
     "WorkIntroductionView",
+    "fetch_books",
 ]

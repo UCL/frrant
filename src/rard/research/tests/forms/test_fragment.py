@@ -36,6 +36,7 @@ class TestFragmentLinkWorkForm(TestCase):
         form = FragmentLinkWorkForm(
             antiquarian=None,
             work=None,
+            book=None,
             definite_antiquarian=False,
             definite_work=False,
             update=False,
@@ -54,6 +55,7 @@ class TestFragmentLinkWorkForm(TestCase):
         form = FragmentLinkWorkForm(
             antiquarian=antiquarian,
             work=None,
+            book=None,
             definite_antiquarian=False,
             definite_work=False,
             update=False,
@@ -79,6 +81,7 @@ class TestFragmentLinkWorkForm(TestCase):
         form = FragmentLinkWorkForm(
             antiquarian=antiquarian,
             work=work,
+            book=None,
             definite_antiquarian=False,
             definite_work=False,
             update=False,

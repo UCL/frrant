@@ -261,3 +261,15 @@ class BookDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
 
     def get_success_url(self, *args, **kwargs):
         return reverse("work:detail", kwargs={"pk": self.object.work.pk})
+
+
+def fetch_books(request):
+    from django.shortcuts import render
+
+    pk = request.GET.get("work", None)
+    work = Work.objects.get(pk=pk)
+    books = work.book_set.all()
+
+    return render(
+        request, "research/partials/render_htmx_book_field.html", {"books": books}
+    )

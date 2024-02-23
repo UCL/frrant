@@ -238,6 +238,11 @@ urlpatterns = [
                         views.BookUpdateIntroductionView.as_view(),
                         name="update_book_introduction",
                     ),
+                    path(
+                        "fetch-books",
+                        views.fetch_books,
+                        name="fetch_books",
+                    ),
                 ],
                 "research",
             ),
@@ -296,6 +301,11 @@ urlpatterns = [
                         "<pk>/create-original-text/",
                         views.FragmentOriginalTextCreateView.as_view(),
                         name="create_original_text",
+                    ),
+                    path(
+                        "fetch-fragments",
+                        views.fetch_fragments,
+                        name="fetch_fragments",
                     ),
                     # include common urls here
                     path("", include(common_patterns)),

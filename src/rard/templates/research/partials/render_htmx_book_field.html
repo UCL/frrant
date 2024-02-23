@@ -1,0 +1,9 @@
+{# Used when rendering books fetched for inline fragment update #}
+
+{% for book in books %}
+        {% if book.unknown %}
+        <option value="{{book.pk}}" selected>{{book}}</option>
+        {% else %}
+        <option value="{{book.pk}}">{{book}}</option>
+        {% endif %}
+{% endfor %}
