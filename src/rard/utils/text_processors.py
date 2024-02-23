@@ -2,10 +2,21 @@ import re
 import string
 
 from django.utils.html import strip_tags
+from unidecode import unidecode
+
+
+def strip_unicode(content):
+    print("stripping unicode from:", content)
+    ascii_text = unidecode(content)
+    print(ascii_text)
+    # Filter out non-ASCII characters
+    stripped_text = "".join(char for char in ascii_text if ord(char) < 128)
+    return stripped_text
 
 
 def make_plain_text(content):
-    no_ufeff = content.replace("\ufeff", "")  # found around mentions for some reason
+    no_unicode = strip_unicode(content)
+    no_ufeff = no_unicode.replace("\ufeff", "")  # found around mentions for some reason
     # Add a space between tags so adjacent words aren't merged
     no_tags = strip_tags(no_ufeff.replace("><", "> <"))
     no_html_chars = re.sub(r"&\w+;", " ", no_tags)
