@@ -148,6 +148,8 @@
       {% include 'research/partials/text_object_preview.html' with text_object=object.commentary %}
     </div>
     </section>
+
+
     {% if perms.research.change_testimonium and has_object_lock %}
     <br>
     <div class="custom-control custom-switch">
@@ -163,19 +165,15 @@
               {% if perms.research.change_testimonium and has_object_lock %}
               <button
                 class="btn text-primary p-0 ml-2"
-                hx-get="{% url 'anonymous_fragment:update_public_commentary' object.pk %}"
+                hx-get="{% url 'testimonium:update_public_commentary' object.pk %}"
                 hx-target=".public-commentary-container"
                 hx-swap="innerHTML">{% trans 'Edit' %}</button>
               {% endif %}
           </div>
-      </div>
-      {% if object.public_commentary_mentions.approved %}
-      <div class="public-commentary-container rich-text-form-container">
-        {% include 'research/partials/text_object_preview.html' with text_object=object.public_commentary_mentions %}
-      </div>
-      {% endif %}
-      </section>
-      {% endif %}
+        </div>
+        <div class="public-commentary-container rich-text-form-container">
+                {% include 'research/partials/text_object_preview.html' with text_object=object.public_commentary_mentions %}
+        </div>
       <script>
         document.addEventListener("DOMContentLoaded", function() {
             document.getElementById("togglePublicCommentary").addEventListener("change", function() {
@@ -189,6 +187,16 @@
             });
         });
       </script>
+    </section>
+    {% endif %}
+    {% if object.public_commentary_mentions.approved %}
+    <section>
+        <div class="public-commentary-container rich-text-form-container">
+            {% include 'research/partials/text_object_preview.html' with text_object=object.public_commentary_mentions %}
+        </div>
+    </section>
+    {% endif %}
+
 
     <hr>
 
