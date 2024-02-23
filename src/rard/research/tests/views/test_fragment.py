@@ -8,14 +8,18 @@ from rard.research.models import (
     AnonymousFragment,
     AnonymousTopicLink,
     Antiquarian,
+    ApparatusCriticusItem,
     CitingAuthor,
     CitingWork,
+    Concordance,
     Fragment,
     OriginalText,
+    Reference,
+    TextObjectField,
     Topic,
+    Translation,
 )
 from rard.research.models.base import AppositumFragmentLink, FragmentLink
-from rard.research.models.text_object_field import TextObjectField
 from rard.research.views import (
     AnonymousFragmentConvertToFragmentView,
     AnonymousFragmentListView,
@@ -26,6 +30,7 @@ from rard.research.views import (
     FragmentUpdateView,
     MoveAnonymousTopicLinkView,
     UnlinkedFragmentConvertToAnonymousView,
+    duplicate_fragment,
 )
 from rard.users.tests.factories import UserFactory
 from rard.utils.convertors import (
@@ -163,6 +168,22 @@ class TestFragmentSuccessUrls(TestCase):
             view.get_success_url(),
             reverse("fragment:detail", kwargs={"pk": view.object.pk}),
         )
+
+    def test_duplication_success_url(self):
+        original_fragment = Fragment.objects.create(name="some name")
+
+        # Simulate the behavior of the duplicate_fragment view
+        request = RequestFactory().get("/")
+        request.user = UserFactory.create()
+        response = duplicate_fragment(
+            request, original_fragment.pk, model_name="fragment"
+        )
+        duplicate_pk = response.url.split("/")[-2]
+
+        expected_url = reverse("fragment:detail", kwargs={"pk": duplicate_pk})
+
+        self.assertEqual(response.url, expected_url)
+        self.assertEqual(response.status_code, 302)
 
 
 class TestFragmentDeleteView(TestCase):
@@ -492,3 +513,126 @@ class TestOrderAnonymousFragmentListView(TestCase):
             response.context_data["object_list"],
             [self.aftl1, self.aftl3, self.aftl2, self.aftl3],
         )
+
+
+class TestFragmentDuplicationView(TestCase):
+    def setUp(self):
+        self.cw = CitingWork.objects.create(title="citing work title")
+        self.topic = Topic.objects.create(name="topic1")
+        self.frag = Fragment.objects.create(name="test fragment")
+        self.frag.topics.add(self.topic)
+        self.anonfrag = AnonymousFragment.objects.create(name="test anonfragment")
+        self.anonfrag.topics.add(self.topic)
+        self.ot = OriginalText.objects.create(
+            owner=self.frag,
+            content="Original Text test",
+            citing_work=self.cw,
+            reference_order="reference order",
+        )
+        self.ot2 = OriginalText.objects.create(
+            owner=self.anonfrag,
+            content="Original Text2 test",
+            citing_work=self.cw,
+            reference_order="reference order",
+        )
+        self.con = Concordance.objects.create(
+            original_text=self.ot, source="tester", identifier="123"
+        )
+        self.con = Concordance.objects.create(
+            original_text=self.ot2, source="tester", identifier="123"
+        )
+        self.apc = ApparatusCriticusItem.objects.create(
+            parent=self.ot, content="critical test", object_id=23
+        )
+        self.apc2 = ApparatusCriticusItem.objects.create(
+            parent=self.ot2, content="critical test", object_id=23
+        )
+        self.tr = Translation.objects.create(
+            translated_text="translation of text", original_text=self.ot
+        )
+        self.tr2 = Translation.objects.create(
+            translated_text="translation of text", original_text=self.ot2
+        )
+        self.ref = Reference.objects.create(editor="test", original_text=self.ot)
+        self.ref2 = Reference.objects.create(editor="test", original_text=self.ot2)
+
+    def compare_model_objects(self, original, duplicate):
+        for field in original._meta.fields:
+            if field.name in [
+                "id",
+                "created",
+                "modified",
+                "commentary",
+                "plain_commentary",
+                "object_id",
+                "original_text",
+                "order",
+                "model",
+            ]:
+                continue
+            if field.is_relation and getattr(original, field.name):
+                # If the field is a relation, compare the related objects
+                related_original = getattr(original, field.name)
+                related_duplicate = getattr(duplicate, field.name)
+                self.compare_model_objects(related_original, related_duplicate)
+            else:
+                # For regular fields or null relations, compare their values
+                value1 = getattr(original, field.name)
+                value2 = getattr(duplicate, field.name)
+                self.assertEqual(value1, value2)
+
+    def test_fragment_duplication(self):
+        url = reverse(
+            "fragment:duplicate", kwargs={"pk": self.frag.pk, "model_name": "fragment"}
+        )
+        request = RequestFactory().get(url)
+        request.user = UserFactory.create()
+        response = duplicate_fragment(request, pk=self.frag.pk, model_name="fragment")
+
+        duplicate_pk = response.url.split("/")[-2]
+        duplicate_frag = Fragment.objects.get(pk=duplicate_pk)
+        duplicate_ot = duplicate_frag.original_texts.first()
+        duplicate_ref = duplicate_ot.references.first()
+        duplicate_apc = duplicate_ot.apparatus_criticus_items.first()
+        duplicate_con = duplicate_ot.concordances.first()
+        duplicate_tr = Translation.objects.filter(original_text=duplicate_ot).first()
+
+        self.compare_model_objects(self.frag, duplicate_frag)
+        self.assertEqual(
+            list(self.frag.topics.all()), list(duplicate_frag.topics.all())
+        )
+        self.compare_model_objects(self.ot, duplicate_ot)
+        self.compare_model_objects(self.ref, duplicate_ref)
+        self.compare_model_objects(self.apc, duplicate_apc)
+        self.compare_model_objects(self.con, duplicate_con)
+        self.compare_model_objects(self.tr, duplicate_tr)
+
+    def test_anonymous_fragment_duplication(self):
+        url = reverse(
+            "anonymous_fragment:duplicate",
+            kwargs={"pk": self.anonfrag.pk, "model_name": "anonymousfragment"},
+        )
+        request = RequestFactory().get(url)
+        request.user = UserFactory.create()
+        response = duplicate_fragment(
+            request, pk=self.anonfrag.pk, model_name="anonymousfragment"
+        )
+
+        duplicate_pk = response.url.split("/")[-2]
+        duplicate_frag = Fragment.objects.get(pk=duplicate_pk)
+        duplicate_ot = duplicate_frag.original_texts.first()
+        duplicate_ref = duplicate_ot.references.first()
+
+        duplicate_apc = duplicate_ot.apparatus_criticus_items.first()
+        duplicate_con = duplicate_ot.concordances.first()
+        duplicate_tr = Translation.objects.filter(original_text=duplicate_ot).first()
+
+        self.compare_model_objects(self.anonfrag, duplicate_frag)
+        self.assertEqual(
+            list(self.anonfrag.topics.all()), list(duplicate_frag.topics.all())
+        )
+        self.compare_model_objects(self.ot2, duplicate_ot)
+        self.compare_model_objects(self.ref, duplicate_ref)
+        self.compare_model_objects(self.apc, duplicate_apc)
+        self.compare_model_objects(self.con, duplicate_con)
+        self.compare_model_objects(self.tr, duplicate_tr)
