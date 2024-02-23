@@ -6,9 +6,7 @@ from unidecode import unidecode
 
 
 def strip_unicode(content):
-    print("stripping unicode from:", content)
     ascii_text = unidecode(content)
-    print(ascii_text)
     # Filter out non-ASCII characters
     stripped_text = "".join(char for char in ascii_text if ord(char) < 128)
     return stripped_text

@@ -556,10 +556,10 @@ class TestSearchView(TestCase):
         view = SearchView()
         cw = CitingWork.objects.create(title="citing_work")
         a12 = Antiquarian.objects.create(name="boring person", re_code="11")
-        a12.introduction.content = "ÂÑϒĺqūě"
+        a12.introduction.content = "ÂÑtĩqūě"
 
         f3 = Fragment.objects.create()
-        f3.commentary = TextObjectField.objects.create(content="ĹĭōṇЄḷ ώὰs Ᾰ gΌῸd ὲgg")
+        f3.commentary = TextObjectField.objects.create(content="Ĺĭōṇęḷ ώὰs Ᾰ gΌῸd ὲgg")
 
         ot3 = OriginalText.objects.create(
             content="Õh Ṭọ hάvë pļāĭñ těxt",
