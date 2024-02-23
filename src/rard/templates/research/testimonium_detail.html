@@ -169,6 +169,7 @@
               {% endif %}
           </div>
       </div>
+      {% if object.public_commentary_mentions.approved %}
       <div class="public-commentary-container rich-text-form-container">
         {% include 'research/partials/text_object_preview.html' with text_object=object.public_commentary_mentions %}
       </div>
