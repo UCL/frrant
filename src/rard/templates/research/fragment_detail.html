@@ -194,7 +194,7 @@
     <div class="custom-control custom-switch">
         <input type="checkbox" class="custom-control-input" id="togglePublicCommentary">
         <label class="custom-control-label text-muted" for="togglePublicCommentary">Show Public Commentary</label>
-      </div>
+    </div>
     <section class="public-commentary-section" style="display:none;">
         <div class='d-flex justify-content-between mb-3'>
           <div>
@@ -210,12 +210,13 @@
               {% endif %}
           </div>
       </div>
-      <div class="public-commentary-container rich-text-form-container">
-        {% include 'research/partials/text_object_preview.html' with text_object=object.public_commentary_mentions %}
-      </div>
-      {% endif %}
-      </section>
-      {% endif %}
+        {% if object.public_commentary_mentions.approved %}
+        <div class="public-commentary-container rich-text-form-container">
+            {% include 'research/partials/text_object_preview.html' with text_object=object.public_commentary_mentions %}
+        </div>
+        {% endif %}
+    </section>
+    {% endif %}
       <script>
         document.addEventListener("DOMContentLoaded", function() {
             document.getElementById("togglePublicCommentary").addEventListener("change", function() {
