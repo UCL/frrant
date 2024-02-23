@@ -220,7 +220,7 @@ class TestFragmentConvertViews(TestCase):
             content=(
                 f"<p><span class='mention' data-denotation-char='@'' "
                 f"data-id={self.unlinked_anonymous_fragment.pk} "
-                f"data-index='0' data-target='Fragment' "
+                f"data-index='0' data-target='AnonymousFragment' "
                 f"data-value='{self.unlinked_anonymous_fragment.get_display_name()}'><span contenteditable='false'>"
                 f"<span class='ql-mention-denotation-char'>@</span>{self.unlinked_anonymous_fragment.get_display_name()}"
                 f"</span></span> </p>"
