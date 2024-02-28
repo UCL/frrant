@@ -178,8 +178,19 @@ class MentionSearchView(LoginRequiredMixin, View):
             if not model_name:
                 model_name = next(k for k, value in dd.items() if value == o.__class__)
                 model_name_cache[o.__class__] = model_name
-
-            ajax_data.append({"id": o.pk, "target": model_name, "value": str(o)})
+            if model_name == "bibliographyitem":
+                ajax_data.append(
+                    {
+                        "id": o.pk,
+                        "target": model_name,
+                        "value": str(o),
+                        "citation": BibliographyItem.objects.get(
+                            pk=o.pk
+                        ).mention_citation(),
+                    }
+                )
+            else:
+                ajax_data.append({"id": o.pk, "target": model_name, "value": str(o)})
         return JsonResponse(data=ajax_data, safe=False)
 
     def parse_mention(self, q):
