@@ -79,7 +79,10 @@ class DynamicTextField(TextField):
                             linked = model.objects.get(pk=int(pkstr))
 
                             if char == "@":
-                                link_text = str(linked)
+                                if model_name == "bibliographyitem":
+                                    link_text = linked.mention_citation()
+                                else:
+                                    link_text = str(linked)
                             else:
                                 # it's an apparatus criticus so we need
                                 # show its index and any ordinal relating
@@ -158,14 +161,24 @@ class DynamicTextField(TextField):
                                 app_label="research", model_name=model_name
                             )
                             linked = model.objects.get(pk=int(pkstr))
+                            print(linked.get_absolute_url())
                             # is it something we can link to?
                             if getattr(linked, "get_absolute_url", False):
-                                replacement = bs4.BeautifulSoup(
-                                    '<a href="{}">{}</a>'.format(
-                                        linked.get_absolute_url(), str(linked)
-                                    ),
-                                    features="html.parser",
-                                )
+                                if model_name == "bibliographyitem":
+                                    replacement = bs4.BeautifulSoup(
+                                        '<a href="{}">{}</a>'.format(
+                                            linked.get_absolute_url(),
+                                            str(linked.mention_citation()),
+                                        ),
+                                        features="html.parser",
+                                    )
+                                else:
+                                    replacement = bs4.BeautifulSoup(
+                                        '<a href="{}">{}</a>'.format(
+                                            linked.get_absolute_url(), str(linked)
+                                        ),
+                                        features="html.parser",
+                                    )
                             else:
                                 # else currently that means it's an
                                 # apparatus criticus item
