@@ -161,7 +161,6 @@ class DynamicTextField(TextField):
                                 app_label="research", model_name=model_name
                             )
                             linked = model.objects.get(pk=int(pkstr))
-                            print(linked.get_absolute_url())
                             # is it something we can link to?
                             if getattr(linked, "get_absolute_url", False):
                                 if model_name == "bibliographyitem":
