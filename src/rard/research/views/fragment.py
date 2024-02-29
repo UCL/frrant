@@ -21,12 +21,14 @@ from django.views.generic.edit import DeleteView, UpdateView
 from rard.research.forms import (
     AnonymousFragmentCommentaryForm,
     AnonymousFragmentForm,
+    AnonymousFragmentPublicCommentaryForm,
     AppositumFragmentLinkForm,
     AppositumGeneralLinkForm,
     FragmentAntiquariansForm,
     FragmentCommentaryForm,
     FragmentForm,
     FragmentLinkWorkForm,
+    FragmentPublicCommentaryForm,
     OriginalTextForm,
     ReferenceFormset,
 )
@@ -657,10 +659,26 @@ class FragmentUpdateCommentaryView(TextObjectFieldUpdateMixin, FragmentUpdateVie
     hide_empty = False
 
 
+class FragmentUpdatePublicCommentaryView(
+    TextObjectFieldUpdateMixin, FragmentUpdateView
+):
+    form_class = FragmentPublicCommentaryForm
+    textobject_field = "public_commentary_mentions"
+    template_name = "research/inline_forms/public_commentary_form.html"
+    hide_empty = False
+
+
 class FragmentCommentaryView(TextObjectFieldViewMixin):
     model = Fragment
     permission_required = ("research.view_fragment",)
     textobject_field = "commentary"
+    hide_empty = False
+
+
+class FragmentPublicCommentaryView(TextObjectFieldViewMixin):
+    model = Fragment
+    permission_required = ("research.view_fragment",)
+    textobject_field = "public_commentary_mentions"
     hide_empty = False
 
 
@@ -673,10 +691,26 @@ class AnonymousFragmentUpdateCommentaryView(
     hide_empty = False
 
 
+class AnonymousFragmentUpdatePublicCommentaryView(
+    TextObjectFieldUpdateMixin, AnonymousFragmentUpdateView
+):
+    form_class = AnonymousFragmentPublicCommentaryForm
+    textobject_field = "public_commentary_mentions"
+    template_name = "research/inline_forms/public_commentary_form.html"
+    hide_empty = False
+
+
 class AnonymousFragmentCommentaryView(TextObjectFieldViewMixin):
     model = AnonymousFragment
     permission_required = ("research.view_fragment",)
     textobject_field = "commentary"
+    hide_empty = False
+
+
+class AnonymousFragmentPublicCommentaryView(TextObjectFieldViewMixin):
+    model = AnonymousFragment
+    permission_required = ("research.view_fragment",)
+    textobject_field = "public_commentary_mentions"
     hide_empty = False
 
 

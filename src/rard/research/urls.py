@@ -277,6 +277,16 @@ urlpatterns = [
                         name="update_commentary",
                     ),
                     path(
+                        "<pk>/update/public-commentary/",
+                        views.FragmentUpdatePublicCommentaryView.as_view(),
+                        name="update_public_commentary",
+                    ),
+                    path(
+                        "<pk>/public-commentary/",
+                        views.FragmentPublicCommentaryView.as_view(),
+                        name="public_commentary_mentions",
+                    ),
+                    path(
                         "<pk>/link-work/",
                         views.FragmentAddWorkLinkView.as_view(),
                         name="add_work_link",
@@ -370,6 +380,16 @@ urlpatterns = [
                         name="update_commentary",
                     ),
                     path(
+                        "<pk>/update/public-commentary/",
+                        views.AnonymousFragmentUpdatePublicCommentaryView.as_view(),
+                        name="update_public_commentary",
+                    ),
+                    path(
+                        "<pk>/public-commentary/",
+                        views.AnonymousFragmentPublicCommentaryView.as_view(),
+                        name="public_commentary_mentions",
+                    ),
+                    path(
                         "<pk>/delete/",
                         views.AnonymousFragmentDeleteView.as_view(),
                         name="delete",
@@ -431,6 +451,16 @@ urlpatterns = [
                         "<pk>/update/commentary/",
                         views.TestimoniumUpdateCommentaryView.as_view(),
                         name="update_commentary",
+                    ),
+                    path(
+                        "<pk>/update/public-commentary/",
+                        views.TestimoniumUpdatePublicCommentaryView.as_view(),
+                        name="update_public_commentary",
+                    ),
+                    path(
+                        "<pk>/public-commentary/",
+                        views.TestimoniumPublicCommentaryView.as_view(),
+                        name="public_commentary_mentions",
                     ),
                     path(
                         "<pk>/link-work/",
