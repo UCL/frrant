@@ -212,7 +212,7 @@
         </div>
     </section>
     {% endif %}
-    {% if object.public_commentary_mentions.approved %}
+    {% if not has_object_lock and object.public_commentary_mentions.approved %}
     <section>
         <div class="public-commentary-container rich-text-form-container">
             {% include 'research/partials/text_object_preview.html' with text_object=object.public_commentary_mentions %}
