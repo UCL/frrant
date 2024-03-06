@@ -11,13 +11,13 @@
 @font-face {
   font-family: Alphabetum;
   src: url("../fonts/Volusius_Maecianus_fractions.otf") format("opentype");
-  unicode-range: U+E000-E011;
+  unicode-range: U+E000-E011, U+E024, U+E026-E027;
 }
 
 @font-face {
   font-family: Alphabetum;
   src: url("../fonts/Victorius_fractions.otf") format("opentype");
-  unicode-range: U+E012-E022;
+  unicode-range: U+E012-E023;
 }
 
 .alphabetum {
