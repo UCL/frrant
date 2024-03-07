@@ -606,6 +606,8 @@ class TestFragmentDuplicationView(TestCase):
         self.compare_model_objects(self.apc, duplicate_apc)
         self.compare_model_objects(self.con, duplicate_con)
         self.compare_model_objects(self.tr, duplicate_tr)
+        self.assertIn(duplicate_frag, self.frag.duplicates_list)
+        self.assertIn(self.frag, duplicate_frag.duplicates_list)
 
     def test_anonymous_fragment_duplication(self):
         url = reverse(
@@ -636,3 +638,5 @@ class TestFragmentDuplicationView(TestCase):
         self.compare_model_objects(self.apc, duplicate_apc)
         self.compare_model_objects(self.con, duplicate_con)
         self.compare_model_objects(self.tr, duplicate_tr)
+        self.assertIn(duplicate_frag, self.anonfrag.duplicates_list)
+        self.assertIn(self.anonfrag, duplicate_frag.duplicates_list)
