@@ -127,9 +127,9 @@
                     <div class="form-row align-items-center">
                         {% if perms.research.change_originaltext %}
                         Edit&nbsp;
-                        <a href='{% url "fragment:update_author_original_text" original_text.pk %}'>Citing Work</a>
+                        <a href='{% url "fragment:update_author_original_text" original_text.pk %}' {% if object.duplicate_frags.all %}class="alert-duplicates" {% endif %}>Citing Work</a>
                         &nbsp;/&nbsp;
-                        <a href='{% url "fragment:update_original_text" original_text.pk %}'>Details</a>
+                        <a href='{% url "fragment:update_original_text" original_text.pk %}' {% if object.duplicate_frags.all %}class="alert-duplicates" {% endif %}>Details</a>
                         {% endif %}
                         {% if perms.research.delete_originaltext %}
                         <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2' data-what='original text'>{% trans 'Delete' %}</button>
@@ -292,9 +292,12 @@
 
     {% if object.mentioned_in.all %}
     <hr>
-
     {% include 'research/partials/section/mentions_section.html' with object=object obj_name="fragment" %}
+    {% endif %}
 
+    {% if object.duplicate_frags.all %}
+    <hr>
+    {% include 'research/partials/section/duplicates_section.html' with object=object obj_name="fragment" %}
     {% endif %}
 
 
