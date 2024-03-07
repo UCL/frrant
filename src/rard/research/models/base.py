@@ -558,6 +558,15 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
     )
 
     @property
+    def duplicates_list(self):
+        duplicates = list(self.duplicate_frags.all())
+        if hasattr(self, "fragment_duplicate_fragments"):
+            duplicates.extend(self.fragment_duplicate_fragments.all())
+        if hasattr(self, "anonymousfragment_duplicate_fragments"):
+            duplicates.extend(self.anonymousfragment_duplicate_fragments.all())
+        return list(set(duplicates))
+
+    @property
     def mentioned_in_list(self):
         mentions = [m.get_related_object() for m in self.mentioned_in.all()]
         return mentions

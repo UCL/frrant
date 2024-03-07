@@ -1168,6 +1168,5 @@ def duplicate_fragment(request, pk, model_name):
 
     # add duplication relationship
     original_fragment.duplicate_frags.add(new_fragment)
-    new_fragment.duplicate_frags.add(original_fragment)
 
     return redirect("fragment:detail", pk=new_fragment.pk)
