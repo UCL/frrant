@@ -28,4 +28,13 @@ class Migration(migrations.Migration):
                 to="research.Fragment",
             ),
         ),
+        migrations.AddField(
+            model_name="testimonium",
+            name="duplicate_frags",
+            field=models.ManyToManyField(
+                blank=True,
+                related_name="testimonium_duplicate_fragments",
+                to="research.Fragment",
+            ),
+        ),
     ]
