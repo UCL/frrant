@@ -6,7 +6,7 @@
             <p class="text-muted">The following items are duplicates</p>
         </div>
     </div>
-    {% for duplicate in object.duplicate_frags.all %}
+    {% for duplicate in object.duplicates_list %}
         <li class="pb-2" style="list-style-type:circle;"><a href="{{ duplicate.get_absolute_url }}">{{ duplicate }}</a></li>
     {% endfor %}
 </section>

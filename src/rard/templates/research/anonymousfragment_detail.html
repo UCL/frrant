@@ -257,9 +257,9 @@
     {% include 'research/partials/section/mentions_section.html' with object=object obj_name="anonymous fragment" %}
     {% endif %}
 
-    {% if object.duplicate_frags.all %}
+    {% if object.duplicates_list %}
     <hr>
-    {% include 'research/partials/section/duplicates_section.html' with object=object obj_name="fragment" %}
+    {% include 'research/partials/section/duplicates_section.html' with object=object %}
     {% endif %}
 
     {% endwith %}
