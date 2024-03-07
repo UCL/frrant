@@ -553,6 +553,10 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
         "TextObjectField", blank=True, related_name="%(class)s_mentions"
     )
 
+    duplicate_frags = models.ManyToManyField(
+        "Fragment", blank=True, related_name="%(class)s_duplicate_fragments"
+    )
+
     @property
     def mentioned_in_list(self):
         mentions = [m.get_related_object() for m in self.mentioned_in.all()]

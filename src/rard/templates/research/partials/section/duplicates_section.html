@@ -1,0 +1,12 @@
+{% load i18n %}
+<section id="duplicates">
+    <div class='d-flex justify-content-between mb-3'>
+        <div>
+            <h5>{% trans 'Duplicates' %}</h5>
+            <p class="text-muted">The following items are duplicates</p>
+        </div>
+    </div>
+    {% for duplicate in object.duplicate_frags.all %}
+        <li class="pb-2" style="list-style-type:circle;"><a href="{{ duplicate.get_absolute_url }}">{{ duplicate }}</a></li>
+    {% endfor %}
+</section>
