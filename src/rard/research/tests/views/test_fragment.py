@@ -640,3 +640,20 @@ class TestFragmentDuplicationView(TestCase):
         self.compare_model_objects(self.tr, duplicate_tr)
         self.assertIn(duplicate_frag, self.anonfrag.duplicates_list)
         self.assertIn(self.anonfrag, duplicate_frag.duplicates_list)
+
+    def test_duplicates_transferred_in_conversion(self):
+        url = reverse(
+            "fragment:duplicate", kwargs={"pk": self.frag.pk, "model_name": "fragment"}
+        )
+        request = RequestFactory().get(url)
+        request.user = UserFactory.create()
+        response = duplicate_fragment(request, pk=self.frag.pk, model_name="fragment")
+
+        duplicate_pk = response.url.split("/")[-2]
+        duplicate_frag = Fragment.objects.get(pk=duplicate_pk)
+
+        new_anonfragment = convert_unlinked_fragment_to_anonymous_fragment(
+            duplicate_frag
+        )
+        new_anonfragment.save()
+        self.assertIn(self.frag, new_anonfragment.duplicates_list)
