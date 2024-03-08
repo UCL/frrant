@@ -568,8 +568,7 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
     @property
     def duplicates_list(self):
         duplicates = list(self.duplicate_frags.all())
-        if hasattr(self, "duplicate_afs"):
-            duplicates.extend(self.duplicate_afs.all())
+        duplicates.extend(self.duplicate_afs.all())
         if hasattr(self, "fragment_duplicate_fragments"):
             duplicates.extend(self.fragment_duplicate_fragments.all())
         if hasattr(self, "anonymousfragment_duplicate_fragments"):
