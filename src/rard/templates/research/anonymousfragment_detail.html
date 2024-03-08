@@ -193,8 +193,9 @@
             </div>
             <div>
                 {% if perms.research.change_anonymousfragment and has_object_lock %}
-                Link <a href='{% url "anonymous_fragment:link" object.pk %}'>{% trans 'Antiquarian/Work' %}</a> or
-                <a href='{% url "anonymous_fragment:link_fragment" object.pk %}'>{% trans 'Fragment' %}</a>
+                Link <a href='{% url "anonymous_fragment:link" object.pk %}'>{% trans 'Antiquarian/Work' %}</a>,
+                <a href='{% url "anonymous_fragment:link_fragment" object.pk %}'>{% trans 'Fragment' %}</a> or
+                <a href='{% url "anonymous_fragment:link_anonymous" object.pk %}'>{% trans 'Anonymous Fragment' %}</a>
 
                 {% endif %}
             </div>
@@ -210,20 +211,41 @@
 
                     {% for fragment in object.fragments.all %}
                       {% if fragment.is_unlinked %}
-                        {% include 'research/partials/fragment_list_item.html' with fragment=fragment %}
+                        {% include 'research/partials/appositum_unlinked_list_item.html' with fragment=fragment appositum=object has_object_lock=has_object_lock can_edit=perms.research.change_anonymous_fragment %}
                       {% endif %}
                     {% endfor %}
 
+                {% endif %}
+
+                {% if object.anonymous_fragments %}
+                    {% for anonymous_fragment in object.anonymous_fragments.all %}
+                        {% include 'research/partials/appositum_anonymous_list_item.html' with appositum=object anonymous_fragment=anonymous_fragment can_edit=perms.research.change_fragment %}
+                    {% endfor %}
                 {% endif %}
             </div>
         </div>
 
     </section>
 
+    {% if object.anonymous_apposita.all %}
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Apposita' %}</h5>
+            </div>
+        </div>
+
+        {% for appositum in object.anonymous_apposita.all %}
+            {% include 'research/partials/anonymousfragment_list_item.html' with fragment=appositum %}
+        {% endfor %}
+
+    </section>
+    {% endif %}
+
    {% if object.mentioned_in.all %}
     <hr>
 
-    {% include 'research/partials/section/mentions_section.html' with object=object obj_name="anonymous fragment" %}
+    {% include 'research/partials/section/mentions_section.html' with object=object obj_name="anonymous fragment"%}
 
     {% endif %}
 

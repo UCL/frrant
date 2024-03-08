@@ -350,9 +350,24 @@ urlpatterns = [
                         name="link_fragment",
                     ),
                     path(
+                        "<pk>/appositum-anonymous-link/",
+                        views.AddAppositumAnonymousLinkView.as_view(),
+                        name="link_anonymous",
+                    ),
+                    path(
                         "<pk>/unlink-apposita/<link_pk>",
                         views.RemoveAppositumLinkView.as_view(),
                         name="unlink_apposita",
+                    ),
+                    path(
+                        "<pk>/unlink-fragment-apposita/<frag_pk>",
+                        views.RemoveAppositumFragmentLinkView.as_view(),
+                        name="unlink_fragment_apposita",
+                    ),
+                    path(
+                        "<pk>/unlink-anonymous-apposita/<link_pk>",
+                        views.RemoveAnonymousAppositumLinkView.as_view(),
+                        name="unlink_anonymous_apposita",
                     ),
                     path(
                         "<pk>/commentary/",

@@ -21,6 +21,7 @@ from django.views.generic.edit import DeleteView, UpdateView
 from rard.research.forms import (
     AnonymousFragmentCommentaryForm,
     AnonymousFragmentForm,
+    AppositumAnonymousLinkForm,
     AppositumFragmentLinkForm,
     AppositumGeneralLinkForm,
     FragmentAntiquariansForm,
@@ -543,6 +544,44 @@ class AddAppositumFragmentLinkView(
         return context
 
 
+class AddAppositumAnonymousLinkView(
+    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, FormView
+):
+    check_lock_object = "appositum"
+
+    def dispatch(self, request, *args, **kwargs):
+        # need to ensure we have the lock object view attribute
+        # initialised in dispatch
+        self.get_appositum()
+        return super().dispatch(request, *args, **kwargs)
+
+    template_name = "research/add_appositum_anonymous_link.html"
+
+    form_class = AppositumAnonymousLinkForm
+    permission_required = ("research.change_anonymousfragment",)
+
+    def get_success_url(self, *args, **kwargs):
+        if "another" in self.request.POST:
+            return self.request.path
+        return reverse(
+            "anonymous_fragment:detail", kwargs={"pk": self.get_appositum().pk}
+        )
+
+    def get_appositum(self, *args, **kwargs):
+        if not getattr(self, "anonymous_fragment", False):
+            self.appositum = get_object_or_404(
+                AnonymousFragment, pk=self.kwargs.get("pk")
+            )
+        return self.appositum
+
+    def form_valid(self, form):
+        data = form.cleaned_data
+        anonymous_fragment = data["anonymous_fragment"]
+        if anonymous_fragment:
+            self.appositum.anonymous_fragments.add(anonymous_fragment)
+        return super().form_valid(form)
+
+
 @method_decorator(require_POST, name="dispatch")
 class RemoveAppositumLinkView(
     CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, RedirectView
@@ -583,6 +622,81 @@ class RemoveAppositumLinkView(
         else:
             # if linked to a fragment remove it this way
             link.linked_to.apposita.remove(anonymous_fragment)
+        return redirect(self.get_success_url())
+
+
+@method_decorator(require_POST, name="dispatch")
+class RemoveAppositumFragmentLinkView(
+    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, RedirectView
+):
+    check_lock_object = "anonymous_fragment"
+    permission_required = ("research.change_anonymousfragment",)
+
+    def dispatch(self, request, *args, **kwargs):
+        # need to ensure we have the lock object view attribute
+        # initialised in dispatch
+        self.get_anonymous_fragment()
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_anonymous_fragment(self, *args, **kwargs):
+        if not getattr(self, "anonymous_fragment", False):
+            self.anonymous_fragment = get_object_or_404(
+                AnonymousFragment, pk=self.kwargs.get("pk")
+            )
+        return self.anonymous_fragment
+
+    def get_success_url(self, *args, **kwargs):
+        return reverse(
+            "anonymous_fragment:detail", kwargs={"pk": self.anonymous_fragment.pk}
+        )
+
+    def get_fragment(self, *args, **kwargs):
+        if not getattr(self, "fragment", False):
+            self.fragment = get_object_or_404(Fragment, pk=self.kwargs.get("frag_pk"))
+        return self.fragment
+
+    def post(self, request, *args, **kwargs):
+        anonymous_fragment = self.get_anonymous_fragment()
+        fragment = self.get_fragment()
+        fragment.apposita.remove(anonymous_fragment)
+        return redirect(self.get_success_url())
+
+
+@method_decorator(require_POST, name="dispatch")
+class RemoveAnonymousAppositumLinkView(
+    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, RedirectView
+):
+    check_lock_object = "appositum"
+    permission_required = ("research.change_anonymousfragment",)
+
+    def dispatch(self, request, *args, **kwargs):
+        # need to ensure we have the lock object view attribute
+        # initialised in dispatch
+        self.get_anonymous_fragment()
+        self.get_appositum()
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_anonymous_fragment(self, *args, **kwargs):
+        if not getattr(self, "anonymous_fragment", False):
+            self.anonymous_fragment = get_object_or_404(
+                AnonymousFragment, pk=self.kwargs.get("pk")
+            )
+        return self.anonymous_fragment
+
+    def get_success_url(self, *args, **kwargs):
+        return reverse("anonymous_fragment:detail", kwargs={"pk": self.appositum.pk})
+
+    def get_appositum(self, *args, **kwargs):
+        if not getattr(self, "appositum", False):
+            self.appositum = get_object_or_404(
+                AnonymousFragment, pk=self.kwargs.get("link_pk")
+            )
+        return self.appositum
+
+    def post(self, request, *args, **kwargs):
+        anonymous_fragment = self.get_anonymous_fragment()
+        appositum = self.get_appositum()
+        appositum.anonymous_fragments.remove(anonymous_fragment)
         return redirect(self.get_success_url())
 
 
