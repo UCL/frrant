@@ -11,6 +11,30 @@ class FragmentIsNotConvertible(Exception):
     pass
 
 
+def transfer_duplicates(source, destination, source_type):
+    """When converting between frags and anonfrags, the duplicate relationship needs to be transferred to the new (anon)fragment"""
+    if source_type == "fragment":
+        # for each duplicate create a new relationship to the anonfrag
+        for d in source.duplicates_list:
+            d.duplicate_afs.add(destination)
+            # if the relationship was defined from the duplicate in the list, remove the one being converted
+            if source in d.duplicate_frags.all():
+                d.duplicate_frags.remove(source)
+            else:
+                # otherwise delete it from the frag being converted
+                source.duplicate_frags.remove(d)
+    if source_type == "anonymous":
+        # for each duplicate create a new relationship to the frag
+        for d in source.duplicates_list:
+            d.duplicate_frags.add(destination)
+            # if the relationship was defined from the duplicate in the list, remove the one being converted
+            if source in d.duplicate_frags.all():
+                d.duplicate_afs.remove(source)
+            else:
+                # otherwise delete it from the anonfrag being converted
+                source.duplicate_afs.remove(d)
+
+
 def transfer_data_between_fragments(source, destination):
     # Directly assigned fields
     destination.name = source.name
@@ -60,6 +84,7 @@ def convert_unlinked_fragment_to_anonymous_fragment(fragment):
 
     anonymous_fragment = AnonymousFragment.objects.create()
     transfer_data_between_fragments(fragment, anonymous_fragment)
+    transfer_duplicates(fragment, anonymous_fragment, "fragment")
     anonymous_fragment.save()
     fragment.delete()
     reindex_anonymous_fragments()
@@ -74,7 +99,7 @@ def convert_anonymous_fragment_to_fragment(anonymous_fragment):
 
     fragment = Fragment.objects.create()
     transfer_data_between_fragments(anonymous_fragment, fragment)
-
+    transfer_duplicates(anonymous_fragment, fragment, "anonymous")
     # If there are AppositumFragmentLinks convert them to FragmentLinks
     for link in anonymous_fragment.appositumfragmentlinks_from.all():
         convert_appositum_link_to_fragment_link(link, fragment)

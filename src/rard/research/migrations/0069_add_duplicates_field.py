@@ -37,4 +37,31 @@ class Migration(migrations.Migration):
                 to="research.Fragment",
             ),
         ),
+        migrations.AddField(
+            model_name="anonymousfragment",
+            name="duplicate_afs",
+            field=models.ManyToManyField(
+                blank=True,
+                related_name="anonymousfragment_duplicate_anonfragments",
+                to="research.AnonymousFragment",
+            ),
+        ),
+        migrations.AddField(
+            model_name="fragment",
+            name="duplicate_afs",
+            field=models.ManyToManyField(
+                blank=True,
+                related_name="fragment_duplicate_anonfragments",
+                to="research.AnonymousFragment",
+            ),
+        ),
+        migrations.AddField(
+            model_name="testimonium",
+            name="duplicate_afs",
+            field=models.ManyToManyField(
+                blank=True,
+                related_name="testimonium_duplicate_anonfragments",
+                to="research.AnonymousFragment",
+            ),
+        ),
     ]
