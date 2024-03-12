@@ -10,7 +10,7 @@ from .original_text import Concordance, OriginalText, Translation
 from .reference import Reference
 from .symbols import Symbol, SymbolGroup
 from .testimonium import Testimonium
-from .text_object_field import TextObjectField
+from .text_object_field import PublicCommentaryMentions, TextObjectField
 from .topic import Topic
 from .work import Book, Work
 
@@ -39,4 +39,5 @@ __all__ = [
     "Translation",
     "Work",
     "Book",
+    "PublicCommentaryMentions",
 ]

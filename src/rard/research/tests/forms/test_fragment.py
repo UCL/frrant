@@ -1,8 +1,18 @@
 import pytest
 from django.test import TestCase
 
-from rard.research.forms import FragmentCommentaryForm, FragmentLinkWorkForm
-from rard.research.models import Antiquarian, Book, Fragment, Work
+from rard.research.forms import (
+    FragmentCommentaryForm,
+    FragmentLinkWorkForm,
+    FragmentPublicCommentaryForm,
+)
+from rard.research.models import (
+    Antiquarian,
+    Book,
+    Fragment,
+    PublicCommentaryMentions,
+    Work,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -28,6 +38,35 @@ class TestFragmentCommentaryForm(TestCase):
         form.save()
         refetch = Fragment.objects.get(pk=fragment.pk)
         self.assertEqual(refetch.commentary.content, data["commentary_text"])
+
+
+class TestFragmentPublicCommentaryForm(TestCase):
+    def test_public_commentary_initial_value_update(self):
+        fragment = Fragment.objects.create(name="name")
+        public_commentary = PublicCommentaryMentions.objects.create(
+            content="Something interesting"
+        )
+        fragment.public_commentary_mentions = public_commentary
+
+        form = FragmentPublicCommentaryForm(instance=fragment)
+        self.assertEqual(
+            form.fields["commentary_text"].initial, public_commentary.content
+        )
+
+    def test_public_commentary_save(self):
+        fragment = Fragment.objects.create(name="fragment")
+
+        data = {
+            "commentary_text": "Something interesting",
+        }
+        form = FragmentPublicCommentaryForm(instance=fragment, data=data)
+
+        self.assertTrue(form.is_valid())
+        form.save()
+        refetch = Fragment.objects.get(pk=fragment.pk)
+        self.assertEqual(
+            refetch.public_commentary_mentions.content, data["commentary_text"]
+        )
 
 
 class TestFragmentLinkWorkForm(TestCase):

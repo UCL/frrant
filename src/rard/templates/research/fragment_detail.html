@@ -187,16 +187,47 @@
                 <button
                   class="btn text-primary p-0 ml-2"
                   hx-get="{% url 'fragment:update_commentary' object.pk %}"
-                  hx-target=".introduction-container"
+                  hx-target=".commentary-container"
                   hx-swap="innerHTML">{% trans 'Edit' %}</button>
                 {% endif %}
             </div>
         </div>
-        <div class="introduction-container rich-text-form-container">
+        <div class="commentary-container rich-text-form-container">
           {% include 'research/partials/text_object_preview.html' with text_object=object.commentary %}
         </div>
-
     </section>
+
+
+    {% if perms.research.change_fragment and has_object_lock %}
+    <br>
+    <section class="public-commentary-section">
+        <div class='d-flex justify-content-between mb-3'>
+          <div>
+              <h5>{% trans 'See Also' %}</h5>
+          </div>
+          <div>
+              {% if perms.research.change_fragment and has_object_lock %}
+                <button
+                class="btn text-primary p-0 ml-2"
+                hx-get="{% url 'fragment:update_public_commentary' object.pk %}"
+                hx-target=".public-commentary-container"
+                hx-swap="innerHTML">{% trans 'Edit' %}</button>
+              {% endif %}
+          </div>
+        </div>
+        <div class="public-commentary-container rich-text-form-container">
+            {% include 'research/partials/text_object_preview.html' with text_object=object.public_commentary_mentions %}
+        </div>
+    </section>
+    {% endif %}
+    {% if not has_object_lock and object.public_commentary_mentions.approved %}
+    <section>
+        <div class="public-commentary-container rich-text-form-container">
+            {% include 'research/partials/text_object_preview.html' with text_object=object.public_commentary_mentions %}
+        </div>
+    </section>
+    {% endif %}
+
 
     <hr>
 

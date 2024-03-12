@@ -539,6 +539,14 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
 
     plain_commentary = models.TextField(blank=False, default="")
 
+    public_commentary_mentions = models.OneToOneField(
+        "PublicCommentaryMentions",
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="public_commentary_mentions_for_%(class)s",
+        blank=True,
+    )
+
     images = models.ManyToManyField("Image", blank=True)
 
     mentioned_in = models.ManyToManyField(
