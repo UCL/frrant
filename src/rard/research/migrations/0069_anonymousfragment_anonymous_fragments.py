@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('research', '0067_add_mentioned_in_fk_field'),
+        ('research', '0068_public_commentary_mentions'),
     ]
 
     operations = [
