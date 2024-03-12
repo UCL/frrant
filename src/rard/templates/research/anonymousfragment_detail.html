@@ -203,7 +203,7 @@
 
         <div class='row'>
             <div class="col">
-                {% if object.fragments %}
+                {% if object.fragments.all or object.anonymous_fragments.all %}
 
                     {% for link in object.appositumfragmentlinks_from.all %}
                       {% include 'research/partials/appositum_links_list_item.html' with link=link can_edit=perms.research.change_anonymous_fragment has_object_lock=has_object_lock %}
@@ -215,12 +215,11 @@
                       {% endif %}
                     {% endfor %}
 
-                {% endif %}
-
-                {% if object.anonymous_fragments %}
                     {% for anonymous_fragment in object.anonymous_fragments.all %}
                         {% include 'research/partials/appositum_anonymous_list_item.html' with appositum=object anonymous_fragment=anonymous_fragment can_edit=perms.research.change_fragment %}
                     {% endfor %}
+                {% else %}
+                None
                 {% endif %}
             </div>
         </div>
@@ -228,6 +227,7 @@
     </section>
 
     {% if object.anonymous_apposita.all %}
+    <hr>
     <section>
         <div class='d-flex justify-content-between mb-3'>
             <div>
