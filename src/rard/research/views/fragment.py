@@ -568,7 +568,8 @@ class AddAppositumAnonymousLinkView(
         )
 
     def get_appositum(self, *args, **kwargs):
-        if not getattr(self, "anonymous_fragment", False):
+        """The Anonymous fragment that's going to be the apposita"""
+        if not getattr(self, "appositum", False):
             self.appositum = get_object_or_404(
                 AnonymousFragment, pk=self.kwargs.get("pk")
             )
@@ -576,6 +577,7 @@ class AddAppositumAnonymousLinkView(
 
     def form_valid(self, form):
         data = form.cleaned_data
+        # The anonymous fragment that's being linked to
         anonymous_fragment = data["anonymous_fragment"]
         if anonymous_fragment:
             self.appositum.anonymous_fragments.add(anonymous_fragment)
