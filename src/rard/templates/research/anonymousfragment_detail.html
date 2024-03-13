@@ -14,7 +14,7 @@
 {% block action %}
     {% with request.user|has_lock:object as has_object_lock %}
 
-        {% include 'research/partials/render_locked_info.html' %}
+        {% include 'research/partials/render_locked_info.html' with is_anonymousfragment=True %}
 
         {% if has_object_lock %}
         <div class='d-flex flex-column justify-content-end'>

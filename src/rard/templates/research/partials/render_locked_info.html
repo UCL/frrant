@@ -1,6 +1,6 @@
 {# Assumes a context object named 'object' which is a LockableModel instance #}
 
-{% load humanize object_lock %}
+{% load humanize object_lock i18n %}
 
     <div class='d-flex justify-content-between align-items-center mb-2'>
         <div class='mr-3'>
@@ -28,11 +28,56 @@
                         </a>
 
                         <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
-                            <button type='submit' name='days' value='1' class='dropdown-item'>for 1 day</button>
-                            <button type='submit' name='days' value='2' class='dropdown-item'>for 2 days</button>
-                            <button type='submit' name='days' value='5' class='dropdown-item'>for 5 days</button>
-                            <button type='submit' name='days' value='7' class='dropdown-item'>for a week</button>
-                            <button type='submit' name='lock' class='dropdown-item'>until I unlock</button>
+
+                            {% if object.is_unlinked %}
+                            <form novalidate style='margin-left:auto' class='form-inline' action='{% url "fragment:convert_to_anonymous" fragment.pk %}' method='POST'>
+                                {% csrf_token %}
+                                <div class='form-group'>
+                                    <button type='submit' class='btn btn-link text-danger confirm-convert p-0 ml-1'
+                                        data-what='fragment'>{% trans 'Make anonymous' %}</button>
+                                </div>
+                            </form>
+                            {% endif %}
+                            {% if is_anonymousfragment %}
+                            <form novalidate style='margin-left:auto' class='form-inline' action='{% url "anonymous_fragment:convert_to_fragment" object.pk %}' method='POST'>
+                                {% csrf_token %}
+                                <button
+                                type='submit'
+                                class='
+                                {% if object.get_all_links %}has-links{% endif %}
+                                btn btn-link text-danger confirm-convert p-0
+                                '
+                                data-what='anonymous fragment'
+                                >{% trans 'Make non-anonymous' %}</button>
+                            </form>
+                            <form novalidate class='form-inline' action='{% url "anonymous_fragment:duplicate" object.pk %}' method='POST'>
+                                {% csrf_token %}
+                                <div class='form-group'>
+                                    <button type='submit' class='btn btn-link text-info p-0 pl-2'
+                                        data-what='anonymous fragment'>{% trans 'Duplicate' %}</button>
+                                </div>
+                            </form>
+                            {% endif %}
+                            {% if is_fragment %}
+                            <form novalidate class='form-inline' action='{% url "fragment:duplicate" fragment.pk %}' method='POST'>
+                                {% csrf_token %}
+                                <div class='form-group'>
+                                    <button type='submit' class='btn btn-link text-info p-0 pl-2'
+                                        data-what='fragment'>{% trans 'Duplicate' %}</button>
+                                </div>
+                            </form>
+                            {% endif %}
+
+                            <div class="unlock-options">
+                                <button type='button' name='unlock'  class='dropdown-toggle btn btn-info'>Unlock</button>
+                                <div class="unlock-duration">
+                                    <button type='submit' name='days' value='1' class='dropdown-item'>for 1 day</button>
+                                    <button type='submit' name='days' value='2' class='dropdown-item'>for 2 days</button>
+                                    <button type='submit' name='days' value='5' class='dropdown-item'>for 5 days</button>
+                                    <button type='submit' name='days' value='7' class='dropdown-item'>for a week</button>
+                                    <button type='submit' name='lock' class='dropdown-item'>until I unlock</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     {% endif %}

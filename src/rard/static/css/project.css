@@ -390,6 +390,14 @@ button.insert {
   background-color: #ffff00;
 }
 
+.unlock-duration {
+  display: none;
+}
+
+.unlock-options:hover .unlock-duration {
+  display: block;
+}
+
 /* editor related */
 .ql-editor {
   background-color: white !important;
