@@ -390,11 +390,11 @@ button.insert {
   background-color: #ffff00;
 }
 
-.unlock-duration {
+.lock-duration {
   display: none;
 }
 
-.unlock-options:hover .unlock-duration {
+.lock-options:hover .lock-duration {
   display: block;
 }
 
