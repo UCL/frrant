@@ -24,56 +24,49 @@
 
                     <div class="dropdown show">
                         <a class="btn btn-primary btn-sm dropdown-toggle" name='lock' href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            Edit
+                            Actions
                         </a>
 
-                        <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                        <div class="dropdown-menu text-center p-2" aria-labelledby="dropdownMenuLink">
 
                             {% if object.is_unlinked %}
-                            <form novalidate style='margin-left:auto' class='form-inline' action='{% url "fragment:convert_to_anonymous" fragment.pk %}' method='POST'>
-                                {% csrf_token %}
-                                <div class='form-group'>
-                                    <button type='submit' class='btn btn-link text-danger confirm-convert p-0 ml-1'
+                                <form novalidate class='form-group' action='{% url "fragment:convert_to_anonymous" fragment.pk %}' method='POST'>
+                                    {% csrf_token %}
+                                    <button type='submit' class='btn btn-link text-danger text-nowrap confirm-convert'
                                         data-what='fragment'>{% trans 'Make anonymous' %}</button>
-                                </div>
-                            </form>
+                                </form>
                             {% endif %}
                             {% if is_anonymousfragment %}
-                            <form novalidate style='margin-left:auto' class='form-inline' action='{% url "anonymous_fragment:convert_to_fragment" object.pk %}' method='POST'>
-                                {% csrf_token %}
-                                <button
-                                type='submit'
-                                class='
-                                {% if object.get_all_links %}has-links{% endif %}
-                                btn btn-link text-danger confirm-convert p-0
-                                '
-                                data-what='anonymous fragment'
-                                >{% trans 'Make non-anonymous' %}</button>
-                            </form>
-                            <form novalidate class='form-inline' action='{% url "anonymous_fragment:duplicate" object.pk %}' method='POST'>
-                                {% csrf_token %}
-                                <div class='form-group'>
-                                    <button type='submit' class='btn btn-link text-info p-0 pl-2'
+                                <form novalidate class='form-group' action='{% url "anonymous_fragment:convert_to_fragment" object.pk %}' method='POST'>
+                                    {% csrf_token %}
+                                    <button
+                                    type='submit'
+                                    class='
+                                    {% if object.get_all_links %}has-links{% endif %}
+                                    btn btn-link text-danger confirm-convert p-1 text-nowrap
+                                    '
+                                    data-what='anonymous fragment'
+                                    >{% trans 'Make non-anonymous' %}</button>
+                                </form>
+                                <form novalidate class='form-group mb-0' action='{% url "anonymous_fragment:duplicate" object.pk %}' method='POST'>
+                                    {% csrf_token %}
+                                    <button type='submit' class='btn btn-link text-info'
                                         data-what='anonymous fragment'>{% trans 'Duplicate' %}</button>
-                                </div>
-                            </form>
+                                </form>
                             {% endif %}
                             {% if is_fragment %}
-                            <form novalidate class='form-inline' action='{% url "fragment:duplicate" fragment.pk %}' method='POST'>
-                                {% csrf_token %}
-                                <div class='form-group'>
-                                    <button type='submit' class='btn btn-link text-info p-0 pl-2'
+                                <form novalidate class='form-group mb-0' action='{% url "fragment:duplicate" object.pk %}' method='POST'>
+                                    {% csrf_token %}
+                                    <button type='submit' class='btn btn-link text-info'
                                         data-what='fragment'>{% trans 'Duplicate' %}</button>
-                                </div>
-                            </form>
+                                </form>
                             {% endif %}
-
+                            <hr class="m-1">
                             <div class="unlock-options">
-                                <button type='button' name='unlock'  class='dropdown-toggle btn btn-info'>Unlock</button>
-                                <div class="unlock-duration">
+                                <button type='button' name='unlock'  class='dropdown-toggle btn btn-link text-primary w-100 p-1 m-1'>Unlock</button>
+                                <div class="unlock-duration form-group">
                                     <button type='submit' name='days' value='1' class='dropdown-item'>for 1 day</button>
                                     <button type='submit' name='days' value='2' class='dropdown-item'>for 2 days</button>
-                                    <button type='submit' name='days' value='5' class='dropdown-item'>for 5 days</button>
                                     <button type='submit' name='days' value='7' class='dropdown-item'>for a week</button>
                                     <button type='submit' name='lock' class='dropdown-item'>until I unlock</button>
                                 </div>
