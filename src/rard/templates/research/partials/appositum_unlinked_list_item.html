@@ -1,0 +1,41 @@
+{# Assumes context objects named 'appositum' and 'fragment' also 'can_edit' and 'has_object_lock' #}
+
+{% load i18n show_citing_info %}
+
+<div class='rard-list-item d-flex justify-content-between'>
+  <div>
+      <li class="unstyled">
+        <span>
+              {% if perms.research.view_fragment %}
+                <a href='{% url "fragment:detail" fragment.pk %}'>{{fragment.get_display_name}}</a>
+              {% else %}
+                {{fragment.get_display_name}}
+              {% endif %}
+            {% include 'research/partials/render_inline_lock_icon.html' with object=appositum %}
+        </span>
+      </li>
+      <div>
+        <div class="card border-0 pt-1 pb-0 bg-transparent card-body">
+        <small>
+            <span class='text-muted'>
+
+                {% with citing_author=citing_author|default:None %}
+                {{ fragment|show_citing_info:citing_author|safe }}
+                {% endwith %}
+            </span>
+        </small>
+        </div>
+      </div>
+  </div>
+  <div class='rard-list-item-actions'>
+    {% if can_edit and has_object_lock %}
+      <form novalidate class='form-inline' action='{% url "anonymous_fragment:unlink_fragment_apposita" appositum.pk fragment.pk %}' method='POST'>
+          {% csrf_token %}
+          <div class='form-group'>
+              <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+                  data-what='appositum link'>{% trans 'Unlink' %}</button>
+          </div>
+      </form>
+    {% endif %}
+  </div>
+</div>

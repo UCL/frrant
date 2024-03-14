@@ -220,6 +220,17 @@ class TestFragmentConvertViews(TestCase):
         )
         self.unlinked_fragment = self.create_fragment(Fragment, "ufr")
         self.linked_fragment = self.create_fragment(Fragment, "lfr", linked=True)
+        # Some more anonymous fragments to be apposita
+        self.af1 = self.create_fragment(AnonymousFragment, "af1")
+        self.af2 = self.create_fragment(AnonymousFragment, "af2")
+        # Create an unlinked fragment with apposita
+        self.unlinked_fragment_with_apposita = self.create_fragment(Fragment, "ufr_app")
+        self.unlinked_fragment_with_apposita.apposita.add(self.af1)
+        # Create an anonymous fragment with apposita
+        self.anon_fragment_with_apposita = self.create_fragment(
+            AnonymousFragment, "afr_app"
+        )
+        self.anon_fragment_with_apposita.anonymous_apposita.add(self.af2)
 
     def create_fragment(self, model, name, linked=False):
         fragment = model.objects.create(name=name)
@@ -309,6 +320,24 @@ class TestFragmentConvertViews(TestCase):
         new_fragment.save()
         self.assertEqual(ufr_topic.order, 0)
         self.assertEqual(new_fragment.order, 0)
+
+    def test_converted_anonymous_fragment_maintains_apposita(self):
+        """If the original anonymous fragment had any apposita, those
+        apposita should belong to the newly created unlinked fragment"""
+        new_unlinked_fragment = convert_anonymous_fragment_to_fragment(
+            self.anon_fragment_with_apposita
+        )
+        # self.af2 was apposita to anon fragment, should now be apposita to new fragment
+        self.assertQuerysetEqual(new_unlinked_fragment.apposita.all(), [self.af2])
+
+    def test_converted_unlinked_fragment_maintains_apposita(self):
+        """If the original unlinked fragment had any apposita, those
+        apposita should belong to the newly created anonymous fragment"""
+        new_anon_fragment = convert_unlinked_fragment_to_anonymous_fragment(
+            self.unlinked_fragment_with_apposita
+        )
+        # self.af1 was originally apposita to the unlinked fragment
+        self.assertQuerysetEqual(new_anon_fragment.anonymous_apposita.all(), [self.af1])
 
 
 class TestMoveAnonymousTopicLinkView(TestCase):
