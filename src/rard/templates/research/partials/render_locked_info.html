@@ -29,15 +29,14 @@
 
                         <div class="dropdown-menu text-center p-2" aria-labelledby="dropdownMenuLink">
 
-                            {% if object.is_unlinked %}
-                                <form novalidate class='form-group' action='{% url "fragment:convert_to_anonymous" fragment.pk %}' method='POST'>
-                                    {% csrf_token %}
-                                    <button type='submit' class='btn btn-link text-danger text-nowrap confirm-convert'
-                                        data-what='fragment'>{% trans 'Make anonymous' %}</button>
-                                </form>
-                            {% endif %}
+
                             {% if is_anonymousfragment %}
-                                <form novalidate class='form-group' action='{% url "anonymous_fragment:convert_to_fragment" object.pk %}' method='POST'>
+                            <form novalidate  class='form-group mb-0' action='{% url "anonymous_fragment:delete" object.pk %}' method='POST'>
+                                {% csrf_token %}
+                                    <button type='submit' class='btn btn-link text-danger {% if object.mentioned_in.all %}confirm-delete-mentions {% else %} confirm-delete {% endif %}'
+                                        data-what='anonymous fragment'>{% trans 'Delete' %}</button>
+                            </form>
+                                <form novalidate class='form-group mb-0' action='{% url "anonymous_fragment:convert_to_fragment" object.pk %}' method='POST'>
                                     {% csrf_token %}
                                     <button
                                     type='submit'
@@ -53,13 +52,32 @@
                                     <button type='submit' class='btn btn-link text-info'
                                         data-what='anonymous fragment'>{% trans 'Duplicate' %}</button>
                                 </form>
-                            {% endif %}
-                            {% if is_fragment %}
+                            {% elif is_fragment %}
+                            <form novalidate  class='form-group mb-0' action='{% url "fragment:delete" object.pk %}' method='POST'>
+                                {% csrf_token %}
+                                <button type='submit' class='btn btn-link text-danger {% if object.mentioned_in.all %}confirm-delete-mentions {% else %} confirm-delete {% endif %}'
+                                    data-what=' fragment'>{% trans 'Delete' %}</button>
+                            </form>
+                                {% if object.is_unlinked %}
+                                <form novalidate class='form-group mb-0' action='{% url "fragment:convert_to_anonymous" fragment.pk %}' method='POST'>
+                                    {% csrf_token %}
+                                    <button type='submit' class='btn btn-link text-danger text-nowrap confirm-convert'
+                                        data-what='fragment'>{% trans 'Make anonymous' %}</button>
+                                </form>
+                                {% endif %}
                                 <form novalidate class='form-group mb-0' action='{% url "fragment:duplicate" object.pk %}' method='POST'>
                                     {% csrf_token %}
                                     <button type='submit' class='btn btn-link text-info'
                                         data-what='fragment'>{% trans 'Duplicate' %}</button>
                                 </form>
+                            {% else %}
+                            <form novalidate class='form-group'  action='{% if is_testimonium %}{% url "testimonium:delete" testimonium.pk %} {% elif is_work %}{% url "work:delete" work.pk %} {% elif is_antiquarian %}{% url "antiquarian:delete" antiquarian.pk %}
+                            {% endif %}'
+                             method='POST'>
+                                {% csrf_token %}
+                                <button type='submit' class='btn btn-link text-danger {% if object.mentioned_in.all %}confirm-delete-mentions {% else %} confirm-delete {% endif %}'
+                                    data-what='{{is_testimonium}}{{is_work}}{{is_antiquarian}}'>{% trans 'Delete' %}</button>
+                            </form>
                             {% endif %}
                             <hr class="m-1">
                             <div class="unlock-options">
