@@ -15,36 +15,6 @@
 
         {% include 'research/partials/render_locked_info.html' with is_fragment=True %}
 
-        {% if has_object_lock %}
-        <div class='d-flex flex-column justify-content-end'>
-          {% if perms.research.delete_fragment %}
-            <form novalidate style='margin-left:auto' class='form-inline' action='{% url "fragment:delete" fragment.pk %}' method='POST'>
-                {% csrf_token %}
-                <div class='form-group'>
-                    <button type='submit' class='btn btn-link text-danger {% if object.mentioned_in.all %}confirm-delete-mentions {% else %} confirm-delete {% endif %} p-0 ml-2'
-                        data-what='fragment'>{% trans 'Delete' %}</button>
-                </div>
-            </form>
-          {% endif %}
-          {% if perms.research.change_fragment and object.is_unlinked %}
-            <form novalidate style='margin-left:auto' class='form-inline' action='{% url "fragment:convert_to_anonymous" fragment.pk %}' method='POST'>
-                {% csrf_token %}
-                <div class='form-group'>
-                    <button type='submit' class='btn btn-link text-danger confirm-convert p-0 ml-2'
-                        data-what='fragment'>{% trans 'Make anonymous' %}</button>
-                </div>
-            </form>
-            {% endif %}
-            <form novalidate style='margin-left:auto' class='form-inline' action='{% url "fragment:duplicate" fragment.pk %}' method='POST'>
-                {% csrf_token %}
-                <div class='form-group'>
-                    <button type='submit' class='btn btn-link text-info p-0 ml-2'
-                        data-what='fragment'>{% trans 'Duplicate' %}</button>
-                </div>
-            </form>
-
-        </div>
-      {% endif %}
     {% endwith %}
 {% endblock %}
 
@@ -57,13 +27,6 @@
         <div class='d-flex justify-content-between mb-3'>
             <div>
                 <h5>{% trans 'Details' %}</h5>
-            </div>
-            <div>
-                {% comment %}
-                {% if perms.research.change_fragment and has_object_lock %}
-                <a href='{% url "fragment:update" object.pk %}'>{% trans 'Edit' %}</a>
-                {% endif %}
-                {% endcomment %}
             </div>
         </div>
 
