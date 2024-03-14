@@ -1,8 +1,6 @@
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError, models
-from django.http import Http404
-from django.shortcuts import get_object_or_404
 from simple_history.models import HistoricalRecords
 
 from rard.research.models.mixins import HistoryModelMixin
@@ -53,12 +51,6 @@ class TextObjectField(HistoryModelMixin, BaseModel):
             # get related queryset
             class_mentions_queryset = getattr(self, class_name + "_mentions")
             for instance in class_mentions_queryset.all():
-                try:
-                    get_object_or_404(instance.__class__, pk=instance.pk)
-                except Http404:
-                    instance.mentioned_in.remove(
-                        self
-                    )  # if instance no longer exists, remove it from mentioned_in
                 if instance.pk not in found_pks:
                     # Fragment instance is no longer mentioned so remove it
                     instance.mentioned_in.remove(self)
