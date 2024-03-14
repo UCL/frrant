@@ -78,9 +78,9 @@ def convert_unlinked_fragment_to_anonymous_fragment(fragment):
     anonymous_fragment.anonymous_apposita.add(*apposita)
     # Save new anon fragment and delete fragment
     anonymous_fragment.save()
+    reindex_anonymous_fragments()
     transfer_mentions(fragment, anonymous_fragment)
     fragment.delete()
-    reindex_anonymous_fragments()
     anonymous_fragment.refresh_from_db()
     return anonymous_fragment
 
