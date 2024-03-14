@@ -74,7 +74,7 @@
                         <hr class="m-1">
 
                         {% if object.locked_by == request.user %}
-                        <button type='submit' class='btn btn-link text-primary' name='unlock'>Unlock</button>
+                        <button type='submit' class='btn btn-link text-primary' name='unlock'>Finish Editing</button>
 
                         {% else %}
                             {% if object.is_locked %}
@@ -85,7 +85,7 @@
 
                             {% elif not object.is_locked %}
                             <div class="lock-options">
-                                <button type='button' name='lock'  class='dropdown-toggle btn btn-link text-primary w-100 p-1 m-1'>Create Editing Lock</button>
+                                <button type='button' name='lock'  class='dropdown-toggle btn btn-link text-primary w-100 p-1 m-1'>Edit</button>
                                 <div class="lock-duration form-group">
                                     <button type='submit' name='days' value='1' class='dropdown-item'>for 1 day</button>
                                     <button type='submit' name='days' value='2' class='dropdown-item'>for 2 days</button>
