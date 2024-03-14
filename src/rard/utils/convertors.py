@@ -37,8 +37,7 @@ def transfer_mentions(original, new):
             tof.reassign_mentions(
                 original, new
             )  # reassign the values in the TOF content from the original to the new object
-            tof.update_content_mentions()  # usage of update_editable_mentions to update
-            # the display text of the mention, based on the values set above
+            tof.update_content_mentions()  # update the mention display text, based on the values set above
             tof.update_mentions()  # updates the relationships on the models based on the above content being updated
 
 
