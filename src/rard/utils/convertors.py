@@ -34,9 +34,12 @@ def transfer_data_between_fragments(source, destination):
 def transfer_mentions(original, new):
     if original.mentioned_in:
         for tof in original.mentioned_in.all():
-            tof.reassign_mentions(original, new)
-            tof.update_content_mentions()
-            tof.update_mentions()
+            tof.reassign_mentions(
+                original, new
+            )  # reassign the values in the TOF content from the original to the new object
+            tof.update_content_mentions()  # usage of update_editable_mentions to update
+            # the display text of the mention, based on the values set above
+            tof.update_mentions()  # updates the relationships on the models based on the above content being updated
 
 
 # mentions should then just update
