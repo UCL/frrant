@@ -58,7 +58,7 @@ class TestBibliographyDeleteView(TestCase):
         view.request = request
         view.object = bibitem
 
-        self.assertEqual(view.get_success_url(), reverse("bibliography:list"))
+        self.assertEqual(view.get_success_url(), reverse("bibliography:overview"))
 
 
 class TestBibliographyViewPermissions(TestCase):

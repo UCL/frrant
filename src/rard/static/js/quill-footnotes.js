@@ -72,13 +72,11 @@ class Footnote extends Module {
   }
 
   async insertFootnote() {
-    console.log("inserting footnote");
     var footnoteNumber = this.countFootnotes();
     const range = this.quill.getSelection();
     const index = range ? range.index : this.quill.getLength();
     if (!this.editorArea.querySelector(`.footnote-area`)) {
       // create the footnote area inside the ql-editor if it doesn't exist
-      console.log("adding footnote area");
       this.quill.insertEmbed(this.quill.getLength(), "footnote-area", "");
     }
     this.footnoteArea = this.editorArea.querySelector(`.footnote-area`);

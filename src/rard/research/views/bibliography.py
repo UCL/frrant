@@ -153,7 +153,7 @@ class BibliographyDeleteView(
     CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
 ):
     model = BibliographyItem
-    success_url = reverse_lazy("bibliography:list")
+    success_url = reverse_lazy("bibliography:overview")
     permission_required = ("research.delete_bibliographyitem",)
 
 

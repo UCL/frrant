@@ -1,8 +1,9 @@
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import IntegrityError
+from django.db import IntegrityError, models
 from django.http import Http404
 from django.shortcuts import get_object_or_404
+
 from simple_history.models import HistoricalRecords
 
 from rard.research.models.mixins import HistoryModelMixin
@@ -126,3 +127,8 @@ class TextObjectField(HistoryModelMixin, BaseModel):
 
         related = self.get_related_object()
         return related if isinstance(related, Book) else None
+
+
+class PublicCommentaryMentions(models.Model):
+    content = DynamicTextField(default="", blank=True)
+    approved = models.BooleanField(default=False)
