@@ -52,6 +52,7 @@ from .concordance import (
     ConcordanceUpdateView,
 )
 from .fragment import (
+    AddAppositumAnonymousLinkView,
     AddAppositumFragmentLinkView,
     AddAppositumGeneralLinkView,
     AnonymousFragmentCommentaryView,
@@ -78,6 +79,8 @@ from .fragment import (
     FragmentUpdateView,
     FragmentUpdateWorkLinkView,
     MoveAnonymousTopicLinkView,
+    RemoveAnonymousAppositumLinkView,
+    RemoveAppositumFragmentLinkView,
     RemoveAppositumLinkView,
     RemoveFragmentLinkView,
     UnlinkedFragmentConvertToAnonymousView,
@@ -142,6 +145,7 @@ from .work import (
 )
 
 __all__ = [
+    "AddAppositumAnonymousLinkView",
     "AddAppositumFragmentLinkView",
     "AddAppositumGeneralLinkView",
     "AntiquarianConcordanceCreateView",
@@ -229,6 +233,8 @@ __all__ = [
     "OriginalTextUpdateAuthorView",
     "OriginalTextUpdateView",
     "RemoveAppositumLinkView",
+    "RemoveAppositumFragmentLinkView",
+    "RemoveAnonymousAppositumLinkView",
     "render_editor_modal_template",
     "SearchView",
     "RemoveTestimoniumLinkView",

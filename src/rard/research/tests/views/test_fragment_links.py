@@ -3,9 +3,15 @@ from django.http.response import Http404
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
-from rard.research.models import Antiquarian, Fragment, Work
+from rard.research.models import AnonymousFragment, Antiquarian, Fragment, Work
 from rard.research.models.base import FragmentLink
-from rard.research.views import FragmentAddWorkLinkView, RemoveFragmentLinkView
+from rard.research.views import (
+    AddAppositumAnonymousLinkView,
+    FragmentAddWorkLinkView,
+    RemoveAnonymousAppositumLinkView,
+    RemoveAppositumFragmentLinkView,
+    RemoveFragmentLinkView,
+)
 from rard.users.tests.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
@@ -165,3 +171,62 @@ class TestFragmentRemoveWorkLinkView(TestCase):
         self.assertIn(
             "research.change_fragment", RemoveFragmentLinkView.permission_required
         )
+
+
+class TestAnonymousFragmentAppositaViews(TestCase):
+    def setUp(self):
+        self.af1 = AnonymousFragment.objects.create(name="af1")
+        self.af2 = AnonymousFragment.objects.create(name="af2")
+        self.af3 = AnonymousFragment.objects.create(name="af3")
+        self.af3.anonymous_fragments.add(self.af2)
+
+    def test_add_apposita_to_anonymous_fragment(self):
+        """Use AddAppositumAnonymousLinkView to add one anonymous fragment (af1)
+        as an apposita to another (af2)"""
+        url = reverse("anonymous_fragment:link_anonymous", kwargs={"pk": self.af1.pk})
+        view = AddAppositumAnonymousLinkView.as_view()
+        data = {"anonymous_fragment": self.af2.pk}
+        request = RequestFactory().post(url, data=data)
+        request.user = UserFactory.create()
+        self.af1.lock(request.user)
+        self.assertEqual(self.af1.anonymous_fragments.count(), 0)
+        view(request, pk=self.af1.pk)
+        self.assertEqual(self.af1.anonymous_fragments.count(), 1)
+        self.assertQuerysetEqual(self.af1.anonymous_fragments.all(), [self.af2])
+
+    def test_unlink_apposita_and_anonymous_fragment(self):
+        """Use RemoveAppositumFragmentLinkView to remove an existing appositum link between
+        an anonymous fragment (af2) and its appositum (af3)"""
+        self.assertEqual(self.af3.anonymous_fragments.count(), 1)
+        url = reverse(
+            "anonymous_fragment:unlink_anonymous_apposita",
+            kwargs={"pk": self.af2.pk, "link_pk": self.af3.pk},
+        )
+        view = RemoveAnonymousAppositumLinkView.as_view()
+        request = RequestFactory().post(url)
+        request.user = UserFactory.create()
+        self.af3.lock(request.user)
+        view(request, pk=self.af2.pk, link_pk=self.af3.pk)
+        self.assertEqual(self.af3.anonymous_fragments.count(), 0)
+
+
+class TestUnlinkedFragmentAppositaViews(TestCase):
+    def setUp(self):
+        self.af1 = AnonymousFragment.objects.create(name="af1")
+        self.uf1 = Fragment.objects.create(name="uf1")
+        self.uf1.apposita.add(self.af1)
+
+    def test_unlink_apposita_from_unlinked_fragment(self):
+        """Use RemoveAppositumFragmentLinkView to remove an unlinked
+        fragment's apposita"""
+        self.assertEqual(self.af1.fragments.count(), 1)
+        url = reverse(
+            "anonymous_fragment:unlink_fragment_apposita",
+            kwargs={"pk": self.af1.pk, "frag_pk": self.uf1.pk},
+        )
+        view = RemoveAppositumFragmentLinkView.as_view()
+        request = RequestFactory().post(url)
+        request.user = UserFactory.create()
+        self.af1.lock(request.user)
+        view(request, pk=self.af1.pk, frag_pk=self.uf1.pk)
+        self.assertEqual(self.af1.fragments.count(), 0)

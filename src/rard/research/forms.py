@@ -1021,6 +1021,15 @@ class AppositumFragmentLinkForm(forms.ModelForm):
         )
 
 
+class AppositumAnonymousLinkForm(forms.Form):
+    """For linking anonymous fragments as apposita to
+    other anonymous fragments"""
+
+    anonymous_fragment = forms.ModelChoiceField(
+        queryset=AnonymousFragment.objects.all(), widget=forms.Select()
+    )
+
+
 class CitingWorkCreateForm(forms.ModelForm):
     class Meta:
         model = CitingWork

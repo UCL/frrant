@@ -73,6 +73,10 @@ def convert_unlinked_fragment_to_anonymous_fragment(fragment):
 
     anonymous_fragment = AnonymousFragment.objects.create()
     transfer_data_between_fragments(fragment, anonymous_fragment)
+    # Transfer apposita
+    apposita = fragment.apposita.all()
+    anonymous_fragment.anonymous_apposita.add(*apposita)
+    # Save new anon fragment and delete fragment
     anonymous_fragment.save()
     transfer_mentions(fragment, anonymous_fragment)
     fragment.delete()
@@ -92,6 +96,10 @@ def convert_anonymous_fragment_to_fragment(anonymous_fragment):
     # If there are AppositumFragmentLinks convert them to FragmentLinks
     for link in anonymous_fragment.appositumfragmentlinks_from.all():
         convert_appositum_link_to_fragment_link(link, fragment)
+
+    # Transfer apposita
+    apposita = anonymous_fragment.anonymous_apposita.all()
+    fragment.apposita.add(*apposita)
 
     fragment.save()
     anonymous_fragment.delete()
