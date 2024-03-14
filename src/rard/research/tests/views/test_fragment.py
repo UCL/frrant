@@ -420,7 +420,6 @@ class TestFragmentConvertViews(TestCase):
         self.assertQuerysetEqual(new_anon_fragment.anonymous_apposita.all(), [self.af1])
 
 
-
 class TestMoveAnonymousTopicLinkView(TestCase):
     def setUp(self):
         # Create 3 anon frags, 1 of which is an apposita
