@@ -3,7 +3,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError, models
 from django.http import Http404
 from django.shortcuts import get_object_or_404
-
 from simple_history.models import HistoricalRecords
 
 from rard.research.models.mixins import HistoryModelMixin
