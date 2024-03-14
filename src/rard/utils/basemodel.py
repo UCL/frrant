@@ -49,7 +49,7 @@ class DynamicTextField(TextField):
 
             def reassign_mentions(self, original, new):
                 value = getattr(self, field_name)
-                soup = soup = bs4.BeautifulSoup(value, features="html.parser")
+                soup = bs4.BeautifulSoup(value, features="html.parser")
                 mentions = soup.find_all("span", class_="mention")
                 for item in mentions:
                     model_name = item.attrs.get("data-target", None)
