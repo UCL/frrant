@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("research", "0068_public_commentary_mentions"),
+        ("research", "0069_anonymousfragment_anonymous_fragments"),
     ]
 
     operations = [

@@ -1,0 +1,28 @@
+{# Assumes context objects named 'appositum' and 'anonymous' also 'can_edit' and 'has_object_lock' #}
+
+{% load i18n show_citing_info %}
+
+<div class='rard-list-item d-flex justify-content-between'>
+  <div>
+      <li class="unstyled">
+        <span>
+              {% if perms.research.view_fragment %}
+                <a href='{% url "anonymous_fragment:detail" anonymous_fragment.pk %}'>{{anonymous_fragment.get_display_name}}</a>
+              {% else %}
+                {{anonymous_fragment.get_display_name}}
+              {% endif %}
+            {% include 'research/partials/render_inline_lock_icon.html' with object=appositum %}
+        </span>
+  </div>
+  <div class='rard-list-item-actions'>
+    {% if can_edit and has_object_lock %}
+      <form novalidate class='form-inline' action='{% url "anonymous_fragment:unlink_anonymous_apposita" anonymous_fragment.pk appositum.pk %}' method='POST'>
+          {% csrf_token %}
+          <div class='form-group'>
+              <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+                  data-what='appositum link'>{% trans 'Unlink' %}</button>
+          </div>
+      </form>
+    {% endif %}
+  </div>
+</div>
