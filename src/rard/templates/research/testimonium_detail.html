@@ -13,21 +13,8 @@
 {% block action %}
     {% with request.user|has_lock:object as has_object_lock %}
 
-        {% include 'research/partials/render_locked_info.html' %}
+        {% include 'research/partials/render_locked_info.html' with is_testimonium="testimonium" %}
 
-        <div class='d-flex justify-content-end'>
-        {% if has_object_lock %}
-            {% if perms.research.delete_testimonium %}
-            <form novalidate class='form-inline' action='{% url "testimonium:delete" testimonium.pk %}' method='POST'>
-                {% csrf_token %}
-                <div class='form-group'>
-                    <button type='submit' class='btn btn-link text-danger {% if object.mentioned_in.all %}confirm-delete-mentions {% else %} confirm-delete {% endif %} p-0 ml-2'
-                        data-what='testimonium'>{% trans 'Delete' %}</button>
-                </div>
-            </form>
-            {% endif %}
-        {% endif %}
-        </div>
     {% endwith %}
 {% endblock %}
 
@@ -39,13 +26,6 @@
         <div class='d-flex justify-content-between mb-3'>
             <div>
                 <h5>{% trans 'Details' %}</h5>
-            </div>
-            <div>
-                {% comment %}
-                {% if perms.research.change_testimonium and has_object_lock %}
-                <a href='{% url "testimonium:update" object.pk %}'>{% trans 'Edit' %}</a>
-                {% endif %}
-                {% endcomment %}
             </div>
         </div>
 

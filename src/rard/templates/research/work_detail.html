@@ -20,21 +20,8 @@
 
     {% with request.user|has_lock:object as has_object_lock %}
 
-        {% include 'research/partials/render_locked_info.html' %}
+        {% include 'research/partials/render_locked_info.html' with is_work="work" %}
 
-        <div class='d-flex justify-content-end'>
-        {% if has_object_lock %}
-            {% if perms.research.delete_work %}
-                <form novalidate class='form-inline' action='{% url "work:delete" work.pk %}' method='POST'>
-                    {% csrf_token %}
-                    <div class='form-group'>
-                        <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
-                            data-what='work'>{% trans 'Delete' %}</button>
-                    </div>
-                </form>
-            {% endif %}
-        {% endif %}
-        </div>
     {% endwith %}
 {% endblock %}
 
