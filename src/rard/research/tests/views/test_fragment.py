@@ -8,14 +8,18 @@ from rard.research.models import (
     AnonymousFragment,
     AnonymousTopicLink,
     Antiquarian,
+    ApparatusCriticusItem,
     CitingAuthor,
     CitingWork,
+    Concordance,
     Fragment,
     OriginalText,
+    Reference,
+    TextObjectField,
     Topic,
+    Translation,
 )
 from rard.research.models.base import AppositumFragmentLink, FragmentLink
-from rard.research.models.text_object_field import TextObjectField
 from rard.research.views import (
     AnonymousFragmentConvertToFragmentView,
     AnonymousFragmentListView,
@@ -26,6 +30,7 @@ from rard.research.views import (
     FragmentUpdateView,
     MoveAnonymousTopicLinkView,
     UnlinkedFragmentConvertToAnonymousView,
+    duplicate_fragment,
 )
 from rard.users.tests.factories import UserFactory
 from rard.utils.convertors import (
@@ -164,6 +169,22 @@ class TestFragmentSuccessUrls(TestCase):
             reverse("fragment:detail", kwargs={"pk": view.object.pk}),
         )
 
+    def test_duplication_success_url(self):
+        original_fragment = Fragment.objects.create(name="some name")
+
+        # Simulate the behavior of the duplicate_fragment view
+        request = RequestFactory().get("/")
+        request.user = UserFactory.create()
+        response = duplicate_fragment(
+            request, original_fragment.pk, model_name="fragment"
+        )
+        duplicate_pk = response.url.split("/")[-2]
+
+        expected_url = reverse("fragment:detail", kwargs={"pk": duplicate_pk})
+
+        self.assertEqual(response.url, expected_url)
+        self.assertEqual(response.status_code, 302)
+
 
 class TestFragmentDeleteView(TestCase):
     def test_post_only(self):
@@ -199,6 +220,45 @@ class TestFragmentConvertViews(TestCase):
         )
         self.unlinked_fragment = self.create_fragment(Fragment, "ufr")
         self.linked_fragment = self.create_fragment(Fragment, "lfr", linked=True)
+        # Some more anonymous fragments to be apposita
+        self.af1 = self.create_fragment(AnonymousFragment, "af1")
+        self.af2 = self.create_fragment(AnonymousFragment, "af2")
+        # Create an unlinked fragment with apposita
+        self.unlinked_fragment_with_apposita = self.create_fragment(Fragment, "ufr_app")
+        self.unlinked_fragment_with_apposita.apposita.add(self.af1)
+        # Create an anonymous fragment with apposita
+        self.anon_fragment_with_apposita = self.create_fragment(
+            AnonymousFragment, "afr_app"
+        )
+        self.anon_fragment_with_apposita.anonymous_apposita.add(self.af2)
+
+        self.mentioning_fragment = self.create_fragment(Fragment, "f mentioner")
+        self.mentioning_fragment.commentary = TextObjectField.objects.create(
+            content=(
+                f"<p><span class='mention' data-denotation-char='@'' "
+                f"data-id={self.unlinked_fragment.pk} "
+                f"data-index='0' data-target='Fragment' "
+                f"data-value='{self.unlinked_fragment.get_display_name()}'><span contenteditable='false'>"
+                f"<span class='ql-mention-denotation-char'>@</span>{self.unlinked_fragment.get_display_name()}"
+                f"</span></span> </p>"
+            )
+        )
+        self.mentioning_fragment.commentary.save()
+
+        self.mentioning_anonymous_fragment = self.create_fragment(
+            Fragment, "af mentioner"
+        )
+        self.mentioning_anonymous_fragment.commentary = TextObjectField.objects.create(
+            content=(
+                f"<p><span class='mention' data-denotation-char='@'' "
+                f"data-id={self.unlinked_anonymous_fragment.pk} "
+                f"data-index='0' data-target='AnonymousFragment' "
+                f"data-value='{self.unlinked_anonymous_fragment.get_display_name()}'><span contenteditable='false'>"
+                f"<span class='ql-mention-denotation-char'>@</span>{self.unlinked_anonymous_fragment.get_display_name()}"
+                f"</span></span> </p>"
+            )
+        )
+        self.mentioning_anonymous_fragment.commentary.save()
 
     def create_fragment(self, model, name, linked=False):
         fragment = model.objects.create(name=name)
@@ -288,6 +348,76 @@ class TestFragmentConvertViews(TestCase):
         new_fragment.save()
         self.assertEqual(ufr_topic.order, 0)
         self.assertEqual(new_fragment.order, 0)
+
+    def test_converted_unlinked_retains_mentions(self):
+        """Make sure newly created anon frag has the same mentions as original"""
+        mentioned_in = self.unlinked_fragment.mentioned_in_list
+        self.assertIn(
+            self.unlinked_fragment.get_display_name(),
+            self.mentioning_fragment.commentary.content,
+        )
+        new_fragment = convert_unlinked_fragment_to_anonymous_fragment(
+            self.unlinked_fragment
+        )
+        new_fragment.save()
+        self.mentioning_fragment.commentary.refresh_from_db()
+        self.assertEqual(mentioned_in, new_fragment.mentioned_in_list)
+        self.assertNotIn(
+            self.unlinked_fragment.get_display_name(),
+            self.mentioning_fragment.commentary.content,
+        )
+        self.assertIn(str(new_fragment.pk), self.mentioning_fragment.commentary.content)
+        self.assertIn(
+            new_fragment.get_display_name(), self.mentioning_fragment.commentary.content
+        )
+        self.assertIn(self.mentioning_fragment, new_fragment.mentioned_in_list)
+
+    def test_converted_anonymous_retains_mentions(self):
+        """Make sure newly created frag has the same mentions as original"""
+        mentioned_in = self.unlinked_anonymous_fragment.mentioned_in_list
+        self.assertIn(
+            self.unlinked_anonymous_fragment.get_display_name(),
+            self.mentioning_anonymous_fragment.commentary.content,
+        )
+        new_fragment = convert_anonymous_fragment_to_fragment(
+            self.unlinked_anonymous_fragment
+        )
+        new_fragment.save()
+
+        self.mentioning_anonymous_fragment.commentary.refresh_from_db()
+        self.assertEqual(mentioned_in, new_fragment.mentioned_in_list)
+        self.assertNotIn(
+            self.unlinked_anonymous_fragment.get_display_name(),
+            self.mentioning_anonymous_fragment.commentary.content,
+        )
+        self.assertIn(
+            str(new_fragment.pk), self.mentioning_anonymous_fragment.commentary.content
+        )
+        self.assertIn(
+            new_fragment.get_display_name(),
+            self.mentioning_anonymous_fragment.commentary.content,
+        )
+        self.assertIn(
+            self.mentioning_anonymous_fragment, new_fragment.mentioned_in_list
+        )
+
+    def test_converted_anonymous_fragment_maintains_apposita(self):
+        """If the original anonymous fragment had any apposita, those
+        apposita should belong to the newly created unlinked fragment"""
+        new_unlinked_fragment = convert_anonymous_fragment_to_fragment(
+            self.anon_fragment_with_apposita
+        )
+        # self.af2 was apposita to anon fragment, should now be apposita to new fragment
+        self.assertQuerysetEqual(new_unlinked_fragment.apposita.all(), [self.af2])
+
+    def test_converted_unlinked_fragment_maintains_apposita(self):
+        """If the original unlinked fragment had any apposita, those
+        apposita should belong to the newly created anonymous fragment"""
+        new_anon_fragment = convert_unlinked_fragment_to_anonymous_fragment(
+            self.unlinked_fragment_with_apposita
+        )
+        # self.af1 was originally apposita to the unlinked fragment
+        self.assertQuerysetEqual(new_anon_fragment.anonymous_apposita.all(), [self.af1])
 
 
 class TestMoveAnonymousTopicLinkView(TestCase):
@@ -492,3 +622,126 @@ class TestOrderAnonymousFragmentListView(TestCase):
             response.context_data["object_list"],
             [self.aftl1, self.aftl3, self.aftl2, self.aftl3],
         )
+
+
+class TestFragmentDuplicationView(TestCase):
+    def setUp(self):
+        self.cw = CitingWork.objects.create(title="citing work title")
+        self.topic = Topic.objects.create(name="topic1")
+        self.frag = Fragment.objects.create(name="test fragment")
+        self.frag.topics.add(self.topic)
+        self.anonfrag = AnonymousFragment.objects.create(name="test anonfragment")
+        self.anonfrag.topics.add(self.topic)
+        self.ot = OriginalText.objects.create(
+            owner=self.frag,
+            content="Original Text test",
+            citing_work=self.cw,
+            reference_order="reference order",
+        )
+        self.ot2 = OriginalText.objects.create(
+            owner=self.anonfrag,
+            content="Original Text2 test",
+            citing_work=self.cw,
+            reference_order="reference order",
+        )
+        self.con = Concordance.objects.create(
+            original_text=self.ot, source="tester", identifier="123"
+        )
+        self.con = Concordance.objects.create(
+            original_text=self.ot2, source="tester", identifier="123"
+        )
+        self.apc = ApparatusCriticusItem.objects.create(
+            parent=self.ot, content="critical test", object_id=23
+        )
+        self.apc2 = ApparatusCriticusItem.objects.create(
+            parent=self.ot2, content="critical test", object_id=23
+        )
+        self.tr = Translation.objects.create(
+            translated_text="translation of text", original_text=self.ot
+        )
+        self.tr2 = Translation.objects.create(
+            translated_text="translation of text", original_text=self.ot2
+        )
+        self.ref = Reference.objects.create(editor="test", original_text=self.ot)
+        self.ref2 = Reference.objects.create(editor="test", original_text=self.ot2)
+
+    def compare_model_objects(self, original, duplicate):
+        for field in original._meta.fields:
+            if field.name in [
+                "id",
+                "created",
+                "modified",
+                "commentary",
+                "plain_commentary",
+                "object_id",
+                "original_text",
+                "order",
+                "model",
+            ]:
+                continue
+            if field.is_relation and getattr(original, field.name):
+                # If the field is a relation, compare the related objects
+                related_original = getattr(original, field.name)
+                related_duplicate = getattr(duplicate, field.name)
+                self.compare_model_objects(related_original, related_duplicate)
+            else:
+                # For regular fields or null relations, compare their values
+                value1 = getattr(original, field.name)
+                value2 = getattr(duplicate, field.name)
+                self.assertEqual(value1, value2)
+
+    def test_fragment_duplication(self):
+        url = reverse(
+            "fragment:duplicate", kwargs={"pk": self.frag.pk, "model_name": "fragment"}
+        )
+        request = RequestFactory().get(url)
+        request.user = UserFactory.create()
+        response = duplicate_fragment(request, pk=self.frag.pk, model_name="fragment")
+
+        duplicate_pk = response.url.split("/")[-2]
+        duplicate_frag = Fragment.objects.get(pk=duplicate_pk)
+        duplicate_ot = duplicate_frag.original_texts.first()
+        duplicate_ref = duplicate_ot.references.first()
+        duplicate_apc = duplicate_ot.apparatus_criticus_items.first()
+        duplicate_con = duplicate_ot.concordances.first()
+        duplicate_tr = Translation.objects.filter(original_text=duplicate_ot).first()
+
+        self.compare_model_objects(self.frag, duplicate_frag)
+        self.assertEqual(
+            list(self.frag.topics.all()), list(duplicate_frag.topics.all())
+        )
+        self.compare_model_objects(self.ot, duplicate_ot)
+        self.compare_model_objects(self.ref, duplicate_ref)
+        self.compare_model_objects(self.apc, duplicate_apc)
+        self.compare_model_objects(self.con, duplicate_con)
+        self.compare_model_objects(self.tr, duplicate_tr)
+
+    def test_anonymous_fragment_duplication(self):
+        url = reverse(
+            "anonymous_fragment:duplicate",
+            kwargs={"pk": self.anonfrag.pk, "model_name": "anonymousfragment"},
+        )
+        request = RequestFactory().get(url)
+        request.user = UserFactory.create()
+        response = duplicate_fragment(
+            request, pk=self.anonfrag.pk, model_name="anonymousfragment"
+        )
+
+        duplicate_pk = response.url.split("/")[-2]
+        duplicate_frag = Fragment.objects.get(pk=duplicate_pk)
+        duplicate_ot = duplicate_frag.original_texts.first()
+        duplicate_ref = duplicate_ot.references.first()
+
+        duplicate_apc = duplicate_ot.apparatus_criticus_items.first()
+        duplicate_con = duplicate_ot.concordances.first()
+        duplicate_tr = Translation.objects.filter(original_text=duplicate_ot).first()
+
+        self.compare_model_objects(self.anonfrag, duplicate_frag)
+        self.assertEqual(
+            list(self.anonfrag.topics.all()), list(duplicate_frag.topics.all())
+        )
+        self.compare_model_objects(self.ot2, duplicate_ot)
+        self.compare_model_objects(self.ref, duplicate_ref)
+        self.compare_model_objects(self.apc, duplicate_apc)
+        self.compare_model_objects(self.con, duplicate_con)
+        self.compare_model_objects(self.tr, duplicate_tr)

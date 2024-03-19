@@ -41,11 +41,30 @@ class DynamicTextField(TextField):
                     "testimonium": [],
                 }
                 for item in mentions:
-                    model = item.attrs.get("data-target", None)
+                    model = item.attrs.get("data-target", None).lower()
                     pk = item.attrs.get("data-id", None)
                     if model in linked_items.keys() and pk:
                         linked_items[model].append(pk)
                 return linked_items
+
+            def reassign_mentions(self, original, new):
+                value = getattr(self, field_name)
+                soup = bs4.BeautifulSoup(value, features="html.parser")
+                mentions = soup.find_all("span", class_="mention")
+                for item in mentions:
+                    model_name = item.attrs.get("data-target", None)
+                    pk = item.attrs.get("data-id", None)
+                    model = apps.get_model(app_label="research", model_name=model_name)
+                    if model.objects.get(pk=pk) == original:
+                        # Update the data-target and data-id attributes with new values
+                        item["data-target"] = new.__class__.__name__
+                        item["data-id"] = str(new.pk)
+                        item["data-value"] = new.get_display_name()
+
+                        modified_value = str(soup)
+
+                        setattr(self, field_name, modified_value)
+                        self.save()
 
             def update_editable_mentions(self, save=True):
                 from rard.research.models import OriginalText
@@ -308,6 +327,7 @@ class DynamicTextField(TextField):
                 "get_fragment_testimonia_mentions",
                 get_fragment_testimonia_mentions,
             )
+            setattr(cls, "reassign_mentions", reassign_mentions)
 
 
 class ObjectLock(models.Model):

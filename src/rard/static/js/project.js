@@ -137,15 +137,11 @@ $("body").on("submit", "form", function (e) {
     if ($clicked.hasClass("confirm-convert")) {
       let what = $clicked.data("what") || "object";
       let confirmMsg = "Are you sure you want to convert this " + what + "?";
-      if (what == "fragment") {
-        confirmMsg += " Any links to apposita will be lost.";
-      } else {
-        if ($clicked.hasClass("has-links")) {
-          confirmMsg +=
-            " This " +
-            what +
-            " has existing links to antiquarians or works which will also be converted.";
-        }
+      if ($clicked.hasClass("has-links")) {
+        confirmMsg +=
+          " This " +
+          what +
+          " has existing links to antiquarians or works which will also be converted.";
       }
       confirmMsg += " This cannot be undone.";
       return confirm(confirmMsg);

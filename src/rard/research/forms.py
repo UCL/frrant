@@ -16,6 +16,7 @@ from rard.research.models import (
     Comment,
     Fragment,
     OriginalText,
+    PublicCommentaryMentions,
     Reference,
     Testimonium,
     Work,
@@ -655,6 +656,64 @@ class AnonymousFragmentCommentaryForm(CommentaryFormBase):
         fields = ()
 
 
+class PublicCommentaryFormBase(forms.ModelForm):
+    commentary_text = forms.CharField(
+        widget=forms.Textarea,
+        required=False,
+        label="Public Commentary",
+    )
+    approved = forms.BooleanField(
+        label="approved",
+        required=False,
+        help_text="By approving, you consent to the general public to view this on the final website.",
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.public_commentary_mentions:
+            self.fields[
+                "commentary_text"
+            ].initial = self.instance.public_commentary_mentions.content
+            self.fields[
+                "approved"
+            ].initial = self.instance.public_commentary_mentions.approved
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if not instance.public_commentary_mentions:
+            pcm = PublicCommentaryMentions.objects.create(
+                content=self.cleaned_data["commentary_text"]
+            )
+            instance.public_commentary_mentions = pcm
+
+        if commit:
+            instance.save()
+            instance.public_commentary_mentions.content = self.cleaned_data[
+                "commentary_text"
+            ]
+            instance.public_commentary_mentions.approved = self.cleaned_data["approved"]
+            instance.public_commentary_mentions.save()
+        return instance
+
+
+class FragmentPublicCommentaryForm(PublicCommentaryFormBase):
+    class Meta:
+        model = Fragment
+        fields = ()
+
+
+class TestimoniumPublicCommentaryForm(PublicCommentaryFormBase):
+    class Meta:
+        model = Testimonium
+        fields = ()
+
+
+class AnonymousFragmentPublicCommentaryForm(PublicCommentaryFormBase):
+    class Meta:
+        model = AnonymousFragment
+        fields = ()
+
+
 class HistoricalFormBase(forms.ModelForm):
     def save(self, commit=True):
         instance = super().save(commit=False)
@@ -960,6 +1019,15 @@ class AppositumFragmentLinkForm(forms.ModelForm):
             },
             choices=[("", "Results will appear here")],
         )
+
+
+class AppositumAnonymousLinkForm(forms.Form):
+    """For linking anonymous fragments as apposita to
+    other anonymous fragments"""
+
+    anonymous_fragment = forms.ModelChoiceField(
+        queryset=AnonymousFragment.objects.all(), widget=forms.Select()
+    )
 
 
 class CitingWorkCreateForm(forms.ModelForm):

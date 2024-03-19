@@ -212,6 +212,11 @@ class AnonymousFragment(
     # the fragments that we are apposita for...
     fragments = models.ManyToManyField("Fragment", blank=True, related_name="apposita")
 
+    # the anonymous fragments that we are apposita for
+    anonymous_fragments = models.ManyToManyField(
+        "self", blank=True, symmetrical=False, related_name="anonymous_apposita"
+    )
+
     def get_absolute_url(self):
         return reverse("anonymous_fragment:detail", kwargs={"pk": self.pk})
 
