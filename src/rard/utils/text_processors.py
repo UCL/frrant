@@ -7,7 +7,8 @@ from django.utils.html import strip_tags
 
 def strip_combining(content):
     """Converts the content to their base and combining characters,
-    remove the combining ones and return a lowercase string of the base characters"""
+    then removes the combining ones and returns a lowercase string of the base characters
+    """
     normalized = unicodedata.normalize("NFD", content)
     return "".join(
         [char for char in normalized if not unicodedata.combining(char)]
