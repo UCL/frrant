@@ -1,19 +1,21 @@
 import re
 import string
+import unicodedata
 
 from django.utils.html import strip_tags
-from unidecode import unidecode
 
 
-def strip_unicode(content):
-    ascii_text = unidecode(content)
-    # Filter out non-ASCII characters
-    stripped_text = "".join(char for char in ascii_text if ord(char) < 128)
-    return stripped_text
+def strip_combining(content):
+    """Converts the content to their base and combining characters,
+    remove the combining ones and return a lowercase string of the base characters"""
+    normalized = unicodedata.normalize("NFD", content)
+    return "".join(
+        [char for char in normalized if not unicodedata.combining(char)]
+    ).casefold()
 
 
 def make_plain_text(content):
-    no_unicode = strip_unicode(content)
+    no_unicode = strip_combining(content)
     no_ufeff = no_unicode.replace("\ufeff", "")  # found around mentions for some reason
     # Add a space between tags so adjacent words aren't merged
     no_tags = strip_tags(no_ufeff.replace("><", "> <"))

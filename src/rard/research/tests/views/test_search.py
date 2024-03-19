@@ -567,7 +567,7 @@ class TestSearchView(TestCase):
             owner=f3,
         )
 
-        Translation.objects.create(original_text=ot3, translated_text="Ὼῤῥῠ")
+        Translation.objects.create(original_text=ot3, translated_text="Ὼῤῥ")
 
         a12.save()
         f3.save()
@@ -575,3 +575,4 @@ class TestSearchView(TestCase):
         self.assertEqual(do_search(view.antiquarian_search, "antique"), [a12])
         self.assertEqual(do_search(view.fragment_search, "lionel"), [f3])
         self.assertEqual(do_search(view.fragment_search, "plain"), [f3])
+        self.assertEqual(do_search(view.fragment_search, "ωρρ"), [f3])
