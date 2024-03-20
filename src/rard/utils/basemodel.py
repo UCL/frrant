@@ -79,7 +79,7 @@ class DynamicTextField(TextField):
                             linked = model.objects.get(pk=int(pkstr))
 
                             if char == "@":
-                                if model_name == "bibliographyitem":
+                                if hasattr(linked, "mention_citation"):
                                     link_text = linked.mention_citation()
                                 else:
                                     link_text = str(linked)
@@ -163,7 +163,7 @@ class DynamicTextField(TextField):
                             linked = model.objects.get(pk=int(pkstr))
                             # is it something we can link to?
                             if getattr(linked, "get_absolute_url", False):
-                                if model_name == "bibliographyitem":
+                                if hasattr(linked, "mention_citation"):
                                     replacement = bs4.BeautifulSoup(
                                         '<a href="{}">{}</a>'.format(
                                             linked.get_absolute_url(),
