@@ -390,7 +390,7 @@ button.insert {
   background-color: #ffff00;
 }
 
-/* editor related */
+/****************** editor related *********************/
 .ql-editor {
   background-color: white !important;
   font-size: 18px;
@@ -408,6 +408,22 @@ button.insert {
 }
 .rich-editor {
   font-family: Alphabetum !important;
+}
+.rich-editor__wrapper {
+  min-height: 400px;
+  padding-bottom: 60px;
+}
+.rich-editor__wrapper--bibliography-title {
+  max-height: 100px;
+  min-height: 1px; /* this will take precedence over the generic one */
+
+  .ql-editor {
+    min-height: 0;
+  }
+}
+.rich-editor__wrapper--app-crit {
+  min-height: 30px;
+  padding-bottom: 30px;
 }
 .ql-editor .footnote-area {
   font-size: 80%;
