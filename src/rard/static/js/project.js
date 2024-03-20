@@ -417,12 +417,8 @@ function initRichTextEditor($item) {
         return `${list_display}`;
       },
       onSelect(item, insertItem) {
-        if (item.citation) {
-          const shortItem = { ...item, value: item.citation };
-          insertItem(shortItem);
-        } else {
-          insertItem(item);
-        }
+        const shortItem = { ...item, value: item.citation };
+        insertItem(shortItem);
       },
     };
   }
