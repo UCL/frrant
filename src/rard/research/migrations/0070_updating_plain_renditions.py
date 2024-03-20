@@ -12,7 +12,7 @@ def strip_combining_and_make_plain(content):
     normalized = unicodedata.normalize("NFD", plain_text)
     return "".join(
         [char for char in normalized if not unicodedata.combining(char)]
-    ).casefold()
+    )
 
 
 def make_plain_text(content):
