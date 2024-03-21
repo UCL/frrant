@@ -3,16 +3,14 @@
 import re
 import string
 import unicodedata
-from django.db import migrations, models
+from django.db import migrations
 from django.utils.html import strip_tags
 
 
 def strip_combining_and_make_plain(content):
     plain_text = make_plain_text(content)
     normalized = unicodedata.normalize("NFD", plain_text)
-    return "".join(
-        [char for char in normalized if not unicodedata.combining(char)]
-    )
+    return "".join([char for char in normalized if not unicodedata.combining(char)])
 
 
 def make_plain_text(content):
@@ -25,70 +23,33 @@ def make_plain_text(content):
     return no_excess_space
 
 
-def update_antiquarians(apps, schema_editor, plaining_function):
-    Antiquarian = apps.get_model("research", "Antiquarian")
-    for ant in Antiquarian.objects.all():
-        if ant.plain_introduction:
-            ant.plain_introduction = plaining_function(ant.introduction.content)
-            ant.save()
+PLAIN_TEXT_MODEL_FIELDS = {
+    "Antiquarian": "introduction",
+    "Work": "introduction",
+    "Fragment": "commentary",
+    "AnonymousFragment": "commentary",
+    "Testimonium": "commentary",
+    "OriginalText": "content",
+    "Translation": "translated_text",
+}
 
 
-def update_works(apps, schema_editor, plaining_function):
-    Work = apps.get_model("research", "Work")
-    for wk in Work.objects.all():
-        if wk.plain_introduction:
-            wk.plain_introduction = plaining_function(wk.introduction.content)
-            wk.save()
-
-
-def update_fragments(apps, schema_editor, plaining_function):
-    Fragment = apps.get_model("research", "Fragment")
-    for frag in Fragment.objects.all():
-        if frag.plain_commentary:
-            frag.plain_commentary = plaining_function(frag.commentary.content)
-            frag.save()
-
-
-def update_anonymous_fragments(apps, schema_editor, plaining_function):
-    AnonymousFragment = apps.get_model("research", "AnonymousFragment")
-    for afrag in AnonymousFragment.objects.all():
-        if afrag.plain_commentary:
-            afrag.plain_commentary = plaining_function(afrag.commentary.content)
-            afrag.save()
-
-
-def update_testimonia(apps, schema_editor, plaining_function):
-    Testimonium = apps.get_model("research", "Testimonium")
-    for tes in Testimonium.objects.all():
-        if tes.plain_commentary:
-            tes.plain_commentary = plaining_function(tes.commentary.content)
-            tes.save()
-
-
-def update_original_texts(apps, schema_editor, plaining_function):
-    OriginalText = apps.get_model("research", "OriginalText")
-    for ot in OriginalText.objects.all():
-        if ot.plain_content:
-            ot.plain_content = plaining_function(ot.content)
-        if ot.plain_translated_text:
-            ot.plain_translated_text = plaining_function(ot.translated_text)
-        ot.save()
+def update_plain_text(apps, model_name, field_name, plaining_function):
+    model = apps.get_model("research", model_name)
+    for instance in model.objects.all():
+        content = getattr(instance, field_name)
+        setattr(instance, "plain_" + field_name, plaining_function(content))
+        instance.save()
 
 
 def update_plain_texts(apps, schema_editor):
-    update_antiquarians(apps, schema_editor, strip_combining_and_make_plain)
-    update_works(apps, schema_editor, strip_combining_and_make_plain)
-    update_fragments(apps, schema_editor, strip_combining_and_make_plain)
-    update_anonymous_fragments(apps, schema_editor, strip_combining_and_make_plain)
-    update_testimonia(apps, schema_editor, strip_combining_and_make_plain)
+    for model_name, field_name in PLAIN_TEXT_MODEL_FIELDS.items():
+        update_plain_text(apps, model_name, field_name, strip_combining_and_make_plain)
 
 
 def revert_plain_texts(apps, schema_editor):
-    update_antiquarians(apps, schema_editor, make_plain_text)
-    update_works(apps, schema_editor, make_plain_text)
-    update_fragments(apps, schema_editor, make_plain_text)
-    update_anonymous_fragments(apps, schema_editor, make_plain_text)
-    update_testimonia(apps, schema_editor, make_plain_text)
+    for model_name, field_name in PLAIN_TEXT_MODEL_FIELDS.items():
+        update_plain_text(apps, model_name, field_name, make_plain_text)
 
 
 class Migration(migrations.Migration):
