@@ -29,7 +29,7 @@ def update_antiquarians(apps, schema_editor, plaining_function):
     Antiquarian = apps.get_model("research", "Antiquarian")
     for ant in Antiquarian.objects.all():
         if ant.plain_introduction:
-            plaining_function(ant.introduction.content)
+            ant.plain_introduction = plaining_function(ant.introduction.content)
             ant.save()
 
 
@@ -37,7 +37,7 @@ def update_works(apps, schema_editor, plaining_function):
     Work = apps.get_model("research", "Work")
     for wk in Work.objects.all():
         if wk.plain_introduction:
-            plaining_function(wk.introduction.content)
+            wk.plain_introduction = plaining_function(wk.introduction.content)
             wk.save()
 
 
@@ -45,7 +45,7 @@ def update_fragments(apps, schema_editor, plaining_function):
     Fragment = apps.get_model("research", "Fragment")
     for frag in Fragment.objects.all():
         if frag.plain_commentary:
-            plaining_function(frag.commentary.content)
+            frag.plain_commentary = plaining_function(frag.commentary.content)
             frag.save()
 
 
@@ -53,7 +53,7 @@ def update_anonymous_fragments(apps, schema_editor, plaining_function):
     AnonymousFragment = apps.get_model("research", "AnonymousFragment")
     for afrag in AnonymousFragment.objects.all():
         if afrag.plain_commentary:
-            plaining_function(afrag.commentary.content)
+            afrag.plain_commentary = plaining_function(afrag.commentary.content)
             afrag.save()
 
 
@@ -61,7 +61,7 @@ def update_testimonia(apps, schema_editor, plaining_function):
     Testimonium = apps.get_model("research", "Testimonium")
     for tes in Testimonium.objects.all():
         if tes.plain_commentary:
-            plaining_function(tes.commentary.content)
+            tes.plain_commentary = plaining_function(tes.commentary.content)
             tes.save()
 
 
@@ -69,9 +69,9 @@ def update_original_texts(apps, schema_editor, plaining_function):
     OriginalText = apps.get_model("research", "OriginalText")
     for ot in OriginalText.objects.all():
         if ot.plain_content:
-            plaining_function(ot.content)
+            ot.plain_content = plaining_function(ot.content)
         if ot.plain_translated_text:
-            plaining_function(ot.translated_text)
+            ot.plain_translated_text = plaining_function(ot.translated_text)
         ot.save()
 
 
