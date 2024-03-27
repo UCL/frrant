@@ -390,14 +390,6 @@ button.insert {
   background-color: #ffff00;
 }
 
-.lock-duration {
-  display: none;
-}
-
-.lock-options:hover .lock-duration {
-  display: block;
-}
-
 /* editor related */
 .ql-editor {
   background-color: white !important;

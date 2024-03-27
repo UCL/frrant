@@ -2,7 +2,7 @@
 
 {% load humanize object_lock i18n %}
 
-    <div class='d-flex align-items-center mb-2'>
+    <div class='align-items-center mb-2'>
         <div class='mr-3'>
 
             {% include 'research/partials/render_locked_icons.html' %}
@@ -12,6 +12,7 @@
             <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form"
                 method='POST'>
                 {% csrf_token %}
+                {% if object.locked_by == request.user %}
                 <div class="dropdown show">
                     <a class="btn btn-primary btn-sm dropdown-toggle" name='lock' href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         Actions
@@ -59,34 +60,33 @@
                         </form>
 
                         {% endif %}
+                        <hr>
+                    <button type='submit' class='btn btn-link text-primary btn-sm' name='unlock'>Finish&nbsp;Editing</button>
+                {% else %}
+                    {% if object.is_locked %}
+                        <button type='submit' class='btn btn-warning btn-sm' name='request'>Request Item</button>
+                        {% if request.user.can_break_locks %}
+                            <button title='You can break this lock'  type='submit' class='btn btn-danger btn-sm' name='break'><i class='fa fa-unlock'></i> Unlock</button>
+                        {% endif %}
+                    {% elif not object.is_locked %}
 
-                        <hr class="m-1">
+                    <div class="dropdown show">
+                        <a class="btn btn-primary btn-sm dropdown-toggle" name='lock' href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Edit
+                        </a>
 
-                        {% if object.locked_by == request.user %}
-                        <button type='submit' class='btn btn-link text-primary' name='unlock'>Finish Editing</button>
-
-                        {% else %}
-                            {% if object.is_locked %}
-                            <button type='submit' class='btn btn-link text-warning' name='request'>Request Item</button>
-                                {% if request.user.can_break_locks %}
-                                    <button title='You can break this lock'  type='submit' class='btn btn-link text-danger' name='break'><i class='fa fa-unlock'></i> Unlock</button>
-                                {% endif %}
-
-                            {% elif not object.is_locked %}
-                            <div class="lock-options">
-                                <button type='button' name='lock'  class='dropdown-toggle btn btn-link text-primary w-100 p-1 m-1'>Edit</button>
-                                <div class="lock-duration form-group">
+                        <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                                <div class="lock-duration">
                                     <button type='submit' name='days' value='1' class='dropdown-item'>for 1 day</button>
                                     <button type='submit' name='days' value='2' class='dropdown-item'>for 2 days</button>
                                     <button type='submit' name='days' value='7' class='dropdown-item'>for a week</button>
-                                    <button type='submit' name='lock' class='dropdown-item text-danger'>until I unlock</button>
+                                    <button type='submit' name='lock' class='dropdown-item'>until I unlock</button>
                                 </div>
-                            </div>
-                            {% endif %}
-                        {% endif %}
+                        </div>
                     </div>
-                </div>
+                    {% endif %}
 
+                {% endif %}
             </form>
         </div>
     </div>
