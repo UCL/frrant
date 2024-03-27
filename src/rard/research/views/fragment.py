@@ -1284,9 +1284,9 @@ def duplicate_fragment(request, pk, model_name):
 
     # add duplication relationships
     if original_fragment.duplicates_list:
-        for frag in original_fragment.duplicate_frags:
+        for frag in original_fragment.duplicate_frags.all():
             new_fragment.duplicate_frags.add(frag)
-        for af in original_fragment.duplicate_afs:
+        for af in original_fragment.duplicate_afs.all():
             new_fragment.duplicate_afs.add(af)
 
     original_fragment.duplicate_frags.add(new_fragment)
