@@ -766,3 +766,27 @@ class TestFragmentDuplicationView(TestCase):
         )
         new_anonfragment.save()
         self.assertIn(self.frag, new_anonfragment.duplicates_list)
+
+    def test_duplicates_carry_duplicates(self):
+        url = reverse(
+            "fragment:duplicate", kwargs={"pk": self.frag.pk, "model_name": "fragment"}
+        )
+        request = RequestFactory().get(url)
+        request.user = UserFactory.create()
+        response1 = duplicate_fragment(request, pk=self.frag.pk, model_name="fragment")
+
+        duplicate_pk1 = response1.url.split("/")[-2]
+        duplicate_frag1 = Fragment.objects.get(pk=duplicate_pk1)
+
+        response2 = duplicate_fragment(
+            request, pk=duplicate_frag1.pk, model_name="fragment"
+        )
+        duplicate_pk2 = response2.url.split("/")[-2]
+        duplicate_frag2 = Fragment.objects.get(pk=duplicate_pk2)
+
+        self.assertAlmostEqual(
+            duplicate_frag2.duplicates_list, duplicate_frag1.duplicates_list
+        )
+        self.assertAlmostEqual(
+            self.frag.duplicates_list, duplicate_frag1.duplicates_list
+        )
