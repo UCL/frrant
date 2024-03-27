@@ -784,9 +784,10 @@ class TestFragmentDuplicationView(TestCase):
         duplicate_pk2 = response2.url.split("/")[-2]
         duplicate_frag2 = Fragment.objects.get(pk=duplicate_pk2)
 
-        self.assertAlmostEqual(
-            duplicate_frag2.duplicates_list, duplicate_frag1.duplicates_list
+        self.assertEqual(
+            sorted(duplicate_frag2.duplicates_list),
+            sorted(duplicate_frag1.duplicates_list),
         )
-        self.assertAlmostEqual(
-            self.frag.duplicates_list, duplicate_frag1.duplicates_list
+        self.assertEqual(
+            sorted(self.frag.duplicates_list), sorted(duplicate_frag1.duplicates_list)
         )
