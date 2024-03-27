@@ -108,6 +108,24 @@
     }
   },
   {
+    "model": "research.symbolgroup",
+    "pk": 16,
+    "fields": {
+      "created": "2024-03-05T11:58:19.184Z",
+      "modified": "2024-03-05T11:58:19.184Z",
+      "name": "Volusius_Maecianus_fractions"
+    }
+  },
+  {
+    "model": "research.symbolgroup",
+    "pk": 17,
+    "fields": {
+      "created": "2024-03-05T11:58:47.847Z",
+      "modified": "2024-03-05T11:58:47.847Z",
+      "name": "Victorius fractions"
+    }
+  },
+  {
     "model": "research.symbol",
     "pk": 1,
     "fields": {
