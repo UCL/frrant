@@ -1,15 +1,25 @@
-
 @font-face {
-    font-family: Alphabetum;
-    src: url("/static/fonts/ALPHABETUM_v_12.00.otf") format("opentype");
+  font-family: Alphabetum;
+  src: url("../fonts/ALPHABETUM_v_12.otf") format("opentype");
 }
 
 @font-face {
-    font-family: Alphabetum;
-    src: url("/static/fonts/ExtraSymbols.otf") format("opentype");
-    unicode-range: U+2C41;
+  font-family: Alphabetum;
+  src: url("../fonts/ExtraSymbols.otf") format("opentype");
+  unicode-range: U+2C41;
+}
+@font-face {
+  font-family: Alphabetum;
+  src: url("../fonts/Volusius_Maecianus_fractions.otf") format("opentype");
+  unicode-range: U+E000-E011, U+E024, U+E026-E027;
+}
+
+@font-face {
+  font-family: Alphabetum;
+  src: url("../fonts/Victorius_fractions.otf") format("opentype");
+  unicode-range: U+E012-E023;
 }
 
 .alphabetum {
-    font-family: Alphabetum!important;
+  font-family: Alphabetum !important;
 }
