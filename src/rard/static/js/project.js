@@ -79,6 +79,12 @@ $("#id_year_type").trigger("change", true);
 // initialise any checkbox-driven toggle areas on initialising page
 $(".rard-toggle-control input").trigger("change", true);
 
+$(".alert-duplicates").click(function () {
+  alert(
+    "Please be aware this fragment has duplicates and any changes you make will not automatically be carried over"
+  );
+});
+
 $("form").click(function (event) {
   // store the clicked button when submitting forms
   // for cross-browser determination of the clicked button

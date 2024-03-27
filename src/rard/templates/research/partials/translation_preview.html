@@ -27,7 +27,7 @@
                 <form novalidate class='form-inline' action='{% url "fragment:delete_translation" translation.pk %}' method='POST'>
                     {% csrf_token %}
                     <div class="form-row align-items-center">
-                        <a href='{% url "fragment:update_translation" translation.pk %}'>Edit</a>
+                        <a href='{% url "fragment:update_translation" translation.pk %}' {% if object.duplicate_frags.all %}class="alert-duplicates" {% endif %}>Edit</a>
                         <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
                             data-what='translation'>{% trans 'Delete' %}</button>
                     </div>
