@@ -785,9 +785,7 @@ class TestFragmentDuplicationView(TestCase):
         duplicate_frag2 = Fragment.objects.get(pk=duplicate_pk2)
 
         self.assertEqual(
-            sorted(duplicate_frag2.duplicates_list),
-            sorted(duplicate_frag1.duplicates_list),
+            duplicate_frag2.duplicates_list,
+            duplicate_frag1.duplicates_list,
         )
-        self.assertEqual(
-            sorted(self.frag.duplicates_list), sorted(duplicate_frag1.duplicates_list)
-        )
+        self.assertEqual(self.frag.duplicates_list, duplicate_frag1.duplicates_list)
