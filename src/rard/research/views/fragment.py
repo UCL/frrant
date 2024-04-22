@@ -1290,5 +1290,9 @@ def duplicate_fragment(request, pk, model_name):
             new_fragment.duplicate_afs.add(af)
 
     original_fragment.duplicate_frags.add(new_fragment)
+    if model_name == "fragment":
+        new_fragment.duplicate_frags.add(original_fragment)
+    elif model_name == "anonymousfragment":
+        new_fragment.duplicate_afs.add(original_fragment)
 
     return redirect("fragment:detail", pk=new_fragment.pk)
