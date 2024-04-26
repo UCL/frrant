@@ -28,7 +28,7 @@ def transfer_duplicates(source, destination, source_type):
         for d in source.duplicates_list:
             d.duplicate_frags.add(destination)
             # if the relationship was defined from the duplicate in the list, remove the one being converted
-            if source in d.duplicate_frags.all():
+            if source in d.duplicate_afs.all():
                 d.duplicate_afs.remove(source)
             else:
                 # otherwise delete it from the anonfrag being converted
