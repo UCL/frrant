@@ -28,6 +28,7 @@ class Migration(migrations.Migration):
                 to="research.Fragment",
             ),
         ),
+        # Currently this isn't utilised but as HistoricalBase is abstract it's part of the migration
         migrations.AddField(
             model_name="testimonium",
             name="duplicate_frags",
@@ -55,6 +56,7 @@ class Migration(migrations.Migration):
                 to="research.AnonymousFragment",
             ),
         ),
+        # Currently this isn't utilised but as HistoricalBase is abstract it's part of the migration
         migrations.AddField(
             model_name="testimonium",
             name="duplicate_afs",
