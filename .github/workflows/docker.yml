@@ -44,7 +44,6 @@ jobs:
       - name: Run DB Migrations
         run: |
           cd src
-          docker-compose -f local.yml run --rm django python manage.py makemigrations --merge --noinput
           docker-compose -f local.yml run --rm django python manage.py migrate
 
       - name: Run Django Tests
