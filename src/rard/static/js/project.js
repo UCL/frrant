@@ -419,8 +419,8 @@ function initRichTextEditor($item) {
     };
   }
 
-  new Quill("#" + $item.attr("id"), config);
-
+  const quill = new Quill("#" + $item.attr("id"), config);
+  quill; // create the ql editor
   var for_id = $item.data("for");
   var model_field = $item.data("model-field");
   var $for = $(`#${for_id}`);
@@ -429,11 +429,26 @@ function initRichTextEditor($item) {
   $item.find(".ql-editor").html(html);
   $for.hide();
 
-  // This removes the weird br header element that gets pasted
-  var editor = $item.find(".ql-editor").get(0);
-  editor.addEventListener("paste", function (event) {
-    var h4brElem = this.querySelector("h4 br");
-    h4brElem.remove();
+  quill.root.addEventListener("paste", function (event) {
+    // Get the pasted text
+    const pastedText = (event.originalEvent || event).clipboardData.getData(
+      "text/html"
+    );
+    // remove any td elements with number content (specific thing to PHI with line numbers)
+    const noTd = pastedText.replace(/<td\b[^>]*>([\d.]+)<\/td>/gi, "");
+    // also remove other html tags
+    const plainText = noTd.replace(/<[^>]*>/g, "");
+
+    // paste the new text
+    event.preventDefault();
+    const selection = quill.getSelection();
+    if (selection) {
+      quill.insertText(selection.index, plainText);
+      quill.setSelection(selection.index + plainText.length);
+    } else {
+      quill.insertText(0, plainText);
+      quill.setSelection(plainText.length);
+    }
   });
 
   // translates custom table dropdown in toolbar
