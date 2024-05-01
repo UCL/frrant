@@ -25,6 +25,12 @@ class BibliographyItem(HistoryModelMixin, LockableModel, BaseModel):
     def get_absolute_url(self):
         return reverse("bibliography:detail", kwargs={"pk": self.pk})
 
+    def mention_citation(self):
+        r = self.author_surnames
+        if self.year:
+            r += " [" + self.year + "]"
+        return r.strip()
+
     class Meta:
         ordering = ["author_surnames", "year"]
 

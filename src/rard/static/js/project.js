@@ -376,7 +376,14 @@ function initRichTextEditor($item) {
     $item.hasClass("enable-apparatus-criticus")
   ) {
     let delimiters = [];
-    let dataAttributes = ["id", "value", "denotationChar", "link", "target"];
+    let dataAttributes = [
+      "id",
+      "value",
+      "denotationChar",
+      "link",
+      "target",
+      "citation",
+    ];
     if ($item.hasClass("enable-mentions")) {
       delimiters.push("@");
     }
@@ -407,9 +414,13 @@ function initRichTextEditor($item) {
         }
       },
       renderItem(item, searchTerm) {
-        // allows you to control how the item is displayed
+        // allows you to control how the item is displayed in the list
         let list_display = item.list_display || item.value;
         return `${list_display}`;
+      },
+      onSelect(item, insertItem) {
+        const shortItem = { ...item, value: item.citation };
+        insertItem(shortItem);
       },
     };
   }
