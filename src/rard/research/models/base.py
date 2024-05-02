@@ -558,6 +558,33 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
         mentions = [m.get_related_object() for m in self.mentioned_in.all()]
         return mentions
 
+    # Duplicates are only used on (Anon)Fragments but these fields also exist on testimonia
+    # when duplicating, a new fragment is created
+    duplicate_frags = models.ManyToManyField(
+        "Fragment", blank=True, related_name="%(class)s_duplicate_fragments"
+    )
+
+    # if a fragment is converted to anonymous we want to transfer the duplicates
+    duplicate_afs = models.ManyToManyField(
+        "AnonymousFragment",
+        blank=True,
+        related_name="%(class)s_duplicate_anonfragments",
+    )
+
+    @property
+    def duplicates_list(self):
+        duplicates = list(self.duplicate_frags.all())
+        duplicates.extend(self.duplicate_afs.all())
+        if hasattr(self, "fragment_duplicate_fragments"):
+            duplicates.extend(self.fragment_duplicate_fragments.all())
+        if hasattr(self, "anonymousfragment_duplicate_fragments"):
+            duplicates.extend(self.anonymousfragment_duplicate_fragments.all())
+        if hasattr(self, "fragment_duplicate_anonfragments"):
+            duplicates.extend(self.fragment_duplicate_anonfragments.all())
+        if hasattr(self, "anonymousfragment_duplicate_anonfragments"):
+            duplicates.extend(self.anonymousfragment_duplicate_anonfragments.all())
+        return list(set(duplicates))
+
     def __str__(self):
         return self.get_display_name()
 

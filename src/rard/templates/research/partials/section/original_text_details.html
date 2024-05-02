@@ -64,7 +64,7 @@
                         {% csrf_token %}
                         <div class='form-row align-items-center'>
                             {% if perms.research.change_concordance %}
-                            <a href='{% url "concordance:update" concordance.pk %}'>Edit</a>
+                            <a href='{% url "concordance:update" concordance.pk %}' {% if object.duplicate_frags.all %}class="alert-duplicates" {% endif %}>Edit</a>
                             {% endif %}
                             {% if perms.research.delete_concordance %}
                             <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'

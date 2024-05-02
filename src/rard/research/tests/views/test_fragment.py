@@ -715,6 +715,8 @@ class TestFragmentDuplicationView(TestCase):
         self.compare_model_objects(self.apc, duplicate_apc)
         self.compare_model_objects(self.con, duplicate_con)
         self.compare_model_objects(self.tr, duplicate_tr)
+        self.assertIn(duplicate_frag, self.frag.duplicates_list)
+        self.assertIn(self.frag, duplicate_frag.duplicates_list)
 
     def test_anonymous_fragment_duplication(self):
         url = reverse(
@@ -745,3 +747,46 @@ class TestFragmentDuplicationView(TestCase):
         self.compare_model_objects(self.apc, duplicate_apc)
         self.compare_model_objects(self.con, duplicate_con)
         self.compare_model_objects(self.tr, duplicate_tr)
+        self.assertIn(duplicate_frag, self.anonfrag.duplicates_list)
+        self.assertIn(self.anonfrag, duplicate_frag.duplicates_list)
+
+    def test_duplicates_transferred_in_conversion(self):
+        url = reverse(
+            "fragment:duplicate", kwargs={"pk": self.frag.pk, "model_name": "fragment"}
+        )
+        request = RequestFactory().get(url)
+        request.user = UserFactory.create()
+        response = duplicate_fragment(request, pk=self.frag.pk, model_name="fragment")
+
+        duplicate_pk = response.url.split("/")[-2]
+        duplicate_frag = Fragment.objects.get(pk=duplicate_pk)
+
+        new_anonfragment = convert_unlinked_fragment_to_anonymous_fragment(
+            duplicate_frag
+        )
+        new_anonfragment.save()
+        self.assertIn(self.frag, new_anonfragment.duplicates_list)
+
+    def test_duplicates_carry_duplicates(self):
+        url = reverse(
+            "fragment:duplicate", kwargs={"pk": self.frag.pk, "model_name": "fragment"}
+        )
+        request = RequestFactory().get(url)
+        request.user = UserFactory.create()
+
+        # duplicate the original fragment
+        response1 = duplicate_fragment(request, pk=self.frag.pk, model_name="fragment")
+
+        duplicate_pk1 = response1.url.split("/")[-2]
+        duplicate_frag1 = Fragment.objects.get(pk=duplicate_pk1)
+
+        # duplicate the duplicate
+        response2 = duplicate_fragment(
+            request, pk=duplicate_frag1.pk, model_name="fragment"
+        )
+        duplicate_pk2 = response2.url.split("/")[-2]
+        duplicate_frag2 = Fragment.objects.get(pk=duplicate_pk2)
+
+        self.assertIn(self.frag, duplicate_frag2.duplicates_list)
+        self.assertIn(self.frag, duplicate_frag1.duplicates_list)
+        self.assertEqual([duplicate_frag1, duplicate_frag2], self.frag.duplicates_list)

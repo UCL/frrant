@@ -1282,4 +1282,17 @@ def duplicate_fragment(request, pk, model_name):
     # Duplicate relationships to topics
     new_fragment.topics.set(original_fragment.topics.all())
 
+    # add duplication relationships
+    if original_fragment.duplicates_list:
+        for frag in original_fragment.duplicate_frags.all():
+            new_fragment.duplicate_frags.add(frag)
+        for af in original_fragment.duplicate_afs.all():
+            new_fragment.duplicate_afs.add(af)
+
+    original_fragment.duplicate_frags.add(new_fragment)
+    if model_name == "fragment":
+        new_fragment.duplicate_frags.add(original_fragment)
+    elif model_name == "anonymousfragment":
+        new_fragment.duplicate_afs.add(original_fragment)
+
     return redirect("fragment:detail", pk=new_fragment.pk)
