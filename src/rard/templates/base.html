@@ -37,9 +37,8 @@
     <!-- This file stores project-specific CSS -->
 
     <link href="{% static 'css/project.css' %}" rel="stylesheet">
-    {% comment %}
     <link href="{% static 'css/alphabetum.css' %}" rel="stylesheet">
-    {% endcomment %}
+
     {% if not PRODUCTION_INSTANCE %}
     <!-- Styling to make it obvious we're not in production -->
     <link href="{% static 'css/development.css' %}" rel="stylesheet">
