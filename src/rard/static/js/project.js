@@ -245,6 +245,8 @@ async function getApparatusCriticusLines(searchTerm, object_id, object_class) {
   return matches;
 }
 
+let fromSymbolPicker = false; // to identify when pasting from the symbol picker
+
 function initRichTextEditor($item) {
   let config = {
     theme: "snow",
@@ -285,7 +287,6 @@ function initRichTextEditor($item) {
             this.quill.modules.table.insertTable();
           },
           edit_table: function (value) {
-            console.log(value);
             if (value == "add_row") {
               this.quill.modules.table.insertRow();
             } else if (value == "add_column") {
@@ -440,20 +441,27 @@ function initRichTextEditor($item) {
     const pastedText = (event.originalEvent || event).clipboardData.getData(
       "text/html"
     );
-    // remove any td elements with number content (specific thing to PHI with line numbers)
-    const noTd = pastedText.replace(/<td\b[^>]*>([\d.]+)<\/td>/gi, "");
-    // also remove other html tags
-    const plainText = noTd.replace(/<[^>]*>/g, "");
-
-    // paste the new text
-    event.preventDefault();
-    const selection = quill.getSelection();
-    if (selection) {
-      quill.insertText(selection.index, plainText);
-      quill.setSelection(selection.index + plainText.length);
+    if (fromSymbolPicker == true) {
+      // set the variable back to false and continue with normal pasting
+      fromSymbolPicker = false;
     } else {
-      quill.insertText(0, plainText);
-      quill.setSelection(plainText.length);
+      // remove any td elements with number content (specific thing to PHI with line numbers)
+      const noTd = pastedText.replace(/<td\b[^>]*>([\d.]+)<\/td>/gi, "");
+      // also remove other html tags
+      const plainText = noTd.replace(/<[^>]*>/g, "");
+
+      // paste the new text
+      event.preventDefault();
+      const selection = quill.getSelection();
+      if (selection) {
+        quill.insertText(selection.index, plainText);
+        quill.setSelection(selection.index + plainText.length);
+      } else {
+        // If there's no selection, get the current cursor position
+        const cursorPosition = quill.getLength();
+        quill.insertText(cursorPosition, plainText);
+        quill.setSelection(cursorPosition + plainText.length);
+      }
     }
   });
 
@@ -574,6 +582,7 @@ $("#copy_to_clipboard").click(function (e) {
   let dummyInput = $("#clipboard_input");
   dummyInput.select();
   document.execCommand("copy");
+  fromSymbolPicker = true;
   dummyInput.blur();
 });
 
