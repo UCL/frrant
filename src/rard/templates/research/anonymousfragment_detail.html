@@ -14,43 +14,7 @@
 {% block action %}
     {% with request.user|has_lock:object as has_object_lock %}
 
-        {% include 'research/partials/render_locked_info.html' %}
-
-        {% if has_object_lock %}
-        <div class='d-flex flex-column justify-content-end'>
-            {% if perms.research.delete_anonymousfragment %}
-            <form novalidate style='margin-left:auto' class='form-inline' action='{% url "anonymous_fragment:delete" object.pk %}' method='POST'>
-                {% csrf_token %}
-                <div class='form-group'>
-                    <button type='submit' class='btn btn-link text-danger {% if object.mentioned_in.all %}confirm-delete-mentions {% else %} confirm-delete {% endif %} p-0 ml-2'
-                        data-what='anonymous fragment'>{% trans 'Delete' %}</button>
-                </div>
-            </form>
-            {% endif %}
-            {% if perms.research.change_anonymousfragment %}
-            <form novalidate style='margin-left:auto' class='form-inline' action='{% url "anonymous_fragment:convert_to_fragment" object.pk %}' method='POST'>
-                {% csrf_token %}
-                <div class='form-group'>
-                    <button
-                      type='submit'
-                      class='
-                      {% if object.get_all_links %}has-links{% endif %}
-                      btn btn-link text-danger confirm-convert p-0 ml-2
-                      '
-                      data-what='anonymous fragment'
-                    >{% trans 'Make non-anonymous' %}</button>
-                </div>
-            </form>
-            <form novalidate style='margin-left:auto' class='form-inline' action='{% url "anonymous_fragment:duplicate" object.pk %}' method='POST'>
-                {% csrf_token %}
-                <div class='form-group'>
-                    <button type='submit' class='btn btn-link text-info p-0 ml-2'
-                        data-what='anonymous fragment'>{% trans 'Duplicate' %}</button>
-                </div>
-            </form>
-            {% endif %}
-        </div>
-        {% endif %}
+        {% include 'research/partials/render_locked_info.html' with is_anonymousfragment="anonymous fragment" %}
     {% endwith %}
 {% endblock %}
 
