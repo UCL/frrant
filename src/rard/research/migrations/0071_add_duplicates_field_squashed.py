@@ -5,6 +5,10 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
+    replaces = [
+        ("research", "0071_add_duplicates_field"),
+    ]
+
     dependencies = [
         ("research", "0070_updating_plain_renditions"),
     ]
