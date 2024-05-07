@@ -571,18 +571,39 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
         related_name="%(class)s_duplicate_anonfragments",
     )
 
+    # if converted to a testimonium, we want to transfer duplicates
+    duplicate_ts = models.ManyToManyField(
+        "Testimonium",
+        blank=True,
+        related_name="%(class)s_duplicate_ts",
+    )
+
     @property
     def duplicates_list(self):
         duplicates = list(self.duplicate_frags.all())
         duplicates.extend(self.duplicate_afs.all())
+        # frags
         if hasattr(self, "fragment_duplicate_fragments"):
             duplicates.extend(self.fragment_duplicate_fragments.all())
         if hasattr(self, "anonymousfragment_duplicate_fragments"):
             duplicates.extend(self.anonymousfragment_duplicate_fragments.all())
+        if hasattr(self, "testimonium_duplicate_fragments"):
+            duplicates.extend(self.testimonium_duplicate_fragments.all())
+        # anonfrags
         if hasattr(self, "fragment_duplicate_anonfragments"):
             duplicates.extend(self.fragment_duplicate_anonfragments.all())
         if hasattr(self, "anonymousfragment_duplicate_anonfragments"):
             duplicates.extend(self.anonymousfragment_duplicate_anonfragments.all())
+        if hasattr(self, "testimonium_duplicate_anonfragments"):
+            duplicates.extend(self.testimonium_duplicate_anonfragments.all())
+        # testimonia
+        if hasattr(self, "fragment_duplicate_ts"):
+            duplicates.extend(self.fragment_duplicate_ts.all())
+        if hasattr(self, "anonymousfragment_duplicate_ts"):
+            duplicates.extend(self.anonymousfragment_duplicate_ts.all())
+        if hasattr(self, "testimonium_duplicate_ts"):
+            duplicates.extend(self.testimonium_duplicate_ts.all())
+
         return list(set(duplicates))
 
     def __str__(self):
