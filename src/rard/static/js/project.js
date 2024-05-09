@@ -193,7 +193,7 @@ $("body").on("submit", "form", function (e) {
   $(this).data("submitted", true);
 });
 
-Quill.register("modules/mention", quillMention, true);
+// Quill.register("modules/mention", quillMention, true);
 var icons = Quill.import("ui/icons");
 // import fontawesome button icons
 icons["undo"] =
@@ -368,6 +368,37 @@ function initRichTextEditor($item) {
       },
       footnote: true,
       table: true,
+      mention: {
+        allowedChars: /^[0-9A-Za-z\sÅÄÖåäö:]*$/,
+        mentionDenotationChars: delimiters,
+        dataAttributes: dataAttributes,
+        source: async function (searchTerm, renderList, mentionChar) {
+          if (mentionChar == "@") {
+            const matchedPeople = await suggestPeople(searchTerm);
+            renderList(matchedPeople);
+          } else if (mentionChar == "#") {
+            let object_id = $item.data("object");
+            let object_class = $item.data("class") || "originaltext";
+            const lines = await getApparatusCriticusLines(
+              searchTerm,
+              object_id,
+              object_class
+            );
+            // console.log("lines:");
+            // console.dir(lines);
+            renderList(lines);
+          }
+        },
+        renderItem(item, searchTerm) {
+          // allows you to control how the item is displayed in the list
+          let list_display = item.list_display || item.value;
+          return `${list_display}`;
+        },
+        onSelect(item, insertItem) {
+          const shortItem = { ...item, value: item.citation };
+          insertItem(shortItem);
+        },
+      },
     },
   };
 
@@ -392,37 +423,37 @@ function initRichTextEditor($item) {
       dataAttributes.push("originalText"); // also need to keep track of original text owner for app crit
       dataAttributes.push("parent"); // and the parent object e.g. fragment
     }
-    config["modules"]["mention"] = {
-      allowedChars: /^[0-9A-Za-z\sÅÄÖåäö:]*$/,
-      mentionDenotationChars: delimiters,
-      dataAttributes: dataAttributes,
-      source: async function (searchTerm, renderList, mentionChar) {
-        if (mentionChar == "@") {
-          const matchedPeople = await suggestPeople(searchTerm);
-          renderList(matchedPeople);
-        } else if (mentionChar == "#") {
-          let object_id = $item.data("object");
-          let object_class = $item.data("class") || "originaltext";
-          const lines = await getApparatusCriticusLines(
-            searchTerm,
-            object_id,
-            object_class
-          );
-          // console.log("lines:");
-          // console.dir(lines);
-          renderList(lines);
-        }
-      },
-      renderItem(item, searchTerm) {
-        // allows you to control how the item is displayed in the list
-        let list_display = item.list_display || item.value;
-        return `${list_display}`;
-      },
-      onSelect(item, insertItem) {
-        const shortItem = { ...item, value: item.citation };
-        insertItem(shortItem);
-      },
-    };
+    // config["modules"]["mention"] = {
+    //   allowedChars: /^[0-9A-Za-z\sÅÄÖåäö:]*$/,
+    //   mentionDenotationChars: delimiters,
+    //   dataAttributes: dataAttributes,
+    //   source: async function (searchTerm, renderList, mentionChar) {
+    //     if (mentionChar == "@") {
+    //       const matchedPeople = await suggestPeople(searchTerm);
+    //       renderList(matchedPeople);
+    //     } else if (mentionChar == "#") {
+    //       let object_id = $item.data("object");
+    //       let object_class = $item.data("class") || "originaltext";
+    //       const lines = await getApparatusCriticusLines(
+    //         searchTerm,
+    //         object_id,
+    //         object_class
+    //       );
+    //       // console.log("lines:");
+    //       // console.dir(lines);
+    //       renderList(lines);
+    //     }
+    //   },
+    //   renderItem(item, searchTerm) {
+    //     // allows you to control how the item is displayed in the list
+    //     let list_display = item.list_display || item.value;
+    //     return `${list_display}`;
+    //   },
+    //   onSelect(item, insertItem) {
+    //     const shortItem = { ...item, value: item.citation };
+    //     insertItem(shortItem);
+    //   },
+    // };
   }
 
   new Quill("#" + $item.attr("id"), config);
