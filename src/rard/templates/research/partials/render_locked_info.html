@@ -47,10 +47,15 @@
 
                         {% elif is_fragment %}
                             {% if object.is_unlinked %}
-                            <form novalidate class='form-group mb-0' action='{% url "fragment:convert_to_anonymous" fragment.pk %}' method='POST'>
+                            <form novalidate class='form-group mb-0' action='{% url "fragment:convert_to_anonymous" object.pk %}' method='POST'>
                                 {% csrf_token %}
                                 <button type='submit' class='btn btn-link text-danger text-nowrap confirm-convert'
                                     data-what='fragment'>{% trans 'Make anonymous' %}</button>
+                            </form>
+                            <form novalidate class='form-group mb-0' action='{% url "fragment:convert_to_testimonium" object.pk %}' method='POST'>
+                                {% csrf_token %}
+                                <button type='submit' class='btn btn-link text-danger text-nowrap confirm-convert'
+                                    data-what='fragment'>{% trans 'Make testimonium' %}</button>
                             </form>
                             {% endif %}
                             <form novalidate class='form-group mb-0' action='{% url "fragment:duplicate" object.pk %}' method='POST'>
@@ -58,7 +63,7 @@
                                 <button type='submit' class='btn btn-link text-info'
                                     data-what='fragment'>{% trans 'Duplicate' %}</button>
                             </form>
-                        {% comment %} {% elif is_testimonium %}
+                        {% elif is_testimonium %}
                             <form novalidate class='form-group mb-0' action='{% url "testimonium:convert_to_fragment" object.pk %}' method='POST'>
                                 {% csrf_token %}
                                 <button
@@ -75,7 +80,6 @@
                                 <button type='submit' class='btn btn-link text-info'
                                     data-what='testimonium'>{% trans 'Duplicate' %}</button>
                             </form>
-                        {% endcomment %}
                         {% endif %}
 
                         <hr class="m-1">
