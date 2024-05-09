@@ -307,6 +307,11 @@ urlpatterns = [
                         name="convert_to_anonymous",
                     ),
                     path(
+                        "<pk>/convert-to-testimonium/",
+                        views.UnlinkedFragmentConvertToTestimoniumView.as_view(),
+                        name="convert_to_testimonium",
+                    ),
+                    path(
                         "<pk>/duplicate",
                         views.duplicate_fragment,
                         {"model_name": "fragment"},
@@ -486,6 +491,17 @@ urlpatterns = [
                         "remove-link/<pk>",
                         views.RemoveTestimoniumLinkView.as_view(),
                         name="remove_testimonium_link",
+                    ),
+                    path(
+                        "<pk>/convert-to-fragment/",
+                        views.TestimoniumConvertToUnlinkedFragmentView.as_view(),
+                        name="convert_to_fragment",
+                    ),
+                    path(
+                        "<pk>/duplicate",
+                        views.duplicate_fragment,
+                        {"model_name": "testimonium"},
+                        name="duplicate",
                     ),
                     path(
                         "<pk>/delete/",

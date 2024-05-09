@@ -43,6 +43,7 @@ from rard.research.models import (
     Fragment,
     OriginalText,
     Reference,
+    Testimonium,
     Topic,
     Translation,
     Work,
@@ -60,6 +61,7 @@ from rard.research.views.mixins import (
 from rard.utils.convertors import (
     convert_anonymous_fragment_to_fragment,
     convert_unlinked_fragment_to_anonymous_fragment,
+    convert_unlinked_fragment_to_testimonium,
 )
 from rard.utils.shared_functions import reassign_to_unknown
 
@@ -884,6 +886,21 @@ class UnlinkedFragmentConvertToAnonymousView(AnonymousFragmentConvertToFragmentV
             return HttpResponseBadRequest()
 
 
+@method_decorator(require_POST, name="dispatch")
+class UnlinkedFragmentConvertToTestimoniumView(AnonymousFragmentConvertToFragmentView):
+    model = Fragment
+    permission_required = "research.change_fragment"
+
+    def post(self, request, *args, **kwargs):
+        fragment = self.get_object()
+        if fragment.is_unlinked:
+            testimonium = convert_unlinked_fragment_to_testimonium(self.get_object())
+            success_url = reverse("testimonium:detail", kwargs={"pk": testimonium.pk})
+            return HttpResponseRedirect(success_url)
+        else:
+            return HttpResponseBadRequest()
+
+
 class FragmentUpdateAntiquariansView(FragmentUpdateView):
     model = Fragment
     form_class = FragmentAntiquariansForm
@@ -1174,6 +1191,9 @@ def duplicate_fragment(request, pk, model_name):
 
     elif model_name == "fragment":
         original_fragment = get_object_or_404(Fragment, pk=pk)
+
+    elif model_name == "testimonium":
+        original_fragment = get_object_or_404(Testimonium, pk=pk)
     else:
         raise BadRequest("model name not recognised")
 
@@ -1280,7 +1300,8 @@ def duplicate_fragment(request, pk, model_name):
     new_fragment.original_texts.set(new_original_texts)
 
     # Duplicate relationships to topics
-    new_fragment.topics.set(original_fragment.topics.all())
+    if not model_name == "testimonium":
+        new_fragment.topics.set(original_fragment.topics.all())
 
     # add duplication relationships
     if original_fragment.duplicates_list:
@@ -1288,11 +1309,15 @@ def duplicate_fragment(request, pk, model_name):
             new_fragment.duplicate_frags.add(frag)
         for af in original_fragment.duplicate_afs.all():
             new_fragment.duplicate_afs.add(af)
+        for tes in original_fragment.duplicate_ts.all():
+            new_fragment.duplicate_ts.add(tes)
 
     original_fragment.duplicate_frags.add(new_fragment)
     if model_name == "fragment":
         new_fragment.duplicate_frags.add(original_fragment)
     elif model_name == "anonymousfragment":
         new_fragment.duplicate_afs.add(original_fragment)
+    elif model_name == "testimonium":
+        new_fragment.duplicate_ts.add(original_fragment)
 
     return redirect("fragment:detail", pk=new_fragment.pk)
