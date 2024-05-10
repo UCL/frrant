@@ -194,19 +194,19 @@ $("body").on("submit", "form", function (e) {
 });
 
 // Quill.register("modules/mention", quillMention, true);
-var icons = Quill.import("ui/icons");
+// var icons = Quill.import("ui/icons");
 // import fontawesome button icons
-icons["undo"] =
-  '<i class="fa fa-undo fa-xs align-text-top" aria-hidden="true"></i>';
-icons["redo"] =
-  '<i class="fa fa-redo fa-xs align-text-top" aria-hidden="true"></i>';
-// and for the custom buttons
-icons["vinculum_on"] = "V\u0305";
-icons["vinculum_off"] = "V";
-icons["underdot_on"] = "U\u0323";
-icons["underdot_off"] = "U";
-icons["footnote"] = '<i class="far fa-comment-alt"></i>';
-icons["table"] = '<i class="fas fa-table">+</i>';
+// icons["undo"] =
+//   '<i class="fa fa-undo fa-xs align-text-top" aria-hidden="true"></i>';
+// icons["redo"] =
+//   '<i class="fa fa-redo fa-xs align-text-top" aria-hidden="true"></i>';
+// // and for the custom buttons
+// icons["vinculum_on"] = "V\u0305";
+// icons["vinculum_off"] = "V";
+// icons["underdot_on"] = "U\u0323";
+// icons["underdot_off"] = "U";
+// icons["footnote"] = '<i class="far fa-comment-alt"></i>';
+// icons["table"] = '<i class="fas fa-table">+</i>';
 
 async function suggestPeople(searchTerm) {
   // call backend synchonously here and wait
@@ -246,6 +246,29 @@ async function getApparatusCriticusLines(searchTerm, object_id, object_class) {
 }
 
 function initRichTextEditor($item) {
+  let delimiters = [];
+  let dataAttributes = [
+    "id",
+    "value",
+    "denotationChar",
+    "link",
+    "target",
+    "citation",
+  ];
+  if (
+    $item.hasClass("enable-mentions") ||
+    $item.hasClass("enable-apparatus-criticus")
+  ) {
+    if ($item.hasClass("enable-mentions")) {
+      delimiters.push("@");
+    }
+    if ($item.hasClass("enable-apparatus-criticus")) {
+      delimiters.push("#");
+      dataAttributes.push("originalText"); // also need to keep track of original text owner for app crit
+      dataAttributes.push("parent"); // and the parent object e.g. fragment
+    }
+  }
+
   let config = {
     theme: "snow",
     history: {
@@ -402,62 +425,10 @@ function initRichTextEditor($item) {
     },
   };
 
-  if (
-    $item.hasClass("enable-mentions") ||
-    $item.hasClass("enable-apparatus-criticus")
-  ) {
-    let delimiters = [];
-    let dataAttributes = [
-      "id",
-      "value",
-      "denotationChar",
-      "link",
-      "target",
-      "citation",
-    ];
-    if ($item.hasClass("enable-mentions")) {
-      delimiters.push("@");
-    }
-    if ($item.hasClass("enable-apparatus-criticus")) {
-      delimiters.push("#");
-      dataAttributes.push("originalText"); // also need to keep track of original text owner for app crit
-      dataAttributes.push("parent"); // and the parent object e.g. fragment
-    }
-    // config["modules"]["mention"] = {
-    //   allowedChars: /^[0-9A-Za-z\sÅÄÖåäö:]*$/,
-    //   mentionDenotationChars: delimiters,
-    //   dataAttributes: dataAttributes,
-    //   source: async function (searchTerm, renderList, mentionChar) {
-    //     if (mentionChar == "@") {
-    //       const matchedPeople = await suggestPeople(searchTerm);
-    //       renderList(matchedPeople);
-    //     } else if (mentionChar == "#") {
-    //       let object_id = $item.data("object");
-    //       let object_class = $item.data("class") || "originaltext";
-    //       const lines = await getApparatusCriticusLines(
-    //         searchTerm,
-    //         object_id,
-    //         object_class
-    //       );
-    //       // console.log("lines:");
-    //       // console.dir(lines);
-    //       renderList(lines);
-    //     }
-    //   },
-    //   renderItem(item, searchTerm) {
-    //     // allows you to control how the item is displayed in the list
-    //     let list_display = item.list_display || item.value;
-    //     return `${list_display}`;
-    //   },
-    //   onSelect(item, insertItem) {
-    //     const shortItem = { ...item, value: item.citation };
-    //     insertItem(shortItem);
-    //   },
-    // };
-  }
+  const quill = new Quill("#" + $item.attr("id"), config);
+  quill;
 
-  new Quill("#" + $item.attr("id"), config);
-
+  console.log(quill);
   var for_id = $item.data("for");
   var model_field = $item.data("model-field");
   var $for = $(`#${for_id}`);
@@ -494,6 +465,7 @@ function initRichTextEditor($item) {
 function initRichTextEditors() {
   $(".rich-editor").each(function () {
     let $elem = $(this);
+    console.log("going to init", $elem);
     initRichTextEditor($elem);
   });
   // make sure tooltips are enabled
@@ -519,8 +491,8 @@ window.addEventListener("beforeunload", function (e) {
 // If swapping form containing rich text editor with htmx
 // we need to initialise it
 document.addEventListener("htmx:afterSettle", function (evt) {
-  verb = evt.detail.requestConfig.verb;
-  // console.log(evt);
+  var verb = evt.detail.requestConfig.verb;
+  //
   if (
     evt.detail.target.classList.contains("rich-text-form-container") &&
     verb == "get"
