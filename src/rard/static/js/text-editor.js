@@ -56,7 +56,7 @@ CKEDITOR.editorConfig = function (config) {
   ];
 
   CKEDITOR.config.extraPlugins =
-    "vinculumOn,vinculumOff,underdotOn,underdotOff,widget,widgetselection,dialog,footnotes,lineutils,";
+    "vinculumOn,vinculumOff,underdotOn,underdotOff,footnotes,mentions";
 
   CKEDITOR.plugins.add("vinculumOn", {
     icons: "V\u0305",
