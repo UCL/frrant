@@ -551,3 +551,16 @@ table.ql-table {
   min-height: 3rem;
   resize: vertical;
 }
+
+section.footnotes {
+  border-top: 1px solid #ccc;
+  margin-top: 2em;
+  padding-top: 1em;
+  h2 {
+    font-size: large;
+  }
+}
+
+.apparatus-criticus-line p {
+  margin: 0;
+}
