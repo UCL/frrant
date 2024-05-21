@@ -1,9 +1,11 @@
+import json
 import re
 
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import Http404, JsonResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.template.loader import render_to_string
 from django.utils.decorators import method_decorator
+from django.utils.html import strip_tags
 from django.views.decorators.http import require_GET, require_POST
 from django.views.generic import View
 
@@ -34,7 +36,10 @@ class ApparatusCriticusLineViewBase(View):
         return content
 
     def render_valid_response(self, original_text):
-        context = {"original_text": original_text, "form": OriginalTextDetailsForm()}
+        context = {
+            "original_text": original_text,
+            "form": OriginalTextDetailsForm(instance=original_text),
+        }
         html = render_to_string(self.render_partial_template, context)
         ajax_data = {"status": 200, "html": html}
         return JsonResponse(data=ajax_data, safe=False)
@@ -100,11 +105,11 @@ class UpdateApparatusCriticusLineView(
     LoginRequiredMixin, ApparatusCriticusLineViewBase
 ):
     def post(self, *args, **kwargs):
-        if not self.request.is_ajax():
+        if not self.request.accepts("application/json"):
             raise Http404
-
-        line_id = self.request.POST.get("line_id", None)
-        content_html = self.request.POST.get("content", None)
+        POST_data = json.loads(self.request.body)
+        line_id = POST_data.get("line_id", None)
+        content_html = POST_data.get("content", None)
 
         content = self.process_content(content_html)
 
@@ -116,7 +121,7 @@ class UpdateApparatusCriticusLineView(
             line = ApparatusCriticusItem.objects.get(pk=line_id)
             line.content = content
             line.save()
-            return self.render_valid_response(line.parent)
+            return HttpResponse(status=204)
 
         except (ApparatusCriticusItem.DoesNotExist, KeyError):
             raise Http404
@@ -129,7 +134,7 @@ class ApparatusCriticusSearchView(LoginRequiredMixin, View):
     context_object_name = "results"
 
     def get(self, request, *args, **kwargs):
-        if not request.is_ajax():
+        if not request.accepts("application/json"):
             raise Http404
 
         ajax_data = []
@@ -163,7 +168,7 @@ class ApparatusCriticusSearchView(LoginRequiredMixin, View):
                     # 'value': str(o),  # to have full name in the text mention
                     # 'value': str(o.order + 1),  # or to just have the number
                     "value": get_index_display(item),
-                    "list_display": str(item),  # what to show in the list
+                    "list_display": strip_tags(str(item)),  # what to show in the list
                 }
             )
 
