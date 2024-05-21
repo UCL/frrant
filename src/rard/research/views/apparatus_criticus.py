@@ -50,12 +50,12 @@ class CreateApparatusCriticusLineView(
     LoginRequiredMixin, ApparatusCriticusLineViewBase
 ):
     def post(self, *args, **kwargs):
-        if not self.request.is_ajax():
+        if not self.request.accepts("application/json"):
             raise Http404
-
-        parent_id = self.request.POST.get("parent_id", None)
-        insert_at = self.request.POST.get("insert_at", None)
-        content_html = self.request.POST.get("content", None)
+        data = json.loads(self.request.body)
+        parent_id = data.get("parent_id", None)
+        insert_at = data.get("insert_at", None)
+        content_html = data.get("content", None)
         content = self.process_content(content_html)
 
         if not all((parent_id, insert_at, content)):
@@ -161,9 +161,9 @@ class ApparatusCriticusSearchView(LoginRequiredMixin, View):
                 {
                     "id": item.pk,
                     "target": model_name,
-                    "parent": self.parent_object.pk
-                    if self.parent_object
-                    else "",  # noqa
+                    "parent": (
+                        self.parent_object.pk if self.parent_object else ""
+                    ),  # noqa
                     "originalText": self.original_text.pk,
                     # 'value': str(o),  # to have full name in the text mention
                     # 'value': str(o.order + 1),  # or to just have the number
