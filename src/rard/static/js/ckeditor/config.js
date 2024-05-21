@@ -38,7 +38,7 @@ CKEDITOR.editorConfig = function (config) {
 
   // Remove some buttons provided by the standard plugins, which are
   // not needed in the Standard(s) toolbar.
-  config.removeButtons = "Underline,Subscript,Superscript";
+  //   config.removeButtons = "Underline,Subscript,Superscript";
 
   // Set the most common block elements.
   config.format_tags = "p;h1;h2;h3;pre";
@@ -96,16 +96,15 @@ CKEDITOR.editorConfig = function (config) {
     },
     { name: "links", items: ["Link", "Unlink"] },
     { name: "insert", items: ["Image", "Table"] },
-
-    { name: "tools", items: ["ShowBlocks"] },
     {
       name: "others",
       items: ["vinculumOn", "vinculumOff", "-", "underdotOn", "underdotOff"],
     },
+
+    { name: "tools", items: ["ShowBlocks"] },
   ];
 
   config.extraPlugins = "vinculum,underdot,floating-tools";
-  console.log(config.toolbar);
   if (enableFootnotes) {
     config.extraPlugins += ",footnotes";
     config.toolbar[8].items.push("Footnotes");
@@ -122,14 +121,14 @@ CKEDITOR.editorConfig = function (config) {
         minChars: 2,
         itemTemplate: "<li data-id={id}>{value}</li>",
         outputTemplate: `<span class='mention'
-									data-denotation-char='@'
-									data-target={target}
-									data-id={id}>
-								<span contenteditable="false">
-								<span class="ql-mention-denotation-char">@</span>
-								{citation}
-								</span>
-							</span>`,
+			data-denotation-char='@'
+			data-target={target}
+			data-id={id}>
+		<span contenteditable="false">
+		<span class="ql-mention-denotation-char">@</span>
+		{citation}
+		</span>
+	</span>`,
       });
     }
     if (enableApparatusCriticus) {

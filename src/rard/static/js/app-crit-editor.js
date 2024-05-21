@@ -1,5 +1,21 @@
 const csrftoken = document.querySelector("[name=csrfmiddlewaretoken]").value;
 
+$("body").on("click", ".show-apparatus-criticus-form", function () {
+  // alert('todo: show the form beneath this')
+  $(".show-apparatus-criticus-form").show();
+  let inserting_at = $(this).data("index");
+  let $new_area = $("#new_apparatus_criticus_line_area");
+  $new_area.insertAfter($(this));
+  $("#id_new_apparatus_criticus_line_editor").find(".ql-editor").html("");
+  $("#update-apparatus-criticus-line").hide();
+  $("#submit-new-apparatus-criticus-line").show();
+  $("#submit-new-apparatus-criticus-line").attr("data-index", inserting_at);
+
+  $(".line-action").hide();
+  $new_area.show();
+  setUpNewApparatusCriticusLineEditor();
+});
+
 $("body").on("click", ".delete-apparatus-criticus-line", function () {
   if (
     !confirm(
@@ -8,7 +24,6 @@ $("body").on("click", ".delete-apparatus-criticus-line", function () {
   ) {
     return;
   }
-
   let index = $(this).data("index");
   let line_id = $(this).data("id");
   let action_url = $(this).data("action");
@@ -18,12 +33,8 @@ $("body").on("click", ".delete-apparatus-criticus-line", function () {
     index: index,
     line_id: line_id,
   };
-  let csrf = document
-    .querySelector("meta[name='token']")
-    .getAttribute("content");
   let headers = {};
-  let that = this;
-  headers["X-CSRFToken"] = csrf;
+  headers["X-CSRFToken"] = csrftoken;
 
   $.ajax({
     url: action_url,
