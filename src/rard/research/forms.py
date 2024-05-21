@@ -547,6 +547,13 @@ class OriginalTextDetailsForm(forms.ModelForm):
 
         super().__init__(*args, **kwargs)
 
+        if original_text:
+            self.fields["content"].widget.attrs["data-object"] = original_text.pk
+            # Only enable apparatus criticus editing if object exists
+            self.fields["content"].widget.attrs[
+                "class"
+            ] = "enableApparatusCriticus enableCKEditor"
+
     def clean_reference_order(self):
         # Reference order needs to be stored as a string with leading 0s such
         # as 00001.00020.02340 for 1.20.2340
