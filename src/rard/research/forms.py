@@ -67,6 +67,9 @@ class IntroductionFormBase(forms.ModelForm):
             self.fields[
                 "introduction_text"
             ].initial = self.instance.introduction.content
+            self.fields["introduction_text"].widget.attrs[
+                "class"
+            ] = "enableMentions enableCKEditor"
 
     def save(self, commit=True):
         instance = super().save(commit=False)
@@ -423,12 +426,17 @@ class BookIntroductionForm(IntroductionFormBase):
 
 
 class CommentForm(forms.ModelForm):
+    # todo: delete this; not used
     class Meta:
         model = Comment
         fields = ("content",)
         labels = {"content": _("Add Comment")}
         widgets = {
-            "content": forms.Textarea(attrs={"rows": 3}),
+            "content": forms.Textarea(
+                attrs={
+                    "rows": 3,
+                }
+            ),
         }
 
 
@@ -604,6 +612,9 @@ class OriginalTextForm(OriginalTextAuthorForm):
             original_text.reference_order = (
                 original_text.remove_reference_order_padding()
             )
+        self.fields["content"].widget.attrs[
+            "class"
+        ] = "enableApparatusCriticus enableCKEditor"
 
         super().__init__(*args, **kwargs)
         # when creating an original text we also offer the option
@@ -635,6 +646,9 @@ class CommentaryFormBase(forms.ModelForm):
         if self.instance and self.instance.commentary:
             self.instance.commentary.update_content_mentions()
             self.fields["commentary_text"].initial = self.instance.commentary.content
+            self.fields["commentary_text"].widget.attrs[
+                "class"
+            ] = "enableMentions enableFootnotes enableCKEditor"
 
     def save(self, commit=True):
         instance = super().save(commit=False)
@@ -684,6 +698,7 @@ class PublicCommentaryFormBase(forms.ModelForm):
             self.fields[
                 "approved"
             ].initial = self.instance.public_commentary_mentions.approved
+            self.fields["commentary_text"].widget.attrs["class"] = "enableCKEditor"
 
     def save(self, commit=True):
         instance = super().save(commit=False)
@@ -744,7 +759,9 @@ class TestimoniumAntiquariansForm(HistoricalFormBase):
 
 
 class BibliographyItemInlineForm(HistoricalFormBase):
-    title = forms.CharField(widget=forms.Textarea(attrs={"rows": 1}))
+    title = forms.CharField(
+        widget=forms.Textarea(attrs={"rows": 1, "class": "enableCKEditor"})
+    )
 
     class Meta:
         model = BibliographyItem
