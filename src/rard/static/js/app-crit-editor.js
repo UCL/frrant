@@ -1,67 +1,6 @@
 const csrftoken = document.querySelector("[name=csrfmiddlewaretoken]").value;
 
-$("body").on("click", ".show-apparatus-criticus-form", function () {
-  // alert('todo: show the form beneath this')
-  $(".show-apparatus-criticus-form").show();
-  let inserting_at = $(this).data("index");
-  let $new_area = $("#new_apparatus_criticus_line_area");
-  $new_area.insertAfter($(this));
-  $("#id_new_apparatus_criticus_line_editor").find(".ql-editor").html("");
-  $("#update-apparatus-criticus-line").hide();
-  $("#submit-new-apparatus-criticus-line").show();
-  $("#submit-new-apparatus-criticus-line").attr("data-index", inserting_at);
-
-  $(".line-action").hide();
-  $new_area.show();
-  setUpNewApparatusCriticusLineEditor();
-});
-
-$("body").on("click", ".delete-apparatus-criticus-line", function () {
-  if (
-    !confirm(
-      "Are you sure you want to delete this line? This cannot be undone."
-    )
-  ) {
-    return;
-  }
-  let index = $(this).data("index");
-  let line_id = $(this).data("id");
-  let action_url = $(this).data("action");
-
-  // submit the form via ajax then re-render the apparatus criticus area
-  let data = {
-    index: index,
-    line_id: line_id,
-  };
-  let headers = {};
-  headers["X-CSRFToken"] = csrftoken;
-
-  $.ajax({
-    url: action_url,
-    type: "POST",
-    data: data,
-    headers: headers,
-    context: document.body,
-    dataType: "json",
-    success: function (data, textStatus, jqXHR) {
-      let $builder_area = $("#apparatus_criticus_builder_area");
-
-      $builder_area.replaceWith(data.html);
-      $("body").css("cursor", "default");
-      try {
-        cache_forms();
-      } catch (err) {}
-      $('[data-toggle="tooltip"]').tooltip();
-      $builder_area.find(".rich-editor").each(function () {
-        initRichTextEditor($(this));
-      });
-    },
-    error: function (e) {
-      console.log(e);
-      alert("Sorry, an error occurred.");
-    },
-  });
-});
+const builderArea = document.getElementById("apparatus_criticus_builder_area");
 
 function setupApparatusCriticusInlineEditors() {
   // add listeners to all the edit buttons
@@ -159,13 +98,100 @@ function setupApparatusCriticusInlineEditors() {
   });
 }
 
+function postAndUpdateBuilderArea(action_url, data, editor = null) {
+  fetch(action_url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": csrftoken,
+    },
+    body: JSON.stringify(data),
+  })
+    .then((response) => {
+      return response.json();
+    })
+    .then((data) => {
+      console.log(data.html);
+      if (editor) {
+        editor.destroy();
+      }
+      builderArea.outerHTML = data.html;
+      setupApparatusCriticusInlineEditors();
+      try {
+        cache_forms();
+      } catch (err) {}
+      $('[data-toggle="tooltip"]').tooltip();
+    })
+    .catch((error) => console.error("Error:", error));
+}
+
+$("body").on("click", ".show-apparatus-criticus-form", function () {
+  // alert('todo: show the form beneath this')
+  $(".show-apparatus-criticus-form").show();
+  let inserting_at = $(this).data("index");
+  let $new_area = $("#new_apparatus_criticus_line_area");
+  $new_area.insertAfter($(this));
+  $("#id_new_apparatus_criticus_line_editor").find(".ql-editor").html("");
+  $("#update-apparatus-criticus-line").hide();
+  $("#submit-new-apparatus-criticus-line").show();
+  $("#submit-new-apparatus-criticus-line").attr("data-index", inserting_at);
+
+  $(".line-action").hide();
+  $new_area.show();
+  setUpNewApparatusCriticusLineEditor();
+});
+
+$("body").on("click", ".delete-apparatus-criticus-line", function () {
+  if (
+    !confirm(
+      "Are you sure you want to delete this line? This cannot be undone."
+    )
+  ) {
+    return;
+  }
+  let index = $(this).data("index");
+  let line_id = $(this).data("id");
+  let action_url = $(this).data("action");
+
+  // submit the form via ajax then re-render the apparatus criticus area
+  let data = {
+    index: index,
+    line_id: line_id,
+  };
+
+  // would like to abstract this to another function but weird behaviour with this vs new line
+  //   postAndUpdateBuilderArea(action_url, data);
+  let headers = {};
+  headers["X-CSRFToken"] = csrftoken;
+
+  $.ajax({
+    url: action_url,
+    type: "POST",
+    data: data,
+    headers: headers,
+    context: document.body,
+    dataType: "json",
+    success: function (data, textStatus, jqXHR) {
+      console.log(data, textStatus, jqXHR);
+      let $builder_area = $("#apparatus_criticus_builder_area");
+
+      $builder_area.outerHTML = data.html;
+      $("body").css("cursor", "default");
+      try {
+        cache_forms();
+      } catch (err) {}
+      $('[data-toggle="tooltip"]').tooltip();
+    },
+    error: function (e) {
+      console.log(e);
+      alert("Sorry, an error occurred.");
+    },
+  });
+});
+
 function setUpNewApparatusCriticusLineEditor() {
   var newLine = document.getElementById("id_new_apparatus_criticus_line");
   var newLineArea = document.getElementById("new_apparatus_criticus_line_area");
-
-  const builderArea = document.getElementById(
-    "apparatus_criticus_builder_area"
-  );
 
   var editor = CKEDITOR.replace(newLine, {
     toolbar: [
@@ -207,26 +233,6 @@ function setUpNewApparatusCriticusLineEditor() {
       insert_at: insert_at,
       parent_id: parent_id,
     };
-    fetch(action_url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": csrftoken,
-      },
-      body: JSON.stringify(data),
-    })
-      .then((response) => {
-        return response.json();
-      })
-      .then((data) => {
-        editor.destroy();
-        builderArea.outerHTML = data.html;
-        setupApparatusCriticusInlineEditors();
-        try {
-          cache_forms();
-        } catch (err) {}
-        $('[data-toggle="tooltip"]').tooltip();
-      })
-      .catch((error) => console.error("Error:", error));
+    postAndUpdateBuilderArea(action_url, data, editor);
   });
 }
