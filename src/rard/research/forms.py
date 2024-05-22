@@ -612,9 +612,6 @@ class OriginalTextForm(OriginalTextAuthorForm):
             original_text.reference_order = (
                 original_text.remove_reference_order_padding()
             )
-        self.fields["content"].widget.attrs[
-            "class"
-        ] = "enableApparatusCriticus enableCKEditor"
 
         super().__init__(*args, **kwargs)
         # when creating an original text we also offer the option
@@ -622,6 +619,9 @@ class OriginalTextForm(OriginalTextAuthorForm):
         # of an existing instance to be blank and assign a newly-created
         # work to the original text instance in the view
         self.set_citing_work_required(True)
+        self.fields["content"].widget.attrs[
+            "class"
+        ] = "enableApparatusCriticus enableCKEditor"
 
     def set_citing_work_required(self, required):
         # to allow set/reset required fields dynically in the view
@@ -636,7 +636,11 @@ class OriginalTextForm(OriginalTextAuthorForm):
 
 class CommentaryFormBase(forms.ModelForm):
     commentary_text = forms.CharField(
-        widget=forms.Textarea,
+        widget=forms.Textarea(
+            attrs={
+                "class": "enableMentions enableFootnotes enableApparatusCriticus enableCKEditor"
+            }
+        ),
         required=False,
         label="Commentary",
     )
@@ -646,9 +650,6 @@ class CommentaryFormBase(forms.ModelForm):
         if self.instance and self.instance.commentary:
             self.instance.commentary.update_content_mentions()
             self.fields["commentary_text"].initial = self.instance.commentary.content
-            self.fields["commentary_text"].widget.attrs[
-                "class"
-            ] = "enableMentions enableFootnotes enableCKEditor"
 
     def save(self, commit=True):
         instance = super().save(commit=False)
@@ -760,7 +761,9 @@ class TestimoniumAntiquariansForm(HistoricalFormBase):
 
 class BibliographyItemInlineForm(HistoricalFormBase):
     title = forms.CharField(
-        widget=forms.Textarea(attrs={"rows": 1, "class": "enableCKEditor"})
+        widget=forms.Textarea(
+            attrs={"rows": 1, "class": "enableCKEditor CKEditorBasic"}
+        )
     )
 
     class Meta:
@@ -803,6 +806,7 @@ class BibliographyItemForm(HistoricalFormBase):
         if self.instance and self.instance.pk:
             self.fields["antiquarians"].initial = self.instance.antiquarians.all()
             self.fields["citing_authors"].initial = self.instance.citing_authors.all()
+            self.fields["title"].widget.attrs["class"] = "enableCKEditor CKEditorBasic"
 
 
 class FragmentForm(HistoricalFormBase):
