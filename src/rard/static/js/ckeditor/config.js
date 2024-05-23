@@ -123,11 +123,10 @@ CKEDITOR.editorConfig = function (config) {
         followingSpace: true,
         itemTemplate: "<li data-id='{id}'>{value}</li>",
         outputTemplate: `<span class='mention'
-			data-denotation-char='@'
 			data-target={target}
 			data-id={id}>
 		<span contenteditable="false">
-		<span class="ql-mention-denotation-char">@</span>
+		<span>@</span>
 		{citation}
 		</span>
 	</span>`,
@@ -148,7 +147,7 @@ CKEDITOR.editorConfig = function (config) {
 			data-parent='{parent}'
 			data-value='{value}'>
 		<span contenteditable='false'>
-		<span class='ql-mention-denotation-char'>#</span>
+		<span>#</span>
 		{value}
 		</span>\ufeff
 	</span>`,

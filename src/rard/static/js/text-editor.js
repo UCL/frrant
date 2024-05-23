@@ -7,7 +7,7 @@ CKEDITOR.plugins.add("mentionsWidget", {
   requires: "widget",
   init: function (editor) {
     editor.widgets.add("mentionWidget", {
-      template: '<span class="mention"></span>',
+      template: '<span class="mention bg-light"></span>',
       upcast: function (element) {
         return element.name == "span" && element.hasClass("mention");
       },
@@ -71,11 +71,10 @@ function initRichTextEditor(elem) {
             @af - Anonymous Fragment</br>
             @uf - Unlinked Fragment"
           >@mentions are enabled <i class="bi bi-info-circle"></i></small>`;
+        } else if (pname === "Apparatus Criticus") {
+          pluginElement.innerHTML += `<span class="text-muted"><small>Type # for apparatus criticus items.</small></span>`;
         } else {
-          pluginElement.innerHTML += `<span class="text-muted font-italic mb-2">${pname} are enabled</span>`;
-          if (pname === "Apparatus Criticus") {
-            pluginElement.innerHTML += `<span class="text-muted"><small>Type # for apparatus criticus items.</small></span>`;
-          }
+          pluginElement.innerHTML += `<small class="text-muted">${pname} are enabled</small>`;
         }
         pluginElement.innerHTML += `<br>`;
       });

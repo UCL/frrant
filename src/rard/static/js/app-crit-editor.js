@@ -150,12 +150,10 @@ function postAndUpdateBuilderArea(action_url, data, editor = null) {
 }
 
 $("body").on("click", ".show-apparatus-criticus-form", function () {
-  // alert('todo: show the form beneath this')
   $(".show-apparatus-criticus-form").show();
   let inserting_at = $(this).data("index");
   let $new_area = $("#new_apparatus_criticus_line_area");
   $new_area.insertAfter($(this));
-  $("#id_new_apparatus_criticus_line_editor").find(".ql-editor").html("");
   $("#update-apparatus-criticus-line").hide();
   $("#submit-new-apparatus-criticus-line").show();
   $("#submit-new-apparatus-criticus-line").attr("data-index", inserting_at);

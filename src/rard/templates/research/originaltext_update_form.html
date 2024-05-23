@@ -18,9 +18,7 @@
         {% bootstrap_field form.content %}
 
         {% with enable_apparatus_criticus=object %}
-          {# Show app crit hint if apparatus criticus mentions are enabled #}
           {% if enable_apparatus_criticus %}
-              <small>Type # for apparatus criticus items.</small>
               {% if object_class %}
               {# we are editing a parent object's commentary #}
               <small>Enter a, b, c for the index of the original text where if than one exists for this object</small>
