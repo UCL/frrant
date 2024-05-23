@@ -133,7 +133,7 @@ class DynamicTextField(TextField):
 
                             replacement = bs4.BeautifulSoup(
                                 '<span contenteditable="false">'
-                                '<span class="ql-mention-denotation-char">'
+                                "<span>"
                                 "{}</span>{}</span>".format(
                                     # char, linked.order + 1
                                     char,
