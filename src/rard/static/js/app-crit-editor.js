@@ -1,6 +1,31 @@
-const csrftoken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+var csrftoken;
+if (document.querySelector("[name=csrfmiddlewaretoken]")) {
+  csrftoken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+}
+var builderArea;
+if (document.getElementById("apparatus_criticus_builder_area")) {
+  builderArea = document.getElementById("apparatus_criticus_builder_area");
+}
 
-const builderArea = document.getElementById("apparatus_criticus_builder_area");
+async function getApparatusCriticusLines(searchTerm, object_id, object_class) {
+  // call backend synchonously here and wait
+  let matches = [];
+  await $.ajax({
+    url: `${g_apparatus_criticus_url}?q=${searchTerm}&object_id=${object_id}&object_class=${object_class}`,
+    type: "GET",
+    context: document.body,
+    dataType: "json",
+    async: false,
+    success: function (data, textStatus, jqXHR) {
+      // console.log("success " + data);
+      matches = data;
+    },
+    error: function (e) {
+      console.log("error " + e);
+    },
+  });
+  return matches;
+}
 
 function setupApparatusCriticusInlineEditors() {
   // add listeners to all the edit buttons
@@ -111,7 +136,6 @@ function postAndUpdateBuilderArea(action_url, data, editor = null) {
       return response.json();
     })
     .then((data) => {
-      console.log(data.html);
       if (editor) {
         editor.destroy();
       }
@@ -172,7 +196,6 @@ $("body").on("click", ".delete-apparatus-criticus-line", function () {
     context: document.body,
     dataType: "json",
     success: function (data, textStatus, jqXHR) {
-      console.log(data, textStatus, jqXHR);
       let $builder_area = $("#apparatus_criticus_builder_area");
 
       $builder_area.outerHTML = data.html;

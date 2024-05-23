@@ -20,18 +20,37 @@ function initRichTextEditor(elem) {
   if (container.classList.contains("enableFootnotes")) {
     enableFootnotes = true;
   }
-  enableFootnotes = true;
   if (container.classList.contains("enableMentions")) {
     enableMentions = true;
   }
-  enableMentions = true;
   if (container.classList.contains("enableApparatusCriticus")) {
     enableApparatusCriticus = true;
     let object_id = container.getAttribute("data-object");
     let object_class = container.getAttribute("data-class") || "originaltext";
     appCriticusFeed = `${g_apparatus_criticus_url}?q={encodedQuery}&object_id=${object_id}&object_class=${object_class}`;
   }
-  CKEDITOR.replace(elem);
+
+  if (container.classList.contains("CKEditorBasic")) {
+    var editor = CKEDITOR.replace(elem, {
+      toolbar: [
+        {
+          name: "basicstyles",
+          items: ["Bold", "Italic"],
+        },
+      ],
+      height: 50,
+    });
+  } else {
+    var editor = CKEDITOR.replace(elem);
+  }
+
+  document.addEventListener("htmx:configRequest", function (event) {
+    var param = document.getElementById(elem).getAttribute("name");
+    // directly send the updated content from editor since htmx prevents regular submit
+    // works for intros and commentaries
+    var html = editor.getData();
+    event.detail.parameters[param] = html;
+  });
 }
 
 function initRichTextEditors() {
