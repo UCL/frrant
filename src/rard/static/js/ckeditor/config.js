@@ -118,10 +118,10 @@ CKEDITOR.editorConfig = function (config) {
         feed: `${g_mention_url}?q={encodedQuery}`,
         marker: "@",
         output: "<span class='mention'>$1</span>",
-        minChars: 2,
-        pattern: /@([a-zA-Z]{2}):*/,
-        cache: true,
+        minChars: 0,
+        pattern: /@([a-zA-Z]{2}):.*/,
         followingSpace: true,
+        // throttle: 50,
         itemTemplate: "<li data-id={id}>{value}</li>",
         outputTemplate: `<span class='mention'
 			data-denotation-char='@'
