@@ -193,58 +193,6 @@ $("body").on("submit", "form", function (e) {
   $(this).data("submitted", true);
 });
 
-// Quill.register("modules/mention", quillMention, true);
-// var icons = Quill.import("ui/icons");
-// import fontawesome button icons
-// icons["undo"] =
-//   '<i class="fa fa-undo fa-xs align-text-top" aria-hidden="true"></i>';
-// icons["redo"] =
-//   '<i class="fa fa-redo fa-xs align-text-top" aria-hidden="true"></i>';
-// // and for the custom buttons
-// icons["vinculum_on"] = "V\u0305";
-// icons["vinculum_off"] = "V";
-// icons["underdot_on"] = "U\u0323";
-// icons["underdot_off"] = "U";
-// icons["footnote"] = '<i class="far fa-comment-alt"></i>';
-// icons["table"] = '<i class="fas fa-table">+</i>';
-
-async function suggestPeople(searchTerm) {
-  // call backend synchonously here and wait
-  let matches = [];
-  await $.ajax({
-    url: `${g_mention_url}?q=${searchTerm}`,
-    type: "GET",
-    context: document.body,
-    dataType: "json",
-    async: false,
-    success: function (data, textStatus, jqXHR) {
-      matches = data;
-    },
-    error: function (e) {},
-  });
-  return matches;
-}
-
-async function getApparatusCriticusLines(searchTerm, object_id, object_class) {
-  // call backend synchonously here and wait
-  let matches = [];
-  await $.ajax({
-    url: `${g_apparatus_criticus_url}?q=${searchTerm}&object_id=${object_id}&object_class=${object_class}`,
-    type: "GET",
-    context: document.body,
-    dataType: "json",
-    async: false,
-    success: function (data, textStatus, jqXHR) {
-      // console.log("success " + data);
-      matches = data;
-    },
-    error: function (e) {
-      console.log("error " + e);
-    },
-  });
-  return matches;
-}
-
 // store scroll position on save and reload - useful for inline posts not
 // returning the user to the top of the page
 document.addEventListener("DOMContentLoaded", function (event) {
@@ -259,36 +207,37 @@ window.addEventListener("beforeunload", function (e) {
   sessionStorage.setItem("scrollpos", window.scrollY);
 });
 
-if (!String.prototype.HTMLDecode) {
-  String.prototype.HTMLDecode = function () {
-    var str = this.toString(),
-      //Create an element for decoding
-      decoderEl = document.createElement("p");
+// might be related to old editor - uncomment if weird behaviour
+// if (!String.prototype.HTMLDecode) {
+//   String.prototype.HTMLDecode = function () {
+//     var str = this.toString(),
+//       //Create an element for decoding
+//       decoderEl = document.createElement("p");
 
-    //Bail if empty, otherwise IE7 will return undefined when
-    //OR-ing the 2 empty strings from innerText and textContent
-    if (str.length == 0) {
-      return str;
-    }
+//     //Bail if empty, otherwise IE7 will return undefined when
+//     //OR-ing the 2 empty strings from innerText and textContent
+//     if (str.length == 0) {
+//       return str;
+//     }
 
-    //convert newlines to <br's> to save them
-    str = str.replace(/((\r\n)|(\r)|(\n))/gi, " <br/>");
+//     //convert newlines to <br's> to save them
+//     str = str.replace(/((\r\n)|(\r)|(\n))/gi, " <br/>");
 
-    decoderEl.innerHTML = str;
-    /*
-        We use innerText first as IE strips newlines out with textContent.
-        There is said to be a performance hit for this, but sometimes
-        correctness of data (keeping newlines) must take precedence.
-        */
-    str = decoderEl.innerText || decoderEl.textContent;
+//     decoderEl.innerHTML = str;
+//     /*
+//         We use innerText first as IE strips newlines out with textContent.
+//         There is said to be a performance hit for this, but sometimes
+//         correctness of data (keeping newlines) must take precedence.
+//         */
+//     str = decoderEl.innerText || decoderEl.textContent;
 
-    //clean up the decoding element
-    decoderEl = null;
+//     //clean up the decoding element
+//     decoderEl = null;
 
-    //replace back in the newlines
-    return str.replace(/<br((\/)|( \/))?>/gi, "\r\n");
-  };
-}
+//     //replace back in the newlines
+//     return str.replace(/<br((\/)|( \/))?>/gi, "\r\n");
+//   };
+// }
 
 function insertAtCaret(input, text) {
   var caretPos = input.selectionStart;
@@ -641,6 +590,7 @@ function runMoveAction(post_data, post_url) {
   });
 }
 
+// not yet sure if this can be deleted
 // function refreshOriginalTextApparatusCriticus() {
 //   // now refresh content of editable area on the page
 //   $(".rich-editor.enable-apparatus-criticus").each(function () {
