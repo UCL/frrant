@@ -17,14 +17,18 @@ CKEDITOR.plugins.add("mentionsWidget", {
 
 function initRichTextEditor(elem) {
   let container = document.querySelector(`#${elem}`);
+  let pluginNames = [];
   if (container.classList.contains("enableFootnotes")) {
     enableFootnotes = true;
+    pluginNames.push("Footnotes");
   }
   if (container.classList.contains("enableMentions")) {
     enableMentions = true;
+    pluginNames.push("Mentions");
   }
   if (container.classList.contains("enableApparatusCriticus")) {
     enableApparatusCriticus = true;
+    pluginNames.push("Apparatus Criticus");
     let object_id = container.getAttribute("data-object");
     let object_class = container.getAttribute("data-class") || "originaltext";
     appCriticusFeed = `${g_apparatus_criticus_url}?q={encodedQuery}&object_id=${object_id}&object_class=${object_class}`;
@@ -42,6 +46,41 @@ function initRichTextEditor(elem) {
     });
   } else {
     var editor = CKEDITOR.replace(elem);
+
+    editor.on("instanceReady", function (event) {
+      var editor = event.editor;
+      const pluginElement = document.createElement("div");
+      editor.container.$.parentElement.parentElement.insertBefore(
+        pluginElement,
+        editor.container.$.parentElement.nextSibling
+      );
+      pluginElement.id = "plugin-info";
+      pluginNames.forEach((pname) => {
+        if (pname === "Mentions") {
+          pluginElement.innerHTML += `<small class="text-muted"
+          data-toggle="tooltip"
+          data-html="true"
+          title="
+            Content type codes: </br>
+            @aq - Antiquarian</br>
+            @wk - Work</br>
+            @bi - Bibliography Item</br>
+            @tp - Topic</br>
+            @fr - Fragment</br>
+            @tt - Testimonium</br>
+            @af - Anonymous Fragment</br>
+            @uf - Unlinked Fragment"
+          >@mentions are enabled <i class="bi bi-info-circle"></i></small>`;
+        } else {
+          pluginElement.innerHTML += `<span class="text-muted font-italic mb-2">${pname} are enabled</span>`;
+          if (pname === "Apparatus Criticus") {
+            pluginElement.innerHTML += `<span class="text-muted"><small>Type # for apparatus criticus items.</small></span>`;
+          }
+        }
+        pluginElement.innerHTML += `<br>`;
+      });
+      $('[data-toggle="tooltip"]').tooltip();
+    });
   }
 
   document.addEventListener("htmx:configRequest", function (event) {
@@ -56,7 +95,6 @@ function initRichTextEditor(elem) {
 function initRichTextEditors() {
   var elements = document.querySelectorAll(".enableCKEditor");
   elements.forEach((element) => {
-    console.log("Initialising rich text editor...", element);
     initRichTextEditor(element.id);
   });
 }
@@ -81,3 +119,6 @@ document.addEventListener("htmx:afterSettle", function (evt) {
 });
 
 setupApparatusCriticusInlineEditors();
+
+{
+}
