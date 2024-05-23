@@ -46,7 +46,7 @@ CKEDITOR.editorConfig = function (config) {
   // Simplify the dialog windows.
   config.removeDialogTabs = "image:advanced;link:advanced";
 
-  config.uiColor = "#AADC6E";
+  config.uiColor = "#F7E5D0";
 
   config.toolbar = [
     {
@@ -119,6 +119,9 @@ CKEDITOR.editorConfig = function (config) {
         marker: "@",
         output: "<span class='mention'>$1</span>",
         minChars: 2,
+        pattern: /@([a-zA-Z]{2}):*/,
+        cache: true,
+        followingSpace: true,
         itemTemplate: "<li data-id={id}>{value}</li>",
         outputTemplate: `<span class='mention'
 			data-denotation-char='@'
