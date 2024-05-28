@@ -1,10 +1,16 @@
 var csrftoken;
-if (document.querySelector("[name=csrfmiddlewaretoken]")) {
-  csrftoken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+function getCsrfToken() {
+  if (document.querySelector("[name=csrfmiddlewaretoken]")) {
+    csrftoken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+  }
+  return csrftoken;
 }
+
 var builderArea;
-if (document.getElementById("apparatus_criticus_builder_area")) {
-  builderArea = document.getElementById("apparatus_criticus_builder_area");
+function getBuilderArea() {
+  if (document.getElementById("apparatus_criticus_builder_area")) {
+    builderArea = document.getElementById("apparatus_criticus_builder_area");
+  }
 }
 
 async function getApparatusCriticusLines(searchTerm, object_id, object_class) {
@@ -128,7 +134,7 @@ function postAndUpdateBuilderArea(action_url, data, editor = null) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "X-CSRFToken": csrftoken,
+      "X-CSRFToken": getCsrfToken(),
     },
     body: JSON.stringify(data),
   })
@@ -139,6 +145,7 @@ function postAndUpdateBuilderArea(action_url, data, editor = null) {
       if (editor) {
         editor.destroy();
       }
+      getBuilderArea();
       builderArea.outerHTML = data.html;
       setupApparatusCriticusInlineEditors();
       try {
@@ -184,7 +191,7 @@ $("body").on("click", ".delete-apparatus-criticus-line", function () {
   // would like to abstract this to another function but weird behaviour with this vs new line
   //   postAndUpdateBuilderArea(action_url, data);
   let headers = {};
-  headers["X-CSRFToken"] = csrftoken;
+  headers["X-CSRFToken"] = getCsrfToken;
 
   $.ajax({
     url: action_url,
