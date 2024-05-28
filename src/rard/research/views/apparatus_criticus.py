@@ -80,11 +80,11 @@ class DeleteApparatusCriticusLineView(
     LoginRequiredMixin, ApparatusCriticusLineViewBase
 ):
     def post(self, *args, **kwargs):
-        if not self.request.is_ajax():
+        if not self.request.accepts("application/json"):
             raise Http404
 
-        line_id = self.request.POST.get("line_id", None)
-
+        POST_data = json.loads(self.request.body)
+        line_id = POST_data.get("line_id", None)
         if not line_id:
             raise Http404
 

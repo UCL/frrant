@@ -188,33 +188,7 @@ $("body").on("click", ".delete-apparatus-criticus-line", function () {
     line_id: line_id,
   };
 
-  // would like to abstract this to another function but weird behaviour with this vs new line
-  //   postAndUpdateBuilderArea(action_url, data);
-  let headers = {};
-  headers["X-CSRFToken"] = getCsrfToken;
-
-  $.ajax({
-    url: action_url,
-    type: "POST",
-    data: data,
-    headers: headers,
-    context: document.body,
-    dataType: "json",
-    success: function (data, textStatus, jqXHR) {
-      let $builder_area = $("#apparatus_criticus_builder_area");
-
-      $builder_area.outerHTML = data.html;
-      $("body").css("cursor", "default");
-      try {
-        cache_forms();
-      } catch (err) {}
-      $('[data-toggle="tooltip"]').tooltip();
-    },
-    error: function (e) {
-      console.log(e);
-      alert("Sorry, an error occurred.");
-    },
-  });
+  postAndUpdateBuilderArea(action_url, data);
 });
 
 function setUpNewApparatusCriticusLineEditor() {
