@@ -119,7 +119,7 @@ CKEDITOR.editorConfig = function (config) {
         marker: "@",
         output: "<span class='mention'>$1</span>",
         minChars: 0,
-        throttle: 100,
+        throttle: 300,
         pattern: /@([a-zA-Z]{2}):.*/,
         followingSpace: true,
         itemTemplate: "<li data-id='{id}'>{value}</li>",
