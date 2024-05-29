@@ -104,7 +104,7 @@ CKEDITOR.editorConfig = function (config) {
     { name: "tools", items: ["ShowBlocks"] },
   ];
 
-  config.extraPlugins = "vinculum,underdot,floating-tools";
+  config.extraPlugins = "vinculum,underdot";
   if (enableFootnotes) {
     config.extraPlugins += ",footnotes";
     config.toolbar[8].items.push("Footnotes");
@@ -119,6 +119,7 @@ CKEDITOR.editorConfig = function (config) {
         marker: "@",
         output: "<span class='mention'>$1</span>",
         minChars: 0,
+        throttle: 100,
         pattern: /@([a-zA-Z]{2}):.*/,
         followingSpace: true,
         itemTemplate: "<li data-id='{id}'>{value}</li>",

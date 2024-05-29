@@ -117,7 +117,7 @@ document.addEventListener("htmx:afterSettle", function (evt) {
   }
 });
 
-setupApparatusCriticusInlineEditors();
-
-{
+getBuilderArea();
+if (builderArea) {
+  setupApparatusCriticusInlineEditors();
 }
