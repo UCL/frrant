@@ -129,6 +129,30 @@ function setupApparatusCriticusInlineEditors() {
   });
 }
 
+function updateOriginalTextReferences() {
+  var originalTextEditor = CKEDITOR.instances["id_content"];
+  var content = originalTextEditor.getData();
+  var mentions = content.match(/data-id="\d+"/g);
+  var refSpans = content.match(/<span><span>#<\/span>\d+<\/span>/g);
+  getBuilderArea();
+  if (mentions) {
+    mentions.forEach((mention, index) => {
+      var btn = builderArea.querySelector(`button[${mention}]`);
+
+      var apcritId = btn.getAttribute("data-id");
+      var refNumber = btn.parentElement.querySelector(".historical").innerText;
+
+      content = content.replace(
+        refSpans[index],
+        refSpans[index].replace(/\d+/, refNumber)
+      );
+      content = content.replace(mention, mention.replace(/\d+/, apcritId));
+    });
+
+    originalTextEditor.setData(content);
+  }
+}
+
 function postAndUpdateBuilderArea(action_url, data, editor = null) {
   fetch(action_url, {
     method: "POST",
@@ -148,6 +172,7 @@ function postAndUpdateBuilderArea(action_url, data, editor = null) {
       getBuilderArea();
       builderArea.outerHTML = data.html;
       setupApparatusCriticusInlineEditors();
+      updateOriginalTextReferences();
       try {
         cache_forms();
       } catch (err) {}
@@ -204,6 +229,7 @@ function setUpNewApparatusCriticusLineEditor() {
     ],
     setFocus: true,
     height: 100,
+    extraPlugins: ",floating-tools",
   });
   // ensure cancel deletes editor
   const cancelBtn = document.getElementById(
