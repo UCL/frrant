@@ -51,7 +51,7 @@ function setupApparatusCriticusInlineEditors() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "X-CSRFToken": csrftoken,
+            "X-CSRFToken": getCsrfToken(),
           },
           body: JSON.stringify(data),
         })

@@ -87,7 +87,9 @@ function initRichTextEditor(elem) {
     // directly send the updated content from editor since htmx prevents regular submit
     // works for intros and commentaries
     var html = editor.getData();
-    event.detail.parameters[param] = html;
+    if (param && html) {
+      event.detail.parameters[param] = html;
+    }
   });
 }
 
