@@ -175,7 +175,7 @@ function postAndUpdateBuilderArea(action_url, data, editor = null) {
       updateOriginalTextReferences();
       try {
         cache_forms();
-      } catch (err) {}
+      } catch (err) { }
       $('[data-toggle="tooltip"]').tooltip();
     })
     .catch((error) => console.error("Error:", error));
@@ -263,4 +263,9 @@ function setUpNewApparatusCriticusLineEditor() {
     };
     postAndUpdateBuilderArea(action_url, data, editor);
   });
+}
+
+getBuilderArea();
+if (builderArea) {
+  setupApparatusCriticusInlineEditors();
 }
