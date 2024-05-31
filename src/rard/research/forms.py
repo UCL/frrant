@@ -69,7 +69,7 @@ class IntroductionFormBase(forms.ModelForm):
             ].initial = self.instance.introduction.content
             self.fields["introduction_text"].widget.attrs[
                 "class"
-            ] = "enableMentions enableCKEditor"
+            ] = "enableMentions enableFootnotes enableCKEditor"
 
     def save(self, commit=True):
         instance = super().save(commit=False)
@@ -149,6 +149,9 @@ class AntiquarianCreateForm(forms.ModelForm):
             self.fields[
                 "introduction_text"
             ].initial = self.instance.introduction.content
+            self.fields["introduction_text"].widget.attrs[
+                "class"
+            ] = "enableMentions enableFootnotes enableCKEditor"
 
     def save(self, commit=True):
         instance = super().save(commit)
@@ -325,6 +328,9 @@ class WorkForm(forms.ModelForm):
             self.fields[
                 "introduction_text"
             ].initial = self.instance.introduction.content
+            self.fields["introduction_text"].widget.attrs[
+                "class"
+            ] = "enableMentions enableFootnotes enableCKEditor"
         else:
             self.fields["introduction_text"].attrs = {
                 "placeholder": "introduction for work"
@@ -387,6 +393,9 @@ class BookForm(forms.ModelForm):
             self.fields[
                 "introduction_text"
             ].initial = self.instance.introduction.content
+            self.fields["introduction_text"].widget.attrs[
+                "class"
+            ] = "enableMentions enableFootnotes enableCKEditor"
         else:
             self.fields["introduction_text"].attrs = {
                 "placeholder": "introduction for book"
