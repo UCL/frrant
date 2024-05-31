@@ -118,8 +118,3 @@ document.addEventListener("htmx:afterSettle", function (evt) {
     $('[data-toggle="tooltip"]').tooltip(); // Enable tooltips in updated content
   }
 });
-
-getBuilderArea();
-if (builderArea) {
-  setupApparatusCriticusInlineEditors();
-}

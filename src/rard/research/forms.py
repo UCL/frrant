@@ -689,7 +689,7 @@ class AnonymousFragmentCommentaryForm(CommentaryFormBase):
 
 class PublicCommentaryFormBase(forms.ModelForm):
     commentary_text = forms.CharField(
-        widget=forms.Textarea,
+        widget=forms.Textarea(attrs={"class": "enableCKEditor"}),
         required=False,
         label="Public Commentary",
     )
@@ -708,7 +708,6 @@ class PublicCommentaryFormBase(forms.ModelForm):
             self.fields[
                 "approved"
             ].initial = self.instance.public_commentary_mentions.approved
-            self.fields["commentary_text"].widget.attrs["class"] = "enableCKEditor"
 
     def save(self, commit=True):
         instance = super().save(commit=False)
