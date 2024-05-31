@@ -133,7 +133,7 @@ function updateOriginalTextReferences() {
   var originalTextEditor = CKEDITOR.instances["id_content"];
   var content = originalTextEditor.getData();
   var mentions = content.match(/data-id="\d+"/g);
-  var refSpans = content.match(/<span><span>#<\/span>\d+<\/span>/g);
+  var refSpans = content.match(/<span><span>#<\/span>\s*\d+\s*<\/span>/g);
   getBuilderArea();
   if (mentions) {
     mentions.forEach((mention, index) => {
