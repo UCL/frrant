@@ -466,6 +466,8 @@ button.insert {
 }
 
 section.footnotes {
+  color: #6c757d;
+  font-size: 80%;
   border-top: 1px solid #ccc;
   margin-top: 2em;
   padding-top: 1em;
