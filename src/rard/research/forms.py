@@ -659,6 +659,9 @@ class CommentaryFormBase(forms.ModelForm):
         if self.instance and self.instance.commentary:
             self.instance.commentary.update_content_mentions()
             self.fields["commentary_text"].initial = self.instance.commentary.content
+            self.fields["commentary_text"].widget.attrs[
+                "data-object"
+            ] = self.instance.original_texts.first().pk
 
     def save(self, commit=True):
         instance = super().save(commit=False)
