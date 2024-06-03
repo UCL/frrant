@@ -2,13 +2,23 @@ import pytest
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
-from rard.research.models import CitingWork, Testimonium
+from rard.research.models import (
+    ApparatusCriticusItem,
+    CitingWork,
+    Concordance,
+    Fragment,
+    OriginalText,
+    Reference,
+    Testimonium,
+    Translation,
+)
 from rard.research.views import (
     TestimoniumCreateView,
     TestimoniumDeleteView,
     TestimoniumDetailView,
     TestimoniumListView,
     TestimoniumUpdateView,
+    duplicate_fragment,
 )
 from rard.users.tests.factories import UserFactory
 
@@ -107,3 +117,78 @@ class TestTestimoniumViewPermissions(TestCase):
         self.assertIn(
             "research.view_testimonium", TestimoniumDetailView.permission_required
         )
+
+
+class TestTestimoniumDuplicationView(TestCase):
+    def setUp(self):
+        self.cw = CitingWork.objects.create(title="citing work title")
+        self.tes = Testimonium.objects.create(name="test testimonium")
+        self.ot = OriginalText.objects.create(
+            owner=self.tes,
+            content="Original Text test",
+            citing_work=self.cw,
+            reference_order="reference order",
+        )
+        self.con = Concordance.objects.create(
+            original_text=self.ot, source="tester", identifier="123"
+        )
+        self.apc = ApparatusCriticusItem.objects.create(
+            parent=self.ot, content="critical test", object_id=23
+        )
+        self.tr = Translation.objects.create(
+            translated_text="translation of text", original_text=self.ot
+        )
+        self.ref = Reference.objects.create(editor="test", original_text=self.ot)
+
+    def compare_model_objects(self, original, duplicate):
+        for field in original._meta.fields:
+            if field.name in [
+                "id",
+                "created",
+                "modified",
+                "commentary",
+                "plain_commentary",
+                "object_id",
+                "original_text",
+                "order",
+                "model",
+            ]:
+                continue
+            if field.is_relation and getattr(original, field.name):
+                # If the field is a relation, compare the related objects
+                related_original = getattr(original, field.name)
+                related_duplicate = getattr(duplicate, field.name)
+                self.compare_model_objects(related_original, related_duplicate)
+            else:
+                # For regular fields or null relations, compare their values
+                value1 = getattr(original, field.name)
+                value2 = getattr(duplicate, field.name)
+                self.assertEqual(value1, value2)
+
+    def test_testimonium_duplication(self):
+        print(self.tes)
+        url = reverse(
+            "testimonium:duplicate",
+            kwargs={"pk": self.tes.pk, "model_name": "testimonium"},
+        )
+        request = RequestFactory().get(url)
+        request.user = UserFactory.create()
+        response = duplicate_fragment(request, pk=self.tes.pk, model_name="testimonium")
+
+        duplicate_pk = response.url.split("/")[-2]
+        print(duplicate_pk)
+        duplicate_frag = Fragment.objects.get(pk=duplicate_pk)
+        duplicate_ot = duplicate_frag.original_texts.first()
+        duplicate_ref = duplicate_ot.references.first()
+        duplicate_apc = duplicate_ot.apparatus_criticus_items.first()
+        duplicate_con = duplicate_ot.concordances.first()
+        duplicate_tr = Translation.objects.filter(original_text=duplicate_ot).first()
+
+        self.compare_model_objects(self.tes, duplicate_frag)
+        self.compare_model_objects(self.ot, duplicate_ot)
+        self.compare_model_objects(self.ref, duplicate_ref)
+        self.compare_model_objects(self.apc, duplicate_apc)
+        self.compare_model_objects(self.con, duplicate_con)
+        self.compare_model_objects(self.tr, duplicate_tr)
+        self.assertIn(duplicate_frag, self.tes.duplicates_list)
+        self.assertIn(self.tes, duplicate_frag.duplicates_list)
