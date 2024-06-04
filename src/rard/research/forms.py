@@ -145,13 +145,13 @@ class AntiquarianCreateForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["introduction_text"].widget.attrs[
+            "class"
+        ] = "enableMentions enableFootnotes enableCKEditor"
         if self.instance.introduction:
             self.fields[
                 "introduction_text"
             ].initial = self.instance.introduction.content
-            self.fields["introduction_text"].widget.attrs[
-                "class"
-            ] = "enableMentions enableFootnotes enableCKEditor"
 
     def save(self, commit=True):
         instance = super().save(commit)
@@ -321,6 +321,9 @@ class WorkForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         # if we are editing an existing work then init the antiquarian set
         # on the form
+        self.fields["introduction_text"].widget.attrs[
+            "class"
+        ] = "enableMentions enableFootnotes enableCKEditor"
         if self.instance and self.instance.pk:
             self.fields["antiquarians"].initial = self.instance.antiquarian_set.all()
 
@@ -328,9 +331,7 @@ class WorkForm(forms.ModelForm):
             self.fields[
                 "introduction_text"
             ].initial = self.instance.introduction.content
-            self.fields["introduction_text"].widget.attrs[
-                "class"
-            ] = "enableMentions enableFootnotes enableCKEditor"
+
         else:
             self.fields["introduction_text"].attrs = {
                 "placeholder": "introduction for work"
