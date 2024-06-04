@@ -24,7 +24,6 @@ def transfer_duplicates(source, destination):
         "Testimonium": "duplicate_ts",
     }
 
-    print(source_type)
     for d in source.duplicates_list:
         source_type_duplicates = getattr(d, duplicate_types.get(source_type, ""))
         destination_type_duplicates = getattr(
@@ -47,19 +46,21 @@ def transfer_data_between_fragments(source, destination):
     destination.date_range = source.date_range
     destination.collection_id = source.collection_id
     destination.order_year = source.order_year
-
     # Fields requiring set method
-    if not destination.__class__.__name__ == "Testimonium":
+    # Testimonia don't have topics so ignore if it's the source or destination
+    if not (
+        destination.__class__.__name__ == "Testimonium"
+        or source.__class__.__name__ == "Testimonium"
+    ):
         destination.topics.set(source.topics.all())
     destination.images.set(source.images.all())
     # source is no longer the owner after this:
     destination.original_texts.set(source.original_texts.all())
-
     # Need to remove commentary's original relationship with source or
     # it will be deleted when we delete the source
     commentary = source.commentary
-    source.commentary = None
     destination.commentary = commentary
+    source.commentary = None
 
 
 def transfer_mentions(original, new):
@@ -160,9 +161,9 @@ def convert_testimonium_to_unlinked_fragment(testimonium):
     fragment = Fragment.objects.create()
     transfer_data_between_fragments(testimonium, fragment)
     transfer_duplicates(testimonium, fragment)
-    # Save new testimonium and delete fragment
-    testimonium.save()
+    # Save new fragment and delete testimonium
+    fragment.save()
     transfer_mentions(testimonium, fragment)
     testimonium.delete()
     fragment.refresh_from_db()
-    return testimonium
+    return fragment
