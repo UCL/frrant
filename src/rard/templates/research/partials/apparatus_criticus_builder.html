@@ -39,6 +39,7 @@
         border-radius: 50%;
     }
 </style>
+
 <div id='apparatus_criticus_builder_area'>
     <div class='form-group'>
 
@@ -53,15 +54,11 @@
                 </div>
             {% endif %}
 
-            <div class='apparatus-criticus-line ml-5 my-0'>
-                <span class='historical'>{{ line.order|add:1 }}<span class='ml-3'>{{ line.content|safe }}</span></span>
-                <button data-id='{{ line.pk }}' data-content='{{ line.content|entity_escape|safe }}' class='line-action edit-apparatus-criticus-line btn btn-link text-primary btn-sm'>Edit</button>
+            <div class='apparatus-criticus-line ml-5 my-0 d-flex flex-row align-items-center'>
+                <div class='historical'>{{ line.order|add:1 }}</div><div id="appcrit{{line.pk}}" class='ml-3' contenteditable="false">{{ line.content|safe }}</div>
+                <button data-id='{{ line.pk }}' class='edit-app-crit-toggle btn btn-link text-primary btn-sm'>Edit</button>
                 <button data-action='{% url "delete_apparatus_criticus_line" %}' data-index='{{ line.order }}' data-id='{{ line.pk }}' class='line-action delete-apparatus-criticus-line btn btn-link text-danger btn-sm'>Delete</button>
-                {% comment %} <button type='button' data-index='{{ forloop.counter }}' class='line-action add-after-apparatus-criticus-line show-apparatus-criticus-form btn btn-link text-muted btn-sm'>Add Line Below</button> {% endcomment %}
             </div>
-            {% comment %}
-            <button type='button' data-index='{{ forloop.counter }}' class='add-after-apparatus-criticus-line show-apparatus-criticus-form btn btn-light btn-sm'>
-            {% endif %} {% endcomment %}
             {% if not forloop.last %}
             <button type='button' data-index='{{ forloop.counter }}' class='show-apparatus-criticus-form btn btn-light btn-sm'>
                     +
@@ -71,11 +68,6 @@
             {% endfor %}
             <div>
                 <button type='button' data-index='{{ original_text.apparatus_criticus_lines.count }}' class='show-apparatus-criticus-form btn btn-light btn-sm'>
-                    {% comment %} {% if original_text.apparatus_criticus_lines.count > 0 %}
-                    Add Line to end
-                    {% else %}
-                    Add Line
-                    {% endif %} {% endcomment %}
                     +
                 </button>
             </div>
@@ -84,7 +76,6 @@
 
     <div id='new_apparatus_criticus_line_area' class='mt-3' style='display:none;'>
         {% bootstrap_field form.new_apparatus_criticus_line show_label=False %}
-        {% include 'research/partials/rich_text_editor.html' with min_height=30 padding_bottom=30 field=form.new_apparatus_criticus_line %}
         <div class='d-flex flex-row-reverse'>
             <button type='button' id='cancel-new-apparatus-criticus-line' class=' btn btn-secondary btn-sm'>Cancel</button>
             <button type='button' data-parent='{{ original_text.pk }}' data-action='{% url "create_apparatus_criticus_line" %}' id='submit-new-apparatus-criticus-line' class=' mx-2 btn btn-success btn-sm'>Add Line</button>

@@ -72,11 +72,6 @@ urlpatterns = [
         views.RefreshOriginalTextContentView.as_view(),
         name="refresh_original_text_content",
     ),
-    path(
-        "render-editor-modal-template/",
-        views.render_editor_modal_template,
-        name="render_editor_modal_template",
-    ),
     # path("comment/<pk>/delete/", views.CommentDeleteView.as_view(), name="delete_comment"),
     # path("text-field/<pk>/comments/", views.TextObjectFieldCommentListView.as_view(), name="list_comments_on_text"),
     path(
@@ -277,6 +272,16 @@ urlpatterns = [
                         name="update_commentary",
                     ),
                     path(
+                        "<pk>/update/public-commentary/",
+                        views.FragmentUpdatePublicCommentaryView.as_view(),
+                        name="update_public_commentary",
+                    ),
+                    path(
+                        "<pk>/public-commentary/",
+                        views.FragmentPublicCommentaryView.as_view(),
+                        name="public_commentary_mentions",
+                    ),
+                    path(
                         "<pk>/link-work/",
                         views.FragmentAddWorkLinkView.as_view(),
                         name="add_work_link",
@@ -295,6 +300,12 @@ urlpatterns = [
                         "<pk>/convert-to-anonymous/",
                         views.UnlinkedFragmentConvertToAnonymousView.as_view(),
                         name="convert_to_anonymous",
+                    ),
+                    path(
+                        "<pk>/duplicate",
+                        views.duplicate_fragment,
+                        {"model_name": "fragment"},
+                        name="duplicate",
                     ),
                     path("<pk>/", views.FragmentDetailView.as_view(), name="detail"),
                     path(
@@ -344,9 +355,24 @@ urlpatterns = [
                         name="link_fragment",
                     ),
                     path(
+                        "<pk>/appositum-anonymous-link/",
+                        views.AddAppositumAnonymousLinkView.as_view(),
+                        name="link_anonymous",
+                    ),
+                    path(
                         "<pk>/unlink-apposita/<link_pk>",
                         views.RemoveAppositumLinkView.as_view(),
                         name="unlink_apposita",
+                    ),
+                    path(
+                        "<pk>/unlink-fragment-apposita/<frag_pk>",
+                        views.RemoveAppositumFragmentLinkView.as_view(),
+                        name="unlink_fragment_apposita",
+                    ),
+                    path(
+                        "<pk>/unlink-anonymous-apposita/<link_pk>",
+                        views.RemoveAnonymousAppositumLinkView.as_view(),
+                        name="unlink_anonymous_apposita",
                     ),
                     path(
                         "<pk>/commentary/",
@@ -364,9 +390,25 @@ urlpatterns = [
                         name="update_commentary",
                     ),
                     path(
+                        "<pk>/update/public-commentary/",
+                        views.AnonymousFragmentUpdatePublicCommentaryView.as_view(),
+                        name="update_public_commentary",
+                    ),
+                    path(
+                        "<pk>/public-commentary/",
+                        views.AnonymousFragmentPublicCommentaryView.as_view(),
+                        name="public_commentary_mentions",
+                    ),
+                    path(
                         "<pk>/delete/",
                         views.AnonymousFragmentDeleteView.as_view(),
                         name="delete",
+                    ),
+                    path(
+                        "<pk>/duplicate",
+                        views.duplicate_fragment,
+                        {"model_name": "anonymousfragment"},
+                        name="duplicate",
                     ),
                     path(
                         "<pk>/convert-to-fragment/",
@@ -419,6 +461,16 @@ urlpatterns = [
                         "<pk>/update/commentary/",
                         views.TestimoniumUpdateCommentaryView.as_view(),
                         name="update_commentary",
+                    ),
+                    path(
+                        "<pk>/update/public-commentary/",
+                        views.TestimoniumUpdatePublicCommentaryView.as_view(),
+                        name="update_public_commentary",
+                    ),
+                    path(
+                        "<pk>/public-commentary/",
+                        views.TestimoniumPublicCommentaryView.as_view(),
+                        name="public_commentary_mentions",
                     ),
                     path(
                         "<pk>/link-work/",

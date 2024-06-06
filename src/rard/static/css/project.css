@@ -285,16 +285,6 @@ table.books-widget .book-order {
   background: #f1baba !important;
   /* font-weight: bold; */
 }
-@font-face {
-  font-family: Alphabetum;
-  src: url("../fonts/ALPHABETUM_v_12.otf") format("opentype");
-}
-
-@font-face {
-  font-family: Alphabetum;
-  src: url("../fonts/ExtraSymbols.otf") format("opentype");
-  unicode-range: U+2C41;
-}
 
 .alphabetum {
   font-family: Alphabetum !important;
@@ -390,111 +380,40 @@ button.insert {
   background-color: #ffff00;
 }
 
-/* editor related */
-.ql-editor {
-  background-color: white !important;
-  font-size: 18px;
-  min-height: 50vh;
-}
-.bib-title .ql-editor {
-  min-height: 0;
-}
-.ql-mention-list-container {
-  max-height: 400px;
-  overflow-y: auto;
-}
+/****************** editor related *********************/
+
 .mention.error {
   background: #f1baba !important;
 }
 .rich-editor {
   font-family: Alphabetum !important;
 }
-.ql-editor .footnote-area {
-  font-size: 80%;
-  color: #808080;
-  padding-top: 1.5rem;
-  padding-bottom: 2rem;
-  margin-top: 1.5rem;
-  position: absolute;
-  bottom: 0;
-  min-height: 5rem;
-  overflow: scroll;
-  width: 90%;
+.rich-editor__wrapper {
+  min-height: 400px;
+  padding-bottom: 60px;
 }
-.footnote-indicator {
-  color: #007bff;
+.rich-editor__wrapper--bibliography-title {
+  max-height: 100px;
+  min-height: 1px; /* this will take precedence over the generic one */
 }
-.footnote-number {
-  display: inline;
-}
-.footnote-number + p {
-  display: inline;
+.rich-editor__wrapper--app-crit {
+  min-height: 30px;
+  padding-bottom: 30px;
 }
 \0305 {
   /* vincula symbol looks short in new font */
   width: 120%;
 }
-.highlighted-note-valid {
-  border-radius: 1px;
-  background: #f0f4f6;
-  box-shadow: 2px 2px 4px #f3f2f2, -2px -2px 4px #ffffff;
-  cursor: pointer;
-  color: #1cac1c;
-}
-.highlighted-note-missing {
-  border-radius: 1px;
-  background: #f0f4f6;
-  box-shadow: 2px 2px 4px #f3f2f2, -2px -2px 4px #ffffff;
-  cursor: pointer;
-  color: #ae3b18;
-}
 .text-object-preview p {
   padding: 0;
   margin: 0;
 }
-.text-object-preview .footnote-area {
-  font-size: 80%;
-  color: #808080;
-  margin-top: 1.5rem;
+#plugin-info {
+  margin-bottom: 0.6rem;
 }
-
-#editContentModal {
-  display: block;
+.cke_widget_element.mention {
+  background-color: #d4d2d2;
 }
-
-.modal-body .rich-editor {
-  min-height: 20rem;
-}
-
-.ql-editor .ql-table {
-  border: 1px solid black;
-  padding: 0.3rem;
-}
-table.ql-table {
-  table-layout: fixed;
-  border-collapse: collapse;
-  min-height: 10rem;
-  min-width: 100%;
-}
-.ql-table td {
-  height: 5rem;
-  cursor: pointer;
-  caret-color: transparent;
-  min-width: 7vw;
-  max-width: 10vw;
-}
-.ql-editor td.selected-cell.ql-table {
-  background-color: #d9dbdc;
-}
-.ql-edit_table .ql-picker-label {
-  width: 125%;
-  margin-top: 0.3rem;
-}
-.ql-edit_table .ql-picker-label::after {
-  content: "edit table";
-  /* font-family: "Arial, Helvetica, sans-serif,Font Awesome 5 Free"; */
-}
-
 /**** extras ****/
 
 .fa.fa-user,
@@ -544,4 +463,19 @@ table.ql-table {
   max-height: 6rem;
   min-height: 3rem;
   resize: vertical;
+}
+
+section.footnotes {
+  color: #6c757d;
+  font-size: 80%;
+  border-top: 1px solid #ccc;
+  margin-top: 2em;
+  padding-top: 1em;
+  h2 {
+    font-size: large;
+  }
+}
+
+.apparatus-criticus-line p {
+  margin: 0;
 }

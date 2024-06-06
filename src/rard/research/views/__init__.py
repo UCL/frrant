@@ -52,6 +52,7 @@ from .concordance import (
     ConcordanceUpdateView,
 )
 from .fragment import (
+    AddAppositumAnonymousLinkView,
     AddAppositumFragmentLinkView,
     AddAppositumGeneralLinkView,
     AnonymousFragmentCommentaryView,
@@ -60,7 +61,9 @@ from .fragment import (
     AnonymousFragmentDeleteView,
     AnonymousFragmentDetailView,
     AnonymousFragmentListView,
+    AnonymousFragmentPublicCommentaryView,
     AnonymousFragmentUpdateCommentaryView,
+    AnonymousFragmentUpdatePublicCommentaryView,
     AnonymousFragmentUpdateView,
     AppositumCreateView,
     FragmentAddWorkLinkView,
@@ -69,19 +72,24 @@ from .fragment import (
     FragmentDeleteView,
     FragmentDetailView,
     FragmentListView,
+    FragmentPublicCommentaryView,
     FragmentUpdateAntiquariansView,
     FragmentUpdateCommentaryView,
+    FragmentUpdatePublicCommentaryView,
     FragmentUpdateView,
     FragmentUpdateWorkLinkView,
     MoveAnonymousTopicLinkView,
+    RemoveAnonymousAppositumLinkView,
+    RemoveAppositumFragmentLinkView,
     RemoveAppositumLinkView,
     RemoveFragmentLinkView,
     UnlinkedFragmentConvertToAnonymousView,
     UnlinkedFragmentListView,
+    duplicate_fragment,
     fetch_fragments,
 )
 from .history import HistoryListView
-from .home import HomeView, render_editor_modal_template
+from .home import HomeView
 from .mention import MentionSearchView
 from .original_text import (
     AnonymousFragmentOriginalTextCreateView,
@@ -100,8 +108,10 @@ from .testimonium import (
     TestimoniumDeleteView,
     TestimoniumDetailView,
     TestimoniumListView,
+    TestimoniumPublicCommentaryView,
     TestimoniumUpdateAntiquariansView,
     TestimoniumUpdateCommentaryView,
+    TestimoniumUpdatePublicCommentaryView,
     TestimoniumUpdateView,
     TestimoniumUpdateWorkLinkView,
 )
@@ -135,6 +145,7 @@ from .work import (
 )
 
 __all__ = [
+    "AddAppositumAnonymousLinkView",
     "AddAppositumFragmentLinkView",
     "AddAppositumGeneralLinkView",
     "AntiquarianConcordanceCreateView",
@@ -192,11 +203,15 @@ __all__ = [
     "AnonymousFragmentListView",
     "AnonymousFragmentOriginalTextCreateView",
     "AnonymousFragmentUpdateCommentaryView",
+    "AnonymousFragmentPublicCommentaryView",
+    "AnonymousFragmentUpdatePublicCommentaryView",
     "AnonymousFragmentUpdateView",
     "AppositumCreateView",
     "FragmentAddWorkLinkView",
     "RemoveFragmentLinkView",
     "FragmentUpdateCommentaryView",
+    "FragmentUpdatePublicCommentaryView",
+    "FragmentPublicCommentaryView",
     "FragmentCommentaryView",
     "FragmentCreateView",
     "FragmentDeleteView",
@@ -208,6 +223,7 @@ __all__ = [
     "FragmentUpdateWorkLinkView",
     "FragmentUpdateAntiquariansView",
     "fetch_fragments",
+    "duplicate_fragment",
     "HistoryListView",
     "HomeView",
     "MentionSearchView",
@@ -217,7 +233,8 @@ __all__ = [
     "OriginalTextUpdateAuthorView",
     "OriginalTextUpdateView",
     "RemoveAppositumLinkView",
-    "render_editor_modal_template",
+    "RemoveAppositumFragmentLinkView",
+    "RemoveAnonymousAppositumLinkView",
     "SearchView",
     "RemoveTestimoniumLinkView",
     "TestimoniumAddWorkLinkView",
@@ -230,6 +247,8 @@ __all__ = [
     "TestimoniumUpdateWorkLinkView",
     "TestimoniumUpdateAntiquariansView",
     "TestimoniumUpdateCommentaryView",
+    "TestimoniumUpdatePublicCommentaryView",
+    "TestimoniumPublicCommentaryView",
     "TextObjectFieldCommentListView",
     "TestimoniumOriginalTextCreateView",
     "TopicCreateView",

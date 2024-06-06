@@ -20,6 +20,10 @@ class TestBibliography(TestCase):
         # the __str__ function should show the name
         self.assertEqual(str(self.bibliography), "Hartley [1855]: Fly Fishing")
 
+    def test_mention_citation(self):
+        # the mention_citation function should show the name and year only
+        self.assertEqual(self.bibliography.mention_citation(), "Hartley [1855]")
+
     def test_creation(self):
         self.assertTrue(
             BibliographyItem.objects.filter(pk=self.bibliography.pk).exists()

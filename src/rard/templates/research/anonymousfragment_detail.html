@@ -41,6 +41,13 @@
                     >{% trans 'Make non-anonymous' %}</button>
                 </div>
             </form>
+            <form novalidate style='margin-left:auto' class='form-inline' action='{% url "anonymous_fragment:duplicate" object.pk %}' method='POST'>
+                {% csrf_token %}
+                <div class='form-group'>
+                    <button type='submit' class='btn btn-link text-info p-0 ml-2'
+                        data-what='anonymous fragment'>{% trans 'Duplicate' %}</button>
+                </div>
+            </form>
             {% endif %}
         </div>
         {% endif %}
@@ -125,9 +132,9 @@
                     <div class="form-row align-items-center">
                         {% if perms.research.change_originaltext %}
                         Edit&nbsp;
-                        <a href='{% url "anonymous_fragment:update_author_original_text" original_text.pk %}'>Citing Work</a>
+                        <a href='{% url "anonymous_fragment:update_author_original_text" original_text.pk %}' {% if object.duplicate_frags.all %}class="alert-duplicates" {% endif %}>Citing Work</a>
                         &nbsp;/&nbsp;
-                        <a href='{% url "anonymous_fragment:update_original_text" original_text.pk %}'>Details</a>
+                        <a href='{% url "anonymous_fragment:update_original_text" original_text.pk %}' {% if object.duplicate_frags.all %}class="alert-duplicates" {% endif %}>Details</a>
                         {% endif %}
                         {% if perms.research.delete_originaltext %}
                         <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2' data-what='original text'>{% trans 'Delete' %}</button>
@@ -157,6 +164,7 @@
     <hr>
 
     <section>
+        {% comment %} will need to hide this in final version {% endcomment %}
       <div class='d-flex justify-content-between mb-3'>
         <div>
             <h5>{% trans 'Commentary' %}</h5>
@@ -166,19 +174,51 @@
             <button
               class="btn text-primary p-0 ml-2"
               hx-get="{% url 'anonymous_fragment:update_commentary' object.pk %}"
-              hx-target=".introduction-container"
+              hx-target=".commentary-container"
               hx-swap="innerHTML">{% trans 'Edit' %}</button>
             {% endif %}
         </div>
     </div>
-    <div class="introduction-container rich-text-form-container">
+    <div class="commentary-container rich-text-form-container">
       {% include 'research/partials/text_object_preview.html' with text_object=object.commentary %}
     </div>
     </section>
 
 
+    {% if perms.research.change_fragment and has_object_lock %}
+    <br>
+    <section class="public-commentary-section">
+        <div class='d-flex justify-content-between mb-3'>
+          <div>
+              <h5>{% trans 'See Also' %}</h5>
+          </div>
+          <div>
+              {% if perms.research.change_fragment and has_object_lock %}
+              <button
+                class="btn text-primary p-0 ml-2"
+                hx-get="{% url 'anonymous_fragment:update_public_commentary' object.pk %}"
+                hx-target=".public-commentary-container"
+                hx-swap="innerHTML">{% trans 'Edit' %}</button>
+                {% endif %}
+            </div>
+        </div>
+        <div class="public-commentary-container rich-text-form-container">
+            {% include 'research/partials/text_object_preview.html' with text_object=object.public_commentary_mentions %}
+        </div>
+    </section>
+    {% endif %}
+    {% if not has_object_lock and object.public_commentary_mentions.approved %}
+    <section>
+        <div class="public-commentary-container rich-text-form-container">
+            {% include 'research/partials/text_object_preview.html' with text_object=object.public_commentary_mentions %}
+        </div>
+    </section>
+    {% endif %}
+
+
     <hr>
 
+    {% if object.fragments.all or object.anonymous_fragments.all or has_object_lock %}
     <section>
         <div class='d-flex justify-content-between mb-3'>
             <div>
@@ -186,8 +226,9 @@
             </div>
             <div>
                 {% if perms.research.change_anonymousfragment and has_object_lock %}
-                Link <a href='{% url "anonymous_fragment:link" object.pk %}'>{% trans 'Antiquarian/Work' %}</a> or
-                <a href='{% url "anonymous_fragment:link_fragment" object.pk %}'>{% trans 'Fragment' %}</a>
+                Link <a href='{% url "anonymous_fragment:link" object.pk %}'>{% trans 'Antiquarian/Work' %}</a>,
+                <a href='{% url "anonymous_fragment:link_fragment" object.pk %}'>{% trans 'Fragment' %}</a> or
+                <a href='{% url "anonymous_fragment:link_anonymous" object.pk %}'>{% trans 'Anonymous Fragment' %}</a>
 
                 {% endif %}
             </div>
@@ -195,29 +236,49 @@
 
         <div class='row'>
             <div class="col">
-                {% if object.fragments %}
+            {% for link in object.appositumfragmentlinks_from.all %}
+                {% include 'research/partials/appositum_links_list_item.html' with link=link can_edit=perms.research.change_anonymous_fragment has_object_lock=has_object_lock %}
+            {% endfor %}
 
-                    {% for link in object.appositumfragmentlinks_from.all %}
-                      {% include 'research/partials/appositum_links_list_item.html' with link=link can_edit=perms.research.change_anonymous_fragment has_object_lock=has_object_lock %}
-                    {% endfor %}
-
-                    {% for fragment in object.fragments.all %}
-                      {% if fragment.is_unlinked %}
-                        {% include 'research/partials/fragment_list_item.html' with fragment=fragment %}
-                      {% endif %}
-                    {% endfor %}
-
+            {% for fragment in object.fragments.all %}
+                {% if fragment.is_unlinked %}
+                {% include 'research/partials/appositum_unlinked_list_item.html' with fragment=fragment appositum=object has_object_lock=has_object_lock can_edit=perms.research.change_anonymous_fragment %}
                 {% endif %}
+            {% endfor %}
+
+            {% for anonymous_fragment in object.anonymous_fragments.all %}
+                {% include 'research/partials/appositum_anonymous_list_item.html' with appositum=object anonymous_fragment=anonymous_fragment can_edit=perms.research.change_fragment %}
+            {% endfor %}
             </div>
         </div>
 
     </section>
+    {% endif %}
+
+    {% if object.anonymous_apposita.all %}
+    <hr>
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Apposita' %}</h5>
+            </div>
+        </div>
+
+        {% for appositum in object.anonymous_apposita.all %}
+            {% include 'research/partials/anonymousfragment_list_item.html' with fragment=appositum %}
+        {% endfor %}
+
+    </section>
+    {% endif %}
 
    {% if object.mentioned_in.all %}
     <hr>
-
     {% include 'research/partials/section/mentions_section.html' with object=object obj_name="anonymous fragment" %}
+    {% endif %}
 
+    {% if object.duplicates_list %}
+    <hr>
+    {% include 'research/partials/section/duplicates_section.html' with object=object %}
     {% endif %}
 
     {% endwith %}

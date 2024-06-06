@@ -41,11 +41,30 @@ class DynamicTextField(TextField):
                     "testimonium": [],
                 }
                 for item in mentions:
-                    model = item.attrs.get("data-target", None)
+                    model = item.attrs.get("data-target", None).lower()
                     pk = item.attrs.get("data-id", None)
                     if model in linked_items.keys() and pk:
                         linked_items[model].append(pk)
                 return linked_items
+
+            def reassign_mentions(self, original, new):
+                value = getattr(self, field_name)
+                soup = bs4.BeautifulSoup(value, features="html.parser")
+                mentions = soup.find_all("span", class_="mention")
+                for item in mentions:
+                    model_name = item.attrs.get("data-target", None)
+                    pk = item.attrs.get("data-id", None)
+                    model = apps.get_model(app_label="research", model_name=model_name)
+                    if model.objects.get(pk=pk) == original:
+                        # Update the data-target and data-id attributes with new values
+                        item["data-target"] = new.__class__.__name__
+                        item["data-id"] = str(new.pk)
+                        item["data-value"] = new.get_display_name()
+
+                        modified_value = str(soup)
+
+                        setattr(self, field_name, modified_value)
+                        self.save()
 
             def update_editable_mentions(self, save=True):
                 from rard.research.models import OriginalText
@@ -79,7 +98,10 @@ class DynamicTextField(TextField):
                             linked = model.objects.get(pk=int(pkstr))
 
                             if char == "@":
-                                link_text = str(linked)
+                                if hasattr(linked, "mention_citation"):
+                                    link_text = linked.mention_citation()
+                                else:
+                                    link_text = str(linked)
                             else:
                                 # it's an apparatus criticus so we need
                                 # show its index and any ordinal relating
@@ -111,7 +133,7 @@ class DynamicTextField(TextField):
 
                             replacement = bs4.BeautifulSoup(
                                 '<span contenteditable="false">'
-                                '<span class="ql-mention-denotation-char">'
+                                "<span>"
                                 "{}</span>{}</span>".format(
                                     # char, linked.order + 1
                                     char,
@@ -160,12 +182,21 @@ class DynamicTextField(TextField):
                             linked = model.objects.get(pk=int(pkstr))
                             # is it something we can link to?
                             if getattr(linked, "get_absolute_url", False):
-                                replacement = bs4.BeautifulSoup(
-                                    '<a href="{}">{}</a>'.format(
-                                        linked.get_absolute_url(), str(linked)
-                                    ),
-                                    features="html.parser",
-                                )
+                                if hasattr(linked, "mention_citation"):
+                                    replacement = bs4.BeautifulSoup(
+                                        '<a href="{}">{}</a>'.format(
+                                            linked.get_absolute_url(),
+                                            str(linked.mention_citation()),
+                                        ),
+                                        features="html.parser",
+                                    )
+                                else:
+                                    replacement = bs4.BeautifulSoup(
+                                        '<a href="{}">{}</a>'.format(
+                                            linked.get_absolute_url(), str(linked)
+                                        ),
+                                        features="html.parser",
+                                    )
                             else:
                                 # else currently that means it's an
                                 # apparatus criticus item
@@ -308,6 +339,7 @@ class DynamicTextField(TextField):
                 "get_fragment_testimonia_mentions",
                 get_fragment_testimonia_mentions,
             )
+            setattr(cls, "reassign_mentions", reassign_mentions)
 
 
 class ObjectLock(models.Model):

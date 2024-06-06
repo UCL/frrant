@@ -30,11 +30,10 @@
             {% bootstrap_field forms.original_text.reference_order %}
 
 
-            {% bootstrap_field forms.original_text.content field_class='d-none' %}
+            {% bootstrap_field forms.original_text.content %}
 
             {% with enable_apparatus_criticus=object %}
             {# only allow apparatus criticus editing if we have an object #}
-            {% include 'research/partials/rich_text_editor.html' with object_id=object.pk field=forms.original_text.content enable_apparatus_criticus=enable_apparatus_criticus %}
             {% bootstrap_field forms.original_text.apparatus_criticus_blank %}
             {% endwith %}
 
@@ -55,26 +54,5 @@
     {% include 'research/partials/apparatus_criticus_builder.html' with form=forms.original_text original_text=object %}
     {% endif %}
 
-    {% comment %}
-    <div class='form-group'>
-        <label>Apparatus Criticus</label>
-        {% if object %}
-            <div><button type='button' data-index='0' class='show_apparatus_criticus_form btn btn-light btn-sm'>+</button></div>
-            {% for line in object.apparatus_criticus_lines %}
-            <div class='border-bottom: 1px solid'>{{ line.order }}<span class='ml-3'>{{ line.content|safe }}</span></div>
-            <div><button type='button' data-index='{{ forloop.counter }}' class='show_apparatus_criticus_form btn btn-light btn-sm'>+</button></div>
-            {% endfor %}
-        {% endif %}
-    </div>
-
-    <div id='new_apparatus_criticus_line_area' class='mt-3' style='display:none;'>
-        {% bootstrap_field forms.original_text.new_apparatus_criticus_line show_label=False %}
-        {% include 'research/partials/rich_text_editor.html' with min_height=30 padding_bottom=30 field=forms.original_text.new_apparatus_criticus_line %}
-        <div class='d-flex flex-row-reverse'>
-            <button type='button' id='cancel-new-apparatus-criticus-line' class=' btn btn-secondary btn-sm'>Cancel</button>
-            <button type='button' data-parent='{{ object.pk }}' data-action='{% url "create_apparatus_criticus_line" %}' id='submit-new-apparatus-criticus-line' class=' mx-2 btn btn-success btn-sm'>Add Line</button>
-        </div>
-    </div>
-    {% endcomment %}
 
 {% endblock %}

@@ -1,16 +1,15 @@
 {% load i18n bootstrap4 %}
 
 <form
-  id="introduction-inline-form"
+  id="commentary-inline-form"
   class="form"
   novalidate
   autocomplete='off'
   hx-post="{{ request.path }}"
-  hx-target="closest .introduction-container"
+  hx-target="closest .commentary-container"
   hx-swap="innerHTML">
     {% csrf_token %}
-    {% bootstrap_field form.commentary_text field_class='d-none' show_label=false %}
-    {% include 'research/partials/rich_text_editor.html' with field=form.commentary_text enable_mentions=True enable_apparatus_criticus=True object_id=object.pk object_class=object_class %}
+    {% bootstrap_field form.commentary_text show_label=false %}
   <button type="submit" class="btn btn-primary">
     {% trans 'Save' %}
   </button>
