@@ -119,7 +119,7 @@ CKEDITOR.editorConfig = function (config) {
         marker: "@",
         output: "<span class='mention'>$1</span>",
         minChars: 0,
-        throttle: 300,
+        throttle: 350,
         pattern: /@([a-zA-Z]{2}):.*/,
         followingSpace: true,
         itemTemplate: "<li data-id='{id}'>{value}</li>",
@@ -138,6 +138,7 @@ CKEDITOR.editorConfig = function (config) {
         marker: "#",
         minChars: 0,
         feed: appCriticusFeed, // defined in text-editor.js
+        cache: false,
         itemTemplate: "<li data-id='{id}'>{list_display}</li>",
         outputTemplate: `<span class='mention'
 			data-denotation-char='#'
