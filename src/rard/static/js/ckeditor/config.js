@@ -138,6 +138,7 @@ CKEDITOR.editorConfig = function (config) {
         marker: "#",
         minChars: 0,
         feed: appCriticusFeed, // defined in text-editor.js
+        cache: false,
         itemTemplate: "<li data-id='{id}'>{list_display}</li>",
         outputTemplate: `<span class='mention'
 			data-denotation-char='#'
