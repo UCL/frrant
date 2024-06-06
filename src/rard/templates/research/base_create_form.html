@@ -41,8 +41,7 @@
             {% include 'research/partials/reference_form.html' %}
 
             {% bootstrap_field forms.original_text.reference_order field_class='d-flex' %}
-            {% bootstrap_field forms.original_text.content field_class='d-none' %}
-            {% include 'research/partials/rich_text_editor.html' with field=forms.original_text.content %}
+            {% bootstrap_field forms.original_text.content %}
             {% bootstrap_field forms.original_text.apparatus_criticus_blank %}
 
 

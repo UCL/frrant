@@ -14,10 +14,6 @@
     </div>
   </div>
   {% bootstrap_field form.title %}
-  {% include 'research/partials/rich_text_editor.html' with field=form.title enable_mentions=False extra_classes="rich-editor__wrapper--bibliography-title mt-2" %}
-
-    {% comment %} {% bootstrap_field form.antiquarians %}
-    {% bootstrap_field form.citing_authors %} {% endcomment %}
   <div>
     <button type="submit" class="btn btn-primary">
         {% if object %}

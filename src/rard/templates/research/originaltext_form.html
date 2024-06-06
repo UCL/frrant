@@ -30,11 +30,10 @@
             {% bootstrap_field forms.original_text.reference_order %}
 
 
-            {% bootstrap_field forms.original_text.content field_class='d-none' %}
+            {% bootstrap_field forms.original_text.content %}
 
             {% with enable_apparatus_criticus=object %}
             {# only allow apparatus criticus editing if we have an object #}
-            {% include 'research/partials/rich_text_editor.html' with object_id=object.pk field=forms.original_text.content enable_apparatus_criticus=enable_apparatus_criticus %}
             {% bootstrap_field forms.original_text.apparatus_criticus_blank %}
             {% endwith %}
 

@@ -89,7 +89,7 @@ from .fragment import (
     fetch_fragments,
 )
 from .history import HistoryListView
-from .home import HomeView, render_editor_modal_template
+from .home import HomeView
 from .mention import MentionSearchView
 from .original_text import (
     AnonymousFragmentOriginalTextCreateView,
@@ -235,7 +235,6 @@ __all__ = [
     "RemoveAppositumLinkView",
     "RemoveAppositumFragmentLinkView",
     "RemoveAnonymousAppositumLinkView",
-    "render_editor_modal_template",
     "SearchView",
     "RemoveTestimoniumLinkView",
     "TestimoniumAddWorkLinkView",
