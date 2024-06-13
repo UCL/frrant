@@ -146,10 +146,21 @@ class Concordance(HistoryModelMixin, BaseModel):
         return "%s: %s" % (self.source, self.identifier)
 
 
-class ConcordanceModel(HistoryModelMixin, BaseModel):
+class AntWorkVolIdentifier(HistoryModelMixin, BaseModel):
+    edition = models.ForignKey("Edition")
+    value = models.CharField(max_length=128, blank=False)
+
+
+class Edition(HistoryModelMixin, BaseModel):
     edition_identifier = models.CharField(max_length=128, blank=False)
-    ant_work_identifier = models.CharField(max_length=128, blank=True)
+
+    ant_work_identifier = models.ForeignKey("AntWorkVolIdentifier")
+
     display_order = models.CharField(max_length=30, blank=True)
+
+
+class ConcordanceModel(HistoryModelMixin, BaseModel):
+    edition = models.ForignKey("Edition")
 
     TYPE_CHOICES = {
         "F": "Fragment",
