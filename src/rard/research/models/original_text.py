@@ -158,7 +158,7 @@ class ConcordanceModel(HistoryModelMixin, BaseModel):
         "P.": "Pagination",
         "NA": "N/A",
     }
-    content_type = models.Choices(choices=TYPE_CHOICES)
+    content_type = models.CharField(max_length=3, choices=TYPE_CHOICES)
     reference = models.CharField(max_length=15, blank=True)
     concordance_order = models.CharField(
         max_length=15
