@@ -14,30 +14,37 @@ class FragmentIsNotConvertible(Exception):
 
 def transfer_duplicates(source, destination):
     """When converting between frags, testimonia and anonfrags,
-    the duplicate relationship needs to be transferred to the new instance"""
-    destination_type = destination.__class__.__name__
-    source_type = source.__class__.__name__
+    the duplicate relationship needs to be transferred to the new instance.
+    Duplicate relationships should be symmetrical, and the attribute upon
+    which to add the m2m relationship depend on the class of object being linked to.
 
-    duplicate_types = {
+    There should be no need to remove the source's m2m relationships as they should get
+    deleted when source is deleted."""
+
+    destination_type = destination.__class__.__name__
+
+    # Model to duplicate relationship attribute map
+    duplicate_rel_attrs = {
         "Fragment": "duplicate_frags",
         "AnonymousFragment": "duplicate_afs",
         "Testimonium": "duplicate_ts",
     }
 
-    for d in source.duplicates_list:
-        source_type_duplicates = getattr(d, duplicate_types.get(source_type, ""))
-        destination_type_duplicates = getattr(
-            d, duplicate_types.get(destination_type, "")
+    for duplicate in source.duplicates_list:
+        # Get the duplicate relationship attribute on the duplicate object
+        # that should point to the destination object's model class
+        duplicate_to_destination_rel = getattr(
+            duplicate, duplicate_rel_attrs.get(destination_type, None)
         )
-        # for each duplicate create a new relationship to the destination type
-        destination_type_duplicates.add(destination)
+        # Create a new relationship between the suplicate and destination objects
+        duplicate_to_destination_rel.add(destination)
 
-        # if the relationship was defined from the duplicate in the list, remove the one being converted
-        if source in source_type_duplicates.all():
-            source_type_duplicates.remove(source)
-        else:
-            # otherwise delete it from the instance being converted
-            getattr(source, duplicate_types.get(source_type, "")).remove(d)
+        # Now repeat, but in the opposite direction because it's not necessarily symmetrical
+        duplicate_type = duplicate.__class__.__name__
+        destination_to_duplicate_rel = getattr(
+            destination, duplicate_rel_attrs.get(duplicate_type, None)
+        )
+        destination_to_duplicate_rel.add(duplicate)
 
 
 def transfer_data_between_fragments(source, destination):

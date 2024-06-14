@@ -62,6 +62,7 @@ from rard.utils.convertors import (
     convert_anonymous_fragment_to_fragment,
     convert_unlinked_fragment_to_anonymous_fragment,
     convert_unlinked_fragment_to_testimonium,
+    transfer_duplicates,
 )
 from rard.utils.shared_functions import reassign_to_unknown
 
@@ -1303,16 +1304,11 @@ def duplicate_fragment(request, pk, model_name):
     if not model_name == "testimonium":
         new_fragment.topics.set(original_fragment.topics.all())
 
-    # add duplication relationships
-    if original_fragment.duplicates_list:
-        for frag in original_fragment.duplicate_frags.all():
-            new_fragment.duplicate_frags.add(frag)
-        for af in original_fragment.duplicate_afs.all():
-            new_fragment.duplicate_afs.add(af)
-        for tes in original_fragment.duplicate_ts.all():
-            new_fragment.duplicate_ts.add(tes)
-
+    # Add original fragment's duplication relationships to new fragment
+    transfer_duplicates(original_fragment, new_fragment)
+    # Make new a duplicate of original
     original_fragment.duplicate_frags.add(new_fragment)
+    # Make original a duplicate of new
     if model_name == "fragment":
         new_fragment.duplicate_frags.add(original_fragment)
     elif model_name == "anonymousfragment":
