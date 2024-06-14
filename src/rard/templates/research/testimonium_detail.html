@@ -200,6 +200,11 @@
 
     {% endif %}
 
+    {% if object.duplicates_list %}
+    <hr>
+    {% include 'research/partials/section/duplicates_section.html' with object=object %}
+    {% endif %}
+
 
     {% endwith %}
 
