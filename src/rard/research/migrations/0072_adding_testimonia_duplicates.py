@@ -10,24 +10,6 @@ class Migration(migrations.Migration):
 
 operations = [
     migrations.AddField(
-        model_name="testimonium",
-        name="duplicate_frags",
-        field=models.ManyToManyField(
-            blank=True,
-            related_name="testimonium_duplicate_fragments",
-            to="research.Fragment",
-        ),
-    ),
-    migrations.AddField(
-        model_name="testimonium",
-        name="duplicate_afs",
-        field=models.ManyToManyField(
-            blank=True,
-            related_name="testimonium_duplicate_anonfragments",
-            to="research.AnonymousFragment",
-        ),
-    ),
-    migrations.AddField(
         model_name="anonymousfragment",
         name="duplicate_ts",
         field=models.ManyToManyField(
