@@ -7,33 +7,32 @@ class Migration(migrations.Migration):
         ("research", "0071_add_duplicates_field"),
     ]
 
-
-operations = [
-    migrations.AddField(
-        model_name="anonymousfragment",
-        name="duplicate_ts",
-        field=models.ManyToManyField(
-            blank=True,
-            related_name="anonymousfragment_duplicate_ts",
-            to="research.Testimonium",
+    operations = [
+        migrations.AddField(
+            model_name="anonymousfragment",
+            name="duplicate_ts",
+            field=models.ManyToManyField(
+                blank=True,
+                related_name="anonymousfragment_duplicate_ts",
+                to="research.Testimonium",
+            ),
         ),
-    ),
-    migrations.AddField(
-        model_name="fragment",
-        name="duplicate_ts",
-        field=models.ManyToManyField(
-            blank=True,
-            related_name="fragment_duplicate_ts",
-            to="research.Testimonium",
+        migrations.AddField(
+            model_name="fragment",
+            name="duplicate_ts",
+            field=models.ManyToManyField(
+                blank=True,
+                related_name="fragment_duplicate_ts",
+                to="research.Testimonium",
+            ),
         ),
-    ),
-    migrations.AddField(
-        model_name="testimonium",
-        name="duplicate_ts",
-        field=models.ManyToManyField(
-            blank=True,
-            related_name="testimonium_duplicate_ts",
-            to="research.Testimonium",
+        migrations.AddField(
+            model_name="testimonium",
+            name="duplicate_ts",
+            field=models.ManyToManyField(
+                blank=True,
+                related_name="testimonium_duplicate_ts",
+                to="research.Testimonium",
+            ),
         ),
-    ),
-]
+    ]
