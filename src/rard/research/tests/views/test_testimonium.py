@@ -1,16 +1,32 @@
 import pytest
+from django.core.exceptions import ObjectDoesNotExist
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
-from rard.research.models import CitingWork, Testimonium
+from rard.research.models import (
+    ApparatusCriticusItem,
+    CitingWork,
+    Concordance,
+    Fragment,
+    OriginalText,
+    Reference,
+    Testimonium,
+    TextObjectField,
+    Translation,
+)
 from rard.research.views import (
     TestimoniumCreateView,
     TestimoniumDeleteView,
     TestimoniumDetailView,
     TestimoniumListView,
     TestimoniumUpdateView,
+    duplicate_fragment,
 )
 from rard.users.tests.factories import UserFactory
+from rard.utils.convertors import (
+    convert_testimonium_to_unlinked_fragment,
+    convert_unlinked_fragment_to_testimonium,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -107,3 +123,119 @@ class TestTestimoniumViewPermissions(TestCase):
         self.assertIn(
             "research.view_testimonium", TestimoniumDetailView.permission_required
         )
+
+
+class TestTestimoniumDuplicationView(TestCase):
+    def setUp(self):
+        self.cw = CitingWork.objects.create(title="citing work title")
+        self.tes = Testimonium.objects.create(name="test testimonium")
+        self.ot = OriginalText.objects.create(
+            owner=self.tes,
+            content="Original Text test",
+            citing_work=self.cw,
+            reference_order="reference order",
+        )
+        self.con = Concordance.objects.create(
+            original_text=self.ot, source="tester", identifier="123"
+        )
+        self.apc = ApparatusCriticusItem.objects.create(
+            parent=self.ot, content="critical test", object_id=23
+        )
+        self.tr = Translation.objects.create(
+            translated_text="translation of text", original_text=self.ot
+        )
+        self.ref = Reference.objects.create(editor="test", original_text=self.ot)
+
+    def compare_model_objects(self, original, duplicate):
+        for field in original._meta.fields:
+            if field.name in [
+                "id",
+                "created",
+                "modified",
+                "commentary",
+                "plain_commentary",
+                "object_id",
+                "original_text",
+                "order",
+                "model",
+            ]:
+                continue
+            if field.is_relation and getattr(original, field.name):
+                # If the field is a relation, compare the related objects
+                related_original = getattr(original, field.name)
+                related_duplicate = getattr(duplicate, field.name)
+                self.compare_model_objects(related_original, related_duplicate)
+            else:
+                # For regular fields or null relations, compare their values
+                value1 = getattr(original, field.name)
+                value2 = getattr(duplicate, field.name)
+                self.assertEqual(value1, value2)
+
+    def test_testimonium_duplication(self):
+        url = reverse(
+            "testimonium:duplicate",
+            kwargs={"pk": self.tes.pk, "model_name": "testimonium"},
+        )
+        request = RequestFactory().get(url)
+        request.user = UserFactory.create()
+        response = duplicate_fragment(request, pk=self.tes.pk, model_name="testimonium")
+
+        duplicate_pk = response.url.split("/")[-2]
+        duplicate_frag = Fragment.objects.get(pk=duplicate_pk)
+        duplicate_ot = duplicate_frag.original_texts.first()
+        duplicate_ref = duplicate_ot.references.first()
+        duplicate_apc = duplicate_ot.apparatus_criticus_items.first()
+        duplicate_con = duplicate_ot.concordances.first()
+        duplicate_tr = Translation.objects.filter(original_text=duplicate_ot).first()
+
+        self.compare_model_objects(self.tes, duplicate_frag)
+        self.compare_model_objects(self.ot, duplicate_ot)
+        self.compare_model_objects(self.ref, duplicate_ref)
+        self.compare_model_objects(self.apc, duplicate_apc)
+        self.compare_model_objects(self.con, duplicate_con)
+        self.compare_model_objects(self.tr, duplicate_tr)
+        self.assertIn(duplicate_frag, self.tes.duplicates_list)
+        self.assertIn(self.tes, duplicate_frag.duplicates_list)
+
+
+class TestTestimoniumConversionViews(TestCase):
+    def setUp(self):
+        self.unlinked_fragment = self.create_fragment(Fragment, "ufr")
+        self.testimonium = self.create_fragment(Testimonium, "tes")
+
+    def create_fragment(self, model, name):
+        fragment = model.objects.create(name=name)
+        citing_work = CitingWork.objects.create(title="title")
+        OriginalText.objects.create(
+            owner=fragment, citing_work=citing_work, content="sic semper tyrannis"
+        )
+        fragment.date_range = "509 BCE - 31 BCE"
+        fragment.order_year = -509
+        fragment.collection_id = 1
+        fragment.commentary = TextObjectField.objects.create(content="hello")
+        fragment.save()
+        return fragment
+
+    def test_convert_unlinked_fragment_to_testimonium(self):
+        source_pk = self.unlinked_fragment.pk
+        new_testimonium = convert_unlinked_fragment_to_testimonium(
+            self.unlinked_fragment
+        )
+        with self.assertRaises(ObjectDoesNotExist):
+            Fragment.objects.get(pk=source_pk)
+        self.assertEqual(
+            new_testimonium.original_texts.first().content, "sic semper tyrannis"
+        )
+        self.assertEqual(new_testimonium.date_range, "509 BCE - 31 BCE")
+        self.assertEqual(new_testimonium.commentary.content, "hello")
+
+    def test_convert_testimonium_to_unlinked_fragment(self):
+        source_pk = self.testimonium.pk
+        new_fragment = convert_testimonium_to_unlinked_fragment(self.testimonium)
+        with self.assertRaises(ObjectDoesNotExist):
+            Testimonium.objects.get(pk=source_pk)
+        self.assertEqual(
+            new_fragment.original_texts.first().content, "sic semper tyrannis"
+        )
+        self.assertEqual(new_fragment.date_range, "509 BCE - 31 BCE")
+        self.assertEqual(new_fragment.commentary.content, "hello")
