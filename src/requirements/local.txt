@@ -38,3 +38,6 @@ pytest-django==3.9.0  # https://github.com/pytest-dev/pytest-django
 # Overrides
 # ------------------------------------------------------------------------------
 jedi==0.17.2  # needs to be pinned to this as incompat with latest ipython
+
+# static generation
+django-distill==3.2.4
