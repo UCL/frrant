@@ -11,10 +11,8 @@ import os
 
 
 def import_data_from_csv(apps, schema_editor):
-    current_dir = os.getcwd()
-    print(f"Current directory: {current_dir}")
-    file_path = "./data/concordance_starter_values.csv"
-    with open(file_path, "r", encoding="utf-8") as csvfile:
+    file_path = "rard/research/migrations/data/concordance_starter_values.csv"
+    with open(file_path, "r", encoding="utf-8-sig") as csvfile:
         reader = csv.DictReader(csvfile)
         for row in reader:
             edition_name = row["EditionIdentifier"]
@@ -22,9 +20,7 @@ def import_data_from_csv(apps, schema_editor):
 
             # Create or get Edition instance
             Edition = apps.get_model("research", "Edition")
-            edition, created = Edition.objects.get_or_create(
-                edition_identifier=edition_name
-            )
+            edition, created = Edition.objects.get_or_create(name=edition_name)
 
             # Create PartIdentifier instance associated with Edition
             PartIdentifier = apps.get_model("research", "PartIdentifier")
