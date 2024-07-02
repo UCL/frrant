@@ -5,7 +5,7 @@ from rard.utils.basemodel import BaseModel
 
 
 class PartIdentifier(HistoryModelMixin, BaseModel):
-    edition = models.ForignKey("Edition", on_delete=models.CASCADE)
+    edition = models.ForeignKey("Edition", on_delete=models.CASCADE)
     value = models.CharField(max_length=128, blank=False)
 
 
