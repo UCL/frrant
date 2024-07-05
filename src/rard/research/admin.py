@@ -38,7 +38,7 @@ class SymbolGroupAdmin(admin.ModelAdmin):
 
 @admin.register(Edition)
 class EditionAdmin(admin.ModelAdmin):
-    list_display = ("name",)
+    list_display = ("name", "description")
 
 
 @admin.register(PartIdentifier)

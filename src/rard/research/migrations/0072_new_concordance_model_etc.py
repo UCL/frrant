@@ -7,7 +7,6 @@ import model_utils.fields
 import rard.research.models.mixins
 
 import csv
-import os
 
 
 def import_data_from_csv(apps, schema_editor):
@@ -17,10 +16,12 @@ def import_data_from_csv(apps, schema_editor):
         for row in reader:
             edition_name = row["EditionIdentifier"]
             part_identifier_value = row["PartIdentifier"]
-
+            description = row["Description"]
             # Create or get Edition instance
             Edition = apps.get_model("research", "Edition")
-            edition, created = Edition.objects.get_or_create(name=edition_name)
+            edition, created = Edition.objects.get_or_create(
+                name=edition_name, description=description
+            )
 
             # Create PartIdentifier instance associated with Edition
             PartIdentifier = apps.get_model("research", "PartIdentifier")
@@ -64,6 +65,10 @@ class Migration(migrations.Migration):
                 ),
                 ("name", models.CharField(max_length=128)),
                 ("display_order", models.CharField(blank=True, max_length=30)),
+                (
+                    "description",
+                    models.CharField(max_length=200, blank=True, null=True),
+                ),
             ],
             options={
                 "abstract": False,
@@ -154,13 +159,13 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("reference", models.CharField(blank=True, max_length=15)),
-                ("concordance_order", models.CharField(max_length=15)),
+                ("concordance_order", models.CharField(max_length=15, blank=True)),
                 (
-                    "edition",
+                    "identifier",
                     models.ForeignKey(
                         null=True,
                         on_delete=django.db.models.deletion.SET_NULL,
-                        to="research.edition",
+                        to="research.partidentifier",
                     ),
                 ),
             ],
@@ -169,5 +174,5 @@ class Migration(migrations.Migration):
             },
             bases=(rard.research.models.mixins.HistoryModelMixin, models.Model),
         ),
-        migrations.RunPython(import_data_from_csv),
+        migrations.RunPython(import_data_from_csv, migrations.RunPython.noop),
     ]
