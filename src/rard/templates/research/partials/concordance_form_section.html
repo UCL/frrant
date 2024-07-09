@@ -1,0 +1,17 @@
+{% load i18n bootstrap4 %}
+<form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
+    {% csrf_token %}
+
+    <h2>Add Concordance Details</h2>
+        <strong>Edition: {{edition_description}}</strong>
+        {% bootstrap_form concordance_form %}
+        <input type="hidden" name="concordance" value="True">
+
+        <button type="submit" class="btn btn-primary">
+        {% if object %}
+            {% trans 'Save' %}
+        {% else %}
+            {% trans 'Create' %}
+        {% endif %}
+        </button>
+</form>
