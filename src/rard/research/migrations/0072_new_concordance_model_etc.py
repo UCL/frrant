@@ -168,6 +168,15 @@ class Migration(migrations.Migration):
                         to="research.partidentifier",
                     ),
                 ),
+                (
+                    "original_text",
+                    models.ForeignKey(
+                        null=True,
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="concordance_models",
+                        to="research.originaltext",
+                    ),
+                ),
             ],
             options={
                 "abstract": False,

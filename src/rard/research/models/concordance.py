@@ -13,15 +13,27 @@ class PartIdentifier(HistoryModelMixin, BaseModel):
 
 
 class Edition(HistoryModelMixin, BaseModel):
-    def __str__(self):
-        return self.name
+    def __str__(self, bib=False):
+        if bib:
+            return self.description
+        else:
+            return self.name
 
     name = models.CharField(max_length=128, blank=False)
     display_order = models.CharField(max_length=30, blank=True)
-    description = models.CharField(max_length=200, blank=True, null=True)
+    description = models.CharField(
+        max_length=200, blank=True, null=True
+    )  # need to add this to master bib
 
 
 class ConcordanceModel(HistoryModelMixin, BaseModel):
+    original_text = models.ForeignKey(
+        "OriginalText",
+        on_delete=models.CASCADE,
+        related_name="concordance_models",
+        null=True,
+    )
+
     identifier = models.ForeignKey(
         "PartIdentifier", on_delete=models.SET_NULL, null=True
     )
