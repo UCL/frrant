@@ -52,10 +52,20 @@
     <dl class="row mb-0">
         <dt class="col-sm-3">{% trans 'Concordances' %}</dt>
         <dd class="col-sm-7">
+            <div>
+            <em>{% trans 'old concordances:' %}</em>
             {% if original_text.concordances.count == 0 %}
                 None
             {% endif %}
-            {% for concordance in original_text.concordances.all %}
+            {% for c in original_text.concordances.all%}
+            <small>{{c}}</small>
+            {% endfor %}
+            </div>
+            <em>{% trans 'new concordances:' %}</em>
+            {% if original_text.concordance_models.count == 0 %}
+            None
+        {% endif %}
+            {% for concordance in original_text.concordance_models.all %}
                 <div class='d-flex justify-content-between mb-3'>
                 <div>{{ concordance }}</div>
                 <div>
