@@ -14,8 +14,11 @@ from rard.research.models import (
     CitingAuthor,
     CitingWork,
     Comment,
+    ConcordanceModel,
+    Edition,
     Fragment,
     OriginalText,
+    PartIdentifier,
     PublicCommentaryMentions,
     Reference,
     Testimonium,
@@ -1113,3 +1116,92 @@ class CitingAuthorUpdateForm(forms.ModelForm):
             ].initial = self.instance.bibliography_items.all()
             if self.instance.is_anonymous_citing_author():
                 self.fields["order_name"].disabled = True
+
+
+class EditionForm(forms.ModelForm):
+    class Meta:
+        model = Edition
+        fields = ["edition", "display_order", "new_edition", "new_description"]
+        labels = {"display_order": "Optional ordering for display purposes"}
+        readonly_fields = ["description"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["edition"].widget.attrs.update(
+            {"class": "mr-3", "style": "width:40vw"}
+        )
+        self.fields["new_edition"].widget.attrs.update({"class": "mr-3"})
+        self.fields["new_description"].widget.attrs.update(
+            {"style": "width:40vw", "disabled": ""}
+        )
+
+    edition = forms.ModelChoiceField(
+        queryset=Edition.objects.all().order_by("name"),
+        widget=forms.Select(attrs={"class": "form-control"}),
+        label="Select Edition",
+        required=False,
+    )
+    new_edition = forms.CharField(label="or create new Edition", required=False)
+    new_description = forms.CharField(
+        label="Edition full name",
+        required=False,
+        help_text="Enter full name of edition and format of parts in square brackets or [none], eg: Edition:[none]",
+    )
+
+
+class ConcordanceModelForm(forms.ModelForm):
+    class Meta:
+        model = ConcordanceModel
+        fields = [
+            "edition",
+            "identifier",
+            "new_identifier",
+            "content_type",
+            "reference",
+            "concordance_order",
+        ]
+        labels = {"identifier": "Part Identifier"}
+
+    edition = forms.ModelChoiceField(
+        queryset=Edition.objects.all(),
+        widget=forms.HiddenInput,
+    )
+    new_identifier = forms.CharField(
+        label="or create new Part Identifier",
+        required=False,
+        help_text="You do not need to include the edition name, only the relevant part identifier",
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        data = args[0] if args else {}
+        edition_id = data.get("edition", None)
+
+        if edition_id:
+            self.fields["edition"].initial = edition_id
+            self.fields["identifier"].required = False
+            part_format = PartIdentifier.objects.filter(edition=edition_id).first()
+
+            # make the first identifier entry non-selectable since it's the format
+            qs = PartIdentifier.objects.filter(edition=edition_id).order_by("edition")
+            self.fields["identifier"].queryset = qs
+            self.fields["identifier"].label = f"Format: {part_format}"
+            # disable identifier if there aren't options
+            if len(qs) <= 1:
+                self.fields["identifier"].disabled = True
+                self.fields["new_identifier"].required = True
+            else:
+                qs = qs.exclude(pk=qs.first().pk)
+                self.fields["identifier"].queryset = qs
+
+            # disable new identifier when relevant
+            if "none" in str(part_format):
+                self.fields["new_identifier"].disabled = True
+                self.fields["new_identifier"].required = False
+                self.fields["identifier"].initial = part_format
+
+        else:
+            # if it's a new edition
+            self.fields["identifier"].disabled = True
+            self.fields["identifier"].required = False
+            self.fields["new_identifier"].required = True

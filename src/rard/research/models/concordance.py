@@ -27,6 +27,9 @@ class Edition(HistoryModelMixin, BaseModel):
 
 
 class ConcordanceModel(HistoryModelMixin, BaseModel):
+    def __str__(self):
+        return f"{self.identifier}"
+
     original_text = models.ForeignKey(
         "OriginalText",
         on_delete=models.CASCADE,
