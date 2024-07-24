@@ -44,3 +44,4 @@ class EditionAdmin(admin.ModelAdmin):
 @admin.register(PartIdentifier)
 class PartIdentifierAdmin(admin.ModelAdmin):
     list_display = ("value", "edition")
+    readonly_fields = ("edition",)
