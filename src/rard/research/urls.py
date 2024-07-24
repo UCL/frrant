@@ -542,6 +542,11 @@ urlpatterns = [
                         views.ConcordanceDeleteView.as_view(),
                         name="delete",
                     ),
+                    path(
+                        "<pk>/delete-old/",
+                        views.OldConcordanceDeleteView.as_view(),
+                        name="delete_old",
+                    ),
                 ],
                 "research",
             ),

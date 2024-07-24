@@ -15,6 +15,15 @@
         <div>
             {% include 'research/partials/original_text_preview.html' with original_text=original_text %}
         </div>
+{% if original_text.concordances.count != 0 %}
+<div>
+    This original text has some existing concordances in the old format:
+    {% for c in original_text.concordances.all %}
+    {{c}}
+    {% endfor %}
+</div>
+{% endif %}
+<div class="concordance-form__area">
 
 {% if edition_form %}
     <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST' id="edition_form">
@@ -23,7 +32,6 @@
         <h2>Create or select an Edition</h2>
         <div class="d-flex justify-content-between">
         {% bootstrap_field edition_form.edition %}
-        {% bootstrap_field edition_form.display_order %}
         </div>
         <div class="d-flex  justify-content-between">
             {% bootstrap_field edition_form.new_edition %}
@@ -55,4 +63,6 @@
     {% include 'research/partials/concordance_form_section.html' %}
 {% endif %}
 
+
+</div>
 {% endblock %}

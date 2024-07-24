@@ -6,7 +6,7 @@ from rard.utils.basemodel import BaseModel
 
 class PartIdentifier(HistoryModelMixin, BaseModel):
     def __str__(self):
-        return f"{self.edition}: {self.value}"
+        return f"{self.edition.name}: {self.value}"
 
     edition = models.ForeignKey("Edition", on_delete=models.CASCADE)
     value = models.CharField(max_length=250, blank=False)
@@ -29,7 +29,7 @@ class Edition(HistoryModelMixin, BaseModel):
 
 class ConcordanceModel(HistoryModelMixin, BaseModel):
     def __str__(self):
-        return f"{self.identifier}"
+        return f"{self.identifier} ({self.content_type}) {self.reference}"
 
     original_text = models.ForeignKey(
         "OriginalText",

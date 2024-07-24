@@ -53,17 +53,24 @@
         <dt class="col-sm-3">{% trans 'Concordances' %}</dt>
         <dd class="col-sm-7">
             <div>
-            {% if original_text.concordances.count <= 1 %}
-            <em>{% trans 'old concordances:' %}</em>
-            {% for c in original_text.concordances.all%}
-            <small>{{c}}</small>
-            {% endfor %}
+            {% if original_text.concordances.count != 0 %}
+                <em>{% trans 'old concordances:' %}</em>
+                {% for c in original_text.concordances.all%}
+                <small>{{c}}</small><span><form novalidate class='form-inline' action='{% url "concordance:delete_old" c.pk %}' method='POST'>
+                    {% csrf_token %}
+                    <div class='form-row align-items-center'>
+                        {% if perms.research.delete_concordance %}
+                        <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+                            data-what='concordance'>{% trans 'Delete' %}</button>
+                        {% endif %}</span>
+                {% endfor %}
+
+                </div>
+                <em>{% trans 'new concordances:' %}</em>
+                {% if original_text.concordance_models.count == 0 %}
+                None
+                {% endif %}
             {% endif %}
-            </div>
-            <em>{% trans 'new concordances:' %}</em>
-            {% if original_text.concordance_models.count == 0 %}
-            None
-        {% endif %}
             {% for concordance in original_text.concordance_models.all %}
                 <div class='d-flex justify-content-between mb-3'>
                 <div>{{ concordance }} </div>

@@ -1121,15 +1121,12 @@ class CitingAuthorUpdateForm(forms.ModelForm):
 class EditionForm(forms.ModelForm):
     class Meta:
         model = Edition
-        fields = ["edition", "display_order", "new_edition", "new_description"]
-        labels = {"display_order": "Optional ordering for display purposes"}
+        fields = ["edition", "new_edition", "new_description"]
+
         readonly_fields = ["description"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["edition"].widget.attrs.update(
-            {"class": "mr-3", "style": "width:40vw"}
-        )
         self.fields["new_edition"].widget.attrs.update({"class": "mr-3"})
         self.fields["new_description"].widget.attrs.update(
             {"style": "width:40vw", "disabled": ""}
@@ -1149,18 +1146,22 @@ class EditionForm(forms.ModelForm):
     )
 
 
-class ConcordanceModelForm(forms.ModelForm):
+class ConcordanceModelCreateForm(forms.ModelForm):
     class Meta:
         model = ConcordanceModel
         fields = [
             "edition",
             "identifier",
             "new_identifier",
+            "display_order",
             "content_type",
             "reference",
             "concordance_order",
         ]
-        labels = {"identifier": "Part Identifier"}
+        labels = {
+            "identifier": "Part Identifier",
+            "display_order": "Optional ordering for display purposes",
+        }
 
     edition = forms.ModelChoiceField(
         queryset=Edition.objects.all(),
@@ -1171,18 +1172,27 @@ class ConcordanceModelForm(forms.ModelForm):
         required=False,
         help_text="You do not need to include the edition name, only the relevant part identifier",
     )
+    display_order = forms.CharField(
+        label="optional ordering",
+        required=False,
+        help_text="When ordering alphabetically, what would you like this identifier sorted as?",
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
         data = args[0] if args else {}
         edition_id = data.get("edition", None)
 
         if edition_id:
             self.fields["edition"].initial = edition_id
             self.fields["identifier"].required = False
-            part_format = PartIdentifier.objects.filter(edition=edition_id).first()
+            self.fields["reference"].required = True
+            self.fields["reference"].help_text = "Eg. 130c"
+            self.fields["concordance_order"].help_text = "Eg. 130.3"
 
             # make the first identifier entry non-selectable since it's the format
+            part_format = PartIdentifier.objects.filter(edition=edition_id).first()
             qs = PartIdentifier.objects.filter(edition=edition_id).order_by("edition")
             self.fields["identifier"].queryset = qs
             self.fields["identifier"].label = f"Format: {part_format}"
@@ -1205,3 +1215,37 @@ class ConcordanceModelForm(forms.ModelForm):
             self.fields["identifier"].disabled = True
             self.fields["identifier"].required = False
             self.fields["new_identifier"].required = True
+
+
+class ConcordanceModelUpdateForm(forms.ModelForm):
+    class Meta:
+        model = ConcordanceModel
+        fields = [
+            "identifier",
+            "display_order",
+            "content_type",
+            "reference",
+            "concordance_order",
+        ]
+        labels = {"identifier": "Part Identifier"}
+
+    display_order = forms.CharField(
+        label="optional ordering",
+        required=False,
+        help_text="When ordering alphabetically, what would you like this identifier sorted as?",
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        print("init update form", self.instance.identifier.edition)
+        if self.instance:
+            print("instance!", self.instance, self.instance.identifier)
+            self.fields["identifier"].initial = self.instance.identifier
+            self.fields["content_type"].initial = self.instance.content_type
+            self.fields["reference"].initial = self.instance.reference
+            self.fields["concordance_order"].initial = self.instance.concordance_order
+
+            qs = PartIdentifier.objects.filter(
+                edition=self.instance.identifier.edition
+            ).order_by("edition")
+            self.fields["identifier"].queryset = qs

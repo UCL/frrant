@@ -50,6 +50,7 @@ from .concordance import (
     ConcordanceDeleteView,
     ConcordanceListView,
     ConcordanceUpdateView,
+    OldConcordanceDeleteView,
 )
 from .fragment import (
     AddAppositumAnonymousLinkView,
@@ -191,6 +192,7 @@ __all__ = [
     "ConcordanceDeleteView",
     "ConcordanceListView",
     "ConcordanceUpdateView",
+    "OldConcordanceDeleteView",
     "CreateApparatusCriticusLineView",
     "DeleteApparatusCriticusLineView",
     "RefreshOriginalTextContentView",

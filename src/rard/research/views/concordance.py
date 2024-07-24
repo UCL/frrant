@@ -8,7 +8,11 @@ from django.views.decorators.http import require_POST
 from django.views.generic import View
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
-from rard.research.forms import ConcordanceModelForm, EditionForm
+from rard.research.forms import (
+    ConcordanceModelCreateForm,
+    ConcordanceModelUpdateForm,
+    EditionForm,
+)
 from rard.research.models import (
     AnonymousFragment,
     ConcordanceModel,
@@ -17,6 +21,7 @@ from rard.research.models import (
     OriginalText,
     PartIdentifier,
 )
+from rard.research.models.original_text import Concordance
 from rard.research.views.mixins import CheckLockMixin
 
 
@@ -93,7 +98,7 @@ class ConcordanceCreateView(
     # create a concordance for an original text
     model = ConcordanceModel
     permission_required = ("research.add_concordance",)
-    form_class = ConcordanceModelForm
+    form_class = ConcordanceModelCreateForm
     template_name = "research/concordancemodel_form.html"
 
     def dispatch(self, request, *args, **kwargs):
@@ -123,14 +128,18 @@ class ConcordanceCreateView(
         if is_concordance:
             # if it's the concordance submission (second stage)
             new_identifier = request.POST.get("new_identifier", None)
-            concordance_form = ConcordanceModelForm(request.POST)
+            identifier = request.POST.get("identifier", None)
+            concordance_form = ConcordanceModelCreateForm(request.POST)
             if concordance_form.is_valid():
                 if new_identifier:
-                    PartIdentifier.objects.create(
+                    new_identifier_instance = PartIdentifier.objects.create(
                         edition=Edition.objects.get(pk=edition),
                         value=concordance_form.cleaned_data["new_identifier"],
+                        display_order=concordance_form.cleaned_data["display_order"],
                     )
-                self.form_valid(concordance_form)
+                    new_identifier_instance.save()
+                    identifier = new_identifier_instance
+                self.form_valid(concordance_form, identifier=identifier)
                 return redirect(self.get_success_url())
             else:
                 req_edition = request.POST.get("edition")
@@ -152,7 +161,6 @@ class ConcordanceCreateView(
                         new_edition_instance = Edition.objects.create(
                             name=edition_form.cleaned_data["new_edition"],
                             description=edition_form.cleaned_data["new_description"],
-                            display_order=edition_form.cleaned_data["display_order"],
                         )
 
                         new_edition_instance.save()
@@ -165,7 +173,7 @@ class ConcordanceCreateView(
                             "edition"
                         ].description
 
-                concordance_form = ConcordanceModelForm(request.POST, edition)
+                concordance_form = ConcordanceModelCreateForm(request.POST, edition)
 
                 context = self.get_context_data(
                     edition_form,
@@ -179,11 +187,21 @@ class ConcordanceCreateView(
     def get_success_url(self, *args, **kwargs):
         return self.original_text.owner.get_absolute_url()
 
-    def form_valid(self, form):
+    def form_valid(self, form, *args, **kwargs):
         self.original_text = self.get_original_text()
         concordance = form.save(commit=False)
+        concordance.identifier = kwargs[
+            "identifier"
+        ]  # for some reason this doesn't get picked up when there's a new_identifier
         concordance.original_text = self.original_text
-        return super().form_valid(form)
+        if not concordance.identifier:
+            return self.render_to_response(
+                self.get_context_data(
+                    concordance_form=form,
+                )
+            )
+        else:
+            return super().form_valid(form)
 
     def get_original_text(self, *args, **kwargs):
         if not getattr(self, "original_text", False):
@@ -217,18 +235,14 @@ class ConcordanceUpdateView(
     check_lock_object = "top_level_object"
 
     model = ConcordanceModel
+    form_class = ConcordanceModelUpdateForm
     permission_required = ("research.change_concordance",)
-    fields = (
-        "identifier",
-        "content_type",
-        "reference",
-        "concordance_order",
-    )
 
     def dispatch(self, request, *args, **kwargs):
         # need to ensure we have the lock object view attribute
         # initialised in dispatch
         self.top_level_object = self.get_object().original_text.owner
+        self.object = self.get_object()
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, *args, **kwargs):
@@ -236,6 +250,8 @@ class ConcordanceUpdateView(
         context.update(
             {
                 "original_text": self.object.original_text,
+                "concordance_form": ConcordanceModelUpdateForm(instance=self.object),
+                "is_update": True,
             }
         )
         return context
@@ -251,6 +267,25 @@ class ConcordanceDeleteView(
     check_lock_object = "top_level_object"
 
     model = ConcordanceModel
+    permission_required = ("research.delete_concordance",)
+
+    def dispatch(self, request, *args, **kwargs):
+        # need to ensure we have the lock object view attribute
+        # initialised in dispatch
+        self.top_level_object = self.get_object().original_text.owner
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_success_url(self, *args, **kwargs):
+        return self.object.original_text.owner.get_absolute_url()
+
+
+@method_decorator(require_POST, name="dispatch")
+class OldConcordanceDeleteView(
+    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
+):
+    check_lock_object = "top_level_object"
+
+    model = Concordance
     permission_required = ("research.delete_concordance",)
 
     def dispatch(self, request, *args, **kwargs):

@@ -119,7 +119,8 @@ table.books-widget .book-order {
   max-width: 55vw;
 }
 .content-area {
-  background: #f8fcfd;
+  background: #f8fcfddf;
+  backdrop-filter: blur;
   box-shadow: 0 0 10px 10px #f8fcfd47;
 }
 
@@ -478,4 +479,18 @@ section.footnotes {
 
 .apparatus-criticus-line p {
   margin: 0;
+}
+
+/* for concordance form */
+.concordance-form__area {
+  min-height: 30vh;
+  margin-inline: 4vw;
+
+  .form-group:has(#id_content_type),
+  .form-group:has(#id_display_order),
+  .form-group:has(#id_reference),
+  .form-group:has(#id_concordance_order) {
+    width: fit-content;
+    max-width: 30vw;
+  }
 }

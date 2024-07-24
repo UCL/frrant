@@ -2,9 +2,24 @@
 <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
     {% csrf_token %}
 
-    <h2>Add Concordance Details</h2>
+    <h2>{% if is_update %}Update{% else %}Add{% endif %} Concordance Details</h2>
         <strong>Edition: {{edition_description}}</strong>
-        {% bootstrap_form concordance_form %}
+        {% if not is_update %}
+        {% bootstrap_field concordance_form.edition %}
+        {% endif %}
+
+        {% bootstrap_field concordance_form.identifier %}
+        {% if not is_update %}
+        {% bootstrap_field concordance_form.new_identifier %}
+        {% endif %}
+        <div class="d-flex justify-content-around">
+            {% bootstrap_field concordance_form.display_order %}
+            {% bootstrap_field concordance_form.content_type %}
+        </div>
+        <div class="d-flex justify-content-around">
+            {% bootstrap_field concordance_form.reference %}
+            {% bootstrap_field concordance_form.concordance_order %}
+        </div>
         <input type="hidden" name="concordance" value="True">
 
         <button type="submit" class="btn btn-primary">
