@@ -64,7 +64,6 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("name", models.CharField(max_length=128)),
-                ("display_order", models.CharField(blank=True, max_length=30)),
                 (
                     "description",
                     models.CharField(max_length=200, blank=True, null=True),
@@ -104,6 +103,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("value", models.CharField(max_length=250)),
+                ("display_order", models.CharField(blank=True, max_length=30)),
                 (
                     "edition",
                     models.ForeignKey(
