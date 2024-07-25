@@ -1244,9 +1244,7 @@ class ConcordanceModelUpdateForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        print("init update form", self.instance.identifier.edition)
         if self.instance:
-            print("instance!", self.instance, self.instance.identifier)
             self.fields["identifier"].initial = self.instance.identifier
             self.fields["content_type"].initial = self.instance.content_type
             self.fields["reference"].initial = self.instance.reference

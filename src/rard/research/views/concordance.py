@@ -195,7 +195,6 @@ class ConcordanceCreateView(
         concordance.identifier = PartIdentifier.objects.get(pk=kwargs["identifier"])
         # for some reason this doesn't get picked up when there's a new_identifier
         concordance.original_text = self.original_text
-        print(concordance, concordance.pk, concordance.original_text)
         return super().form_valid(form)
 
     def get_original_text(self, *args, **kwargs):
