@@ -51,6 +51,4 @@ class ConcordanceModel(HistoryModelMixin, BaseModel):
     ]
     content_type = models.CharField(max_length=5, choices=TYPE_CHOICES)
     reference = models.CharField(max_length=15, blank=True)
-    concordance_order = models.CharField(
-        max_length=15, blank=True
-    )  # maybe add a validator so only numbers and . allowed?
+    concordance_order = models.CharField(max_length=15, blank=True)
