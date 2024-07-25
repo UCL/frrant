@@ -138,10 +138,12 @@ class ConcordanceCreateView(
                         display_order=concordance_form.cleaned_data["display_order"],
                     )
                     new_identifier_instance.save()
-                    identifier = new_identifier_instance
+                    identifier = new_identifier_instance.pk
+
                 self.form_valid(concordance_form, identifier=identifier)
                 return redirect(self.get_success_url())
             else:
+                concordance_form.cleaned_data["identifier"] = identifier
                 req_edition = request.POST.get("edition")
                 edition_description = Edition.objects.get(pk=req_edition).description
                 # not sure why it's not valid, also when it rerenders it doesn't have the edition
@@ -190,23 +192,16 @@ class ConcordanceCreateView(
     def form_valid(self, form, *args, **kwargs):
         self.original_text = self.get_original_text()
         concordance = form.save(commit=False)
-        concordance.identifier = kwargs[
-            "identifier"
-        ]  # for some reason this doesn't get picked up when there's a new_identifier
+        concordance.identifier = PartIdentifier.objects.get(pk=kwargs["identifier"])
+        # for some reason this doesn't get picked up when there's a new_identifier
         concordance.original_text = self.original_text
-        if not concordance.identifier:
-            return self.render_to_response(
-                self.get_context_data(
-                    concordance_form=form,
-                )
-            )
-        else:
-            return super().form_valid(form)
+        print(concordance, concordance.pk, concordance.original_text)
+        return super().form_valid(form)
 
     def get_original_text(self, *args, **kwargs):
         if not getattr(self, "original_text", False):
             self.original_text = get_object_or_404(
-                OriginalText, pk=self.kwargs.get("pk")
+                OriginalText, pk=self.kwargs.get("pk", None)
             )
         return self.original_text
 

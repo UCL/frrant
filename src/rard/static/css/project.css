@@ -486,6 +486,11 @@ section.footnotes {
   min-height: 30vh;
   margin-inline: 4vw;
 
+  [disable-selection="true"] {
+    color: gray;
+    pointer-events: none;
+    background-color: #e9ecef;
+  }
   .form-group:has(#id_content_type),
   .form-group:has(#id_display_order),
   .form-group:has(#id_reference),

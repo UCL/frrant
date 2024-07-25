@@ -1196,19 +1196,26 @@ class ConcordanceModelCreateForm(forms.ModelForm):
             qs = PartIdentifier.objects.filter(edition=edition_id).order_by("edition")
             self.fields["identifier"].queryset = qs
             self.fields["identifier"].label = f"Format: {part_format}"
-            # disable identifier if there aren't options
-            if len(qs) <= 1:
-                self.fields["identifier"].disabled = True
-                self.fields["new_identifier"].required = True
-            else:
-                qs = qs.exclude(pk=qs.first().pk)
-                self.fields["identifier"].queryset = qs
+            self.fields["identifier"].initial = part_format.pk
 
             # disable new identifier when relevant
             if "none" in str(part_format):
                 self.fields["new_identifier"].disabled = True
                 self.fields["new_identifier"].required = False
-                self.fields["identifier"].initial = part_format
+                self.fields["identifier"].empty_label = None
+                self.fields["identifier"].initial = part_format.pk
+                self.fields["identifier"].widget.attrs.update(
+                    {"disable-selection": "true"}
+                )
+
+            # disable identifier if there aren't options
+            else:
+                if len(qs) <= 1:
+                    self.fields["identifier"].disabled = True
+                    self.fields["new_identifier"].required = True
+                else:
+                    qs = qs.exclude(pk=qs.first().pk)
+                    self.fields["identifier"].queryset = qs
 
         else:
             # if it's a new edition
