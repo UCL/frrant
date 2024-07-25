@@ -56,13 +56,16 @@
             {% if original_text.concordances.count != 0 %}
                 <em>{% trans 'old concordances:' %}</em>
                 {% for c in original_text.concordances.all%}
-                <small>{{c}}</small><span><form novalidate class='form-inline' action='{% url "concordance:delete_old" c.pk %}' method='POST'>
+                <div class='d-flex justify-content-between mb-3'>
+                <form novalidate class='form-inline' action='{% url "concordance:delete_old" c.pk %}' method='POST'>
                     {% csrf_token %}
-                    <div class='form-row align-items-center'>
+                    <small>{{c}}</small>
                         {% if perms.research.delete_concordance %}
                         <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
                             data-what='concordance'>{% trans 'Delete' %}</button>
-                        {% endif %}</span>
+                        {% endif %}
+                </form>
+                </div>
                 {% endfor %}
 
                 </div>
