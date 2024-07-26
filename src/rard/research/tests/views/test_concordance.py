@@ -51,26 +51,54 @@ class TestConcordanceViews(TestCase):
             "identifier": self.identifier,
         }
 
-    def test_success_urls(self):
-        views = [
-            # ConcordanceCreateView,  # fails for this because idk how the OT gets passed
-            #  differently on the frontend vs direct view. success url works through the GUI
-            ConcordanceUpdateView,
-        ]
-        for view_class in views:
-            view = view_class()
-            request = RequestFactory().get("/")
-            request.user = self.user
+    def test_creation_first_step(self):
+        url = reverse("concordance:create", kwargs={"pk": self.original_text.pk})
+        data = {
+            "edition": self.edition.pk,
+        }
 
-            view.request = request
-            view.object = ConcordanceModel.objects.create(
-                **self.creation_data,
-                original_text=self.original_text,
-            )
+        request = RequestFactory().post(url, data=data)
+        request.user = self.user
+        response = ConcordanceCreateView.as_view()(request, pk=self.original_text.pk)
+        self.assertFalse("id_new_edition" in response.content.decode())
+        self.assertTrue("id_new_identifier" in response.content.decode())
 
-            self.assertEqual(
-                view.get_success_url(), self.original_text.owner.get_absolute_url()
-            )
+    def test_creation_second_step(self):
+        url = reverse("concordance:create", kwargs={"pk": self.original_text.pk})
+        data = {
+            "reference": "55.l",
+            "content_type": "F",
+            "identifier": self.identifier.pk,
+            "concordance": True,
+            "edition": self.edition.pk,
+        }
+
+        request = RequestFactory().post(url, data=data)
+        request.user = self.user
+
+        # check no concordance previously associated with the original text
+        self.assertEqual(self.original_text.concordances.count(), 0)
+
+        response = ConcordanceCreateView.as_view()(request, pk=self.original_text.pk)
+        # check the new concordance is associated with the original text
+        self.assertEqual(self.original_text.concordance_models.count(), 1)
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(str(self.original_text.owner.pk), response["Location"])
+
+    def test_update_success_url(self):
+        view = ConcordanceUpdateView()
+        request = RequestFactory().get("/")
+        request.user = self.user
+
+        view.request = request
+        view.object = ConcordanceModel.objects.create(
+            **self.creation_data,
+            original_text=self.original_text,
+        )
+
+        self.assertEqual(
+            view.get_success_url(), self.original_text.owner.get_absolute_url()
+        )
 
     def test_delete_success_url(self):
         view = ConcordanceDeleteView()
@@ -236,27 +264,6 @@ class TestConcordanceViews(TestCase):
         self.assertEqual(len(response.context["page_obj"]), 1)
         # Check the name
         self.assertContains(response, "Romulus A1")
-
-    def test_create_view_with_original_text(self):
-        url = reverse("concordance:create", kwargs={"pk": self.original_text.pk})
-        data = {
-            "reference": "55.l",
-            "content_type": "F",
-            "identifier": self.identifier.pk,
-            "concordance": True,
-            "edition": self.edition.pk,
-        }
-
-        request = RequestFactory().post(url, data=data)
-        request.user = self.user
-
-        # check no concordance previously associated with the original text
-        self.assertEqual(self.original_text.concordances.count(), 0)
-
-        ConcordanceCreateView.as_view()(request, pk=self.original_text.pk)
-        self.original_text.refresh_from_db()
-        # check the new concordance is associated with the original text
-        self.assertEqual(self.original_text.concordance_models.count(), 1)
 
     def test_create_view_dispatch_creates_top_level_object(self):
         # dispatch method creates an attribute used by the
