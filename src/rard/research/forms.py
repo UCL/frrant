@@ -2,8 +2,10 @@ import re
 
 from django import forms
 from django.core.exceptions import FieldDoesNotExist
+from django.db.models import Count
 from django.forms import ModelMultipleChoiceField, inlineformset_factory
 from django.urls import reverse
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
 from rard.research.models import (
@@ -1254,3 +1256,66 @@ class ConcordanceModelUpdateForm(forms.ModelForm):
                 edition=self.instance.identifier.edition
             ).order_by("edition")
             self.fields["identifier"].queryset = qs
+
+
+class ConcordanceModelSearchForm(forms.Form):
+    class Meta:
+        fields = [
+            "antiquarian",
+            "work",
+            "identifier",
+            "edition",
+        ]
+        labels = {"identifier": "Part Identifier"}
+
+    ots_w_concordances = OriginalText.objects.annotate(
+        concordance_count=Count("concordance_models")
+    ).filter(concordance_count__gt=0)
+
+    antiquarians_w_concordances = set()
+    works_w_concordances = set()
+    for ot in ots_w_concordances:
+        for link in ot.owner.get_all_links():
+            if link.antiquarian:
+                antiquarians_w_concordances.add(link.antiquarian)
+            if link.work:
+                works_w_concordances.add(link.work)
+
+    a_qs = Antiquarian.objects.filter(
+        id__in=[a.id for a in antiquarians_w_concordances]
+    )
+    w_qs = Work.objects.filter(id__in=[w.id for w in works_w_concordances])
+    e_qs = (
+        Edition.objects.annotate(
+            concordance_count=Count("partidentifier__concordancemodel")
+        )
+        .filter(concordance_count__gt=0)
+        .order_by("name")
+    )
+    i_qs = (
+        PartIdentifier.objects.annotate(concordance_count=Count("concordancemodel"))
+        .filter(concordance_count__gt=0)
+        .order_by("edition", "display_order")
+    )
+
+    def label_w_badge(model, qs):
+        return mark_safe(
+            f"{model} filter <span class='badge badge-secondary'>{qs.count()}</span>"
+        )
+
+    antiquarian = forms.ModelChoiceField(
+        queryset=a_qs, required=False, label=label_w_badge("Antiquarian", a_qs)
+    )
+    work = forms.ModelChoiceField(
+        queryset=w_qs, required=False, label=label_w_badge("Work", w_qs)
+    )
+    identifier = forms.ModelChoiceField(
+        queryset=i_qs,
+        required=False,
+        label=label_w_badge("Part Identifier", i_qs),
+    )
+    edition = forms.ModelChoiceField(
+        queryset=e_qs,
+        required=False,
+        label=label_w_badge("Edition", e_qs),
+    )

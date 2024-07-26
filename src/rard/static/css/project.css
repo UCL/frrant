@@ -499,3 +499,9 @@ section.footnotes {
     max-width: 30vw;
   }
 }
+
+.concordance-search__wrapper {
+  .form-group {
+    margin-inline: 0.5rem;
+  }
+}
