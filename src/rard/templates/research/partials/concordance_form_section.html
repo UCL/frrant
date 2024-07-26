@@ -3,7 +3,7 @@
     {% csrf_token %}
 
     <h2>{% if is_update %}Update{% else %}Add{% endif %} Concordance Details</h2>
-        <strong>Edition: {{edition_description}}</strong>
+        <strong>Edition: {{edition_description}} {% if is_update %} {{identifier.edition.description}} {% endif %} </strong>
         {% if not is_update %}
         {% bootstrap_field concordance_form.edition %}
         {% endif %}

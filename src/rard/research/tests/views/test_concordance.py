@@ -50,6 +50,9 @@ class TestConcordanceViews(TestCase):
             "content_type": "F",
             "identifier": self.identifier,
         }
+        self.concordance = ConcordanceModel.objects.create(
+            **self.creation_data, original_text=self.original_text
+        )
 
     def test_creation_first_step(self):
         url = reverse("concordance:create", kwargs={"pk": self.original_text.pk})
@@ -75,15 +78,43 @@ class TestConcordanceViews(TestCase):
 
         request = RequestFactory().post(url, data=data)
         request.user = self.user
-
-        # check no concordance previously associated with the original text
-        self.assertEqual(self.original_text.concordances.count(), 0)
+        concordance_count = self.original_text.concordance_models.count()
 
         response = ConcordanceCreateView.as_view()(request, pk=self.original_text.pk)
         # check the new concordance is associated with the original text
-        self.assertEqual(self.original_text.concordance_models.count(), 1)
+        self.assertEqual(
+            self.original_text.concordance_models.count(), (concordance_count + 1)
+        )
+        # check it redirects to the owner
         self.assertEqual(response.status_code, 302)
         self.assertIn(str(self.original_text.owner.pk), response["Location"])
+
+    @pytest.mark.skip(reason="not working, unsure why; ask Tom")
+    def test_update_view(self):
+        # this doesn't work but I don't know why
+        data = {
+            "reference": "880",
+            "content_type": "T",
+            "concordance": True,
+        }
+
+        url = reverse("concordance:update", kwargs={"pk": self.concordance.pk})
+
+        request = RequestFactory().post(url, data=data)
+        request.user = self.user
+
+        # view = ConcordanceUpdateView()
+        # view.request = request
+        # view.object = self.concordance
+
+        # ConcordanceUpdateView.as_view()(request, **data, pk=self.concordance.pk)
+
+        self.concordance.refresh_from_db()
+
+        # Check that the concordance fields have been updated correctly
+        self.assertEqual(self.concordance.reference, "880")
+        self.assertEqual(self.concordance.content_type, "T")
+        self.assertEqual(1, 2)
 
     def test_update_success_url(self):
         view = ConcordanceUpdateView()
@@ -91,10 +122,7 @@ class TestConcordanceViews(TestCase):
         request.user = self.user
 
         view.request = request
-        view.object = ConcordanceModel.objects.create(
-            **self.creation_data,
-            original_text=self.original_text,
-        )
+        view.object = self.concordance
 
         self.assertEqual(
             view.get_success_url(), self.original_text.owner.get_absolute_url()
@@ -106,10 +134,7 @@ class TestConcordanceViews(TestCase):
         request.user = self.user
 
         view.request = request
-        view.object = ConcordanceModel.objects.create(
-            **self.creation_data,
-            original_text=self.original_text,
-        )
+        view.object = self.concordance
 
         self.assertEqual(
             view.get_success_url(), self.original_text.owner.get_absolute_url()
@@ -132,10 +157,7 @@ class TestConcordanceViews(TestCase):
         )
 
     def test_post_delete_only(self):
-        concordance = ConcordanceModel.objects.create(
-            **self.creation_data,
-            original_text=self.original_text,
-        )
+        concordance = self.concordance
 
         url = reverse("concordance:delete", kwargs={"pk": concordance.pk})
         request = RequestFactory().get(url)
@@ -163,10 +185,7 @@ class TestConcordanceViews(TestCase):
             ConcordanceCreateView.as_view()(request, pk=testimonium_original_text.pk)
 
     def test_update_context_data(self):
-        concordance = ConcordanceModel.objects.create(
-            **self.creation_data,
-            original_text=self.original_text,
-        )
+        concordance = self.concordance
         url = reverse("concordance:update", kwargs={"pk": concordance.pk})
         request = RequestFactory().get(url)
         request.user = self.user
@@ -281,10 +300,7 @@ class TestConcordanceViews(TestCase):
         # dispatch method creates an attribute used by the
         # locking mechanism so here we ensure it is created
 
-        concordance = ConcordanceModel.objects.create(
-            **self.creation_data,
-            original_text=self.original_text,
-        )
+        concordance = self.concordance
         request = RequestFactory().post("/")
         request.user = self.user
 
