@@ -26,6 +26,7 @@ from rard.research.models.base import (
     FragmentLink,
     TestimoniumLink,
 )
+from rard.research.models.text_object_field import TextObjectField
 
 
 def _validate_reference_order(ro):
@@ -365,6 +366,9 @@ class WorkForm(forms.ModelForm):
         if commit:
             instance.save_without_historical_record()
             # introduction will have been created at this point
+            if not instance.introduction:
+                instance.introduction = TextObjectField().objects.create(content="")
+                instance.save()
             instance.introduction.content = self.cleaned_data["introduction_text"]
             instance.introduction.save_without_historical_record()
         return instance
@@ -911,6 +915,7 @@ class BaseLinkWorkForm(forms.ModelForm):
             self.fields["work"].empty_label = None
             self.fields["book"].empty_label = None
 
+            print(args, kwargs)
             if "data" in kwargs:
                 # Get Work and Book from post data
                 if work_id := kwargs["data"]["work"]:
