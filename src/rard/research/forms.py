@@ -925,11 +925,11 @@ class BaseLinkWorkForm(forms.ModelForm):
             else:
                 # Get everything from initial
                 initial_data = kwargs["initial"]
-                antiquarian = initial_data["antiquarian"]
+                antiquarian = initial_data.get("antiquarian")
                 definite_antiquarian = initial_data.get("definite_antiquarian", False)
-                work = initial_data["work"]
+                work = initial_data.get("work")
                 definite_work = initial_data.get("definite_work", False)
-                book = kwargs["initial"]["book"]
+                book = initial_data.get("book")
 
         if antiquarian:
             self.fields["antiquarian"].initial = antiquarian
