@@ -923,8 +923,8 @@ class BaseLinkWorkForm(forms.ModelForm):
                     book = Book.objects.get(pk=book_id)
                 antiquarian = Antiquarian.objects.get(pk=kwargs["data"]["antiquarian"])
             else:
-                initial_data = kwargs["initial"]
                 # Get everything from initial
+                initial_data = kwargs["initial"]
                 antiquarian = initial_data["antiquarian"]
                 definite_antiquarian = initial_data.get("definite_antiquarian", False)
                 work = initial_data["work"]
