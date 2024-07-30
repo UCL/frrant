@@ -915,7 +915,6 @@ class BaseLinkWorkForm(forms.ModelForm):
             self.fields["work"].empty_label = None
             self.fields["book"].empty_label = None
 
-            print(args, kwargs)
             if "data" in kwargs:
                 # Get Work and Book from post data
                 if work_id := kwargs["data"]["work"]:
@@ -924,11 +923,12 @@ class BaseLinkWorkForm(forms.ModelForm):
                     book = Book.objects.get(pk=book_id)
                 antiquarian = Antiquarian.objects.get(pk=kwargs["data"]["antiquarian"])
             else:
+                initial_data = kwargs["initial"]
                 # Get everything from initial
-                antiquarian = kwargs["initial"]["antiquarian"]
-                definite_antiquarian = kwargs["initial"]["definite_antiquarian"]
-                work = kwargs["initial"]["work"]
-                definite_work = kwargs["initial"]["definite_work"]
+                antiquarian = initial_data["antiquarian"]
+                definite_antiquarian = initial_data.get("definite_antiquarian", False)
+                work = initial_data["work"]
+                definite_work = initial_data.get("definite_work", False)
                 book = kwargs["initial"]["book"]
 
         if antiquarian:
