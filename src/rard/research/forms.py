@@ -1263,28 +1263,13 @@ class ConcordanceModelSearchForm(forms.Form):
         fields = [
             "antiquarian",
             "work",
-            "identifier",
             "edition",
+            "identifier",
         ]
         labels = {"identifier": "Part Identifier"}
 
-    ots_w_concordances = OriginalText.objects.annotate(
-        concordance_count=Count("concordance_models")
-    ).filter(concordance_count__gt=0)
-
-    antiquarians_w_concordances = set()
-    works_w_concordances = set()
-    for ot in ots_w_concordances:
-        for link in ot.owner.get_all_links():
-            if link.antiquarian:
-                antiquarians_w_concordances.add(link.antiquarian)
-            if link.work:
-                works_w_concordances.add(link.work)
-
-    a_qs = Antiquarian.objects.filter(
-        id__in=[a.id for a in antiquarians_w_concordances]
-    )
-    w_qs = Work.objects.filter(id__in=[w.id for w in works_w_concordances])
+    a_qs = Antiquarian.objects.all()
+    w_qs = Work.objects.none()
     e_qs = (
         Edition.objects.annotate(
             concordance_count=Count("partidentifier__concordancemodel")
@@ -1304,18 +1289,42 @@ class ConcordanceModelSearchForm(forms.Form):
         )
 
     antiquarian = forms.ModelChoiceField(
-        queryset=a_qs, required=False, label=label_w_badge("Antiquarian", a_qs)
+        queryset=a_qs,
+        required=False,
+        label=label_w_badge("Antiquarian", a_qs),
+        widget=forms.Select(
+            attrs={
+                "hx-get": "/get-works/",
+                "hx-target": "#work-field",
+                "hx-trigger": "change",
+            }
+        ),
     )
     work = forms.ModelChoiceField(
-        queryset=w_qs, required=False, label=label_w_badge("Work", w_qs)
-    )
-    identifier = forms.ModelChoiceField(
-        queryset=i_qs,
+        queryset=w_qs,
         required=False,
-        label=label_w_badge("Part Identifier", i_qs),
+        label=label_w_badge("Work", w_qs),
+        help_text="Please select an antiquarian to search by work",
     )
     edition = forms.ModelChoiceField(
         queryset=e_qs,
         required=False,
         label=label_w_badge("Edition", e_qs),
     )
+    identifier = forms.ModelChoiceField(
+        queryset=i_qs,
+        required=False,
+        label=label_w_badge("Part Identifier", i_qs),
+    )
+
+    def __init__(self, *args, **kwargs):
+        antiquarian = kwargs.pop("antiquarian", None)
+        super().__init__(*args, **kwargs)
+
+        if antiquarian:
+            # maybe use htmx to listen to ant dropdown and do a get?
+            self.fields["work"].queryset = Work.objects.filter(antiquarian=antiquarian)
+            self.fields["work"].disabled = False
+            self.fields["work"].help_text = ""
+        else:
+            self.fields["work"].disabled = True

@@ -21,7 +21,9 @@ from rard.research.models import (
     OriginalText,
     PartIdentifier,
 )
+from rard.research.models.antiquarian import Antiquarian
 from rard.research.models.original_text import Concordance
+from rard.research.models.work import Work
 from rard.research.views.mixins import CheckLockMixin
 
 
@@ -32,18 +34,59 @@ class ConcordanceListView(LoginRequiredMixin, PermissionRequiredMixin, ListView)
     context_object_name = "concordance_list"
     form_class = ConcordanceModelSearchForm
 
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        query = self.request.GET.get("q")
-        if query:
-            queryset = queryset.filter(name__icontains=query)
+    def post(self, request, *args, **kwargs):
+        antiquarian = request.POST.get("antiquarian", None)
+        work = request.POST.get("work", None)
+        identifier = request.POST.get("identifier", None)
+        edition = request.POST.get("edition", None)
+        if any([antiquarian, work, identifier, edition]):
+            queryset = self.get_queryset()
+            context = self.get_context_data(results=queryset)
+            return render(
+                request, "research/partials/concordance_search_results.html", context
+            )
+
+    def get_works(self, antiquarian):
+        return Work.objects.filter(antiquarian=antiquarian)
+
+    def get_queryset(self, *args, **kwargs):
+        queryset = super().get_queryset()  # all concordance models
+        print("queryset", queryset)
+        antiquarian_pk = self.request.POST.get("antiquarian", None)
+        work_pk = self.request.POST.get("work", None)
+        identifier_pk = self.request.POST.get("identifier", None)
+        edition_pk = self.request.POST.get("edition", None)
+        results_qs = []
+        # form = ConcordanceModelSearchForm(self.request.POST)
+        if antiquarian_pk:
+            # get all links that are associated with that antiquarian, regardless of concordances
+            antiquarian = Antiquarian.objects.get(pk=antiquarian_pk)
+            results_qs = list(antiquarian.testimonia.all()) + list(
+                antiquarian.ordered_fragments()
+            )
+
+            if work_pk:
+                print("work pk")
+                # work can only be selected if antiquarian has been selected
+                work = Work.objects.get(pk=work_pk)
+                results_qs = work.all_testimonia().union(work.all_fragments())
+
+        elif edition_pk or identifier_pk:
+            if edition_pk:
+                results_qs = queryset.filter(edition=edition_pk)
+            if identifier_pk:
+                results_qs = queryset.filter(identifier=identifier_pk)
+
         else:
-            queryset = queryset.none()
-        return queryset
+            results_qs = queryset.none()
+
+        print(results_qs)
+        return results_qs
 
     def get_context_data(self, **kwargs):
+        print("context kwargs", kwargs)
+        self.object_list = self.queryset
         context = super().get_context_data(**kwargs)
-        context["query"] = self.request.GET.get("q", "")
         context["form"] = self.form_class
         return context
 
