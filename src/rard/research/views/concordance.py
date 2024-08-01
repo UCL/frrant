@@ -64,19 +64,17 @@ class ConcordanceListView(LoginRequiredMixin, PermissionRequiredMixin, ListView)
 
     def get_queryset(self, *args, **kwargs):
         queryset = super().get_queryset()  # all concordance models
-        # print("queryset", queryset)
         antiquarian_pk = self.request.POST.get("antiquarian", None)
         work_pk = self.request.POST.get("work", None)
         identifier_pk = self.request.POST.get("identifier", None)
         edition_pk = self.request.POST.get("edition", None)
         results_qs = []
 
-        # form = ConcordanceModelSearchForm(self.request.POST)
         if antiquarian_pk:
             # get all links that are associated with that antiquarian, regardless of concordances
             antiquarian = Antiquarian.objects.get(pk=antiquarian_pk)
             results = list(antiquarian.testimonia.all()) + list(
-                antiquarian.ordered_fragments().order_by("name")
+                antiquarian.ordered_fragments()
             )
             filtered_concordances = [
                 concordance
@@ -86,10 +84,13 @@ class ConcordanceListView(LoginRequiredMixin, PermissionRequiredMixin, ListView)
             results_qs = {"frrant": results, "concordances": filtered_concordances}
 
             if work_pk:
-                print("work pk")
                 # work can only be selected if antiquarian has been selected
                 work = Work.objects.get(pk=work_pk)
-                results_qs = work.all_testimonia().union(work.all_fragments())
+                results = list(work.all_testimonia()) + list(work.all_fragments())
+                filtered_concordances = [
+                    concordance for concordance in queryset if work in concordance.works
+                ]
+                results_qs = {"frrant": results, "concordances": filtered_concordances}
 
         elif edition_pk or identifier_pk:
             # also sort by this rather than by the frrant thing

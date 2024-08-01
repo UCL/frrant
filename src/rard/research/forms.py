@@ -1304,7 +1304,7 @@ class ConcordanceModelSearchForm(forms.Form):
         queryset=w_qs,
         required=False,
         label=label_w_badge("Work", w_qs),
-        help_text="Please select an antiquarian to search by work",
+        help_text="Select an antiquarian to search by work",
     )
     edition = forms.ModelChoiceField(
         queryset=e_qs,

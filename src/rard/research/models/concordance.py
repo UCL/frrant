@@ -67,6 +67,6 @@ class ConcordanceModel(HistoryModelMixin, BaseModel):
         links = self.original_text.owner.get_all_links()
         works = set()
         for link in links:
-            if link.antiquarian:
-                works.add(link.antiquarian)
+            if link.work:
+                works.add(link.work)
         return works

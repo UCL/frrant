@@ -1,5 +1,5 @@
 {% extends "research/list_base.html" %}
-{% load i18n bootstrap4 %}
+{% load i18n bootstrap4 static %}
 {% block title %}
     {% trans 'Concordances' %}
 {% endblock %}
@@ -13,6 +13,8 @@
 {% block displaying %}{% endblock %}
 
 {% block inner %}
+
+<script src="{% static 'js/concordanceSearchScripts.js' %} "></script>
 <div>
   <p>
     Searching by Antiquarian or Work will return results regardless of existing concordances. Please note that when searching by Edition or Part Identifier the options available to search have associated concordances. Options with no associated concordances have been hidden.</p>
@@ -20,42 +22,18 @@
 
 <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='GET' id="concordance-search__form" hx-post="{{ request.path }}" hx-target="#concordance-search__results" hx-trigger="change from:select">
   {% csrf_token %}
+  <div class="mb-2 d-flex row justify-content-end"><button type="reset" onclick="disableWork()" class="btn btn-sm btn-outline-danger">Reset selections</button>
+  </div>
   <div class="d-flex row mx-3 concordance-search__wrapper">
   {% bootstrap_form form %}
+
   </div>
 </form>
-<script>
-  document.getElementById("id_antiquarian").addEventListener("change", enableWork);
 
-  const workSelectElem = document.getElementById("id_work");
-
-  const workObserver = new MutationObserver(function(mutations) {
-    mutations.forEach(function(mutation) {
-        if (mutation.type === 'childList') {
-            updateLabel(workSelectElem);
-        }
-    });
-  });
-
-  const config = {
-      childList: true,
-      subtree: false
-  };
-  workObserver.observe(workSelectElem, config);
-
-  function enableWork(){
-    workSelectElem.disabled = false;
-  }
-  function updateLabel(elem){
-    var optionCount = 0
-    var options = elem.querySelectorAll('option');
-    optionCount = options.length;
-    var label = document.querySelector(`label[for="${elem.id}"]>span`)
-    label.textContent = optionCount - 1 // don't include the blank
-
-  }
-</script>
-<div id="concordance-search__results">
+<div id="concordance-search__results" class="my-3 pb-2">
+  <div class="loader-wrapper">
+  <div class="loader" id="loader"></div>
+  </div>
   {% comment %} todo: use db for results then fuse to search within those {% endcomment %}
 </div>
 
