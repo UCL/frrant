@@ -225,7 +225,7 @@ class TestimoniumUpdateWorkLinkView(
         data = form.cleaned_data
         self.object = self.get_object()
         if "cancel" in self.request.POST:
-            return reverse("fragment:detail", kwargs={"pk": self.fragment.pk})
+            return reverse("testimonium:detail", kwargs={"pk": self.testimonium.pk})
         else:
             self.object.definite_antiquarian = data["definite_antiquarian"]
             self.object.definite_work = data["definite_work"]
