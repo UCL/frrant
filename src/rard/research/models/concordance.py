@@ -52,3 +52,21 @@ class ConcordanceModel(HistoryModelMixin, BaseModel):
     content_type = models.CharField(max_length=5, choices=TYPE_CHOICES)
     reference = models.CharField(max_length=15, blank=True)
     concordance_order = models.CharField(max_length=15, blank=True)
+
+    @property
+    def antiquarians(self):
+        links = self.original_text.owner.get_all_links()
+        aqs = set()
+        for link in links:
+            if link.antiquarian:
+                aqs.add(link.antiquarian)
+        return aqs
+
+    @property
+    def works(self):
+        links = self.original_text.owner.get_all_links()
+        works = set()
+        for link in links:
+            if link.antiquarian:
+                works.add(link.antiquarian)
+        return works

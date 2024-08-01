@@ -51,6 +51,7 @@ from .concordance import (
     ConcordanceListView,
     ConcordanceUpdateView,
     OldConcordanceDeleteView,
+    fetch_works,
 )
 from .fragment import (
     AddAppositumAnonymousLinkView,
@@ -271,4 +272,5 @@ __all__ = [
     "WorkUpdateIntroductionView",
     "WorkIntroductionView",
     "fetch_books",
+    "fetch_works",
 ]

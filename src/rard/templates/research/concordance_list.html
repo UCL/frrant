@@ -17,15 +17,46 @@
   <p>
     Searching by Antiquarian or Work will return results regardless of existing concordances. Please note that when searching by Edition or Part Identifier the options available to search have associated concordances. Options with no associated concordances have been hidden.</p>
 </div>
+
 <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='GET' id="concordance-search__form" hx-post="{{ request.path }}" hx-target="#concordance-search__results" hx-trigger="change from:select">
   {% csrf_token %}
   <div class="d-flex row mx-3 concordance-search__wrapper">
   {% bootstrap_form form %}
   </div>
 </form>
+<script>
+  document.getElementById("id_antiquarian").addEventListener("change", enableWork);
 
+  const workSelectElem = document.getElementById("id_work");
+
+  const workObserver = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+        if (mutation.type === 'childList') {
+            updateLabel(workSelectElem);
+        }
+    });
+  });
+
+  const config = {
+      childList: true,
+      subtree: false
+  };
+  workObserver.observe(workSelectElem, config);
+
+  function enableWork(){
+    workSelectElem.disabled = false;
+  }
+  function updateLabel(elem){
+    var optionCount = 0
+    var options = elem.querySelectorAll('option');
+    optionCount = options.length;
+    var label = document.querySelector(`label[for="${elem.id}"]>span`)
+    label.textContent = optionCount - 1 // don't include the blank
+
+  }
+</script>
 <div id="concordance-search__results">
-  {% comment %} use db for results then fuse to search within those {% endcomment %}
+  {% comment %} todo: use db for results then fuse to search within those {% endcomment %}
 </div>
 
 {% endblock %}

@@ -1294,8 +1294,8 @@ class ConcordanceModelSearchForm(forms.Form):
         label=label_w_badge("Antiquarian", a_qs),
         widget=forms.Select(
             attrs={
-                "hx-get": "/get-works/",
-                "hx-target": "#work-field",
+                "hx-get": "/concordance/fetch-works/",
+                "hx-target": "#id_work",
                 "hx-trigger": "change",
             }
         ),
@@ -1322,9 +1322,9 @@ class ConcordanceModelSearchForm(forms.Form):
         super().__init__(*args, **kwargs)
 
         if antiquarian:
-            # maybe use htmx to listen to ant dropdown and do a get?
             self.fields["work"].queryset = Work.objects.filter(antiquarian=antiquarian)
-            self.fields["work"].disabled = False
             self.fields["work"].help_text = ""
         else:
-            self.fields["work"].disabled = True
+            self.fields["work"].widget.attrs.update(
+                {"disabled": "true"}
+            )  # makes it easier to update from js

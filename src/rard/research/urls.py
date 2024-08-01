@@ -528,6 +528,11 @@ urlpatterns = [
                 [
                     path("list/", views.ConcordanceListView.as_view(), name="list"),
                     path(
+                        "fetch-works/",
+                        views.fetch_works,
+                        name="fetch_works",
+                    ),
+                    path(
                         "original-text/<pk>/create/",
                         views.ConcordanceCreateView.as_view(),
                         name="create",

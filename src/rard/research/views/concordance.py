@@ -1,5 +1,5 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -27,12 +27,28 @@ from rard.research.models.work import Work
 from rard.research.views.mixins import CheckLockMixin
 
 
+def fetch_works(request):
+    antiquarian = request.GET.get("antiquarian")
+    works = Work.objects.filter(antiquarian=antiquarian)
+
+    empty_option = '<option value="">Select work</option>'
+
+    # Create options for each work
+    work_options = "".join(
+        [f'<option value="{work.id}">{work.name}</option>' for work in works]
+    )
+
+    options = empty_option + work_options
+    return HttpResponse(options)
+
+
 class ConcordanceListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     permission_required = "research.view_concordance"
     model = ConcordanceModel
     template_name = "research/concordance_list.html"
     context_object_name = "concordance_list"
     form_class = ConcordanceModelSearchForm
+    sort_by_antiquarian = True
 
     def post(self, request, *args, **kwargs):
         antiquarian = request.POST.get("antiquarian", None)
@@ -46,24 +62,28 @@ class ConcordanceListView(LoginRequiredMixin, PermissionRequiredMixin, ListView)
                 request, "research/partials/concordance_search_results.html", context
             )
 
-    def get_works(self, antiquarian):
-        return Work.objects.filter(antiquarian=antiquarian)
-
     def get_queryset(self, *args, **kwargs):
         queryset = super().get_queryset()  # all concordance models
-        print("queryset", queryset)
+        # print("queryset", queryset)
         antiquarian_pk = self.request.POST.get("antiquarian", None)
         work_pk = self.request.POST.get("work", None)
         identifier_pk = self.request.POST.get("identifier", None)
         edition_pk = self.request.POST.get("edition", None)
         results_qs = []
+
         # form = ConcordanceModelSearchForm(self.request.POST)
         if antiquarian_pk:
             # get all links that are associated with that antiquarian, regardless of concordances
             antiquarian = Antiquarian.objects.get(pk=antiquarian_pk)
-            results_qs = list(antiquarian.testimonia.all()) + list(
-                antiquarian.ordered_fragments()
+            results = list(antiquarian.testimonia.all()) + list(
+                antiquarian.ordered_fragments().order_by("name")
             )
+            filtered_concordances = [
+                concordance
+                for concordance in queryset
+                if antiquarian in concordance.antiquarians
+            ]
+            results_qs = {"frrant": results, "concordances": filtered_concordances}
 
             if work_pk:
                 print("work pk")
@@ -72,6 +92,8 @@ class ConcordanceListView(LoginRequiredMixin, PermissionRequiredMixin, ListView)
                 results_qs = work.all_testimonia().union(work.all_fragments())
 
         elif edition_pk or identifier_pk:
+            # also sort by this rather than by the frrant thing
+            self.sort_by_antiquarian = False
             if edition_pk:
                 results_qs = queryset.filter(edition=edition_pk)
             if identifier_pk:
@@ -85,9 +107,12 @@ class ConcordanceListView(LoginRequiredMixin, PermissionRequiredMixin, ListView)
 
     def get_context_data(self, **kwargs):
         print("context kwargs", kwargs)
+
         self.object_list = self.queryset
         context = super().get_context_data(**kwargs)
         context["form"] = self.form_class
+        if self.sort_by_antiquarian is True:
+            context["ant_sort"] = True
         return context
 
 
@@ -211,7 +236,7 @@ class ConcordanceCreateView(
         concordance_form=None,
         edition_description=None,
         *args,
-        **kwargs
+        **kwargs,
     ):
         return {
             "edition_form": edition_form,

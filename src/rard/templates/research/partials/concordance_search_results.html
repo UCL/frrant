@@ -1,4 +1,58 @@
+{% if ant_sort %}
+<div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th scope="col">FRRAnt</th>
+          <th scope="col">Authors {{ forloop.counter }}</th>
+        </tr>
+      </thead>
+      <tbody class='alphabetum'>
+        {% for item in results.frrant %}
+          <tr>
+              <td>
+                  <a href='{{ item.get_absolute_url }}'>{{ item }}</a>
+              </td>
 
-{% for result in results %}
-{{result}}
-{% endfor %}
+            {% for concordance in results.concordances %}
+              <td {% if forloop.last %}{% if forloop.counter < max_length %}colspan='{{ max_length }}'{% endif %}{% endif %}>
+                {% if concordance.original_text in item.original_texts.all %}
+                {{ concordance }}
+                {% endif %}
+              </td>
+          {% endfor %}
+            </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+</div>
+{% else %}
+{% comment %} if it was an edition/PI search {% endcomment %}
+<div class="table-responsive">
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th scope="col">Author</th>
+          <th scope="col">FRRAnt {{ forloop.counter }}</th>
+        </tr>
+      </thead>
+      <tbody class='alphabetum'>
+        {% for item in results.frrant %}
+          <tr>
+              <td>
+                  <a href='{{ item.get_absolute_url }}'>{{ item }}</a>
+              </td>
+
+            {% for concordance in results.concordances %}
+              <td {% if forloop.last %}{% if forloop.counter < max_length %}colspan='{{ max_length }}'{% endif %}{% endif %}>
+                {% if concordance.original_text in item.original_texts.all %}
+                {{ concordance }}
+                {% endif %}
+              </td>
+          {% endfor %}
+            </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+</div>
+{% endif %}
