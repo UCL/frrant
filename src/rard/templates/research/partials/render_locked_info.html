@@ -80,8 +80,11 @@
                         {% endif %}
 
                         <hr class="m-1">
-
+                        <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form"
+                        method='POST'>
+                        {% csrf_token %}
                         <button type='submit' class='btn btn-link text-primary' name='unlock'>Finish Editing</button>
+                        </form>
                     </div>
                 </div>
                 {% else %}
