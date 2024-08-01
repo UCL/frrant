@@ -571,19 +571,19 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
         related_name="%(class)s_duplicate_anonfragments",
     )
 
+    # if converted to a testimonium, we want to transfer duplicates
+    duplicate_ts = models.ManyToManyField(
+        "Testimonium",
+        blank=True,
+        related_name="%(class)s_duplicate_ts",
+    )
+
     @property
     def duplicates_list(self):
         duplicates = list(self.duplicate_frags.all())
         duplicates.extend(self.duplicate_afs.all())
-        if hasattr(self, "fragment_duplicate_fragments"):
-            duplicates.extend(self.fragment_duplicate_fragments.all())
-        if hasattr(self, "anonymousfragment_duplicate_fragments"):
-            duplicates.extend(self.anonymousfragment_duplicate_fragments.all())
-        if hasattr(self, "fragment_duplicate_anonfragments"):
-            duplicates.extend(self.fragment_duplicate_anonfragments.all())
-        if hasattr(self, "anonymousfragment_duplicate_anonfragments"):
-            duplicates.extend(self.anonymousfragment_duplicate_anonfragments.all())
-        return list(set(duplicates))
+        duplicates.extend(self.duplicate_ts.all())
+        return duplicates
 
     def __str__(self):
         return self.get_display_name()

@@ -26,6 +26,7 @@ from rard.research.models.base import (
     FragmentLink,
     TestimoniumLink,
 )
+from rard.research.models.text_object_field import TextObjectField
 
 
 def _validate_reference_order(ro):
@@ -365,6 +366,9 @@ class WorkForm(forms.ModelForm):
         if commit:
             instance.save_without_historical_record()
             # introduction will have been created at this point
+            if not instance.introduction:
+                instance.introduction = TextObjectField().objects.create(content="")
+                instance.save()
             instance.introduction.content = self.cleaned_data["introduction_text"]
             instance.introduction.save_without_historical_record()
         return instance
@@ -920,11 +924,12 @@ class BaseLinkWorkForm(forms.ModelForm):
                 antiquarian = Antiquarian.objects.get(pk=kwargs["data"]["antiquarian"])
             else:
                 # Get everything from initial
-                antiquarian = kwargs["initial"]["antiquarian"]
-                definite_antiquarian = kwargs["initial"]["definite_antiquarian"]
-                work = kwargs["initial"]["work"]
-                definite_work = kwargs["initial"]["definite_work"]
-                book = kwargs["initial"]["book"]
+                initial_data = kwargs["initial"]
+                antiquarian = initial_data.get("antiquarian")
+                definite_antiquarian = initial_data.get("definite_antiquarian", False)
+                work = initial_data.get("work")
+                definite_work = initial_data.get("definite_work", False)
+                book = initial_data.get("book")
 
         if antiquarian:
             self.fields["antiquarian"].initial = antiquarian
