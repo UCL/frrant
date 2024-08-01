@@ -40,19 +40,16 @@
         </tr>
       </thead>
       <tbody class='alphabetum'>
-        {% for item in results.frrant %}
+        {% for item in results %}
           <tr>
-              <td>
-                  <a href='{{ item.get_absolute_url }}'>{{ item }}</a>
+             <td {% if forloop.last %}{% if forloop.counter < max_length %}colspan='{{ max_length }}'{% endif %}{% endif %}>
+                {{item}}
               </td>
 
-            {% for concordance in results.concordances %}
-              <td {% if forloop.last %}{% if forloop.counter < max_length %}colspan='{{ max_length }}'{% endif %}{% endif %}>
-                {% if concordance.original_text in item.original_texts.all %}
-                {{ concordance }}
-                {% endif %}
+              <td>
+                  <a href='{{ item.original_text.owner.get_absolute_url }}'>{{ item.original_text.owner }}</a>
               </td>
-          {% endfor %}
+
             </tr>
         {% endfor %}
       </tbody>

@@ -1,10 +1,14 @@
 from django.db import models
+from django.db.models import Case, IntegerField, When
 
 from rard.research.models.mixins import HistoryModelMixin
 from rard.utils.basemodel import BaseModel
 
 
 class PartIdentifier(HistoryModelMixin, BaseModel):
+    class Meta:
+        ordering = ["edition__name", "value"]
+
     def __str__(self):
         return f"{self.edition.name}: {self.value}"
 
@@ -70,3 +74,16 @@ class ConcordanceModel(HistoryModelMixin, BaseModel):
             if link.work:
                 works.add(link.work)
         return works
+
+    @classmethod
+    def get_ordered_queryset(cls):
+        return cls.objects.order_by("identifier").order_by(
+            Case(
+                When(content_type="T", then=0),
+                When(content_type="F", then=1),
+                When(content_type="App", then=2),
+                When(content_type="P.", then=3),
+                When(content_type="NA", then=4),
+                output_field=IntegerField(),
+            )
+        )

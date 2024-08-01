@@ -95,8 +95,14 @@ class ConcordanceListView(LoginRequiredMixin, PermissionRequiredMixin, ListView)
         elif edition_pk or identifier_pk:
             # also sort by this rather than by the frrant thing
             self.sort_by_antiquarian = False
+            # todo:
             if edition_pk:
-                results_qs = queryset.filter(edition=edition_pk)
+                results_qs = (
+                    queryset.filter(identifier__edition=edition_pk)
+                    .order_by("identifier__display_order")
+                    .get_ordered_queryset()
+                )
+                # also change the identifier ops
             if identifier_pk:
                 results_qs = queryset.filter(identifier=identifier_pk)
 
