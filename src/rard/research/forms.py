@@ -1283,6 +1283,7 @@ class ConcordanceModelSearchForm(forms.Form):
         .order_by("edition", "display_order")
     )
 
+    @staticmethod  # prevents testing error
     def label_w_badge(model, qs):
         return mark_safe(
             f"{model} filter <span class='badge badge-secondary'>{qs.count()}</span>"
@@ -1291,7 +1292,6 @@ class ConcordanceModelSearchForm(forms.Form):
     antiquarian = forms.ModelChoiceField(
         queryset=a_qs,
         required=False,
-        label=label_w_badge("Antiquarian", a_qs),
         widget=forms.Select(
             attrs={
                 "hx-get": "/concordance/fetch-works/",
@@ -1303,13 +1303,11 @@ class ConcordanceModelSearchForm(forms.Form):
     work = forms.ModelChoiceField(
         queryset=w_qs,
         required=False,
-        label=label_w_badge("Work", w_qs),
         help_text="Select an antiquarian to search by work",
     )
     edition = forms.ModelChoiceField(
         queryset=e_qs,
         required=False,
-        label=label_w_badge("Edition", e_qs),
         widget=forms.Select(
             attrs={
                 "hx-get": "/concordance/fetch-parts/",
@@ -1321,12 +1319,18 @@ class ConcordanceModelSearchForm(forms.Form):
     identifier = forms.ModelChoiceField(
         queryset=i_qs,
         required=False,
-        label=label_w_badge("Part Identifier", i_qs),
     )
 
     def __init__(self, *args, **kwargs):
         antiquarian = kwargs.pop("antiquarian", None)
         super().__init__(*args, **kwargs)
+        # setting labels here to avoid test errors
+        self.fields["antiquarian"].label = self.label_w_badge("Antiquarian", self.a_qs)
+        self.fields["work"].label = self.label_w_badge("Work", self.w_qs)
+        self.fields["edition"].label = self.label_w_badge("Edition", self.e_qs)
+        self.fields["identifier"].label = self.label_w_badge(
+            "Part Identifier", self.i_qs
+        )
 
         if antiquarian:
             self.fields["work"].queryset = Work.objects.filter(antiquarian=antiquarian)

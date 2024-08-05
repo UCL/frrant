@@ -195,11 +195,12 @@ class TestConcordanceViews(TestCase):
             response.context_data["original_text"], concordance.original_text
         )
 
-    # def test_empty_concordance_list_view(self):
-    #     url = reverse("concordance:list")
-    #     self.client.force_login(self.user)
-    #     response = self.client.get(url)
-    #     self.assertEqual(response.status_code, 200)
+    def test_empty_concordance_list_view(self):
+        url = reverse("concordance:list")
+        self.client.force_login(self.user)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
     @pytest.mark.skip(reason="Haven't dealt with list view yet")
     def test_concordance_response_data(self):
         # Create a concordance and fragment link so something will be returned
