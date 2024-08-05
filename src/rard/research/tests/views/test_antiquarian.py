@@ -231,10 +231,7 @@ class TestAntiquarianUpdateIntroductionView(TestCase):
         post_request.user = self.request.user
         AntiquarianUpdateIntroductionView.as_view()(post_request, pk=ant_pk)
 
-        view = AntiquarianUpdateIntroductionView.as_view()(
-            self.request, pk=self.antiquarian.pk
-        )
-
-        intro = view.context_data["object"].introduction
+        self.antiquarian.refresh_from_db()
+        intro = self.antiquarian.introduction
         self.assertTrue(bool(intro.content))
         self.assertEqual(intro.content, intro_text)
