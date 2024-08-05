@@ -129,7 +129,6 @@
     </div>
     </section>
 
-
     {% if perms.research.change_testimonium and has_object_lock %}
     <br>
     <section class="public-commentary-section">
@@ -198,6 +197,11 @@
 
     {% include 'research/partials/section/mentions_section.html' with object=object obj_name="testimonium" %}
 
+    {% endif %}
+
+    {% if object.duplicates_list %}
+    <hr>
+    {% include 'research/partials/section/duplicates_section.html' with object=object %}
     {% endif %}
 
 

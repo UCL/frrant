@@ -1,3 +1,4 @@
+from bs4 import BeautifulSoup
 from django.contrib.auth.context_processors import PermWrapper
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.core.exceptions import BadRequest, ObjectDoesNotExist
@@ -58,6 +59,7 @@ from rard.utils.convertors import (
     convert_anonymous_fragment_to_fragment,
     convert_unlinked_fragment_to_anonymous_fragment,
     convert_unlinked_fragment_to_testimonium,
+    transfer_duplicates,
 )
 from rard.utils.duplication import (
     copy_concordances_apcrit_and_translations,
@@ -1213,6 +1215,7 @@ def duplicate_fragment(request, pk, model_name):
                 original_text=new_original_text,
             )
         copy_concordances_apcrit_and_translations(text, new_original_text)
+
     # Create a new fragment with the same values as original
     new_fragment_data = {}
     for field in original_fragment._meta.fields:
@@ -1239,16 +1242,11 @@ def duplicate_fragment(request, pk, model_name):
     if not model_name == "testimonium":
         new_fragment.topics.set(original_fragment.topics.all())
 
-    # add duplication relationships
-    if original_fragment.duplicates_list:
-        for frag in original_fragment.duplicate_frags.all():
-            new_fragment.duplicate_frags.add(frag)
-        for af in original_fragment.duplicate_afs.all():
-            new_fragment.duplicate_afs.add(af)
-        for tes in original_fragment.duplicate_ts.all():
-            new_fragment.duplicate_ts.add(tes)
-
+    # Add original fragment's duplication relationships to new fragment
+    transfer_duplicates(original_fragment, new_fragment)
+    # Make new a duplicate of original
     original_fragment.duplicate_frags.add(new_fragment)
+    # Make original a duplicate of new
     if model_name == "fragment":
         new_fragment.duplicate_frags.add(original_fragment)
     elif model_name == "anonymousfragment":
