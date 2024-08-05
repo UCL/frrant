@@ -26,6 +26,11 @@ class TranslationCreateView(
     def get_success_url(self, *args, **kwargs):
         return self.top_level_object.get_absolute_url()
 
+    def get_form(self, *args, **kwargs):
+        form = super().get_form(*args, **kwargs)
+        form.fields["translated_text"].widget.attrs["class"] = "enableCKEditor"
+        return form
+
     def form_valid(self, form):
         translation = form.save(commit=False)
         translation.original_text = self.get_original_text()
@@ -56,6 +61,11 @@ class TranslationUpdateView(
     model = Translation
     fields = ["translated_text", "translator_name", "approved"]
     permission_required = ("research.change_translation",)
+
+    def get_form(self, *args, **kwargs):
+        form = super().get_form(*args, **kwargs)
+        form.fields["translated_text"].widget.attrs["class"] = "enableCKEditor"
+        return form
 
     def dispatch(self, request, *args, **kwargs):
         # need to ensure we have the lock object view attribute

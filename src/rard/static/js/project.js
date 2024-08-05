@@ -144,10 +144,15 @@ $("body").on("submit", "form", function (e) {
       let what = $clicked.data("what") || "object";
       let confirmMsg = "Are you sure you want to convert this " + what + "?";
       if ($clicked.hasClass("has-links")) {
-        confirmMsg +=
-          " This " +
-          what +
-          " has existing links to antiquarians or works which will also be converted.";
+        if (what == "testimonium") {
+          confirmMsg +=
+            "This testimonium has links that will not be carried over to the fragment.";
+        } else {
+          confirmMsg +=
+            " This " +
+            what +
+            " has existing links to antiquarians or works which will also be converted.";
+        }
       }
       confirmMsg += " This cannot be undone.";
       return confirm(confirmMsg);
@@ -193,284 +198,6 @@ $("body").on("submit", "form", function (e) {
   $(this).data("submitted", true);
 });
 
-Quill.register("modules/mention", quillMention, true);
-var icons = Quill.import("ui/icons");
-// import fontawesome button icons
-icons["undo"] =
-  '<i class="fa fa-undo fa-xs align-text-top" aria-hidden="true"></i>';
-icons["redo"] =
-  '<i class="fa fa-redo fa-xs align-text-top" aria-hidden="true"></i>';
-// and for the custom buttons
-icons["vinculum_on"] = "V\u0305";
-icons["vinculum_off"] = "V";
-icons["underdot_on"] = "U\u0323";
-icons["underdot_off"] = "U";
-icons["footnote"] = '<i class="far fa-comment-alt"></i>';
-icons["table"] = '<i class="fas fa-table">+</i>';
-
-async function suggestPeople(searchTerm) {
-  // call backend synchonously here and wait
-  let matches = [];
-  await $.ajax({
-    url: `${g_mention_url}?q=${searchTerm}`,
-    type: "GET",
-    context: document.body,
-    dataType: "json",
-    async: false,
-    success: function (data, textStatus, jqXHR) {
-      matches = data;
-    },
-    error: function (e) {},
-  });
-  return matches;
-}
-
-async function getApparatusCriticusLines(searchTerm, object_id, object_class) {
-  // call backend synchonously here and wait
-  let matches = [];
-  await $.ajax({
-    url: `${g_apparatus_criticus_url}?q=${searchTerm}&object_id=${object_id}&object_class=${object_class}`,
-    type: "GET",
-    context: document.body,
-    dataType: "json",
-    async: false,
-    success: function (data, textStatus, jqXHR) {
-      // console.log("success " + data);
-      matches = data;
-    },
-    error: function (e) {
-      console.log("error " + e);
-    },
-  });
-  return matches;
-}
-
-function initRichTextEditor($item) {
-  let config = {
-    theme: "snow",
-    history: {
-      delay: 1000,
-      maxStack: 1000,
-      userOnly: false,
-    },
-    modules: {
-      toolbar: {
-        container: [
-          [{ undo: "undo" }, { redo: "redo" }],
-          ["bold", "italic", "underline", "strike"],
-          [{ vinculum_on: "vinculum_on" }, { vinculum_off: "vinculum_off" }],
-          [{ underdot_on: "underdot_on" }, { underdot_off: "underdot_off" }],
-          [{ script: "super" }, { script: "sub" }],
-          [{ list: "ordered" }, { list: "bullet" }],
-          [{ align: [] }],
-          ["clean"],
-          ["footnote"],
-          ["table"],
-          [
-            {
-              edit_table: [
-                "add_row",
-                "add_column",
-                "delete_row",
-                "delete_column",
-              ],
-            },
-          ],
-        ],
-        handlers: {
-          footnote: function () {
-            this.quill.modules.footnote.insertFootnote();
-          },
-          table: function (value) {
-            this.quill.modules.table.insertTable();
-          },
-          edit_table: function (value) {
-            console.log(value);
-            if (value == "add_row") {
-              this.quill.modules.table.insertRow();
-            } else if (value == "add_column") {
-              this.quill.modules.table.insertColumn();
-            } else if (value == "delete_row") {
-              this.quill.modules.table.deleteRow();
-            } else if (value == "delete_column") {
-              this.quill.modules.table.deleteColumn();
-            }
-          },
-          undo: function (value) {
-            this.quill.history.undo();
-          },
-          redo: function (value) {
-            this.quill.history.redo();
-          },
-          vinculum_on: function (value) {
-            var range = this.quill.getSelection();
-            if (range) {
-              if (range.length > 0) {
-                var text = this.quill.getText(range.index, range.length);
-                let html = "";
-                for (let i = 0; i < text.length; i++) {
-                  html += text[i] + "\u0305";
-                }
-                this.quill.deleteText(range.index, range.length);
-                this.quill.insertText(range.index, html);
-              }
-            }
-          },
-          vinculum_off: function (value) {
-            var range = this.quill.getSelection();
-            if (range) {
-              if (range.length > 0) {
-                var text = this.quill.getText(range.index, range.length);
-
-                let html = "";
-                for (let i = 0; i < text.length; i++) {
-                  if (text[i] != "\u0305") {
-                    html += text[i];
-                  }
-                }
-                this.quill.deleteText(range.index, range.length);
-                this.quill.insertText(range.index, html);
-              }
-            }
-          },
-          underdot_on: function (value) {
-            var range = this.quill.getSelection();
-            if (range) {
-              if (range.length > 0) {
-                var text = this.quill.getText(range.index, range.length);
-                let html = "";
-                for (let i = 0; i < text.length; i++) {
-                  html += text[i] + "\u0323";
-                }
-                this.quill.deleteText(range.index, range.length);
-                this.quill.insertText(range.index, html);
-              }
-            }
-          },
-          underdot_off: function (value) {
-            var range = this.quill.getSelection();
-            if (range) {
-              if (range.length > 0) {
-                var text = this.quill.getText(range.index, range.length);
-
-                let html = "";
-                for (let i = 0; i < text.length; i++) {
-                  if (text[i] != "\u0323") {
-                    html += text[i];
-                  }
-                }
-                this.quill.deleteText(range.index, range.length);
-                this.quill.insertText(range.index, html);
-              }
-            }
-          },
-        },
-      },
-      footnote: true,
-      table: true,
-    },
-  };
-
-  if (
-    $item.hasClass("enable-mentions") ||
-    $item.hasClass("enable-apparatus-criticus")
-  ) {
-    let delimiters = [];
-    let dataAttributes = [
-      "id",
-      "value",
-      "denotationChar",
-      "link",
-      "target",
-      "citation",
-    ];
-    if ($item.hasClass("enable-mentions")) {
-      delimiters.push("@");
-    }
-    if ($item.hasClass("enable-apparatus-criticus")) {
-      delimiters.push("#");
-      dataAttributes.push("originalText"); // also need to keep track of original text owner for app crit
-      dataAttributes.push("parent"); // and the parent object e.g. fragment
-    }
-    config["modules"]["mention"] = {
-      allowedChars: /^[0-9A-Za-z\sÅÄÖåäö:]*$/,
-      mentionDenotationChars: delimiters,
-      dataAttributes: dataAttributes,
-      source: async function (searchTerm, renderList, mentionChar) {
-        if (mentionChar == "@") {
-          const matchedPeople = await suggestPeople(searchTerm);
-          renderList(matchedPeople);
-        } else if (mentionChar == "#") {
-          let object_id = $item.data("object");
-          let object_class = $item.data("class") || "originaltext";
-          const lines = await getApparatusCriticusLines(
-            searchTerm,
-            object_id,
-            object_class
-          );
-          // console.log("lines:");
-          // console.dir(lines);
-          renderList(lines);
-        }
-      },
-      renderItem(item, searchTerm) {
-        // allows you to control how the item is displayed in the list
-        let list_display = item.list_display || item.value;
-        return `${list_display}`;
-      },
-      onSelect(item, insertItem) {
-        const shortItem = { ...item, value: item.citation };
-        insertItem(shortItem);
-      },
-    };
-  }
-
-  new Quill("#" + $item.attr("id"), config);
-
-  var for_id = $item.data("for");
-  var model_field = $item.data("model-field");
-  var $for = $(`#${for_id}`);
-
-  var html = $for.text();
-  $item.find(".ql-editor").html(html);
-  $for.hide();
-
-  // This removes the weird br header element that gets pasted
-  var editor = $item.find(".ql-editor").get(0);
-  editor.addEventListener("paste", function (event) {
-    var h4brElem = this.querySelector("h4 br");
-    h4brElem.remove();
-  });
-
-  // translates custom table dropdown in toolbar
-  var tablePickerItems = Array.prototype.slice.call(
-    document.querySelectorAll(".ql-edit_table .ql-picker-item")
-  );
-  tablePickerItems.forEach((item) => (item.textContent = item.dataset.value));
-
-  $("body").on("submit", "form", function (e) {
-    let html = $item.find(".ql-editor").html();
-    $for.text(html);
-  });
-  // When using htmx we can't hook into on submit,
-  // add html to post parameters directly instead
-  $("body").on("htmx:configRequest", function (e) {
-    let html = $item.find(".ql-editor").html();
-    e.detail.parameters[model_field] = html;
-  });
-}
-
-function initRichTextEditors() {
-  $(".rich-editor").each(function () {
-    let $elem = $(this);
-    initRichTextEditor($elem);
-  });
-  // make sure tooltips are enabled
-  $('[data-toggle="tooltip"]').tooltip();
-}
-
-initRichTextEditors();
-
 // store scroll position on save and reload - useful for inline posts not
 // returning the user to the top of the page
 document.addEventListener("DOMContentLoaded", function (event) {
@@ -485,53 +212,37 @@ window.addEventListener("beforeunload", function (e) {
   sessionStorage.setItem("scrollpos", window.scrollY);
 });
 
-// If swapping form containing rich text editor with htmx
-// we need to initialise it
-document.addEventListener("htmx:afterSettle", function (evt) {
-  verb = evt.detail.requestConfig.verb;
-  // console.log(evt);
-  if (
-    evt.detail.target.classList.contains("rich-text-form-container") &&
-    verb == "get"
-  ) {
-    initRichTextEditors();
-  }
-  if (verb == "post" && evt.detail.successful) {
-    $(".htmx-get-button").show(); // Show edit button again
-    $('[data-toggle="tooltip"]').tooltip(); // Enable tooltips in updated content
-  }
-});
+// might be related to old editor - uncomment if weird behaviour
+// if (!String.prototype.HTMLDecode) {
+//   String.prototype.HTMLDecode = function () {
+//     var str = this.toString(),
+//       //Create an element for decoding
+//       decoderEl = document.createElement("p");
 
-if (!String.prototype.HTMLDecode) {
-  String.prototype.HTMLDecode = function () {
-    var str = this.toString(),
-      //Create an element for decoding
-      decoderEl = document.createElement("p");
+//     //Bail if empty, otherwise IE7 will return undefined when
+//     //OR-ing the 2 empty strings from innerText and textContent
+//     if (str.length == 0) {
+//       return str;
+//     }
 
-    //Bail if empty, otherwise IE7 will return undefined when
-    //OR-ing the 2 empty strings from innerText and textContent
-    if (str.length == 0) {
-      return str;
-    }
+//     //convert newlines to <br's> to save them
+//     str = str.replace(/((\r\n)|(\r)|(\n))/gi, " <br/>");
 
-    //convert newlines to <br's> to save them
-    str = str.replace(/((\r\n)|(\r)|(\n))/gi, " <br/>");
+//     decoderEl.innerHTML = str;
+//     /*
+//         We use innerText first as IE strips newlines out with textContent.
+//         There is said to be a performance hit for this, but sometimes
+//         correctness of data (keeping newlines) must take precedence.
+//         */
+//     str = decoderEl.innerText || decoderEl.textContent;
 
-    decoderEl.innerHTML = str;
-    /*
-        We use innerText first as IE strips newlines out with textContent.
-        There is said to be a performance hit for this, but sometimes
-        correctness of data (keeping newlines) must take precedence.
-        */
-    str = decoderEl.innerText || decoderEl.textContent;
+//     //clean up the decoding element
+//     decoderEl = null;
 
-    //clean up the decoding element
-    decoderEl = null;
-
-    //replace back in the newlines
-    return str.replace(/<br((\/)|( \/))?>/gi, "\r\n");
-  };
-}
+//     //replace back in the newlines
+//     return str.replace(/<br((\/)|( \/))?>/gi, "\r\n");
+//   };
+// }
 
 function insertAtCaret(input, text) {
   var caretPos = input.selectionStart;
@@ -883,244 +594,3 @@ function runMoveAction(post_data, post_url) {
     },
   });
 }
-
-$("body").on("click", ".show-apparatus-criticus-form", function () {
-  // alert('todo: show the form beneath this')
-  $(".show-apparatus-criticus-form").show();
-  let inserting_at = $(this).data("index");
-  let $new_area = $("#new_apparatus_criticus_line_area");
-  $new_area.insertAfter($(this));
-  $("#id_new_apparatus_criticus_line_editor").find(".ql-editor").html("");
-  $("#update-apparatus-criticus-line").hide();
-  $("#submit-new-apparatus-criticus-line").show();
-  $("#submit-new-apparatus-criticus-line").attr("data-index", inserting_at);
-
-  $(".line-action").hide();
-  $new_area.show();
-});
-
-$("body").on("click", ".edit-apparatus-criticus-line", function () {
-  // alert('todo: show the form beneath this')
-  $(".edit-apparatus-criticus-line").show();
-  let $new_area = $("#new_apparatus_criticus_line_area");
-  let item_id = $(this).data("id");
-  let content_html = $(this).data("content");
-  $new_area.insertAfter($(this));
-  // quill needs to put things in <p> tags so make it easy for it otherwise we get
-  // unwanted automatic entering of newlines :/
-  $("#id_new_apparatus_criticus_line_editor")
-    .find(".ql-editor")
-    .html(`<p>${content_html}</p>`);
-  $("#submit-new-apparatus-criticus-line").hide();
-  $("#update-apparatus-criticus-line").show();
-  $("#update-apparatus-criticus-line").attr("data-id", item_id);
-
-  $(".line-action").hide();
-  $new_area.show();
-});
-
-function refreshOriginalTextApparatusCriticus() {
-  // now refresh content of editable area on the page
-  $(".rich-editor.enable-apparatus-criticus").each(function () {
-    let $editor = $(this).find(".ql-editor");
-
-    let html = $editor.html();
-
-    let csrf = document
-      .querySelector("meta[name='token']")
-      .getAttribute("content");
-    let headers = {};
-    headers["X-CSRFToken"] = csrf;
-
-    // any text within the original text editor on the same
-    // page might have become stale due to a change in the apparatus criticus
-    // so we send it to the server to re-index any app crit links within it.
-    // nb this doesn't save anything, just refreshes the text in the editor
-    // so that it appears correct to the user. It would be all handled correctly
-    // on saving anyway, but this is a cosmetic update so the user doesn't become confused!
-    $.ajax({
-      url: g_refresh_original_text_content_url,
-      type: "POST",
-      data: { content: html },
-      headers: headers,
-      context: document.body,
-      dataType: "json",
-      success: function (data, textStatus, jqXHR) {
-        $editor.html(data.html);
-
-        // show/hide apparatus criticus intentionally blank checkbox
-        let appCritBlankCheckbox = $("#id_apparatus_criticus_blank");
-        if (
-          document.getElementsByClassName("apparatus-criticus-line").length == 0
-        ) {
-          appCritBlankCheckbox.parent().parent().addClass("visible");
-          appCritBlankCheckbox.parent().parent().removeClass("invisible");
-        } else {
-          appCritBlankCheckbox.parent().parent().addClass("invisible");
-          appCritBlankCheckbox.parent().parent().removeClass("visible");
-          appCritBlankCheckbox[0].checked = false;
-        }
-      },
-      error: function (e) {
-        console.log(e);
-      },
-    });
-  });
-}
-
-$("body").on("click", "#submit-new-apparatus-criticus-line", function () {
-  let html = $("#id_new_apparatus_criticus_line_editor")
-    .find(".ql-editor")
-    .html();
-  let action_url = $(this).data("action");
-  let insert_at = $(this).data("index");
-  let parent_id = $(this).data("parent");
-
-  // submit the form via ajax then re-render the apparatus criticus area
-
-  let data = {
-    content: html,
-    insert_at: insert_at,
-    parent_id: parent_id,
-  };
-  let csrf = document
-    .querySelector("meta[name='token']")
-    .getAttribute("content");
-  let headers = {};
-  let that = this;
-  headers["X-CSRFToken"] = csrf;
-
-  $.ajax({
-    url: action_url,
-    type: "POST",
-    data: data,
-    headers: headers,
-    context: document.body,
-    dataType: "json",
-    success: function (data, textStatus, jqXHR) {
-      let $builder_area = $("#apparatus_criticus_builder_area");
-
-      $builder_area.replaceWith(data.html);
-      $("body").css("cursor", "default");
-      try {
-        cache_forms();
-      } catch (err) {}
-      $('[data-toggle="tooltip"]').tooltip();
-      $builder_area.find(".rich-editor").each(function () {
-        initRichTextEditor($(this));
-      });
-
-      refreshOriginalTextApparatusCriticus();
-    },
-    error: function (e) {
-      console.log(e);
-      alert("Sorry, an error occurred.");
-    },
-  });
-});
-
-$("body").on("click", "#cancel-new-apparatus-criticus-line", function () {
-  let $new_area = $("#new_apparatus_criticus_line_area");
-  $(".line-action").show();
-  $new_area.hide();
-});
-
-$("body").on("click", ".delete-apparatus-criticus-line", function () {
-  if (
-    !confirm(
-      "Are you sure you want to delete this line? This cannot be undone."
-    )
-  ) {
-    return;
-  }
-
-  let index = $(this).data("index");
-  let line_id = $(this).data("id");
-  let action_url = $(this).data("action");
-
-  // submit the form via ajax then re-render the apparatus criticus area
-  let data = {
-    index: index,
-    line_id: line_id,
-  };
-  let csrf = document
-    .querySelector("meta[name='token']")
-    .getAttribute("content");
-  let headers = {};
-  let that = this;
-  headers["X-CSRFToken"] = csrf;
-
-  $.ajax({
-    url: action_url,
-    type: "POST",
-    data: data,
-    headers: headers,
-    context: document.body,
-    dataType: "json",
-    success: function (data, textStatus, jqXHR) {
-      let $builder_area = $("#apparatus_criticus_builder_area");
-
-      $builder_area.replaceWith(data.html);
-      $("body").css("cursor", "default");
-      try {
-        cache_forms();
-      } catch (err) {}
-      $('[data-toggle="tooltip"]').tooltip();
-      $builder_area.find(".rich-editor").each(function () {
-        initRichTextEditor($(this));
-      });
-      refreshOriginalTextApparatusCriticus();
-    },
-    error: function (e) {
-      console.log(e);
-      alert("Sorry, an error occurred.");
-    },
-  });
-});
-
-$("body").on("click", "#update-apparatus-criticus-line", function () {
-  let line_id = $(this).data("id");
-  let action_url = $(this).data("action");
-  let html = $("#id_new_apparatus_criticus_line_editor")
-    .find(".ql-editor")
-    .html();
-
-  // submit the form via ajax then re-render the apparatus criticus area
-  let data = {
-    line_id: line_id,
-    content: html,
-  };
-  let csrf = document
-    .querySelector("meta[name='token']")
-    .getAttribute("content");
-  let headers = {};
-  let that = this;
-  headers["X-CSRFToken"] = csrf;
-
-  $.ajax({
-    url: action_url,
-    type: "POST",
-    data: data,
-    headers: headers,
-    context: document.body,
-    dataType: "json",
-    success: function (data, textStatus, jqXHR) {
-      let $builder_area = $("#apparatus_criticus_builder_area");
-
-      $builder_area.replaceWith(data.html);
-      $("body").css("cursor", "default");
-      try {
-        cache_forms();
-      } catch (err) {}
-      $('[data-toggle="tooltip"]').tooltip();
-      $builder_area.find(".rich-editor").each(function () {
-        initRichTextEditor($(this));
-      });
-      // don't need to update the text editor as the index will not have changed
-    },
-    error: function (e) {
-      console.log(e);
-      alert("Sorry, an error occurred.");
-    },
-  });
-});

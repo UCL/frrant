@@ -17,7 +17,10 @@ from rard.research.forms import (
 )
 from rard.research.models import Antiquarian, Testimonium
 from rard.research.models.base import TestimoniumLink
-from rard.research.views.fragment import HistoricalBaseCreateView
+from rard.research.views.fragment import (
+    AnonymousFragmentConvertToFragmentView,
+    HistoricalBaseCreateView,
+)
 from rard.research.views.mixins import (
     CanLockMixin,
     CheckLockMixin,
@@ -25,6 +28,7 @@ from rard.research.views.mixins import (
     TextObjectFieldUpdateMixin,
     TextObjectFieldViewMixin,
 )
+from rard.utils.convertors import convert_testimonium_to_unlinked_fragment
 from rard.utils.shared_functions import reassign_to_unknown
 
 
@@ -221,7 +225,7 @@ class TestimoniumUpdateWorkLinkView(
         data = form.cleaned_data
         self.object = self.get_object()
         if "cancel" in self.request.POST:
-            return reverse("fragment:detail", kwargs={"pk": self.fragment.pk})
+            return reverse("testimonium:detail", kwargs={"pk": self.testimonium.pk})
         else:
             self.object.definite_antiquarian = data["definite_antiquarian"]
             self.object.definite_work = data["definite_work"]
@@ -335,4 +339,15 @@ class RemoveTestimoniumLinkView(
             else:
                 self.object.delete()
 
+        return HttpResponseRedirect(success_url)
+
+
+@method_decorator(require_POST, name="dispatch")
+class TestimoniumConvertToUnlinkedFragmentView(AnonymousFragmentConvertToFragmentView):
+    model = Testimonium
+    permission_required = "research.change_fragment"
+
+    def post(self, request, *args, **kwargs):
+        fragment = convert_testimonium_to_unlinked_fragment(self.get_object())
+        success_url = reverse("fragment:detail", kwargs={"pk": fragment.pk})
         return HttpResponseRedirect(success_url)

@@ -239,7 +239,7 @@ class TestFragmentConvertViews(TestCase):
                 f"data-id={self.unlinked_fragment.pk} "
                 f"data-index='0' data-target='Fragment' "
                 f"data-value='{self.unlinked_fragment.get_display_name()}'><span contenteditable='false'>"
-                f"<span class='ql-mention-denotation-char'>@</span>{self.unlinked_fragment.get_display_name()}"
+                f"<span>@</span>{self.unlinked_fragment.get_display_name()}"
                 f"</span></span> </p>"
             )
         )
@@ -254,7 +254,7 @@ class TestFragmentConvertViews(TestCase):
                 f"data-id={self.unlinked_anonymous_fragment.pk} "
                 f"data-index='0' data-target='AnonymousFragment' "
                 f"data-value='{self.unlinked_anonymous_fragment.get_display_name()}'><span contenteditable='false'>"
-                f"<span class='ql-mention-denotation-char'>@</span>{self.unlinked_anonymous_fragment.get_display_name()}"
+                f"<span>@</span>{self.unlinked_anonymous_fragment.get_display_name()}"
                 f"</span></span> </p>"
             )
         )
@@ -653,6 +653,7 @@ class TestFragmentDuplicationView(TestCase):
         self.apc = ApparatusCriticusItem.objects.create(
             parent=self.ot, content="critical test", object_id=23
         )
+
         self.apc2 = ApparatusCriticusItem.objects.create(
             parent=self.ot2, content="critical test", object_id=23
         )
@@ -789,4 +790,29 @@ class TestFragmentDuplicationView(TestCase):
 
         self.assertIn(self.frag, duplicate_frag2.duplicates_list)
         self.assertIn(self.frag, duplicate_frag1.duplicates_list)
-        self.assertEqual([duplicate_frag1, duplicate_frag2], self.frag.duplicates_list)
+        self.assertAlmostEqual(
+            [duplicate_frag1, duplicate_frag2], self.frag.duplicates_list
+        )
+
+    def test_duplication_updates_ot_references(self):
+        self.ot.content += f"<span class='mention' data-denotation-char='#' data-id='{self.apc.pk}' data-index='0'"
+        self.ot.content += f"data-original-text='{self.ot.pk}' data-parent='{self.ot.pk}' data-target='ApparatusCriticusItem' "
+        self.ot.content += "data-value='1'><span><span>#</span>1</span> </span>"
+        self.ot.save()
+        url = reverse(
+            "fragment:duplicate", kwargs={"pk": self.frag.pk, "model_name": "fragment"}
+        )
+        request = RequestFactory().get(url)
+        request.user = UserFactory.create()
+        response = duplicate_fragment(request, pk=self.frag.pk, model_name="fragment")
+
+        duplicate_pk = response.url.split("/")[-2]
+        duplicate_frag = Fragment.objects.get(pk=duplicate_pk)
+        duplicate_ot = duplicate_frag.original_texts.first()
+        assert (
+            str(self.ot.apparatus_criticus_items.first().pk) not in duplicate_ot.content
+        )
+        assert (
+            str(duplicate_ot.apparatus_criticus_items.first().pk)
+            in duplicate_ot.content
+        )

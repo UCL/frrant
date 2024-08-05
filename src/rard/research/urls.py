@@ -72,11 +72,6 @@ urlpatterns = [
         views.RefreshOriginalTextContentView.as_view(),
         name="refresh_original_text_content",
     ),
-    path(
-        "render-editor-modal-template/",
-        views.render_editor_modal_template,
-        name="render_editor_modal_template",
-    ),
     # path("comment/<pk>/delete/", views.CommentDeleteView.as_view(), name="delete_comment"),
     # path("text-field/<pk>/comments/", views.TextObjectFieldCommentListView.as_view(), name="list_comments_on_text"),
     path(
@@ -307,6 +302,11 @@ urlpatterns = [
                         name="convert_to_anonymous",
                     ),
                     path(
+                        "<pk>/convert-to-testimonium/",
+                        views.UnlinkedFragmentConvertToTestimoniumView.as_view(),
+                        name="convert_to_testimonium",
+                    ),
+                    path(
                         "<pk>/duplicate",
                         views.duplicate_fragment,
                         {"model_name": "fragment"},
@@ -486,6 +486,17 @@ urlpatterns = [
                         "remove-link/<pk>",
                         views.RemoveTestimoniumLinkView.as_view(),
                         name="remove_testimonium_link",
+                    ),
+                    path(
+                        "<pk>/convert-to-fragment/",
+                        views.TestimoniumConvertToUnlinkedFragmentView.as_view(),
+                        name="convert_to_fragment",
+                    ),
+                    path(
+                        "<pk>/duplicate",
+                        views.duplicate_fragment,
+                        {"model_name": "testimonium"},
+                        name="duplicate",
                     ),
                     path(
                         "<pk>/delete/",

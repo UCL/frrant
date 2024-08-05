@@ -84,12 +84,13 @@ from .fragment import (
     RemoveAppositumLinkView,
     RemoveFragmentLinkView,
     UnlinkedFragmentConvertToAnonymousView,
+    UnlinkedFragmentConvertToTestimoniumView,
     UnlinkedFragmentListView,
     duplicate_fragment,
     fetch_fragments,
 )
 from .history import HistoryListView
-from .home import HomeView, render_editor_modal_template
+from .home import HomeView
 from .mention import MentionSearchView
 from .original_text import (
     AnonymousFragmentOriginalTextCreateView,
@@ -104,6 +105,7 @@ from .testimonium import (
     RemoveTestimoniumLinkView,
     TestimoniumAddWorkLinkView,
     TestimoniumCommentaryView,
+    TestimoniumConvertToUnlinkedFragmentView,
     TestimoniumCreateView,
     TestimoniumDeleteView,
     TestimoniumDetailView,
@@ -216,6 +218,7 @@ __all__ = [
     "FragmentCreateView",
     "FragmentDeleteView",
     "UnlinkedFragmentConvertToAnonymousView",
+    "UnlinkedFragmentConvertToTestimoniumView",
     "FragmentDetailView",
     "FragmentListView",
     "FragmentOriginalTextCreateView",
@@ -235,7 +238,6 @@ __all__ = [
     "RemoveAppositumLinkView",
     "RemoveAppositumFragmentLinkView",
     "RemoveAnonymousAppositumLinkView",
-    "render_editor_modal_template",
     "SearchView",
     "RemoveTestimoniumLinkView",
     "TestimoniumAddWorkLinkView",
@@ -252,6 +254,7 @@ __all__ = [
     "TestimoniumPublicCommentaryView",
     "TextObjectFieldCommentListView",
     "TestimoniumOriginalTextCreateView",
+    "TestimoniumConvertToUnlinkedFragmentView",
     "TopicCreateView",
     "TopicDeleteView",
     "TopicDetailView",

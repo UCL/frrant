@@ -165,7 +165,7 @@ class TestAntiquarian(TestCase):
                     data-target="{bib._meta.model_name}"
                     data-value="{bib.__str__()}">
                     <span contenteditable="false">
-                        <span class="ql-mention-denotation-char">
+                        <span>
                         @
                         </span>
                         {bib.__str__()}

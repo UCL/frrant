@@ -1,6 +1,7 @@
 from rard.research.models import AnonymousFragment, Fragment
 from rard.research.models.base import FragmentLink
 from rard.research.models.fragment import reindex_anonymous_fragments
+from rard.research.models.testimonium import Testimonium
 
 
 class FragmentIsNotConvertible(Exception):
@@ -11,28 +12,39 @@ class FragmentIsNotConvertible(Exception):
     pass
 
 
-def transfer_duplicates(source, destination, source_type):
-    """When converting between frags and anonfrags, the duplicate relationship needs to be transferred to the new (anon)fragment"""
-    if source_type == "fragment":
-        # for each duplicate create a new relationship to the anonfrag
-        for d in source.duplicates_list:
-            d.duplicate_afs.add(destination)
-            # if the relationship was defined from the duplicate in the list, remove the one being converted
-            if source in d.duplicate_frags.all():
-                d.duplicate_frags.remove(source)
-            else:
-                # otherwise delete it from the frag being converted
-                source.duplicate_frags.remove(d)
-    if source_type == "anonymous":
-        # for each duplicate create a new relationship to the frag
-        for d in source.duplicates_list:
-            d.duplicate_frags.add(destination)
-            # if the relationship was defined from the duplicate in the list, remove the one being converted
-            if source in d.duplicate_afs.all():
-                d.duplicate_afs.remove(source)
-            else:
-                # otherwise delete it from the anonfrag being converted
-                source.duplicate_afs.remove(d)
+def transfer_duplicates(source, destination):
+    """When converting between frags, testimonia and anonfrags,
+    the duplicate relationship needs to be transferred to the new instance.
+    Duplicate relationships should be symmetrical, and the attribute upon
+    which to add the m2m relationship depend on the class of object being linked to.
+
+    There should be no need to remove the source's m2m relationships as they should get
+    deleted when source is deleted."""
+
+    destination_type = destination.__class__.__name__
+
+    # Model to duplicate relationship attribute map
+    duplicate_rel_attrs = {
+        "Fragment": "duplicate_frags",
+        "AnonymousFragment": "duplicate_afs",
+        "Testimonium": "duplicate_ts",
+    }
+
+    for duplicate in source.duplicates_list:
+        # Get the duplicate relationship attribute on the duplicate object
+        # that should point to the destination object's model class
+        duplicate_to_destination_rel = getattr(
+            duplicate, duplicate_rel_attrs.get(destination_type, None)
+        )
+        # Create a new relationship between the suplicate and destination objects
+        duplicate_to_destination_rel.add(destination)
+
+        # Now repeat, but in the opposite direction because it's not necessarily symmetrical
+        duplicate_type = duplicate.__class__.__name__
+        destination_to_duplicate_rel = getattr(
+            destination, duplicate_rel_attrs.get(duplicate_type, None)
+        )
+        destination_to_duplicate_rel.add(duplicate)
 
 
 def transfer_data_between_fragments(source, destination):
@@ -41,18 +53,21 @@ def transfer_data_between_fragments(source, destination):
     destination.date_range = source.date_range
     destination.collection_id = source.collection_id
     destination.order_year = source.order_year
-
     # Fields requiring set method
-    destination.topics.set(source.topics.all())
+    # Testimonia don't have topics so ignore if it's the source or destination
+    if not (
+        destination.__class__.__name__ == "Testimonium"
+        or source.__class__.__name__ == "Testimonium"
+    ):
+        destination.topics.set(source.topics.all())
     destination.images.set(source.images.all())
     # source is no longer the owner after this:
     destination.original_texts.set(source.original_texts.all())
-
     # Need to remove commentary's original relationship with source or
     # it will be deleted when we delete the source
     commentary = source.commentary
-    source.commentary = None
     destination.commentary = commentary
+    source.commentary = None
 
 
 def transfer_mentions(original, new):
@@ -100,7 +115,7 @@ def convert_unlinked_fragment_to_anonymous_fragment(fragment):
     # Transfer apposita
     apposita = fragment.apposita.all()
     anonymous_fragment.anonymous_apposita.add(*apposita)
-    transfer_duplicates(fragment, anonymous_fragment, "fragment")
+    transfer_duplicates(fragment, anonymous_fragment)
     # Save new anon fragment and delete fragment
     anonymous_fragment.save()
     reindex_anonymous_fragments()
@@ -110,6 +125,22 @@ def convert_unlinked_fragment_to_anonymous_fragment(fragment):
     return anonymous_fragment
 
 
+def convert_unlinked_fragment_to_testimonium(fragment):
+    # Only allow for unlinked fragments
+    if not fragment.is_unlinked:
+        raise FragmentIsNotConvertible
+
+    testimonium = Testimonium.objects.create()
+    transfer_data_between_fragments(fragment, testimonium)
+    transfer_duplicates(fragment, testimonium)
+    # Save new testimonium and delete fragment
+    testimonium.save()
+    transfer_mentions(fragment, testimonium)
+    fragment.delete()
+    testimonium.refresh_from_db()
+    return testimonium
+
+
 def convert_anonymous_fragment_to_fragment(anonymous_fragment):
     # Only allow for anonymous fragments
     if not isinstance(anonymous_fragment, AnonymousFragment):
@@ -117,7 +148,7 @@ def convert_anonymous_fragment_to_fragment(anonymous_fragment):
 
     fragment = Fragment.objects.create()
     transfer_data_between_fragments(anonymous_fragment, fragment)
-    transfer_duplicates(anonymous_fragment, fragment, "anonymous")
+    transfer_duplicates(anonymous_fragment, fragment)
     transfer_mentions(anonymous_fragment, fragment)
     # If there are AppositumFragmentLinks convert them to FragmentLinks
     for link in anonymous_fragment.appositumfragmentlinks_from.all():
@@ -130,4 +161,16 @@ def convert_anonymous_fragment_to_fragment(anonymous_fragment):
     fragment.save()
     anonymous_fragment.delete()
 
+    return fragment
+
+
+def convert_testimonium_to_unlinked_fragment(testimonium):
+    fragment = Fragment.objects.create()
+    transfer_data_between_fragments(testimonium, fragment)
+    transfer_duplicates(testimonium, fragment)
+    # Save new fragment and delete testimonium
+    fragment.save()
+    transfer_mentions(testimonium, fragment)
+    testimonium.delete()
+    fragment.refresh_from_db()
     return fragment

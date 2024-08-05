@@ -41,6 +41,11 @@ jobs:
           cd src
           docker compose -f local.yml build
 
+      - name: Check DB Migrations
+        run: |
+          cd src
+          docker compose -f local.yml run --rm django python manage.py makemigrations --check --dry-run
+
       - name: Run DB Migrations
         run: |
           cd src
