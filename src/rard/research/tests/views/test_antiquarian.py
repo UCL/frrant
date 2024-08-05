@@ -187,12 +187,13 @@ class TestAntiquarianListView(TestCase):
 class TestAntiquarianUpdateIntroductionView(TestCase):
     def setUp(self):
         self.antiquarian = Antiquarian.objects.create()
-        self.url = reverse("antiquarian:delete", kwargs={"pk": self.antiquarian.pk})
+        self.url = reverse(
+            "antiquarian:update_introduction", kwargs={"pk": self.antiquarian.pk}
+        )
         self.request = RequestFactory().get(self.url)
         self.request.user = UserFactory.create()
 
         self.antiquarian.lock(self.request.user)
-
         self.response = AntiquarianUpdateIntroductionView.as_view()(
             self.request, pk=self.antiquarian.pk
         )
