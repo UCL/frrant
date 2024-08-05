@@ -369,15 +369,30 @@ class TestWork(TestCase):
             "subtitle": "Subtitle",
         }
         w = Work.objects.create(**data)
+        f = Fragment.objects.create(name="fragment")
         original_unknown = w.unknown_book
         additional_unknown = Book.objects.create(
             unknown=True, subtitle="Unknown Book", work=w
         )
+        FragmentLink.objects.create(
+            fragment=f,
+            work=w,
+            book=additional_unknown,
+        )
+
         additional_unknown.save()
         self.assertEqual(w.book_set.filter(unknown=True).count(), 2)
+        self.assertEqual(w.antiquarian_work_fragmentlinks.all().count(), 1)
+        self.assertEqual(
+            w.antiquarian_work_fragmentlinks.first().book, additional_unknown
+        )
         collate_unknown(w)
         self.assertEqual(w.book_set.filter(unknown=True).count(), 1)
         self.assertEqual(original_unknown.pk, w.unknown_book.pk)
+        self.assertEqual(w.antiquarian_work_fragmentlinks.all().count(), 1)
+        self.assertEqual(
+            w.antiquarian_work_fragmentlinks.first().book, original_unknown
+        )
 
 
 class TestBook(TestCase):

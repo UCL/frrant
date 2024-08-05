@@ -8,6 +8,7 @@ from rard.research.views import (
     AntiquarianDeleteView,
     AntiquarianDetailView,
     AntiquarianListView,
+    AntiquarianUpdateIntroductionView,
     AntiquarianUpdateView,
     AntiquarianWorkCreateView,
     AntiquarianWorksUpdateView,
@@ -181,3 +182,56 @@ class TestAntiquarianListView(TestCase):
         qs = view.get_queryset()
         self.assertEqual(2, len(qs))
         self.assertEqual([a.pk for a in qs.all()], [a2.pk, a1.pk])
+
+
+class TestAntiquarianUpdateIntroductionView(TestCase):
+    def setUp(self):
+        self.antiquarian = Antiquarian.objects.create()
+        self.url = reverse(
+            "antiquarian:update_introduction", kwargs={"pk": self.antiquarian.pk}
+        )
+        self.request = RequestFactory().get(self.url)
+        self.request.user = UserFactory.create()
+
+        self.antiquarian.lock(self.request.user)
+        self.response = AntiquarianUpdateIntroductionView.as_view()(
+            self.request, pk=self.antiquarian.pk
+        )
+
+    def test_context_data(self):
+        self.assertEqual(
+            self.response.context_data["text_object"], self.antiquarian.introduction
+        )
+        self.assertEqual(self.response.context_data["object_class"], "antiquarian")
+
+    def test_success_url(self):
+        # this is more complicated than with other views
+        # due to the conditional rendering on another view
+        # // I think
+        success_url = self.response.context_data["view"].get_success_url()
+        self.assertEqual(success_url, f"/antiquarian/{self.antiquarian.pk}/")
+
+    def test_update_intro(self):
+        """This checks that an introduction object is created
+        when the book object is created but is empty
+        and will update on POST"""
+        intro = self.response.context_data["object"].introduction
+
+        self.assertTrue(bool(intro.pk))
+        self.assertFalse(bool(intro.content))
+
+        ant_pk = self.response.context_data["object"].pk
+
+        intro_text = "testing update of introduction"
+
+        data = {
+            "introduction_text": intro_text,
+        }
+        post_request = RequestFactory().post(self.url, data=data)
+        post_request.user = self.request.user
+        AntiquarianUpdateIntroductionView.as_view()(post_request, pk=ant_pk)
+
+        self.antiquarian.refresh_from_db()
+        intro = self.antiquarian.introduction
+        self.assertTrue(bool(intro.content))
+        self.assertEqual(intro.content, intro_text)

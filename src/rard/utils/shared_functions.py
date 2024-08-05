@@ -51,14 +51,26 @@ def collate_uw_links(instance, designated_unknown):
 
 def collate_ub_links(instance, designated_unknown):
     """Used in the collate_unknown functions on Ant/Work models"""
-    transfer_links(instance.antiquarian_work_fragmentlinks.all(), designated_unknown)
-    transfer_links(instance.antiquarian_work_testimoniumlinks.all(), designated_unknown)
+    instance_type = instance.__class__.__name__
     transfer_links(
-        instance.antiquarian_work_appositumfragmentlinks.all(), designated_unknown
+        instance.antiquarian_work_fragmentlinks.all(), designated_unknown, instance_type
+    )
+    transfer_links(
+        instance.antiquarian_work_testimoniumlinks.all(),
+        designated_unknown,
+        instance_type,
+    )
+    transfer_links(
+        instance.antiquarian_work_appositumfragmentlinks.all(),
+        designated_unknown,
+        instance_type,
     )
 
 
-def transfer_links(links, target_object):
+def transfer_links(links, target_object, instance_type="Antiquarian"):
     for link in links:
-        link.work = target_object
+        if instance_type == "Work":
+            link.book = target_object
+        else:
+            link.work = target_object
         link.save()
