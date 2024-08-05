@@ -16,6 +16,10 @@ class PartIdentifier(HistoryModelMixin, BaseModel):
     value = models.CharField(max_length=250, blank=False)
     display_order = models.CharField(max_length=30, blank=True)
 
+    @property
+    def is_template(self):
+        return "[" in self.value and "]" in self.value
+
 
 class Edition(HistoryModelMixin, BaseModel):
     def __str__(self, bib=False):
@@ -75,9 +79,10 @@ class ConcordanceModel(HistoryModelMixin, BaseModel):
                 works.add(link.work)
         return works
 
-    @classmethod
-    def get_ordered_queryset(cls):
-        return cls.objects.order_by("identifier").order_by(
+    @staticmethod
+    def get_ordered_queryset(queryset):
+        return queryset.order_by(
+            "identifier",
             Case(
                 When(content_type="T", then=0),
                 When(content_type="F", then=1),
@@ -85,5 +90,5 @@ class ConcordanceModel(HistoryModelMixin, BaseModel):
                 When(content_type="P.", then=3),
                 When(content_type="NA", then=4),
                 output_field=IntegerField(),
-            )
+            ),
         )

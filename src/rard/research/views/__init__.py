@@ -51,6 +51,7 @@ from .concordance import (
     ConcordanceListView,
     ConcordanceUpdateView,
     OldConcordanceDeleteView,
+    fetch_parts,
     fetch_works,
 )
 from .fragment import (
@@ -273,4 +274,5 @@ __all__ = [
     "WorkIntroductionView",
     "fetch_books",
     "fetch_works",
+    "fetch_parts",
 ]

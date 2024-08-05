@@ -22,14 +22,22 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
   });
+  partSelectElem = document.getElementById("id_identifier");
+  const partObserver = new MutationObserver(function (mutations) {
+    mutations.forEach(function (mutation) {
+      if (mutation.type === "childList") {
+        updateLabel(partSelectElem);
+      }
+    });
+  });
 
   const config = {
     childList: true,
     subtree: false,
   };
   workObserver.observe(workSelectElem, config);
+  partObserver.observe(partSelectElem, config);
 });
-// const workSelectElem = document.getElementById("id_work");
 
 function enableWork() {
   workSelectElem.disabled = false;

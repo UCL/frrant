@@ -1310,6 +1310,13 @@ class ConcordanceModelSearchForm(forms.Form):
         queryset=e_qs,
         required=False,
         label=label_w_badge("Edition", e_qs),
+        widget=forms.Select(
+            attrs={
+                "hx-get": "/concordance/fetch-parts/",
+                "hx-target": "#id_identifier",
+                "hx-trigger": "change",
+            }
+        ),
     )
     identifier = forms.ModelChoiceField(
         queryset=i_qs,

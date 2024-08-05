@@ -533,6 +533,11 @@ urlpatterns = [
                         name="fetch_works",
                     ),
                     path(
+                        "fetch-parts/",
+                        views.fetch_parts,
+                        name="fetch_parts",
+                    ),
+                    path(
                         "original-text/<pk>/create/",
                         views.ConcordanceCreateView.as_view(),
                         name="create",

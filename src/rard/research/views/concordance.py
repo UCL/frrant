@@ -42,6 +42,25 @@ def fetch_works(request):
     return HttpResponse(options)
 
 
+def fetch_parts(request):
+    edition = request.GET.get("edition")
+    parts = PartIdentifier.objects.filter(edition=edition)
+
+    empty_option = '<option value="">Select identifier</option>'
+
+    # Create options for each work
+    part_options = "".join(
+        [
+            f'<option value="{part.id}">{part.value}</option>'
+            for part in parts
+            if not part.is_template
+        ]
+    )
+
+    options = empty_option + part_options
+    return HttpResponse(options)
+
+
 class ConcordanceListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     permission_required = "research.view_concordance"
     model = ConcordanceModel
@@ -97,24 +116,24 @@ class ConcordanceListView(LoginRequiredMixin, PermissionRequiredMixin, ListView)
             self.sort_by_antiquarian = False
             # todo:
             if edition_pk:
-                results_qs = (
-                    queryset.filter(identifier__edition=edition_pk)
-                    .order_by("identifier__display_order")
-                    .get_ordered_queryset()
+                results_qs = ConcordanceModel.get_ordered_queryset(
+                    queryset.filter(identifier__edition=edition_pk).order_by(
+                        "identifier__display_order"
+                    )
                 )
                 # also change the identifier ops
             if identifier_pk:
-                results_qs = queryset.filter(identifier=identifier_pk)
-
+                results_qs = ConcordanceModel.get_ordered_queryset(
+                    queryset.filter(identifier=identifier_pk).order_by(
+                        "identifier__display_order"
+                    )
+                )
         else:
             results_qs = queryset.none()
 
-        print(results_qs)
         return results_qs
 
     def get_context_data(self, **kwargs):
-        print("context kwargs", kwargs)
-
         self.object_list = self.queryset
         context = super().get_context_data(**kwargs)
         context["form"] = self.form_class
