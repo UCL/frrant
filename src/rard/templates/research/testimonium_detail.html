@@ -97,9 +97,17 @@
 
 
         <div class='mt-3'>
-        {% for translation in original_text.translation_set.all %}
-            {% include 'research/partials/translation_preview.html' with translation=translation can_edit=perms.research.change_testimonium has_object_lock=has_object_lock %}
-        {% endfor %}
+            {% if perms.research.change_testimonium and has_object_lock %}
+            {% for translation in original_text.translation_set.all %}
+                {% include 'research/partials/translation_preview.html' with translation=translation can_edit=perms.research.change_testimonium has_object_lock=has_object_lock %}
+            {% endfor %}
+        {% else %}
+            {% for translation in original_text.translation_set.all %}
+                {% if translation.approved %}
+                    {% include 'research/partials/translation_preview.html' with translation=translation can_edit=perms.research.change_testimonium has_object_lock=has_object_lock %}
+                {% endif %}
+            {% endfor %}
+        {% endif %}
         </div>
 
 
