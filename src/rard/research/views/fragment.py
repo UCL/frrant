@@ -63,6 +63,7 @@ from rard.utils.convertors import (
 from rard.utils.duplication import (
     copy_concordances_apcrit_and_translations,
     duplicate_original_text,
+    update_ot_content_references,
 )
 from rard.utils.shared_functions import reassign_to_unknown
 
@@ -1214,6 +1215,9 @@ def duplicate_fragment(request, pk, model_name):
                 original_text=new_original_text,
             )
         copy_concordances_apcrit_and_translations(text, new_original_text)
+        update_ot_content_references(
+            new_original_text
+        )  # must be called after the apcrit is copied
 
     # Create a new fragment with the same values as original
     new_fragment_data = {}

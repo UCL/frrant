@@ -24,7 +24,6 @@ def duplicate_original_text(original):
 
     # Create a new OT object with the copied values
     new_original_text = OriginalText.objects.create(**new_original_text_data)
-    update_ot_content_references(new_original_text)
     return new_original_text
 
 
@@ -80,9 +79,7 @@ def copy_concordances_apcrit_and_translations(original, new_original_text):
 def update_ot_content_references(new_original_text):
     # use beautifulsoup to update the references in the ot content
     soup = BeautifulSoup(new_original_text.content, features="html.parser")
-    mentions = soup.find_all(
-        "span", class_="mention", attrs={"data-denotation-char": "#"}
-    )
+    mentions = soup.find_all("span", class_="mention")
     apcriti = new_original_text.apparatus_criticus_items.all()
 
     for mention, apcrit in zip(mentions, apcriti):
