@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", function () {
       document.getElementById("loader").style.visibility = "hidden";
     }
   });
+
   document
     .getElementById("id_antiquarian")
     .addEventListener("change", enableWork);
@@ -35,24 +36,36 @@ document.addEventListener("DOMContentLoaded", function () {
     childList: true,
     subtree: false,
   };
+  // watch the work and identifier dropdowns for changes to update the badges (these get updated via requests)
   workObserver.observe(workSelectElem, config);
   partObserver.observe(partSelectElem, config);
 });
 
 function enableWork() {
-  workSelectElem.disabled = false;
+  if (document.getElementById("id_antiquarian").value) {
+    workSelectElem.disabled = false;
+  }
 }
 
 function disableWork() {
   workSelectElem.disabled = true;
   workSelectElem.innerHTML = "";
 }
+
 function updateLabel(elem) {
   var optionCount = 0;
   var options = elem.querySelectorAll("option");
   optionCount = options.length;
   optionCount = optionCount - 1; // don't include the blank
-  optionCount = optionCount < 0 ? 0 : optionCount;
+  optionCount = optionCount < 0 ? 0 : optionCount; // if no parts, don't show as -1
   var label = document.querySelector(`label[for="${elem.id}"]>span`);
   label.textContent = optionCount;
+
+  if (optionCount == 0) {
+    disableWhenNone(elem);
+  }
+}
+
+function disableWhenNone(elem) {
+  elem.disabled = true;
 }
