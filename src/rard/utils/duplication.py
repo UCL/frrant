@@ -24,6 +24,7 @@ def duplicate_original_text(original):
 
     # Create a new OT object with the copied values
     new_original_text = OriginalText.objects.create(**new_original_text_data)
+    update_ot_content_references(new_original_text)
     return new_original_text
 
 
@@ -47,8 +48,7 @@ def copy_concordances_apcrit_and_translations(original, new_original_text):
         },
     }
 
-    for model_class in model_details.keys():
-        model_info = model_details[model_class]
+    for model_class, model_info in model_details.items():
         filter_name = model_info["filter_name"]
         filter_value = model_info["filter_value"]
         ot_fieldname = model_info["ot_fieldname"]
