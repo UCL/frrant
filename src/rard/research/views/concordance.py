@@ -1,5 +1,5 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.http import Http404, HttpResponse
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
@@ -13,14 +13,7 @@ from rard.research.forms import (
     ConcordanceModelUpdateForm,
     EditionForm,
 )
-from rard.research.models import (
-    AnonymousFragment,
-    ConcordanceModel,
-    Edition,
-    Fragment,
-    OriginalText,
-    PartIdentifier,
-)
+from rard.research.models import ConcordanceModel, Edition, OriginalText, PartIdentifier
 from rard.research.models.antiquarian import Antiquarian
 from rard.research.models.original_text import Concordance
 from rard.research.models.work import Work
@@ -121,13 +114,12 @@ class ConcordanceListView(LoginRequiredMixin, PermissionRequiredMixin, ListView)
                         "identifier__display_order"
                     )
                 )
-                # also change the identifier ops
-            if identifier_pk:
-                results_qs = ConcordanceModel.get_ordered_queryset(
-                    queryset.filter(identifier=identifier_pk).order_by(
-                        "identifier__display_order"
+                if identifier_pk:
+                    results_qs = ConcordanceModel.get_ordered_queryset(
+                        queryset.filter(identifier=identifier_pk).order_by(
+                            "identifier__display_order"
+                        )
                     )
-                )
         else:
             results_qs = queryset.none()
 
@@ -157,10 +149,6 @@ class ConcordanceCreateView(
         # need to ensure we have the lock object view attribute
         # initialised in dispatch
         self.top_level_object = self.get_original_text().owner
-        if not isinstance(self.get_original_text().owner, Fragment) and not isinstance(
-            self.get_original_text().owner, AnonymousFragment
-        ):
-            raise Http404
 
         return super().dispatch(request, *args, **kwargs)
 

@@ -62,10 +62,8 @@ function updateLabel(elem) {
   label.textContent = optionCount;
 
   if (optionCount == 0) {
-    disableWhenNone(elem);
+    elem.disabled = true;
+  } else {
+    elem.disabled = false;
   }
-}
-
-function disableWhenNone(elem) {
-  elem.disabled = true;
 }

@@ -1277,11 +1277,7 @@ class ConcordanceModelSearchForm(forms.Form):
         .filter(concordance_count__gt=0)
         .order_by("name")
     )
-    i_qs = (
-        PartIdentifier.objects.annotate(concordance_count=Count("concordancemodel"))
-        .filter(concordance_count__gt=0)
-        .order_by("edition", "display_order")
-    )
+    i_qs = PartIdentifier.objects.none()
 
     @staticmethod  # prevents testing error
     def label_w_badge(model, qs):
@@ -1319,10 +1315,12 @@ class ConcordanceModelSearchForm(forms.Form):
     identifier = forms.ModelChoiceField(
         queryset=i_qs,
         required=False,
+        help_text="Select an ediiton to search by part identifier",
     )
 
     def __init__(self, *args, **kwargs):
         antiquarian = kwargs.pop("antiquarian", None)
+        edition = kwargs.pop("edition", None)
         super().__init__(*args, **kwargs)
         # setting labels here to avoid test errors
         self.fields["antiquarian"].label = self.label_w_badge("Antiquarian", self.a_qs)
@@ -1337,5 +1335,14 @@ class ConcordanceModelSearchForm(forms.Form):
             self.fields["work"].help_text = ""
         else:
             self.fields["work"].widget.attrs.update(
+                {"disabled": "true"}
+            )  # makes it easier to update from js
+        if edition:
+            self.fields["identifier"].queryset = PartIdentifier.objects.filter(
+                edition=edition
+            )
+            self.fields["identifier"].help_text = ""
+        else:
+            self.fields["identifier"].widget.attrs.update(
                 {"disabled": "true"}
             )  # makes it easier to update from js

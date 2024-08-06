@@ -17,7 +17,7 @@
 <script src="{% static 'js/concordanceSearchScripts.js' %} "></script>
 <div>
   <p>
-    Searching by Antiquarian or Work will return results regardless of existing concordances. Please note that when searching by Edition or Part Identifier the options available to search have associated concordances. Options with no associated concordances have been hidden.</p>
+    Searching by Antiquarian or Work will return results regardless of existing concordances. Please note that when searching by Edition the options available to search have associated concordances. Options with no associated concordances have been hidden.</p>
 </div>
 
 <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='GET' id="concordance-search__form" hx-post="{{ request.path }}" hx-target="#concordance-search__results" hx-trigger="change from:select">
