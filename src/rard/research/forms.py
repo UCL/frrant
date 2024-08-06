@@ -26,6 +26,7 @@ from rard.research.models.base import (
     FragmentLink,
     TestimoniumLink,
 )
+from rard.research.models.text_object_field import TextObjectField
 
 
 def _validate_reference_order(ro):
@@ -67,6 +68,9 @@ class IntroductionFormBase(forms.ModelForm):
             self.fields[
                 "introduction_text"
             ].initial = self.instance.introduction.content
+            self.fields["introduction_text"].widget.attrs[
+                "class"
+            ] = "enableMentions enableFootnotes enableCKEditor"
 
     def save(self, commit=True):
         instance = super().save(commit=False)
@@ -142,6 +146,9 @@ class AntiquarianCreateForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.fields["introduction_text"].widget.attrs[
+            "class"
+        ] = "enableMentions enableFootnotes enableCKEditor"
         if self.instance.introduction:
             self.fields[
                 "introduction_text"
@@ -315,6 +322,9 @@ class WorkForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         # if we are editing an existing work then init the antiquarian set
         # on the form
+        self.fields["introduction_text"].widget.attrs[
+            "class"
+        ] = "enableMentions enableFootnotes enableCKEditor"
         if self.instance and self.instance.pk:
             self.fields["antiquarians"].initial = self.instance.antiquarian_set.all()
 
@@ -322,6 +332,7 @@ class WorkForm(forms.ModelForm):
             self.fields[
                 "introduction_text"
             ].initial = self.instance.introduction.content
+
         else:
             self.fields["introduction_text"].attrs = {
                 "placeholder": "introduction for work"
@@ -355,6 +366,9 @@ class WorkForm(forms.ModelForm):
         if commit:
             instance.save_without_historical_record()
             # introduction will have been created at this point
+            if not instance.introduction:
+                instance.introduction = TextObjectField().objects.create(content="")
+                instance.save()
             instance.introduction.content = self.cleaned_data["introduction_text"]
             instance.introduction.save_without_historical_record()
         return instance
@@ -384,6 +398,9 @@ class BookForm(forms.ModelForm):
             self.fields[
                 "introduction_text"
             ].initial = self.instance.introduction.content
+            self.fields["introduction_text"].widget.attrs[
+                "class"
+            ] = "enableMentions enableFootnotes enableCKEditor"
         else:
             self.fields["introduction_text"].attrs = {
                 "placeholder": "introduction for book"
@@ -423,12 +440,17 @@ class BookIntroductionForm(IntroductionFormBase):
 
 
 class CommentForm(forms.ModelForm):
+    # todo: delete this; not used
     class Meta:
         model = Comment
         fields = ("content",)
         labels = {"content": _("Add Comment")}
         widgets = {
-            "content": forms.Textarea(attrs={"rows": 3}),
+            "content": forms.Textarea(
+                attrs={
+                    "rows": 3,
+                }
+            ),
         }
 
 
@@ -547,6 +569,13 @@ class OriginalTextDetailsForm(forms.ModelForm):
 
         super().__init__(*args, **kwargs)
 
+        if original_text:
+            self.fields["content"].widget.attrs["data-object"] = original_text.pk
+            # Only enable apparatus criticus editing if object exists
+            self.fields["content"].widget.attrs[
+                "class"
+            ] = "enableApparatusCriticus enableCKEditor"
+
     def clean_reference_order(self):
         # Reference order needs to be stored as a string with leading 0s such
         # as 00001.00020.02340 for 1.20.2340
@@ -604,6 +633,9 @@ class OriginalTextForm(OriginalTextAuthorForm):
         # of an existing instance to be blank and assign a newly-created
         # work to the original text instance in the view
         self.set_citing_work_required(True)
+        self.fields["content"].widget.attrs[
+            "class"
+        ] = "enableApparatusCriticus enableCKEditor"
 
     def set_citing_work_required(self, required):
         # to allow set/reset required fields dynically in the view
@@ -618,7 +650,11 @@ class OriginalTextForm(OriginalTextAuthorForm):
 
 class CommentaryFormBase(forms.ModelForm):
     commentary_text = forms.CharField(
-        widget=forms.Textarea,
+        widget=forms.Textarea(
+            attrs={
+                "class": "enableMentions enableFootnotes enableApparatusCriticus enableCKEditor"
+            }
+        ),
         required=False,
         label="Commentary",
     )
@@ -628,6 +664,10 @@ class CommentaryFormBase(forms.ModelForm):
         if self.instance and self.instance.commentary:
             self.instance.commentary.update_content_mentions()
             self.fields["commentary_text"].initial = self.instance.commentary.content
+            if len(self.instance.original_texts.all()) > 0:
+                self.fields["commentary_text"].widget.attrs[
+                    "data-object"
+                ] = self.instance.original_texts.first().pk
 
     def save(self, commit=True):
         instance = super().save(commit=False)
@@ -658,7 +698,7 @@ class AnonymousFragmentCommentaryForm(CommentaryFormBase):
 
 class PublicCommentaryFormBase(forms.ModelForm):
     commentary_text = forms.CharField(
-        widget=forms.Textarea,
+        widget=forms.Textarea(attrs={"class": "enableCKEditor"}),
         required=False,
         label="Public Commentary",
     )
@@ -737,7 +777,11 @@ class TestimoniumAntiquariansForm(HistoricalFormBase):
 
 
 class BibliographyItemInlineForm(HistoricalFormBase):
-    title = forms.CharField(widget=forms.Textarea(attrs={"rows": 1}))
+    title = forms.CharField(
+        widget=forms.Textarea(
+            attrs={"rows": 1, "class": "enableCKEditor CKEditorBasic"}
+        )
+    )
 
     class Meta:
         model = BibliographyItem
@@ -779,6 +823,7 @@ class BibliographyItemForm(HistoricalFormBase):
         if self.instance and self.instance.pk:
             self.fields["antiquarians"].initial = self.instance.antiquarians.all()
             self.fields["citing_authors"].initial = self.instance.citing_authors.all()
+            self.fields["title"].widget.attrs["class"] = "enableCKEditor CKEditorBasic"
 
 
 class FragmentForm(HistoricalFormBase):
@@ -879,11 +924,12 @@ class BaseLinkWorkForm(forms.ModelForm):
                 antiquarian = Antiquarian.objects.get(pk=kwargs["data"]["antiquarian"])
             else:
                 # Get everything from initial
-                antiquarian = kwargs["initial"]["antiquarian"]
-                definite_antiquarian = kwargs["initial"]["definite_antiquarian"]
-                work = kwargs["initial"]["work"]
-                definite_work = kwargs["initial"]["definite_work"]
-                book = kwargs["initial"]["book"]
+                initial_data = kwargs["initial"]
+                antiquarian = initial_data.get("antiquarian")
+                definite_antiquarian = initial_data.get("definite_antiquarian", False)
+                work = initial_data.get("work")
+                definite_work = initial_data.get("definite_work", False)
+                book = initial_data.get("book")
 
         if antiquarian:
             self.fields["antiquarian"].initial = antiquarian

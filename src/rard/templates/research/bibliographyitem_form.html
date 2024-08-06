@@ -1,6 +1,14 @@
 {% extends "research/base.html" %}
 {% load i18n bootstrap4 %}
 
+{% block title %}
+{% trans 'Bibliography:' %}{% if object %}
+{% trans 'Update' %}
+{% else %}
+{% trans 'Create new' %}
+{% endif %}
+{% endblock %}
+
 {% block heading %}
     {% if object %}
         {% trans 'Update Bibliography Item' %}
@@ -17,8 +25,7 @@
 
         {% if field.name == 'title' %}
 
-            {% bootstrap_field field field_class='d-none' %}
-            {% include 'research/partials/rich_text_editor.html' with field=field %}
+            {% bootstrap_field field %}
 
         {% else %}
 

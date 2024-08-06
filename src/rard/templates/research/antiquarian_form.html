@@ -19,8 +19,7 @@
         {% bootstrap_field form.order_year %}
 
         {% if form.introduction_text %}
-            {% bootstrap_field form.introduction_text field_class='d-none' %}
-            {% include 'research/partials/rich_text_editor.html' with field=form.introduction_text enable_mentions=True %}
+            {% bootstrap_field form.introduction_text %}
         {% endif %}
 
         {% if form.bibliography_items %}
