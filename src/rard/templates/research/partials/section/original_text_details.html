@@ -57,6 +57,7 @@
                 <em>{% trans 'old concordances:' %}</em>
                 {% for c in original_text.concordances.all%}
                 <div class='d-flex justify-content-between mb-3'>
+                {% if can_edit and has_object_lock %}
                 <form novalidate class='form-inline' action='{% url "concordance:delete_old" c.pk %}' method='POST'>
                     {% csrf_token %}
                     <small>{{c}}</small>
@@ -65,6 +66,7 @@
                             data-what='concordance'>{% trans 'Delete' %}</button>
                         {% endif %}
                 </form>
+                {% endif %}
                 </div>
                 {% endfor %}
 
