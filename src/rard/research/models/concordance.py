@@ -10,7 +10,10 @@ class PartIdentifier(HistoryModelMixin, BaseModel):
         ordering = ["edition__name", "value"]
 
     def __str__(self):
-        return f"{self.edition.name}: {self.value}"
+        if self.is_template:
+            return f"format for {self.edition.name}: {self.value}"
+        else:
+            return f"{self.edition.name}: {self.value}"
 
     edition = models.ForeignKey("Edition", on_delete=models.CASCADE)
     value = models.CharField(max_length=250, blank=False)
@@ -37,7 +40,12 @@ class Edition(HistoryModelMixin, BaseModel):
 
 class ConcordanceModel(HistoryModelMixin, BaseModel):
     def __str__(self):
-        return f"{self.identifier} ({self.content_type}) {self.reference}"
+        if "none" in str(self.identifier):
+            return (
+                f"{self.identifier.edition.name} ({self.content_type}) {self.reference}"
+            )
+        else:
+            return f"{self.identifier} ({self.content_type}) {self.reference}"
 
     original_text = models.ForeignKey(
         "OriginalText",
