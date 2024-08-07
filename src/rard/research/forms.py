@@ -1123,15 +1123,17 @@ class CitingAuthorUpdateForm(forms.ModelForm):
 class EditionForm(forms.ModelForm):
     class Meta:
         model = Edition
-        fields = ["edition", "new_edition", "new_description"]
+        fields = ["edition", "new_edition", "new_description", "part_format"]
 
         readonly_fields = ["description"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["new_edition"].widget.attrs.update({"class": "mr-3"})
         self.fields["new_description"].widget.attrs.update(
-            {"style": "width:40vw", "disabled": ""}
+            {"style": "width:35vw", "disabled": ""}
+        )
+        self.fields["part_format"].widget.attrs.update(
+            {"style": "width:35vw", "disabled": ""}
         )
 
     edition = forms.ModelChoiceField(
@@ -1140,11 +1142,20 @@ class EditionForm(forms.ModelForm):
         label="Select Edition",
         required=False,
     )
-    new_edition = forms.CharField(label="or create new Edition", required=False)
+    new_edition = forms.CharField(
+        label="Edition short name",
+        required=False,
+        help_text="Enter short name of edition eg. BNJ",
+    )
     new_description = forms.CharField(
         label="Edition full name",
         required=False,
-        help_text="Enter full name of edition and format of parts in square brackets or [none], eg: Edition:[none]",
+        help_text="Enter full name of edition eg. Brills New Jacoby",
+    )
+    part_format = forms.CharField(
+        label="format of parts",
+        required=False,
+        help_text="Enter format in brackets, eg. [1-10 Arabic numerals] or [none] if no parts for this edition",
     )
 
 
@@ -1152,7 +1163,6 @@ class ConcordanceModelCreateForm(forms.ModelForm):
     class Meta:
         model = ConcordanceModel
         fields = [
-            "edition",
             "identifier",
             "new_identifier",
             "display_order",
@@ -1161,69 +1171,54 @@ class ConcordanceModelCreateForm(forms.ModelForm):
             "concordance_order",
         ]
         labels = {
-            "identifier": "Part Identifier",
+            "identifier": "Select Part Identifier",
             "display_order": "Optional ordering for display purposes",
         }
 
-    edition = forms.ModelChoiceField(
-        queryset=Edition.objects.all(),
-        widget=forms.HiddenInput,
-    )
     new_identifier = forms.CharField(
-        label="or create new Part Identifier",
+        label="New Part Identifier",
         required=False,
         help_text="You do not need to include the edition name, only the relevant part identifier",
     )
     display_order = forms.CharField(
-        label="optional ordering",
         required=False,
         help_text="When ordering alphabetically, what would you like this identifier sorted as?",
     )
 
     def __init__(self, *args, **kwargs):
+        edition_id = kwargs.pop("edition", None)
         super().__init__(*args, **kwargs)
+        if not edition_id:  # if existing selected, it comes as an arg, not a kwarg
+            data = args[0] if args else {}
+            edition_id = data.get("edition", None)
 
-        data = args[0] if args else {}
-        edition_id = data.get("edition", None)
+        edition = Edition.objects.get(pk=edition_id)
+        qs = PartIdentifier.objects.filter(edition=edition_id).order_by("edition")
 
-        if edition_id:
-            self.fields["edition"].initial = edition_id
-            self.fields["identifier"].required = False
-            self.fields["reference"].required = True
-            self.fields["reference"].help_text = "Eg. 130c"
-            self.fields["concordance_order"].help_text = "Eg. 130.3"
+        self.fields["reference"].required = True
+        self.fields["reference"].help_text = "Eg. 130c"
+        self.fields["concordance_order"].help_text = "Eg. 130.3"
 
-            # make the first identifier entry non-selectable since it's the format
-            part_format = PartIdentifier.objects.filter(edition=edition_id).first()
-            qs = PartIdentifier.objects.filter(edition=edition_id).order_by("edition")
-            self.fields["identifier"].queryset = qs
-            self.fields["identifier"].label = f"Format: {part_format}"
-            self.fields["identifier"].initial = part_format.pk
+        # baseline for identifier field
+        self.fields["identifier"].required = False
+        self.fields["identifier"].queryset = qs
 
-            # disable new identifier when relevant
-            if "none" in str(part_format):
-                self.fields["new_identifier"].disabled = True
-                self.fields["new_identifier"].required = False
-                self.fields["identifier"].empty_label = None
-                self.fields["identifier"].initial = part_format.pk
-                self.fields["identifier"].widget.attrs.update(
-                    {"disable-selection": "true"}
-                )
-
-            # disable identifier if there aren't options
-            else:
-                if len(qs) <= 1:
-                    self.fields["identifier"].disabled = True
-                    self.fields["new_identifier"].required = True
-                else:
-                    qs = qs.exclude(pk=qs.first().pk)
-                    self.fields["identifier"].queryset = qs
-
-        else:
-            # if it's a new edition
+        # require new identifier if no options
+        if len(qs) <= 1:
             self.fields["identifier"].disabled = True
-            self.fields["identifier"].required = False
             self.fields["new_identifier"].required = True
+        else:
+            qs = qs.exclude(pk=qs.first().pk)
+            self.fields["identifier"].queryset = qs
+
+        # disable new identifier when relevant
+        if "none" in str(edition):
+            self.fields["new_identifier"].disabled = True
+            self.fields["new_identifier"].required = False
+            self.fields["identifier"].empty_label = None
+            self.fields["identifier"].widget.attrs.update(
+                {"disable-selection": "true"}
+            )  # doing through widget so the pk is still submitted
 
 
 class ConcordanceModelUpdateForm(forms.ModelForm):

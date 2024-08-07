@@ -484,12 +484,17 @@ section.footnotes {
 /* for concordance form */
 .concordance-form__area {
   min-height: 30vh;
-  margin-inline: 4vw;
+  margin-inline: 2vw;
 
   [disable-selection="true"] {
     color: gray;
     pointer-events: none;
     background-color: #e9ecef;
+  }
+  .new-edition > .form-group {
+    margin-right: 3vw;
+    width: fit-content;
+    max-width: 40vw;
   }
   .form-group:has(#id_content_type),
   .form-group:has(#id_display_order),

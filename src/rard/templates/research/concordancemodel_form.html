@@ -1,5 +1,12 @@
 {% extends "research/base.html" %}
 {% load i18n bootstrap4 %}
+{% block title %}
+    {% if object %}
+        {% trans 'Update Concordance for Original Text ' %}{{original_text.pk}}
+    {% else %}
+        {% trans 'Create Concordance for Original Text ' %}{{original_text.pk}}
+    {% endif %}
+{% endblock %}
 
 {% block heading %}
     {% if object %}
@@ -18,9 +25,11 @@
 {% if original_text.concordances.count != 0 %}
 <div>
     This original text has some existing concordances in the old format:
+    <div>
     {% for c in original_text.concordances.all %}
     {{c}}
     {% endfor %}
+    </div>
 </div>
 {% endif %}
 <div class="concordance-form__area">
@@ -29,33 +38,40 @@
     <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST' id="edition_form">
         {% csrf_token %}
 
-        <h2>Create or select an Edition</h2>
         <div class="d-flex justify-content-between">
         {% bootstrap_field edition_form.edition %}
         </div>
-        <div class="d-flex  justify-content-between">
+        <h2 class="alphabetum">Or create a new Edition</h2>
+        <div class="d-flex new-edition justify-content-between">
             {% bootstrap_field edition_form.new_edition %}
             {% bootstrap_field edition_form.new_description %}
+        </div>
+        <div>
+            {% bootstrap_field edition_form.part_format %}
+            <input type="hidden" name="original_text" value={{original_text.pk}}>
 
-            <script>
+        </div>
+        <script>
                 // this disables the new description field if there's no value in the new edition field
                 var newDescriptionElem=document.getElementById("id_new_description");
+                var partFormatElem=document.getElementById("id_part_format");
                 var newEditionElem=document.getElementById("id_new_edition");
 
                 newEditionElem.addEventListener("input", function() {
                     if (newEditionElem.value.trim() === '') {
                     newDescriptionElem.disabled = true;
+                    partFormatElem.disabled = true;
                     document.getElementById("id_edition").disabled = false;
 
                 } else {
                     newDescriptionElem.disabled = false;
+                    partFormatElem.disabled = false;
                     document.getElementById("id_edition").disabled = true;
                 }
                 })
 
             </script>
-        </div>
-        <button type="button" class="btn btn-primary" hx-post="{{post_url}}" hx-target="#edition_form" hx-trigger="click" hx-swap="outerHTML">Next</button>
+        <button type="button" class="btn btn-primary" hx-post="{% url 'concordance:edition_select' %}" hx-target="#edition_form" hx-trigger="click" hx-swap="outerHTML">{% trans 'Next' %}</button>
     </form>
 {% endif %}
 
@@ -63,6 +79,7 @@
     {% include 'research/partials/concordance_form_section.html' %}
 {% endif %}
 
-
+<button type="button" class="btn btn-outline-secondary mt-1" hx-get="{{original_text.owner.get_absolute_url}}"
+hx-swap="document" hx-trigger="click">{% trans 'Cancel' %}</button>
 </div>
 {% endblock %}

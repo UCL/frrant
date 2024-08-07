@@ -1,15 +1,17 @@
 {% load i18n bootstrap4 %}
-<form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST'>
+<form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request_action }}' class="form" method='POST'>
     {% csrf_token %}
 
-    <h2>{% if is_update %}Update{% else %}Add{% endif %} Concordance Details</h2>
-        <strong>Edition: {{edition_description}} {% if is_update %} {{identifier.edition.description}} {% endif %} </strong>
+    <h1 class="alphabetum">{% if is_update %}Update{% else %}Add{% endif %} Concordance Details</h2>
+        <strong>Edition: {{edition}} {% if is_update %} {{identifier.edition}} {% endif %} </strong>
         {% if not is_update %}
-        {% bootstrap_field concordance_form.edition %}
+        <input type="hidden" name="edition" value={{edition.pk}}>
         {% endif %}
 
         {% bootstrap_field concordance_form.identifier %}
         {% if not is_update %}
+        <h2 class="alphabetum">Or create a new Part Identifier</h2>
+        <p>{{part_format}}</p>
         {% bootstrap_field concordance_form.new_identifier %}
         {% endif %}
         <div class="d-flex justify-content-around">
@@ -20,7 +22,6 @@
             {% bootstrap_field concordance_form.reference %}
             {% bootstrap_field concordance_form.concordance_order %}
         </div>
-        <input type="hidden" name="concordance" value="True">
 
         <button type="submit" class="btn btn-primary">
         {% if object %}

@@ -54,6 +54,55 @@ def fetch_parts(request):
     return HttpResponse(options)
 
 
+def edition_select(request):
+    edition = request.POST.get("edition", None)
+    new_edition = request.POST.get("new_edition", None)
+    original_text = request.POST.get("original_text", None)
+    part_format = request.POST.get("part_format", None)
+
+    edition_form = EditionForm(request.POST)
+    if edition_form.is_valid():
+        if new_edition:
+            """create a new edition and template PI"""
+            new_edition_instance = Edition.objects.create(
+                name=edition_form.cleaned_data["new_edition"],
+                description=edition_form.cleaned_data["new_description"],
+            )
+            new_edition_instance.save()
+
+            PartIdentifier.objects.create(
+                edition=new_edition_instance, value=part_format
+            )
+
+            edition = new_edition_instance.pk
+
+        concordance_form = ConcordanceModelCreateForm(request.POST, edition=edition)
+
+        if not part_format:
+            first_part = PartIdentifier.objects.filter(edition=edition).first()
+            if first_part and first_part.is_template:
+                part_format = first_part
+
+        context = {
+            "edition": Edition.objects.get(pk=edition),
+            "concordance_form": concordance_form,
+            "original_text": original_text,
+            "part_format": part_format,
+            "request_action": reverse(
+                "concordance:create", kwargs={"pk": original_text}
+            ),
+        }
+        return render(
+            request, "research/partials/concordance_form_section.html", context
+        )
+    else:
+        return render(
+            request,
+            "research/partials/concordance_form_section.html",
+            {"edition_form": edition_form},
+        )
+
+
 class ConcordanceListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
     permission_required = "research.view_concordance"
     model = ConcordanceModel
@@ -162,69 +211,32 @@ class ConcordanceCreateView(
         )
 
     def post(self, request, *args, **kwargs):
-        is_concordance = request.POST.get("concordance", False)
         edition = request.POST.get("edition", None)
-        new_edition = request.POST.get("new_edition", None)
-        if is_concordance:
-            # if it's the concordance submission (second stage)
-            new_identifier = request.POST.get("new_identifier", None)
-            identifier = request.POST.get("identifier", None)
-            concordance_form = ConcordanceModelCreateForm(request.POST)
-            if concordance_form.is_valid():
-                if new_identifier:
-                    new_identifier_instance = PartIdentifier.objects.create(
-                        edition=Edition.objects.get(pk=edition),
-                        value=concordance_form.cleaned_data["new_identifier"],
-                        display_order=concordance_form.cleaned_data["display_order"],
-                    )
-                    new_identifier_instance.save()
-                    identifier = new_identifier_instance.pk
-
-                self.form_valid(concordance_form, identifier=identifier)
-                return redirect(self.get_success_url())
-            else:
-                concordance_form.cleaned_data["identifier"] = identifier
-                req_edition = request.POST.get("edition")
-                edition_description = Edition.objects.get(pk=req_edition).description
-                # not sure why it's not valid, also when it rerenders it doesn't have the edition
-                return self.render_to_response(
-                    self.get_context_data(
-                        concordance_form=concordance_form,
-                        edition_description=edition_description,
-                    )
+        new_identifier = request.POST.get("new_identifier", None)
+        identifier = request.POST.get("identifier", None)
+        concordance_form = ConcordanceModelCreateForm(request.POST)
+        if concordance_form.is_valid():
+            if new_identifier:
+                new_identifier_instance = PartIdentifier.objects.create(
+                    edition=Edition.objects.get(pk=edition),
+                    value=concordance_form.cleaned_data["new_identifier"],
+                    display_order=concordance_form.cleaned_data["display_order"],
                 )
+                new_identifier_instance.save()
+                identifier = new_identifier_instance.pk
 
+            self.form_valid(concordance_form, identifier=identifier)
+            return redirect(self.get_success_url())
         else:
-            # if submitting edition (first stage)
-            if edition or new_edition:
-                edition_form = EditionForm(request.POST)
-                if edition_form.is_valid():
-                    if new_edition:
-                        new_edition_instance = Edition.objects.create(
-                            name=edition_form.cleaned_data["new_edition"],
-                            description=edition_form.cleaned_data["new_description"],
-                        )
-
-                        new_edition_instance.save()
-
-                        edition = new_edition_instance
-
-                        edition_description = new_edition_instance.description
-                    else:
-                        edition_description = edition_form.cleaned_data[
-                            "edition"
-                        ].description
-
-                concordance_form = ConcordanceModelCreateForm(request.POST, edition)
-
-                context = self.get_context_data(
-                    edition_form,
-                    concordance_form,
-                    edition_description=edition_description,
-                )
-                return render(
-                    request, "research/partials/concordance_form_section.html", context
-                )
+            concordance_form.cleaned_data["identifier"] = identifier
+            edition = Edition.objects.get(pk=edition)
+            return render(
+                request,
+                self.template_name,
+                context=self.get_context_data(
+                    concordance_form=concordance_form, edition=edition
+                ),
+            )
 
     def get_success_url(self, *args, **kwargs):
         return self.original_text.owner.get_absolute_url()
@@ -248,18 +260,20 @@ class ConcordanceCreateView(
         self,
         edition_form=None,
         concordance_form=None,
-        edition_description=None,
         *args,
         **kwargs,
     ):
+        original_text = self.get_original_text()
+
+        edition = kwargs.get("edition", None)
         return {
             "edition_form": edition_form,
             "concordance_form": concordance_form,
-            "original_text": self.get_original_text(),
-            "edition_description": edition_description,
-            "post_url": reverse(
-                "concordance:create", kwargs={"pk": self.get_original_text().pk}
+            "original_text": original_text,
+            "request_action": reverse(
+                "concordance:create", kwargs={"pk": original_text.pk}
             ),
+            "edition": edition,
         }
 
 
@@ -287,6 +301,9 @@ class ConcordanceUpdateView(
                 "original_text": self.object.original_text,
                 "concordance_form": ConcordanceModelUpdateForm(instance=self.object),
                 "is_update": True,
+                "request_action": reverse(
+                    "concordance:update", kwargs={"pk": self.object.original_text.pk}
+                ),
             }
         )
         return context

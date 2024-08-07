@@ -51,6 +51,7 @@ from .concordance import (
     ConcordanceListView,
     ConcordanceUpdateView,
     OldConcordanceDeleteView,
+    edition_select,
     fetch_parts,
     fetch_works,
 )
@@ -275,4 +276,5 @@ __all__ = [
     "fetch_books",
     "fetch_works",
     "fetch_parts",
+    "edition_select",
 ]

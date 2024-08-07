@@ -538,6 +538,11 @@ urlpatterns = [
                         name="fetch_parts",
                     ),
                     path(
+                        "edition-select/",
+                        views.edition_select,
+                        name="edition_select",
+                    ),
+                    path(
                         "original-text/<pk>/create/",
                         views.ConcordanceCreateView.as_view(),
                         name="create",
