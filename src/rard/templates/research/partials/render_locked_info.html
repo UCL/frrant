@@ -1,6 +1,6 @@
 {# Assumes a context object named 'object' which is a LockableModel instance #}
 
-{% load humanize object_lock %}
+{% load humanize object_lock i18n %}
 
     <div class='d-flex justify-content-between align-items-center mb-2'>
         <div class='mr-3'>
@@ -9,12 +9,88 @@
 
         </div>
         <div>
-            <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form"
-                method='POST'>
                 {% csrf_token %}
                 {% if object.locked_by == request.user %}
-                    <button type='submit' class='btn btn-primary btn-sm' name='unlock'>Finish&nbsp;Editing</button>
+                <div class="dropdown show">
+                    <a class="btn btn-primary btn-sm dropdown-toggle" name='lock' href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Actions
+                    </a>
+
+                    <div class="dropdown-menu text-center p-2" aria-labelledby="dropdownMenuLink">
+                        <form novalidate class='form-group mb-0'  action='{% if is_testimonium %}{% url "testimonium:delete" object.pk %} {% elif is_work %}{% url "work:delete" object.pk %} {% elif is_antiquarian %}{% url "antiquarian:delete" object.pk %}{% elif is_anonymousfragment %}{% url "anonymous_fragment:delete" object.pk %}{% elif is_fragment %}{% url "fragment:delete" object.pk %}{% endif %}'
+                            method='POST'>
+                            {% csrf_token %}
+                            <button type='submit' class='btn btn-link text-danger {% if object.mentioned_in.all %}confirm-delete-mentions {% else %} confirm-delete {% endif %}'
+                                data-what='{{is_testimonium}}{{is_work}}{{is_antiquarian}}{{is_anonymousfragment}}{{is_fragment}}'>{% trans 'Delete' %}</button>
+                        </form>
+
+                        {% if is_anonymousfragment %}
+                        <form novalidate class='form-group mb-0' action='{% url "anonymous_fragment:convert_to_fragment" object.pk %}' method='POST'>
+                            {% csrf_token %}
+                            <button
+                            type='submit'
+                            class='
+                            {% if object.get_all_links %}has-links{% endif %}
+                            btn btn-link text-danger confirm-convert p-1 text-nowrap
+                            '
+                            data-what='anonymous fragment'
+                            >{% trans 'Make non-anonymous' %}</button>
+                        </form>
+                        <form novalidate class='form-group mb-0' action='{% url "anonymous_fragment:duplicate" object.pk %}' method='POST'>
+                            {% csrf_token %}
+                            <button type='submit' class='btn btn-link text-info'
+                                data-what='anonymous fragment'>{% trans 'Duplicate' %}</button>
+                        </form>
+
+                        {% elif is_fragment %}
+                            {% if object.is_unlinked %}
+                            <form novalidate class='form-group mb-0' action='{% url "fragment:convert_to_anonymous" object.pk %}' method='POST'>
+                                {% csrf_token %}
+                                <button type='submit' class='btn btn-link text-danger text-nowrap confirm-convert'
+                                    data-what='fragment'>{% trans 'Make anonymous' %}</button>
+                            </form>
+                            <form novalidate class='form-group mb-0' action='{% url "fragment:convert_to_testimonium" object.pk %}' method='POST'>
+                                {% csrf_token %}
+                                <button type='submit' class='btn btn-link text-danger text-nowrap confirm-convert'
+                                    data-what='fragment'>{% trans 'Make testimonium' %}</button>
+                            </form>
+                            {% endif %}
+                            <form novalidate class='form-group mb-0' action='{% url "fragment:duplicate" object.pk %}' method='POST'>
+                                {% csrf_token %}
+                                <button type='submit' class='btn btn-link text-info'
+                                    data-what='fragment'>{% trans 'Duplicate' %}</button>
+                            </form>
+                        {% elif is_testimonium %}
+                            <form novalidate class='form-group mb-0' action='{% url "testimonium:convert_to_fragment" object.pk %}' method='POST'>
+                                {% csrf_token %}
+                                <button
+                                type='submit'
+                                class='
+                                {% if object.get_all_links %}has-links{% endif %}
+                                btn btn-link text-danger confirm-convert p-1 text-nowrap
+                                '
+                                data-what='testimonium'
+                                >{% trans 'Make fragment' %}</button>
+                            </form>
+                            <form novalidate class='form-group mb-0' action='{% url "testimonium:duplicate" object.pk %}' method='POST'>
+                                {% csrf_token %}
+                                <button type='submit' class='btn btn-link text-info'
+                                    data-what='testimonium'>{% trans 'Duplicate' %}</button>
+                            </form>
+                        {% endif %}
+
+                        <hr class="m-1">
+                        <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form"
+                        method='POST'>
+                        {% csrf_token %}
+                        <button type='submit' class='btn btn-link text-primary' name='unlock'>Finish Editing</button>
+                        </form>
+                    </div>
+                </div>
                 {% else %}
+                <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form"
+                method='POST'>
+                {% csrf_token %}
                     {% if object.is_locked %}
                         <button type='submit' class='btn btn-warning btn-sm' name='request'>Request Item</button>
                         {% if request.user.can_break_locks %}
@@ -30,15 +106,13 @@
                         <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">
                             <button type='submit' name='days' value='1' class='dropdown-item'>for 1 day</button>
                             <button type='submit' name='days' value='2' class='dropdown-item'>for 2 days</button>
-                            <button type='submit' name='days' value='5' class='dropdown-item'>for 5 days</button>
                             <button type='submit' name='days' value='7' class='dropdown-item'>for a week</button>
                             <button type='submit' name='lock' class='dropdown-item'>until I unlock</button>
                         </div>
                     </div>
                     {% endif %}
-
+                    </form>
                 {% endif %}
-            </form>
         </div>
     </div>
     {% with user_lock_request=request.user|lock_request:object %}

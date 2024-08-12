@@ -144,10 +144,15 @@ $("body").on("submit", "form", function (e) {
       let what = $clicked.data("what") || "object";
       let confirmMsg = "Are you sure you want to convert this " + what + "?";
       if ($clicked.hasClass("has-links")) {
-        confirmMsg +=
-          " This " +
-          what +
-          " has existing links to antiquarians or works which will also be converted.";
+        if (what == "testimonium") {
+          confirmMsg +=
+            "This testimonium has links that will not be carried over to the fragment.";
+        } else {
+          confirmMsg +=
+            " This " +
+            what +
+            " has existing links to antiquarians or works which will also be converted.";
+        }
       }
       confirmMsg += " This cannot be undone.";
       return confirm(confirmMsg);

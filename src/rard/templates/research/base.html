@@ -94,6 +94,10 @@
         {% trans 'Search' %}
       </a>
     </nav>
+    {% if user.is_authenticated %}
+    <hr>
+    <a class='nav-link' href="https://github.com/UCL/frrant/wiki">{% trans 'Docs' %}</a>
+    {% endif %}
   </div>
   <div class='col-md-10 main-content'>
     {% block outer %}
