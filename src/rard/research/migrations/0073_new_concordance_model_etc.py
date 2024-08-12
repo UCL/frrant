@@ -31,7 +31,7 @@ def import_data_from_csv(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("research", "0071_add_duplicates_field"),
+        ("research", "0072_adding_testimonia_duplicates"),
     ]
 
     operations = [
