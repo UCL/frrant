@@ -188,21 +188,30 @@ class TestConcordanceViews(TestCase):
         self.client.force_login(self.user)
         response = self.client.post(url, {"antiquarian": self.antiquarian.pk})
         self.assertEqual(response.status_code, 200)
-        self.assertIn(str(self.fragment.pk).encode(), response.content)
-        self.assertIn(str(self.concordance).encode(), response.content)
+        self.assertIn(str(self.fragment.pk), response.content.decode())
+        self.assertIn(str(self.concordance), response.content.decode())
 
-    @pytest.mark.skip(reason="not working yet")
     def test_edition_search(self):
         # Create a fragment link so something will be returned
-        Edition.objects.create(
-            fragment=self.fragment, antiquarian=self.antiquarian, order=1
+        i2 = PartIdentifier.objects.create(edition=self.edition, value="2")
+        ConcordanceModel.objects.create(
+            identifier=i2,
+            original_text=self.original_text,
+            reference="20.u",
+            content_type="T",
         )
         url = reverse("concordance:list")
         self.client.force_login(self.user)
-        response = self.client.post(url, {"antiquarian": self.antiquarian.pk})
+        response = self.client.post(url, {"edition": self.edition.pk})
+        p3_concordance = ConcordanceModel.objects.get(identifier=self.identifier)
+        p2_concordance = ConcordanceModel.objects.get(identifier=i2)
+        p3_index = response.content.decode().find(f"{p3_concordance}")
+        p2_index = response.content.decode().find(f"{p2_concordance}")
         self.assertEqual(response.status_code, 200)
-        self.assertIn(str(self.fragment.pk).encode(), response.content)
-        self.assertIn(str(self.concordance).encode(), response.content)
+        self.assertEqual(
+            response.content.decode().count(f"{self.edition.name}"), 2
+        )  # check two concordances are found
+        self.assertTrue(p2_index < p3_index)  # check ordered by identifier
 
     def test_create_view_dispatch_creates_top_level_object(self):
         # dispatch method creates an attribute used by the
