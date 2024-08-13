@@ -92,10 +92,9 @@ class TestConcordanceViews(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn(str(self.original_text.owner.pk), response["Location"])
 
-    @pytest.mark.skip(reason="not working, unsure why; ask Tom")
     def test_update_view(self):
-        # this doesn't work but I don't know why
         data = {
+            "identifier": self.concordance.identifier.pk,
             "reference": "880",
             "content_type": "T",
         }
@@ -105,18 +104,13 @@ class TestConcordanceViews(TestCase):
         request = RequestFactory().post(url, data=data)
         request.user = self.user
 
-        # view = ConcordanceUpdateView()
-        # view.request = request
-        # view.object = self.concordance
-
         response = ConcordanceUpdateView.as_view()(request, pk=self.concordance.pk)
-        print(response)
         self.concordance.refresh_from_db()
 
         # Check that the concordance fields have been updated correctly
+        self.assertEqual(response.status_code, 302)
         self.assertEqual(self.concordance.reference, "880")
         self.assertEqual(self.concordance.content_type, "T")
-        self.assertEqual(1, 2)
 
     def test_update_success_url(self):
         view = ConcordanceUpdateView()

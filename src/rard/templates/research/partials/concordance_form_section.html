@@ -3,7 +3,7 @@
     {% csrf_token %}
 
     <h1 class="alphabetum">{% if is_update %}Update{% else %}Add{% endif %} Concordance Details</h2>
-        <strong>Edition: {{edition}} {% if is_update %} {{identifier.edition}} {% endif %} </strong>
+        <strong>Edition: {{edition}} {% if is_update %} {{object.identifier.edition}} {% endif %} </strong>
         {% if not is_update %}
         <input type="hidden" name="edition" value={{edition.pk}}>
         {% endif %}

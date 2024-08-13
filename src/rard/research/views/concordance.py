@@ -280,6 +280,7 @@ class ConcordanceCreateView(
 class ConcordanceUpdateView(
     CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
 ):
+    # this doesn't redirect to the owner when done
     check_lock_object = "top_level_object"
 
     model = ConcordanceModel
@@ -291,7 +292,6 @@ class ConcordanceUpdateView(
         # initialised in dispatch
         self.object = self.get_object()
         self.top_level_object = self.object.original_text.owner
-
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, *args, **kwargs):
@@ -302,11 +302,15 @@ class ConcordanceUpdateView(
                 "concordance_form": ConcordanceModelUpdateForm(instance=self.object),
                 "is_update": True,
                 "request_action": reverse(
-                    "concordance:update", kwargs={"pk": self.object.original_text.pk}
+                    "concordance:update", kwargs={"pk": self.object.pk}
                 ),
             }
         )
         return context
+
+    def post(self, request, *args, **kwargs):
+        super().post(self, request, *args, **kwargs)
+        return redirect(self.get_success_url())
 
     def get_success_url(self, *args, **kwargs):
         return self.object.original_text.owner.get_absolute_url()
