@@ -1,7 +1,7 @@
 {% extends "research/list_base.html" %}
 {% load i18n bootstrap4 static %}
 {% block title %}
-    {% trans 'Concordances' %}
+    {% trans 'Concordance Search' %}
 {% endblock %}
 
 {% block heading %}
@@ -34,7 +34,6 @@
   <div class="loader-wrapper">
   <div class="loader" id="loader"></div>
   </div>
-  {% comment %} todo: use db for results then fuse to search within those? {% endcomment %}
 </div>
 
 {% endblock %}

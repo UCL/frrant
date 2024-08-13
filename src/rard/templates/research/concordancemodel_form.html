@@ -79,7 +79,7 @@
     {% include 'research/partials/concordance_form_section.html' %}
 {% endif %}
 
-<button type="button" class="btn btn-outline-secondary mt-1" hx-get="{{original_text.owner.get_absolute_url}}"
+<button type="button" class="btn btn-outline-secondary mt-1 concordance-cancel" hx-get="{{original_text.owner.get_absolute_url}}"
 hx-swap="document" hx-trigger="click">{% trans 'Cancel' %}</button>
 </div>
 {% endblock %}

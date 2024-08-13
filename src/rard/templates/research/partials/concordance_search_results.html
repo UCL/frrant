@@ -10,7 +10,7 @@
         <thead>
         <tr>
           <th scope="col">FRRAnt</th>
-          <th scope="col">Authors {{ forloop.counter }}</th>
+          <th scope="col">Authors</th>
         </tr>
       </thead>
       <tbody class='alphabetum'>
@@ -21,7 +21,7 @@
               </td>
 
             {% for concordance in results.concordances %}
-              <td {% if forloop.last %}{% if forloop.counter < max_length %}colspan='{{ max_length }}'{% endif %}{% endif %}>
+              <td>
                 {% if concordance.original_text in item.original_texts.all %}
                 {{ concordance }}
                 {% endif %}
@@ -44,13 +44,13 @@
         <thead>
         <tr>
           <th scope="col">Author</th>
-          <th scope="col">FRRAnt {{ forloop.counter }}</th>
+          <th scope="col">FRRAnt</th>
         </tr>
       </thead>
       <tbody class='alphabetum'>
         {% for item in results %}
           <tr>
-             <td {% if forloop.last %}{% if forloop.counter < max_length %}colspan='{{ max_length }}'{% endif %}{% endif %}>
+             <td>
                 {{item}}
               </td>
 

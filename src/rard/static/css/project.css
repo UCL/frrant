@@ -503,6 +503,12 @@ section.footnotes {
     width: fit-content;
     max-width: 30vw;
   }
+
+  .concordance-cancel {
+    position: absolute;
+    bottom: 1rem;
+    left: 8rem;
+  }
 }
 
 .concordance-search__wrapper {
