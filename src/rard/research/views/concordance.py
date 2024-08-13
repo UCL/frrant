@@ -79,6 +79,7 @@ def edition_select(request):
         concordance_form = ConcordanceModelCreateForm(request.POST, edition=edition)
 
         if not part_format:
+            # set the part_format as the template part for the selected edition
             first_part = PartIdentifier.objects.filter(edition=edition).first()
             if first_part and first_part.is_template:
                 part_format = first_part
@@ -96,6 +97,7 @@ def edition_select(request):
             request, "research/partials/concordance_form_section.html", context
         )
     else:
+        # form not valid
         return render(
             request,
             "research/partials/concordance_form_section.html",

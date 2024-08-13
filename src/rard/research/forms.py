@@ -1183,7 +1183,7 @@ class ConcordanceModelCreateForm(forms.ModelForm):
     new_identifier = forms.CharField(
         label="New Part Identifier",
         required=False,
-        help_text="You do not need to include the edition name, only the relevant part identifier",
+        help_text="You do not need to include the edition name, only the relevant part identifier without brackets[]",
     )
     display_order = forms.CharField(
         required=False,
@@ -1197,8 +1197,10 @@ class ConcordanceModelCreateForm(forms.ModelForm):
             data = args[0] if args else {}
             edition_id = data.get("edition", None)
 
-        edition = Edition.objects.get(pk=edition_id)
         qs = PartIdentifier.objects.filter(edition=edition_id).order_by("edition")
+        first_part = PartIdentifier.objects.filter(edition=edition_id).first()
+        if first_part and first_part.is_template:
+            part_format = first_part
 
         self.fields["reference"].required = True
         self.fields["reference"].help_text = "Eg. 130c"
@@ -1217,7 +1219,7 @@ class ConcordanceModelCreateForm(forms.ModelForm):
             self.fields["identifier"].queryset = qs
 
         # disable new identifier when relevant
-        if "none" in str(edition):
+        if "none" in str(part_format):
             self.fields["new_identifier"].disabled = True
             self.fields["new_identifier"].required = False
             self.fields["identifier"].empty_label = None
