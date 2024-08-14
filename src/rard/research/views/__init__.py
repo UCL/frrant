@@ -1,7 +1,5 @@
 from .antiquarian import (
-    AntiquarianConcordanceCreateView,
     AntiquarianConcordanceDeleteView,
-    AntiquarianConcordanceUpdateView,
     AntiquarianCreateView,
     AntiquarianDeleteView,
     AntiquarianDetailView,
@@ -154,9 +152,7 @@ __all__ = [
     "AddAppositumAnonymousLinkView",
     "AddAppositumFragmentLinkView",
     "AddAppositumGeneralLinkView",
-    "AntiquarianConcordanceCreateView",
     "AntiquarianConcordanceDeleteView",
-    "AntiquarianConcordanceUpdateView",
     "AntiquarianCreateView",
     "AntiquarianWorkCreateView",
     "AntiquarianDeleteView",

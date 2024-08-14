@@ -130,16 +130,6 @@ urlpatterns = [
                         name="create_bibliography",
                     ),
                     path(
-                        "<pk>/concordance/create/",
-                        views.AntiquarianConcordanceCreateView.as_view(),
-                        name="create_concordance",
-                    ),
-                    path(
-                        "concordance/<pk>/update/",
-                        views.AntiquarianConcordanceUpdateView.as_view(),
-                        name="update_concordance",
-                    ),
-                    path(
                         "concordance/<pk>/delete/",
                         views.AntiquarianConcordanceDeleteView.as_view(),
                         name="delete_concordance",
