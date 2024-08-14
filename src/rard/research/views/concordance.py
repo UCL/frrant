@@ -54,6 +54,13 @@ def fetch_parts(request):
     return HttpResponse(options)
 
 
+def get_part_format(edition):
+    first_part = PartIdentifier.objects.filter(edition=edition).first()
+    if first_part and first_part.is_template:
+        part_format = first_part
+        return part_format
+
+
 def edition_select(request):
     edition = request.POST.get("edition", None)
     new_edition = request.POST.get("new_edition", None)
@@ -70,9 +77,10 @@ def edition_select(request):
             )
             new_edition_instance.save()
 
-            PartIdentifier.objects.create(
+            pi = PartIdentifier.objects.create(
                 edition=new_edition_instance, value=part_format
             )
+            part_format = pi  # set like this so the string displays properly
 
             edition = new_edition_instance.pk
 
@@ -80,9 +88,7 @@ def edition_select(request):
 
         if not part_format:
             # set the part_format as the template part for the selected edition
-            first_part = PartIdentifier.objects.filter(edition=edition).first()
-            if first_part and first_part.is_template:
-                part_format = first_part
+            get_part_format(edition)
 
         context = {
             "edition": Edition.objects.get(pk=edition),
@@ -230,13 +236,18 @@ class ConcordanceCreateView(
             self.form_valid(concordance_form, identifier=identifier)
             return redirect(self.get_success_url())
         else:
+            # not valid
             concordance_form.cleaned_data["identifier"] = identifier
             edition = Edition.objects.get(pk=edition)
+            part_format = get_part_format(edition)
+            print(part_format)
             return render(
                 request,
                 self.template_name,
                 context=self.get_context_data(
-                    concordance_form=concordance_form, edition=edition
+                    concordance_form=concordance_form,
+                    edition=edition,
+                    part_format=part_format,
                 ),
             )
 

@@ -1192,15 +1192,17 @@ class ConcordanceModelCreateForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         edition_id = kwargs.pop("edition", None)
+        part_format = kwargs.get("part_format", None)
         super().__init__(*args, **kwargs)
         if not edition_id:  # if existing selected, it comes as an arg, not a kwarg
             data = args[0] if args else {}
             edition_id = data.get("edition", None)
 
         qs = PartIdentifier.objects.filter(edition=edition_id).order_by("edition")
-        first_part = PartIdentifier.objects.filter(edition=edition_id).first()
-        if first_part and first_part.is_template:
-            part_format = first_part
+        if not part_format:
+            first_part = PartIdentifier.objects.filter(edition=edition_id).first()
+            if first_part and first_part.is_template:
+                part_format = first_part
 
         self.fields["reference"].required = True
         self.fields["reference"].help_text = "Eg. 130c"

@@ -65,8 +65,10 @@ class TestConcordanceViews(TestCase):
         request.user = self.user
         response = ConcordanceCreateView.as_view()(request, pk=self.original_text.pk)
 
+        # check it returns the next stage
         self.assertFalse("id_new_edition" in response.content.decode())
         self.assertTrue("id_new_identifier" in response.content.decode())
+        # check selected edition value passed
         self.assertTrue(f"value={self.edition.pk}" in response.content.decode())
 
     def test_creation_concordance_step(self):
@@ -89,6 +91,50 @@ class TestConcordanceViews(TestCase):
             self.original_text.concordance_models.count(), (concordance_count + 1)
         )
         # check it redirects to the owner
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(str(self.original_text.owner.pk), response["Location"])
+
+    def test_creation_with_new_content(self):
+        # edition part
+        url = reverse("concordance:edition_select")
+        data = {
+            "new_edition": "PBJ",
+            "original_text": self.original_text.pk,
+            "new_description": "Peanut Butter Jelly",
+            "part_format": "[1-15]",
+        }
+
+        self.client.force_login(self.user)
+        response = self.client.post(url, data=data)
+        pbj = Edition.objects.get(name="PBJ")
+        self.assertIsNotNone(pbj)
+        self.assertIn(str(pbj), response.content.decode())
+        template_part = PartIdentifier.objects.get(edition=pbj)
+        self.assertTrue(template_part.is_template)
+        self.assertIn(str(template_part), response.content.decode())
+        self.assertIsNotNone(
+            response.content.decode().find('required id="id_new_identifier"')
+        )
+
+        # concordance part
+        url = reverse("concordance:create", kwargs={"pk": self.original_text.pk})
+        data = {
+            "reference": "25.j",
+            "content_type": "F",
+            "new_identifier": "12",
+            "edition": pbj.pk,
+        }
+
+        request = RequestFactory().post(url, data=data)
+        request.user = self.user
+        concordance_count = self.original_text.concordance_models.count()
+
+        response = ConcordanceCreateView.as_view()(request, pk=self.original_text.pk)
+        self.original_text.refresh_from_db()
+        self.assertEqual(
+            self.original_text.concordance_models.count(), (concordance_count + 1)
+        )
+        self.assertIsNotNone(ConcordanceModel.objects.filter(identifier__edition=pbj))
         self.assertEqual(response.status_code, 302)
         self.assertIn(str(self.original_text.owner.pk), response["Location"])
 
