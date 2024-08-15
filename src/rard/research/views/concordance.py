@@ -15,6 +15,7 @@ from rard.research.forms import (
 )
 from rard.research.models import ConcordanceModel, Edition, OriginalText, PartIdentifier
 from rard.research.models.antiquarian import Antiquarian
+from rard.research.models.bibliography import BibliographyItem
 from rard.research.models.original_text import Concordance
 from rard.research.models.work import Work
 from rard.research.views.mixins import CheckLockMixin
@@ -61,6 +62,13 @@ def get_part_format(edition):
         return part_format
 
 
+def create_edition_bib_item(pk):
+    edition = Edition.objects.get(pk=pk)
+    BibliographyItem.objects.create(
+        authors=edition.name, author_surnames=edition.name, title=edition.description
+    )
+
+
 def edition_select(request):
     edition = request.POST.get("edition", None)
     new_edition = request.POST.get("new_edition", None)
@@ -77,12 +85,16 @@ def edition_select(request):
             )
             new_edition_instance.save()
 
+            if "[" and "]" not in part_format:
+                part_format = f"[{part_format}]"
+
             pi = PartIdentifier.objects.create(
                 edition=new_edition_instance, value=part_format
             )
             part_format = pi  # set like this so the string displays properly
 
             edition = new_edition_instance.pk
+            create_edition_bib_item(edition)
 
         concordance_form = ConcordanceModelCreateForm(request.POST, edition=edition)
 
