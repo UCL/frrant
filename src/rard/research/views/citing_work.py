@@ -9,7 +9,7 @@ from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from rard.research.forms import CitingAuthorUpdateForm, CitingWorkCreateForm
 from rard.research.models import CitingAuthor, CitingWork, OriginalText
-from rard.research.views.mixins import CanLockMixin, CheckLockMixin, DateOrderMixin
+from rard.research.views.mixins import CheckLockMixin, DateOrderMixin
 
 
 class CitingAuthorCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
@@ -63,7 +63,7 @@ class CitingAuthorUpdateView(
         return super().form_valid(form)
 
 
-class CitingAuthorListView(DateOrderMixin, PermissionRequiredMixin, ListView):
+class CitingAuthorListView(DateOrderMixin, ListView):
     paginate_by = 10
     model = OriginalText
     template_name = "research/citingauthor_list.html"
@@ -103,7 +103,7 @@ class CitingAuthorFullListView(DateOrderMixin, PermissionRequiredMixin, ListView
         return CitingAuthor.objects.all()
 
 
-class CitingAuthorDetailView(CanLockMixin, PermissionRequiredMixin, DetailView):
+class CitingAuthorDetailView(DetailView):
     model = CitingAuthor
     permission_required = ("research.view_citingauthor",)
 
@@ -191,7 +191,7 @@ class CitingWorkCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateVi
         return reverse("citingauthor:work_detail", kwargs={"pk": self.object.pk})
 
 
-class CitingWorkDetailView(CanLockMixin, PermissionRequiredMixin, DetailView):
+class CitingWorkDetailView(PermissionRequiredMixin, DetailView):
     model = CitingWork
     permission_required = ("research.view_citingwork",)
 

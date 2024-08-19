@@ -15,20 +15,19 @@ from rard.research.forms import (
 )
 from rard.research.models import Book, TextObjectField, Work
 from rard.research.views.mixins import (
-    CanLockMixin,
     CheckLockMixin,
     TextObjectFieldUpdateMixin,
     TextObjectFieldViewMixin,
 )
 
 
-class WorkListView(PermissionRequiredMixin, ListView):
+class WorkListView(ListView):
     paginate_by = 10
     model = Work
     permission_required = ("research.view_work",)
 
 
-class WorkDetailView(CanLockMixin, PermissionRequiredMixin, DetailView):
+class WorkDetailView(DetailView):
     model = Work
     permission_required = ("research.view_work",)
 

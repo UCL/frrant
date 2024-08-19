@@ -10,10 +10,10 @@ from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from rard.research.models import Topic
-from rard.research.views.mixins import CanLockMixin, CheckLockMixin
+from rard.research.views.mixins import CheckLockMixin
 
 
-class TopicListView(PermissionRequiredMixin, ListView):
+class TopicListView(ListView):
     paginate_by = 10
     model = Topic
     permission_required = ("research.view_topic",)
@@ -33,7 +33,7 @@ class TopicListView(PermissionRequiredMixin, ListView):
         return HttpResponseRedirect(self.request.path)
 
 
-class TopicDetailView(CanLockMixin, PermissionRequiredMixin, DetailView):
+class TopicDetailView(DetailView):
     model = Topic
     permission_required = ("research.view_topic",)
 

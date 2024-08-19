@@ -21,7 +21,6 @@ from rard.research.forms import (
 )
 from rard.research.models import Antiquarian, AntiquarianConcordance, Book, Work
 from rard.research.views.mixins import (
-    CanLockMixin,
     CheckLockMixin,
     DateOrderMixin,
     TextObjectFieldUpdateMixin,
@@ -29,13 +28,13 @@ from rard.research.views.mixins import (
 )
 
 
-class AntiquarianListView(DateOrderMixin, PermissionRequiredMixin, ListView):
+class AntiquarianListView(DateOrderMixin, ListView):
     paginate_by = 10
     model = Antiquarian
     permission_required = ("research.view_antiquarian",)
 
 
-class AntiquarianDetailView(CanLockMixin, PermissionRequiredMixin, DetailView):
+class AntiquarianDetailView(DetailView):
     model = Antiquarian
     permission_required = ("research.view_antiquarian",)
 

@@ -22,7 +22,6 @@ from rard.research.views.fragment import (
     HistoricalBaseCreateView,
 )
 from rard.research.views.mixins import (
-    CanLockMixin,
     CheckLockMixin,
     GetWorkLinkRequestDataMixin,
     TextObjectFieldUpdateMixin,
@@ -45,13 +44,13 @@ class TestimoniumCreateView(PermissionRequiredMixin, HistoricalBaseCreateView):
         return context
 
 
-class TestimoniumListView(PermissionRequiredMixin, ListView):
+class TestimoniumListView(ListView):
     paginate_by = 10
     model = Testimonium
     permission_required = ("research.view_testimonium",)
 
 
-class TestimoniumDetailView(CanLockMixin, PermissionRequiredMixin, DetailView):
+class TestimoniumDetailView(DetailView):
     model = Testimonium
     permission_required = ("research.view_testimonium",)
 

@@ -53,7 +53,6 @@ from rard.research.models.base import AppositumFragmentLink, FragmentLink
 from rard.research.models.fragment import AnonymousTopicLink
 from rard.research.views.mention import MentionSearchView
 from rard.research.views.mixins import (
-    CanLockMixin,
     CheckLockMixin,
     GetWorkLinkRequestDataMixin,
     TextObjectFieldUpdateMixin,
@@ -292,13 +291,13 @@ class AppositumCreateView(AnonymousFragmentCreateView):
         return self.owner_for
 
 
-class FragmentListView(PermissionRequiredMixin, ListView):
+class FragmentListView(ListView):
     paginate_by = 10
     model = Fragment
     permission_required = ("research.view_fragment",)
 
 
-class AnonymousFragmentListView(PermissionRequiredMixin, ListView):
+class AnonymousFragmentListView(ListView):
     model = AnonymousTopicLink
     permission_required = "research.view_fragment"
     template_name = "research/anonymousfragment_list.html"
@@ -383,7 +382,7 @@ class AnonymousFragmentListView(PermissionRequiredMixin, ListView):
         return qs
 
 
-class UnlinkedFragmentListView(PermissionRequiredMixin, ListView):
+class UnlinkedFragmentListView(ListView):
     model = Fragment
     permission_required = "research.view_fragment"
     template_name = "research/unlinkedfragment_list.html"
@@ -708,7 +707,7 @@ class RemoveAnonymousAppositumLinkView(
         return redirect(self.get_success_url())
 
 
-class FragmentDetailView(CanLockMixin, PermissionRequiredMixin, DetailView):
+class FragmentDetailView(DetailView):
     model = Fragment
     permission_required = ("research.view_fragment",)
 
