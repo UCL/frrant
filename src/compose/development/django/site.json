@@ -1,10 +1,10 @@
 [
-{
+  {
     "model": "sites.site",
     "pk": 1,
     "fields": {
-        "domain": "frra-app01p.ad.ucl.ac.uk",
-        "name": "Republican Antiquarians Research Database"
+      "domain": "ucl.ac.uk",
+      "name": "Republican Antiquarians Research Database"
     }
-}
+  }
 ]

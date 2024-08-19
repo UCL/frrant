@@ -9,8 +9,6 @@
 
         </div>
         <div>
-            <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form"
-                method='POST'>
                 {% csrf_token %}
                 {% if object.locked_by == request.user %}
                 <div class="dropdown show">
@@ -19,8 +17,7 @@
                     </a>
 
                     <div class="dropdown-menu text-center p-2" aria-labelledby="dropdownMenuLink">
-                        <form novalidate class='form-group'  action='{% if is_testimonium %}{% url "testimonium:delete" testimonium.pk %} {% elif is_work %}{% url "work:delete" work.pk %} {% elif is_antiquarian %}{% url "antiquarian:delete" antiquarian.pk %}{% elif is_anonymousfragment %}{% url "anonymous_fragment:delete" object.pk %}{% elif is_fragment %}{% url "fragment:delete" object.pk %}
-                        {% endif %}'
+                        <form novalidate class='form-group mb-0'  action='{% if is_testimonium %}{% url "testimonium:delete" object.pk %} {% elif is_work %}{% url "work:delete" object.pk %} {% elif is_antiquarian %}{% url "antiquarian:delete" object.pk %}{% elif is_anonymousfragment %}{% url "anonymous_fragment:delete" object.pk %}{% elif is_fragment %}{% url "fragment:delete" object.pk %}{% endif %}'
                             method='POST'>
                             {% csrf_token %}
                             <button type='submit' class='btn btn-link text-danger {% if object.mentioned_in.all %}confirm-delete-mentions {% else %} confirm-delete {% endif %}'
@@ -83,11 +80,17 @@
                         {% endif %}
 
                         <hr class="m-1">
-
+                        <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form"
+                        method='POST'>
+                        {% csrf_token %}
                         <button type='submit' class='btn btn-link text-primary' name='unlock'>Finish Editing</button>
+                        </form>
                     </div>
                 </div>
                 {% else %}
+                <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form"
+                method='POST'>
+                {% csrf_token %}
                     {% if object.is_locked %}
                         <button type='submit' class='btn btn-warning btn-sm' name='request'>Request Item</button>
                         {% if request.user.can_break_locks %}
@@ -108,9 +111,8 @@
                         </div>
                     </div>
                     {% endif %}
-
+                    </form>
                 {% endif %}
-            </form>
         </div>
     </div>
     {% with user_lock_request=request.user|lock_request:object %}
