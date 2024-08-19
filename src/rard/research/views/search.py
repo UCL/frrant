@@ -3,7 +3,6 @@ from functools import partial
 from itertools import chain
 
 from django.conf import settings
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import ExpressionWrapper, Func, Q, TextField, Value
 from django.db.models.functions import Lower
 from django.shortcuts import redirect
@@ -78,7 +77,7 @@ PUNCTUATION_RE = re.compile(r"[\[\]{0}]".format(PUNCTUATION_BASE))
 
 
 @method_decorator(require_GET, name="dispatch")
-class SearchView(LoginRequiredMixin, TemplateView, ListView):
+class SearchView(TemplateView, ListView):
     class Term:
         """
         Initialize it with the keywords:

@@ -68,7 +68,7 @@ from rard.utils.convertors import (
 from rard.utils.shared_functions import reassign_to_unknown
 
 
-class OriginalTextCitingWorkView(LoginRequiredMixin, TemplateView):
+class OriginalTextCitingWorkView(TemplateView):
     def get_forms(self):
         forms = {
             "original_text": OriginalTextForm(
@@ -292,13 +292,13 @@ class AppositumCreateView(AnonymousFragmentCreateView):
         return self.owner_for
 
 
-class FragmentListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class FragmentListView(PermissionRequiredMixin, ListView):
     paginate_by = 10
     model = Fragment
     permission_required = ("research.view_fragment",)
 
 
-class AnonymousFragmentListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class AnonymousFragmentListView(PermissionRequiredMixin, ListView):
     model = AnonymousTopicLink
     permission_required = "research.view_fragment"
     template_name = "research/anonymousfragment_list.html"
@@ -383,7 +383,7 @@ class AnonymousFragmentListView(LoginRequiredMixin, PermissionRequiredMixin, Lis
         return qs
 
 
-class UnlinkedFragmentListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class UnlinkedFragmentListView(PermissionRequiredMixin, ListView):
     model = Fragment
     permission_required = "research.view_fragment"
     template_name = "research/unlinkedfragment_list.html"
@@ -708,9 +708,7 @@ class RemoveAnonymousAppositumLinkView(
         return redirect(self.get_success_url())
 
 
-class FragmentDetailView(
-    CanLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DetailView
-):
+class FragmentDetailView(CanLockMixin, PermissionRequiredMixin, DetailView):
     model = Fragment
     permission_required = ("research.view_fragment",)
 

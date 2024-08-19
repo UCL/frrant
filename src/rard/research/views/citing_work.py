@@ -63,9 +63,7 @@ class CitingAuthorUpdateView(
         return super().form_valid(form)
 
 
-class CitingAuthorListView(
-    DateOrderMixin, LoginRequiredMixin, PermissionRequiredMixin, ListView
-):
+class CitingAuthorListView(DateOrderMixin, PermissionRequiredMixin, ListView):
     paginate_by = 10
     model = OriginalText
     template_name = "research/citingauthor_list.html"
@@ -91,9 +89,7 @@ class CitingAuthorListView(
         return OriginalText.objects.all().order_by(*ordering)
 
 
-class CitingAuthorFullListView(
-    DateOrderMixin, LoginRequiredMixin, PermissionRequiredMixin, ListView
-):
+class CitingAuthorFullListView(DateOrderMixin, PermissionRequiredMixin, ListView):
     paginate_by = 10
     model = OriginalText
     template_name = "research/citingauthor_full_list.html"
@@ -107,9 +103,7 @@ class CitingAuthorFullListView(
         return CitingAuthor.objects.all()
 
 
-class CitingAuthorDetailView(
-    CanLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DetailView
-):
+class CitingAuthorDetailView(CanLockMixin, PermissionRequiredMixin, DetailView):
     model = CitingAuthor
     permission_required = ("research.view_citingauthor",)
 
@@ -197,9 +191,7 @@ class CitingWorkCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateVi
         return reverse("citingauthor:work_detail", kwargs={"pk": self.object.pk})
 
 
-class CitingWorkDetailView(
-    CanLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DetailView
-):
+class CitingWorkDetailView(CanLockMixin, PermissionRequiredMixin, DetailView):
     model = CitingWork
     permission_required = ("research.view_citingwork",)
 

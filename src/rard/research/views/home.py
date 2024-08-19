@@ -1,4 +1,4 @@
-from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.views.generic import ListView, TemplateView
 
 from rard.research.models import Fragment
@@ -12,7 +12,7 @@ class HomeView(TemplateView):
             return ["research/home.html"]
 
 
-class AnonymousListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class AnonymousListView(PermissionRequiredMixin, ListView):
     paginate_by = 10
     model = Fragment
     permission_required = ("research.view_fragment",)

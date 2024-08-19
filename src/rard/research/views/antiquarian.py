@@ -29,17 +29,13 @@ from rard.research.views.mixins import (
 )
 
 
-class AntiquarianListView(
-    DateOrderMixin, LoginRequiredMixin, PermissionRequiredMixin, ListView
-):
+class AntiquarianListView(DateOrderMixin, PermissionRequiredMixin, ListView):
     paginate_by = 10
     model = Antiquarian
     permission_required = ("research.view_antiquarian",)
 
 
-class AntiquarianDetailView(
-    CanLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DetailView
-):
+class AntiquarianDetailView(CanLockMixin, PermissionRequiredMixin, DetailView):
     model = Antiquarian
     permission_required = ("research.view_antiquarian",)
 

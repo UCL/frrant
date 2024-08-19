@@ -45,15 +45,13 @@ class TestimoniumCreateView(PermissionRequiredMixin, HistoricalBaseCreateView):
         return context
 
 
-class TestimoniumListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class TestimoniumListView(PermissionRequiredMixin, ListView):
     paginate_by = 10
     model = Testimonium
     permission_required = ("research.view_testimonium",)
 
 
-class TestimoniumDetailView(
-    CanLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DetailView
-):
+class TestimoniumDetailView(CanLockMixin, PermissionRequiredMixin, DetailView):
     model = Testimonium
     permission_required = ("research.view_testimonium",)
 

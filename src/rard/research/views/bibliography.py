@@ -16,7 +16,7 @@ from rard.research.models import Antiquarian, BibliographyItem
 from rard.research.views.mixins import CanLockMixin, CheckLockMixin
 
 
-class BibliographyOverviewView(LoginRequiredMixin, PermissionRequiredMixin, View):
+class BibliographyOverviewView(PermissionRequiredMixin, View):
     template_name = "research/bibliographyitem_overview.html"
     permission_required = ("research.view_bibliographyitem",)
 
@@ -24,16 +24,14 @@ class BibliographyOverviewView(LoginRequiredMixin, PermissionRequiredMixin, View
         return render(self.request, template_name=self.template_name)
 
 
-class BibliographyListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class BibliographyListView(PermissionRequiredMixin, ListView):
     paginate_by = 10
     model = BibliographyItem
     permission_required = ("research.view_bibliographyitem",)
     template_name = "research/partials/htmx_bibliography_list_page.html"
 
 
-class BibliographyDetailView(
-    CanLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DetailView
-):
+class BibliographyDetailView(CanLockMixin, PermissionRequiredMixin, DetailView):
     model = BibliographyItem
     permission_required = ("research.view_bibliographyitem",)
 
@@ -157,7 +155,7 @@ class BibliographyDeleteView(
     permission_required = ("research.delete_bibliographyitem",)
 
 
-class BibliographySectionView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class BibliographySectionView(PermissionRequiredMixin, ListView):
     model = BibliographyItem
     template_name = "research/partials/antiquarian_bibliography_list.html"
     context_object_name = "bibliography_items"

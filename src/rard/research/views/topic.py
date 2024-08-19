@@ -13,7 +13,7 @@ from rard.research.models import Topic
 from rard.research.views.mixins import CanLockMixin, CheckLockMixin
 
 
-class TopicListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class TopicListView(PermissionRequiredMixin, ListView):
     paginate_by = 10
     model = Topic
     permission_required = ("research.view_topic",)
@@ -33,9 +33,7 @@ class TopicListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
         return HttpResponseRedirect(self.request.path)
 
 
-class TopicDetailView(
-    CanLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DetailView
-):
+class TopicDetailView(CanLockMixin, PermissionRequiredMixin, DetailView):
     model = Topic
     permission_required = ("research.view_topic",)
 

@@ -22,15 +22,13 @@ from rard.research.views.mixins import (
 )
 
 
-class WorkListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class WorkListView(PermissionRequiredMixin, ListView):
     paginate_by = 10
     model = Work
     permission_required = ("research.view_work",)
 
 
-class WorkDetailView(
-    CanLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DetailView
-):
+class WorkDetailView(CanLockMixin, PermissionRequiredMixin, DetailView):
     model = Work
     permission_required = ("research.view_work",)
 
