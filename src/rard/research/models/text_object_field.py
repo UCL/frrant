@@ -1,4 +1,3 @@
-from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import IntegrityError, models
 from simple_history.models import HistoricalRecords
@@ -16,8 +15,6 @@ class TextObjectField(HistoryModelMixin, BaseModel):
     # store text in a separate object to allow its own
     # audit trail to be held
     content = DynamicTextField(default="", blank=True)
-
-    comments = GenericRelation("Comment", related_query_name="text_fields")
 
     def get_history_title(self):
         obj = self.get_related_object()

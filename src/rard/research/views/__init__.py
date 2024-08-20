@@ -44,7 +44,6 @@ from .citing_work import (
     CitingWorkDetailView,
     CitingWorkUpdateView,
 )
-from .comments import CommentDeleteView, TextObjectFieldCommentListView
 from .concordance import (
     ConcordanceCreateView,
     ConcordanceDeleteView,
@@ -188,7 +187,6 @@ __all__ = [
     "CitingWorkDeleteView",
     "CitingWorkDetailView",
     "CitingWorkUpdateView",
-    "CommentDeleteView",
     "ConcordanceCreateView",
     "ConcordanceDeleteView",
     "ConcordanceListView",

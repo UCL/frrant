@@ -1,7 +1,6 @@
 from .antiquarian import Antiquarian, AntiquarianConcordance
 from .bibliography import BibliographyItem
 from .citing_work import CitingAuthor, CitingWork
-from .comment import Comment
 from .fragment import AnonymousFragment, AnonymousTopicLink, Fragment, TopicLink
 from .history import HistoricalRecordLog
 from .image import Image
@@ -22,7 +21,6 @@ __all__ = [
     "BibliographyItem",
     "CitingAuthor",
     "CitingWork",
-    "Comment",
     "Concordance",
     "Fragment",
     "HistoricalRecordLog",
