@@ -69,24 +69,6 @@
             <li class="nav-item">
               <a class="nav-link" href="{% url 'home' %}">Home <span class="sr-only">(current)</span></a>
             </li>
-
-            {% if request.user.is_authenticated %}
-              <li class="nav-item">
-                <a class="nav-link" href="{% url 'users:detail' request.user.username  %}">{% trans "My Profile" %}</a>
-              </li>
-              {% if request.user.is_staff %}
-              <li class="nav-item">
-                <a class="nav-link" href="{% url 'admin:index' %}">{% trans "Admin" %}</a>
-              </li>
-              {% endif %}
-              <li class="nav-item">
-                <a class="nav-link" href="{% url 'logout' %}">{% trans "Log Out" %}</a>
-              </li>
-            {% else %}
-              <li class="nav-item">
-                <a id="log-in-link" class="nav-link" href="{% url 'login' %}">{% trans "Log In" %}</a>
-              </li>
-            {% endif %}
           </ul>
         </div>
       </nav>

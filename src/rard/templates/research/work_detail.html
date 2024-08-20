@@ -17,12 +17,6 @@
 {% block last_modified %}{% endblock %}
 
 {% block action %}
-
-    {% with request.user|has_lock:object as has_object_lock %}
-
-        {% include 'research/partials/render_locked_info.html' with is_work="work" %}
-
-    {% endwith %}
 {% endblock %}
 
 {% block inner %}

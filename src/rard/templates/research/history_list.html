@@ -12,16 +12,6 @@
 
 {% block action %}
 
-    {% with request.user|has_lock:object as has_object_lock %}
-
-        <div class='d-flex justify-content-between align-items-center mb-2'>
-            <div class='mr-3'>
-                {% include 'research/partials/render_locked_icons.html' with object=object.related_lock_object %}
-                <a class='ml-3' href='{{ object.related_lock_object.get_absolute_url }}'>{% trans 'View Item' %}</a>
-            </div>
-        </div>
-    {% endwith %}
-
 {% endblock %}
 
 {% block inner %}
