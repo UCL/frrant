@@ -294,7 +294,6 @@ class AppositumCreateView(AnonymousFragmentCreateView):
 class FragmentListView(ListView):
     paginate_by = 10
     model = Fragment
-    permission_required = ("research.view_fragment",)
 
 
 class AnonymousFragmentListView(ListView):
@@ -709,7 +708,6 @@ class RemoveAnonymousAppositumLinkView(
 
 class FragmentDetailView(DetailView):
     model = Fragment
-    permission_required = ("research.view_fragment",)
 
     def get_context_data(self, **kwargs):
         fragment = self.get_object()
@@ -722,7 +720,6 @@ class FragmentDetailView(DetailView):
 
 class AnonymousFragmentDetailView(FragmentDetailView):
     model = AnonymousFragment
-    permission_required = ("research.view_fragment",)
 
     def get_context_data(self, **kwargs):
         fragment = self.get_object()
@@ -794,7 +791,6 @@ class FragmentCommentaryView(TextObjectFieldViewMixin):
 
 class FragmentPublicCommentaryView(TextObjectFieldViewMixin):
     model = Fragment
-    permission_required = ("research.view_fragment",)
     textobject_field = "public_commentary_mentions"
     hide_empty = False
 
@@ -826,7 +822,6 @@ class AnonymousFragmentCommentaryView(TextObjectFieldViewMixin):
 
 class AnonymousFragmentPublicCommentaryView(TextObjectFieldViewMixin):
     model = AnonymousFragment
-    permission_required = ("research.view_fragment",)
     textobject_field = "public_commentary_mentions"
     hide_empty = False
 

@@ -24,12 +24,10 @@ from rard.research.views.mixins import (
 class WorkListView(ListView):
     paginate_by = 10
     model = Work
-    permission_required = ("research.view_work",)
 
 
 class WorkDetailView(DetailView):
     model = Work
-    permission_required = ("research.view_work",)
 
     def get_context_data(self, **kwargs):
         """use work model method get_ordered_materials to retrieve a dictionary of all fragments,
@@ -127,7 +125,6 @@ class WorkUpdateIntroductionView(TextObjectFieldUpdateMixin, WorkUpdateView):
 
 class WorkIntroductionView(TextObjectFieldViewMixin):
     model = Work
-    permission_required = ("research.view_work",)
     textobject_field = "introduction"
     hide_empty = False
 
@@ -243,7 +240,6 @@ class BookUpdateIntroductionView(TextObjectFieldUpdateMixin, BookUpdateView):
 
 class BookIntroductionView(TextObjectFieldViewMixin):
     model = Book
-    permission_required = ("research.view_book",)
     textobject_field = "introduction"
     hide_empty = False
 

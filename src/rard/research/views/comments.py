@@ -11,6 +11,7 @@ from rard.research.forms import CommentForm
 from rard.research.models import Comment, TextObjectField
 
 
+# TODO: remove this model and its views
 @method_decorator(require_POST, name="dispatch")
 class CommentDeleteView(LoginRequiredMixin, PermissionRequiredMixin, DeleteView):
     model = Comment

@@ -14,7 +14,6 @@ class HomeView(TemplateView):
 class AnonymousListView(ListView):
     paginate_by = 10
     model = Fragment
-    permission_required = ("research.view_fragment",)
     template_name = "research/anonymous_list.html"
 
     def get_queryset(self):

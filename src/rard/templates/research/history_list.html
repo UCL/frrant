@@ -26,7 +26,6 @@
 
 {% block inner %}
 
-    {% with request.user|has_lock:object as has_object_lock %}
 
         {% for history_item in page_obj %}
 
@@ -74,7 +73,6 @@
 
         {% endfor %}
 
-    {% endwith %}
 
     {{ block.super }}
 

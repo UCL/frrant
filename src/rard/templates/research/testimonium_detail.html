@@ -19,8 +19,6 @@
 {% endblock %}
 
 {% block inner %}
-    {% with request.user|has_lock:object as has_object_lock %}
-
     <hr>
     <section>
         <div class='d-flex justify-content-between mb-3'>
@@ -38,11 +36,7 @@
             <dd class="col-sm-9">
                 {% if object.topics.count == 0%}-{% endif %}
                 {% for topic in object.topics.all %}{% if forloop.counter0 > 0 %}, {% endif %}
-                    {% if perms.research.view_topic %}
                         <a href='{% url "topic:detail" topic.slug %}'>{{ topic.name }}</a>
-                    {% else %}
-                        {{ topic.name }}
-                    {% endif %}
                 {% endfor %}
             </dd>
             {% endif %}
@@ -205,6 +199,5 @@
     {% endif %}
 
 
-    {% endwith %}
 
 {% endblock %}

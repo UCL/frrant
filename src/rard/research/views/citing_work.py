@@ -67,10 +67,6 @@ class CitingAuthorListView(DateOrderMixin, ListView):
     paginate_by = 10
     model = OriginalText
     template_name = "research/citingauthor_list.html"
-    permission_required = (
-        "research.view_citingauthor",
-        "research.view_citingwork",
-    )
 
     def get_queryset(self):
         # NB do not call super() method here as we are doing something
@@ -93,10 +89,6 @@ class CitingAuthorFullListView(DateOrderMixin, PermissionRequiredMixin, ListView
     paginate_by = 10
     model = OriginalText
     template_name = "research/citingauthor_full_list.html"
-    permission_required = (
-        "research.view_citingauthor",
-        "research.view_citingwork",
-    )
 
     def get_queryset(self):
         # all citing authors
@@ -105,7 +97,6 @@ class CitingAuthorFullListView(DateOrderMixin, PermissionRequiredMixin, ListView
 
 class CitingAuthorDetailView(DetailView):
     model = CitingAuthor
-    permission_required = ("research.view_citingauthor",)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -193,7 +184,6 @@ class CitingWorkCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateVi
 
 class CitingWorkDetailView(PermissionRequiredMixin, DetailView):
     model = CitingWork
-    permission_required = ("research.view_citingwork",)
 
 
 class CitingWorkUpdateView(

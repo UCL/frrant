@@ -26,7 +26,6 @@
 {% endblock %}
 
 {% block inner %}
-    {% with request.user|has_lock:object as has_object_lock %}
     <hr>
     <section id="work-info">
         <div class='d-flex justify-content-between mb-3'>
@@ -167,5 +166,4 @@
 
     </section>
 
-    {% endwith %}
 {% endblock %}

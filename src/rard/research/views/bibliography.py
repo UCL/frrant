@@ -18,7 +18,6 @@ from rard.research.views.mixins import CheckLockMixin
 
 class BibliographyOverviewView(View):
     template_name = "research/bibliographyitem_overview.html"
-    permission_required = ("research.view_bibliographyitem",)
 
     def get(self, request, *args, **kwargs):
         return render(self.request, template_name=self.template_name)
@@ -27,13 +26,11 @@ class BibliographyOverviewView(View):
 class BibliographyListView(ListView):
     paginate_by = 10
     model = BibliographyItem
-    permission_required = ("research.view_bibliographyitem",)
     template_name = "research/partials/htmx_bibliography_list_page.html"
 
 
 class BibliographyDetailView(DetailView):
     model = BibliographyItem
-    permission_required = ("research.view_bibliographyitem",)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -159,7 +156,6 @@ class BibliographySectionView(ListView):
     model = BibliographyItem
     template_name = "research/partials/antiquarian_bibliography_list.html"
     context_object_name = "bibliography_items"
-    permission_required = ("research.view_bibliographyitem",)
 
     def get_queryset(self) -> QuerySet[Any]:
         if self.model is not None:

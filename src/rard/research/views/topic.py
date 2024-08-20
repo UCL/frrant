@@ -16,7 +16,6 @@ from rard.research.views.mixins import CheckLockMixin
 class TopicListView(ListView):
     paginate_by = 10
     model = Topic
-    permission_required = ("research.view_topic",)
 
     def post(self, *args, **kwargs):
         pk = self.request.POST.get("topic_id", None)
@@ -35,7 +34,6 @@ class TopicListView(ListView):
 
 class TopicDetailView(DetailView):
     model = Topic
-    permission_required = ("research.view_topic",)
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)

@@ -6,11 +6,7 @@
   <div>
       <li class="unstyled">
         <span>
-              {% if perms.research.view_fragment %}
                 <a href='{% url "anonymous_fragment:detail" anonymous_fragment.pk %}'>{{anonymous_fragment.get_display_name}}</a>
-              {% else %}
-                {{anonymous_fragment.get_display_name}}
-              {% endif %}
             {% include 'research/partials/render_inline_lock_icon.html' with object=appositum %}
         </span>
   </div>

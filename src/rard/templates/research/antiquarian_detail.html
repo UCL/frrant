@@ -24,8 +24,6 @@
 
 {% block inner %}
 
-      {% with request.user|has_lock:object as has_object_lock %}
-
 
         <hr>
         <section>
@@ -153,6 +151,5 @@
           {% include 'research/partials/antiquarian_bibliography_list.html' with bibliography_items=object.bibliography_items %}
         </section>
 
-      {% endwith %}
 
 {% endblock %}

@@ -19,8 +19,6 @@
 {% endblock %}
 
 {% block inner %}
-    {% with request.user|has_lock:object as has_object_lock %}
-
 
     <hr>
     <section>
@@ -39,11 +37,7 @@
             <dd class="col-sm-7">
                 {% if object.topics.count == 0%}-{% endif %}
                 {% for topic in object.topics.all %}{% if forloop.counter0 > 0 %}, {% endif %}
-                    {% if perms.research.view_topic %}
                     <a href='{% url "topic:detail" topic.slug %}'>{{ topic.name }}</a>
-                    {% else %}
-                    {{ topic.name }}
-                    {% endif %}
                 {% endfor %}
             </dd>
             <dd class='col-sm-2 actions'>
@@ -247,6 +241,5 @@
     {% endif %}
 
 
-    {% endwith %}
 
 {% endblock %}

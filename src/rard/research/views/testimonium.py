@@ -47,12 +47,10 @@ class TestimoniumCreateView(PermissionRequiredMixin, HistoricalBaseCreateView):
 class TestimoniumListView(ListView):
     paginate_by = 10
     model = Testimonium
-    permission_required = ("research.view_testimonium",)
 
 
 class TestimoniumDetailView(DetailView):
     model = Testimonium
-    permission_required = ("research.view_testimonium",)
 
     def get_context_data(self, **kwargs):
         testimonium = self.get_object()
@@ -118,7 +116,6 @@ class TestimoniumCommentaryView(TextObjectFieldViewMixin):
 
 class TestimoniumPublicCommentaryView(TextObjectFieldViewMixin):
     model = Testimonium
-    permission_required = ("research.view_testimonium",)
     textobject_field = "public_commentary_mentions"
     hide_empty = False
 

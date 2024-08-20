@@ -29,7 +29,6 @@
 
 
 {% block inner %}
-    {% with request.user|has_lock:object as has_object_lock %}
 
     <hr>
     <section>
@@ -130,6 +129,5 @@
         {% endfor %}
     </section>
 
-    {% endwith %}
 
 {% endblock %}

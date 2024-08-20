@@ -31,12 +31,10 @@ from rard.research.views.mixins import (
 class AntiquarianListView(DateOrderMixin, ListView):
     paginate_by = 10
     model = Antiquarian
-    permission_required = ("research.view_antiquarian",)
 
 
 class AntiquarianDetailView(DetailView):
     model = Antiquarian
-    permission_required = ("research.view_antiquarian",)
 
     def post(self, *args, **kwargs):
         link_pk = self.request.POST.get("link_id", None)
@@ -208,7 +206,6 @@ class AntiquarianUpdateIntroductionView(
 
 class AntiquarianIntroductionView(TextObjectFieldViewMixin):
     model = Antiquarian
-    permission_required = ("research.view_antiquarian",)
     textobject_field = "introduction"
 
 
