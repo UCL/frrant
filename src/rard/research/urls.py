@@ -582,10 +582,10 @@ urlpatterns = [
         "concordance/",
         include(
             (
-                [  # todo after new structure
-                    # distill_path(
-                    #     "list/", views.ConcordanceListView.as_view(), name="list"
-                    # ),
+                [  # TODO after new structure
+                    distill_path(
+                        "list/", views.ConcordanceListView.as_view(), name="list"
+                    ),
                     path(
                         "original-text/<pk>/create/",
                         views.ConcordanceCreateView.as_view(),
