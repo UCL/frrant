@@ -47,12 +47,12 @@ if settings.DEBUG:
         ),
         path("500/", default_views.server_error),
     ]
-    if "debug_toolbar" in settings.INSTALLED_APPS:
-        import debug_toolbar
+    # if "debug_toolbar" in settings.INSTALLED_APPS:
+    #     import debug_toolbar
 
-        base_urlpatterns = [
-            path("__debug__/", include(debug_toolbar.urls))
-        ] + base_urlpatterns
+    #     base_urlpatterns = [
+    #         path("__debug__/", include(debug_toolbar.urls))
+    #     ] + base_urlpatterns
 
 prefix = getattr(settings, "URL_PREFIX", "")
 
