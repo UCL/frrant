@@ -29,7 +29,7 @@ from rard.research.views.mixins import (
 
 
 class AntiquarianListView(DateOrderMixin, ListView):
-    paginate_by = 10
+    paginate_by = 15
     model = Antiquarian
 
 

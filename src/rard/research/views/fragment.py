@@ -292,7 +292,7 @@ class AppositumCreateView(AnonymousFragmentCreateView):
 
 
 class FragmentListView(ListView):
-    paginate_by = 10
+    paginate_by = 15
     model = Fragment
 
 

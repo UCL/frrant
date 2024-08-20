@@ -6,7 +6,7 @@ from django.views.generic import ListView
 
 
 class HistoryListView(ListView):
-    paginate_by = 10
+    paginate_by = 15
     template_name = "research/history_list.html"
 
     @property

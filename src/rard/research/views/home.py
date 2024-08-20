@@ -12,7 +12,7 @@ class HomeView(TemplateView):
 
 
 class AnonymousListView(ListView):
-    paginate_by = 10
+    paginate_by = 15
     model = Fragment
     template_name = "research/anonymous_list.html"
 

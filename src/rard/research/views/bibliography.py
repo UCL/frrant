@@ -24,7 +24,7 @@ class BibliographyOverviewView(View):
 
 
 class BibliographyListView(ListView):
-    paginate_by = 10
+    paginate_by = 15
     model = BibliographyItem
     template_name = "research/partials/htmx_bibliography_list_page.html"
 

@@ -45,7 +45,7 @@ class TestimoniumCreateView(PermissionRequiredMixin, HistoricalBaseCreateView):
 
 
 class TestimoniumListView(ListView):
-    paginate_by = 10
+    paginate_by = 15
     model = Testimonium
 
 

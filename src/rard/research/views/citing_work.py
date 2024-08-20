@@ -64,7 +64,7 @@ class CitingAuthorUpdateView(
 
 
 class CitingAuthorListView(DateOrderMixin, ListView):
-    paginate_by = 10
+    paginate_by = 15
     model = OriginalText
     template_name = "research/citingauthor_list.html"
 
@@ -86,7 +86,7 @@ class CitingAuthorListView(DateOrderMixin, ListView):
 
 
 class CitingAuthorFullListView(DateOrderMixin, PermissionRequiredMixin, ListView):
-    paginate_by = 10
+    paginate_by = 15
     model = OriginalText
     template_name = "research/citingauthor_full_list.html"
 
