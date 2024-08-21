@@ -14,7 +14,7 @@
           {% endif %}
       </h5>
       {% endif %}
-      {% if perms.research.change_work and has_object_lock and not book.unknown %}
+      {% if can_edit and has_object_lock and not book.unknown %}
       <button
         class="btn text-primary p-0 ml-2 htmx-get-button"
         _="on click hide .htmx-get-button"

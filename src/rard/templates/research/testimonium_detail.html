@@ -9,7 +9,6 @@
     {{ block.super }}
     <script src="{% static 'js/check_forms_dirty.js' %}"></script>
 {% endblock %}
-{% with request.user|has_lock:object as has_object_lock %}
 
 {% block action %}
 {% if request.user.is_authenticated %}
@@ -20,6 +19,9 @@
 {% endblock %}
 
 {% block inner %}
+{% with request.user|has_lock:object as has_object_lock %}
+{% with request.user.is_staff as can_edit %}
+
     <hr>
     <section>
         <div class='d-flex justify-content-between mb-3'>
@@ -44,7 +46,7 @@
 
             <dt class="col-sm-3">{% trans 'Original Texts' %}</dt>
             <dd class="col-sm-7">{{ object.original_texts.count }}</dd>
-            {% if perms.research.change_testimonium and perms.research.add_originaltext and has_object_lock %}
+            {% if can_edit and perms.research.add_originaltext and has_object_lock %}
             <dd class="col-sm-2 actions">
                 <a style='float:right;' href='{% url "testimonium:create_original_text" object.pk %}'>Add</a></dd>
             </dd>
@@ -63,16 +65,15 @@
                 <h5>{% trans 'Original Text' %} {{ forloop.counter }}</h5>
             </div>
             <div>
-                {% if perms.research.change_testimonium and has_object_lock %}
+                {% if can_edit and has_object_lock %}
                 <form novalidate class='form-inline' action='{% url "testimonium:delete_original_text" original_text.pk %}' method='POST'>
                     {% csrf_token %}
                     <div class="form-row align-items-center">
-                        {% if perms.research.change_originaltext %}
                         Edit&nbsp;
                         <a href='{% url "testimonium:update_author_original_text" original_text.pk %}'>Citing Work</a>
                         &nbsp;/&nbsp;
                         <a href='{% url "testimonium:update_original_text" original_text.pk %}'>Details</a>
-                        {% endif %}
+
                         {% if perms.research.delete_originaltext %}
                         <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2' data-what='original text'>{% trans 'Delete' %}</button>
                         {% endif %}
@@ -88,12 +89,12 @@
         </div>
 
 
-        {% include 'research/partials/section/original_text_details.html' with show_concordances=False original_text=original_text can_edit=perms.research.change_testimonium has_object_lock=has_object_lock %}
+        {% include 'research/partials/section/original_text_details.html' with show_concordances=False original_text=original_text can_edit=can_edit has_object_lock=has_object_lock %}
 
 
         <div class='mt-3'>
         {% for translation in original_text.translation_set.all %}
-            {% include 'research/partials/translation_preview.html' with translation=translation can_edit=perms.research.change_testimonium has_object_lock=has_object_lock %}
+            {% include 'research/partials/translation_preview.html' with translation=translation can_edit=can_edit has_object_lock=has_object_lock %}
         {% endfor %}
         </div>
 
@@ -110,7 +111,7 @@
             <h5>{% trans 'Commentary' %}</h5>
         </div>
         <div>
-            {% if perms.research.change_testimonium and has_object_lock %}
+            {% if can_edit and has_object_lock %}
             <button
               class="btn text-primary p-0 ml-2"
               hx-get="{% url 'testimonium:update_commentary' object.pk %}"
@@ -124,7 +125,7 @@
     </div>
     </section>
 
-    {% if perms.research.change_testimonium and has_object_lock %}
+    {% if can_edit and has_object_lock %}
     <br>
     <section class="public-commentary-section">
         <div class='d-flex justify-content-between mb-3'>
@@ -132,7 +133,7 @@
               <h5>{% trans 'See Also' %}</h5>
           </div>
           <div>
-              {% if perms.research.change_testimonium and has_object_lock %}
+              {% if can_edit and has_object_lock %}
               <button
                 class="btn text-primary p-0 ml-2"
                 hx-get="{% url 'testimonium:update_public_commentary' object.pk %}"
@@ -163,7 +164,7 @@
                 <h5>{% trans 'Links' %}</h5>
             </div>
             <div>
-                {% if perms.research.change_testimonium and has_object_lock %}
+                {% if can_edit and has_object_lock %}
                 <a href='{% url "testimonium:add_work_link" object.pk %}'>{% trans 'Add Link' %}</a>
                 {% endif %}
             </div>
@@ -173,11 +174,11 @@
         {% for antiquarian, contents in link_object.items %}
         {% with links=contents.0 %}
         {% with definite_ant=contents.1 %}
-            {% include 'research/partials/linked_antiquarian.html' with antiquarian=antiquarian linked_field='testimonium' object=object definite_antiquarian=definite_ant  can_edit=perms.research.change_testimonium has_object_lock=has_object_lock %}
+            {% include 'research/partials/linked_antiquarian.html' with antiquarian=antiquarian linked_field='testimonium' object=object definite_antiquarian=definite_ant  can_edit=can_edit has_object_lock=has_object_lock %}
 
             <div class="pl-4 mb-4 mt-0">
             {% for link in links %}
-                {% include 'research/partials/linked_work.html' with link=link linked_field='testimonium' can_edit=perms.research.change_testimonium has_object_lock=has_object_lock is_last=forloop.last %}
+                {% include 'research/partials/linked_work.html' with link=link linked_field='testimonium' can_edit=can_edit has_object_lock=has_object_lock is_last=forloop.last %}
             {% endfor %}
         </div>
         {% endwith %}
@@ -198,6 +199,6 @@
     <hr>
     {% include 'research/partials/section/duplicates_section.html' with object=object %}
     {% endif %}
-
-{% endblock %}
 {% endwith %}
+{% endwith %}
+{% endblock %}

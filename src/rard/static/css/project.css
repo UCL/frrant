@@ -373,7 +373,7 @@ button.insert {
 .topic-list-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 1vw;
+  gap: 2vw;
 
   @media (min-width: 2048px) {
     grid-template-columns: repeat(3, 1fr);

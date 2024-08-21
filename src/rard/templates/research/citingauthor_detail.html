@@ -3,7 +3,6 @@
 {% block title %}Citing Author {{object.name}} {% endblock %}
 
 {% block heading %}{{ object }}{% endblock %}
-{% with request.user|has_lock:object as has_object_lock %}
 
 {% block action %}
 {% if request.user.is_authenticated %}
@@ -28,6 +27,8 @@
 
 
 {% block inner %}
+{% with request.user|has_lock:object as has_object_lock %}
+{% with request.user.is_staff as can_edit %}
 
     <hr>
     <section>
@@ -36,7 +37,7 @@
                 <h5>{% trans 'Details' %}</h5>
             </div>
             <div>
-                {% if perms.research.change_citingauthor and has_object_lock %}
+                {% if can_edit and has_object_lock %}
                 <a href='{% url "citingauthor:update" object.pk %}'>{% trans 'Edit' %}</a>
                 {% endif %}
             </div>
@@ -66,7 +67,7 @@
                 <h5>{% trans 'Works' %}</h5>
             </div>
             <div>
-                {% if perms.research.change_citingauthor and has_object_lock %}
+                {% if can_edit and has_object_lock %}
                 <a href='{% url "citingauthor:create_work_for_author" object.pk %}'>{% trans 'New Work' %}</a>
                 {% endif %}
             </div>
@@ -115,7 +116,7 @@
                 <h5>{% trans 'Bibliography' %}</h5>
             </div>
             <div>
-                {% if perms.research.change_citingauthor and has_object_lock %}
+                {% if can_edit and has_object_lock %}
                 <a href='{% url "citingauthor:update" object.pk %}'>{% trans 'Add existing' %}</a><p></p>
                 <a href='{% url "bibliography:create" %}'>{% trans 'Add new' %}</a>
                 {% endif %}
@@ -123,11 +124,11 @@
         </div>
         {% for item in object.bibliography_items.all %}
 
-        {% include 'research/partials/bibliography_list_item.html' with can_edit=perms.research.change_citingauthor has_object_lock=has_object_lock %}
+        {% include 'research/partials/bibliography_list_item.html' with can_edit=can_edit has_object_lock=has_object_lock %}
 
         {% endfor %}
     </section>
 
-
-{% endblock %}
 {% endwith %}
+{% endwith %}
+{% endblock %}

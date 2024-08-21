@@ -15,7 +15,6 @@
 {% endblock %}
 
 {% block last_modified %}{% endblock %}
-{% with request.user|has_lock:object as has_object_lock %}
 
 {% block action %}
 {% if request.user.is_authenticated %}
@@ -28,6 +27,9 @@
 {% endblock %}
 
 {% block inner %}
+{% with request.user|has_lock:object as has_object_lock %}
+{% with request.user.is_staff as can_edit %}
+
     <hr>
     <section id="work-info">
         <div class='d-flex justify-content-between mb-3'>
@@ -35,7 +37,7 @@
               <h5>{% trans 'Details' %}</h5>
           </div>
           <div>
-              {% if perms.research.change_work and has_object_lock %}
+              {% if can_edit and has_object_lock %}
               <a href='{% url "work:update" object.pk %}'>{% trans 'Edit Details' %}</a>
               {% endif %}
           </div>
@@ -43,7 +45,7 @@
 
         {% with intro_length=object.introduction.content|striptags|length %}
         <div class='d-flex justify-content-between mb-3'>
-          {% if perms.research.change_work and has_object_lock %}
+          {% if can_edit and has_object_lock %}
           <button
             class="btn text-primary p-0 htmx-get-button"
             _="on click hide .htmx-get-button"
@@ -77,7 +79,7 @@
 
             <dt class="col-sm-3">{% trans 'Number of Books' %}</dt>
             <dd class="col-sm-7">{{ object.number_of_books|default:'-' }}</dd>
-            {% if perms.research.change_work and perms.research.add_book and has_object_lock %}
+            {% if can_edit and perms.research.add_book and has_object_lock %}
             <dd class="col-sm-2 actions"><a style='float:right' href='{% url "work:create_book" object.pk %}'>Add Book</a></dd>
             {% endif %}
 
@@ -100,10 +102,10 @@
                     <form novalidate class='form-inline' action='{% url "work:delete_book" book.pk %}' method='POST'>
                       {% csrf_token %}
                       <div class='form-row align-items-center'>
-                        {% if perms.research.change_work and perms.research.change_book and has_object_lock %}
+                        {% if can_edit and has_object_lock %}
                           <a href='{% url "work:update_book" book.pk %}'>Edit</a>
                         {% endif %}
-                        {% if perms.research.change_work and perms.research.delete_book and has_object_lock %}
+                        {% if can_edit and has_object_lock %}
                           <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
                               data-what='book'>{% trans 'Delete' %}</button>
                         {% endif %}
@@ -130,8 +132,8 @@
     <hr>
 
     <section>
-      {% if perms.research.change_work and has_object_lock %}
-      {% include 'research/partials/ordered_book_area.html' with ordered_materials=ordered_materials can_edit=perms.research.change_work has_object_lock=has_object_lock %}
+      {% if can_edit and has_object_lock %}
+      {% include 'research/partials/ordered_book_area.html' with ordered_materials=ordered_materials can_edit=can_edit has_object_lock=has_object_lock %}
       {% else %}
       {% include 'research/partials/ordered_book_area.html' with ordered_materials=cleaned_materials %}
       {% endif %}
@@ -146,7 +148,7 @@
                 <h5>{% trans 'Apposita' %}</h5>
             </div>
             <div>
-                {% if perms.research.change_work and has_object_lock %}
+                {% if can_edit and has_object_lock %}
                 <a href='{% url "anonymous_fragment:create_appositum_for" "work" object.pk %}'>{% trans 'Create Appositum' %}</a>
                 {% endif %}
             </div>
@@ -166,6 +168,6 @@
             {% endwith %}
 
     </section>
-
-{% endblock %}
 {% endwith %}
+{% endwith %}
+{% endblock %}

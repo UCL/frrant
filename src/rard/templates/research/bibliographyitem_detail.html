@@ -6,7 +6,6 @@
 {% endblock %}
 
 {% block last_modified %}{% endblock %}
-{% with request.user|has_lock:object as has_object_lock %}
 
 {% block action %}
 {% if request.user.is_authenticated %}
@@ -31,6 +30,9 @@
 {% endblock %}
 
 {% block inner %}
+{% with request.user|has_lock:object as has_object_lock %}
+{% with request.user.is_staff as can_edit %}
+
     <hr>
     <section>
         <div class='d-flex justify-content-between mb-3'>
@@ -38,7 +40,7 @@
                 <h5>{% trans 'Details' %}</h5>
             </div>
             <div>
-                {% if perms.research.change_bibliographyitem and has_object_lock %}
+                {% if can_edit and has_object_lock %}
                 <a href='{% url "bibliography:update" object.pk %}'>{% trans 'Edit' %}</a>
                 {% endif %}
             </div>
@@ -86,6 +88,6 @@
 
     </section>
 
-
-{% endblock %}
 {% endwith %}
+{% endwith %}
+{% endblock %}
