@@ -85,8 +85,6 @@
                 <div>
                     <h5>{% trans 'Ordered Material' %}</h5>
                 </div>
-                <div>
-                </div>
             </div>
 
             {% include 'research/partials/ordered_work_area.html' with antiquarian=object can_edit=perms.research.change_antiquarian has_object_lock=has_object_lock %}
@@ -106,7 +104,11 @@
               {% endif %}
             </div>
           </div>
-          {% include 'research/partials/antiquarian_bibliography_list.html' with bibliography_items=object.bibliography_items %}
+          {% if object.bibliography_items.count > 0 %}
+            {% include 'research/partials/antiquarian_bibliography_list.html' with bibliography_items=object.bibliography_items %}
+            {% else %}
+            <p> This antiquarian has no associated bibliography </p>
+            {% endif %}
         </section>
 
 

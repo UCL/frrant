@@ -203,16 +203,6 @@ table.books-widget .book-order {
   z-index: 13;
 }
 
-/* .ordered-list-item:first-of-type .form-group [name*='up']  {
-  opacity:0.5;
-  pointer-events:none;
-}
-
-.ordered-list-item:last-of-type .form-group [name*='down']  {
-  opacity:0.5;
-  pointer-events:none;
-} */
-
 /* Full-width textarea */
 .symbol-popup .form-container textarea {
   width: 100%;
@@ -323,19 +313,15 @@ dd,
 
 .rard-list-item {
   font-family: "Alphabetum";
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
-/* .rard-list-item-actions {
-  visibility: hidden;
-}
-.rard-list-item:hover .rard-list-item-actions {
-  visibility: visible;
-} */
 .rard-list-item-actions {
   display: flex;
 }
-.rard-list-item {
-  padding-top: 10px;
-  padding-bottom: 10px;
+.rard-list-item--title {
+  padding-bottom: 3px;
+  padding-top: 12px;
 }
 .rard-list-item:hover {
   background: #f8f9fa;
@@ -380,6 +366,15 @@ button.insert {
   background-color: #ffff00;
 }
 
+.topic-list-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1vw;
+
+  @media (min-width: 2048px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
 /****************** editor related *********************/
 
 .mention.error {

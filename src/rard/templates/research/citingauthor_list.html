@@ -27,25 +27,18 @@
 
 
     {% for object in page_obj %}
-
         {% ifchanged %}
             {% with citingauthor=object.citing_work.author %}
-                <div class='rard-list-item d-flex justify-content-between'>
-                    <div>
-                            {% with citingauthor as link_text %}
-                                <a href='{% url "citingauthor:detail" citingauthor.pk %}'>{{ link_text }}</a>
+                <div class='rard-list-item rard-list-item--title d-flex'>
+                    {% with citingauthor as link_text %}
+                        <h5><a href='{% url "citingauthor:detail" citingauthor.pk %}'>{{ link_text }}</a></h5>
 
-                                {% if citingauthor.display_date_range %}
-                                <span class='date-range-element text-muted'><small>[{{ citingauthor.display_date_range }}]</small></span>
-                                {% endif %}
-                                {% include 'research/partials/render_inline_lock_icon.html' with object=citingauthor %}
-                            {% endwith %}
-                    </div>
-                    <div class='rard-list-item-actions'>
-                    </div>
-                    <hr>
+                        {% if citingauthor.display_date_range %}
+                        <span class='date-range-element text-muted'><small>[{{ citingauthor.display_date_range }}]</small></span>
+                        {% endif %}
+                        {% include 'research/partials/render_inline_lock_icon.html' with object=citingauthor %}
+                    {% endwith %}
                 </div>
-
 
             {% endwith %}
         {% endifchanged %}
@@ -53,7 +46,7 @@
         {% with item=object.owner %}
         <div class='rard-list-item d-flex justify-content-between'>
             <div>
-                <li>
+                <li class="unstyled ml-5">
                     <span>
                         {% with item.get_display_name as link_text %}
                             <a href='{{ item.get_absolute_url }}'>{{ link_text }}</a>
@@ -76,11 +69,8 @@
                     </div>
                 </div>
             </div>
-            <div class='rard-list-item-actions'>
-            </div>
         </div>
         {% endwith %}
-
     {% endfor %}
 
 

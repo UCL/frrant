@@ -10,6 +10,7 @@
             {% with topic.name as link_text %}
                 <a href='{% url "topic:detail" topic.slug %}'>{{ link_text }}</a>
             {% endwith %}
+            <span class="badge badge-pill badge-secondary">{{topic.fragments.count}}</span>
         </li>
     </div>
     <div class='rard-list-item-actions'>

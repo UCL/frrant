@@ -8,6 +8,7 @@ from rard.research.models.bibliography import BibliographyItem
 from rard.research.models.citing_work import CitingAuthor, CitingWork
 from rard.research.models.fragment import AnonymousFragment, Fragment
 from rard.research.models.testimonium import Testimonium
+from rard.research.models.topic import Topic
 from rard.research.models.work import Work
 
 # common urls for both fragments and testimonia for shared views that we
@@ -117,6 +118,7 @@ urlpatterns = [
                         "<pk>/bibliography/",
                         views.BibliographySectionView.as_view(),
                         name="bibliography",
+                        distill_func=lambda: get_model_pks(Antiquarian),
                     ),
                     path(
                         "<pk>/refresh_bibliography/",
@@ -302,10 +304,11 @@ urlpatterns = [
                         views.FragmentUpdatePublicCommentaryView.as_view(),
                         name="update_public_commentary",
                     ),
-                    path(
+                    distill_path(
                         "<pk>/public-commentary/",
                         views.FragmentPublicCommentaryView.as_view(),
                         name="public_commentary_mentions",
+                        distill_func=lambda: get_model_pks(Fragment),
                     ),
                     path(
                         "<pk>/link-work/",
@@ -410,7 +413,7 @@ urlpatterns = [
                         views.RemoveAnonymousAppositumLinkView.as_view(),
                         name="unlink_anonymous_apposita",
                     ),
-                    distill_path(
+                    path(
                         "<pk>/commentary/",
                         views.AnonymousFragmentCommentaryView.as_view(),
                         name="commentary",
@@ -434,6 +437,7 @@ urlpatterns = [
                         "<pk>/public-commentary/",
                         views.AnonymousFragmentPublicCommentaryView.as_view(),
                         name="public_commentary_mentions",
+                        distill_func=lambda: get_model_pks(AnonymousFragment),
                     ),
                     path(
                         "<pk>/delete/",
@@ -491,7 +495,7 @@ urlpatterns = [
                         views.TestimoniumUpdateWorkLinkView.as_view(),
                         name="update_testimonium_link",
                     ),
-                    distill_path(
+                    path(
                         "<pk>/commentary/",
                         views.TestimoniumCommentaryView.as_view(),
                         name="commentary",
@@ -510,6 +514,7 @@ urlpatterns = [
                         "<pk>/public-commentary/",
                         views.TestimoniumPublicCommentaryView.as_view(),
                         name="public_commentary_mentions",
+                        distill_func=lambda: get_model_pks(Testimonium),
                     ),
                     path(
                         "<pk>/link-work/",
@@ -564,7 +569,10 @@ urlpatterns = [
                     distill_path("list/", views.TopicListView.as_view(), name="list"),
                     path("create/", views.TopicCreateView.as_view(), name="create"),
                     distill_path(
-                        "<slug>/", views.TopicDetailView.as_view(), name="detail"
+                        "<slug>/",
+                        views.TopicDetailView.as_view(),
+                        name="detail",
+                        distill_func=lambda: get_model_pks(Topic),
                     ),
                     path(
                         "<slug>/update/", views.TopicUpdateView.as_view(), name="update"

@@ -14,7 +14,7 @@ from rard.research.views.mixins import CheckLockMixin
 
 
 class TopicListView(ListView):
-    paginate_by = 15
+    paginate_by = 20
     model = Topic
 
     def post(self, *args, **kwargs):
