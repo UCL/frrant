@@ -13,7 +13,7 @@ from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from rard.research.forms import BibliographyItemForm, BibliographyItemInlineForm
 from rard.research.models import Antiquarian, BibliographyItem
-from rard.research.views.mixins import CheckLockMixin
+from rard.research.views.mixins import CanLockMixin, CheckLockMixin
 
 
 class BibliographyOverviewView(View):
@@ -29,7 +29,7 @@ class BibliographyListView(ListView):
     template_name = "research/partials/htmx_bibliography_list_page.html"
 
 
-class BibliographyDetailView(DetailView):
+class BibliographyDetailView(CanLockMixin, DetailView):
     model = BibliographyItem
 
     def get_context_data(self, **kwargs):

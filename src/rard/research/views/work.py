@@ -15,6 +15,7 @@ from rard.research.forms import (
 )
 from rard.research.models import Book, TextObjectField, Work
 from rard.research.views.mixins import (
+    CanLockMixin,
     CheckLockMixin,
     TextObjectFieldUpdateMixin,
     TextObjectFieldViewMixin,
@@ -26,7 +27,7 @@ class WorkListView(ListView):
     model = Work
 
 
-class WorkDetailView(DetailView):
+class WorkDetailView(CanLockMixin, DetailView):
     model = Work
 
     def get_context_data(self, **kwargs):

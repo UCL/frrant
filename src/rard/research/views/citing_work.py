@@ -9,7 +9,7 @@ from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from rard.research.forms import CitingAuthorUpdateForm, CitingWorkCreateForm
 from rard.research.models import CitingAuthor, CitingWork, OriginalText
-from rard.research.views.mixins import CheckLockMixin, DateOrderMixin
+from rard.research.views.mixins import CanLockMixin, CheckLockMixin, DateOrderMixin
 
 
 class CitingAuthorCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
@@ -95,7 +95,7 @@ class CitingAuthorFullListView(DateOrderMixin, PermissionRequiredMixin, ListView
         return CitingAuthor.objects.all()
 
 
-class CitingAuthorDetailView(DetailView):
+class CitingAuthorDetailView(CanLockMixin, DetailView):
     model = CitingAuthor
 
     def get_context_data(self, **kwargs):

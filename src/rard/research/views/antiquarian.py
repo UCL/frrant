@@ -21,6 +21,7 @@ from rard.research.forms import (
 )
 from rard.research.models import Antiquarian, AntiquarianConcordance, Book, Work
 from rard.research.views.mixins import (
+    CanLockMixin,
     CheckLockMixin,
     DateOrderMixin,
     TextObjectFieldUpdateMixin,
@@ -33,7 +34,7 @@ class AntiquarianListView(DateOrderMixin, ListView):
     model = Antiquarian
 
 
-class AntiquarianDetailView(DetailView):
+class AntiquarianDetailView(CanLockMixin, DetailView):
     model = Antiquarian
 
     def post(self, *args, **kwargs):

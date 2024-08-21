@@ -169,7 +169,7 @@ class GetWorkLinkRequestDataMixin:
         return values
 
 
-class TextObjectFieldViewMixin(DetailView):
+class TextObjectFieldViewMixin(CanLockMixin, DetailView):
     template_name = "research/partials/text_object_preview.html"
     model = None
     hx_trigger = None

@@ -1,7 +1,7 @@
 {% extends "research/detail_base.html" %}
 {% load i18n bootstrap4 object_lock links_for_work static %}
 {% block title %}{{object.name}}{% endblock %}
-{% block heading %}{{ object.name }}{% endblock %}
+{% block heading %}{{ object.name }} <p class="text-muted aq-date-range">({{ object.display_date_range|default:'-' }}) </p> {% endblock %}
 
 {% block last_modified %}{% endblock %}
 
@@ -11,105 +11,114 @@
       <script src="{% static 'js/check_forms_dirty.js' %}"></script>
 
 {% endblock %}
+    {% with request.user|has_lock:object as has_object_lock %}
 
 {% block action %}
-
+{% if request.user.is_authenticated %}
+    {% include 'research/partials/render_locked_info.html' with is_antiquarian="antiquarian" %}
+{% endif %}
 {% endblock %}
 
 {% block inner %}
 
+{% if request.user.is_authenticated %}
 
-        <hr>
-        <section>
-            <div class='d-flex justify-content-between mb-3'>
-                <div>
-                    <h5>{% trans 'Details' %}</h5>
-                </div>
-                <div>
-                    {% if perms.research.change_antiquarian and has_object_lock %}
-                    <a href='{% url "antiquarian:update" object.pk %}'>{% trans 'Edit' %}</a>
-                    {% endif %}
-                </div>
-            </div>
-
-            <dl class="row mb-0">
-                <dt class="col-sm-3">{% trans 'Name' %}</dt>
-                <dd class="col-sm-9">{{ object.name }}</dd>
-
-                <dt class="col-sm-3">{% trans 'Name for Alphabetisation' %}</dt>
-                <dd class="col-sm-9">{{ object.order_name }}</dd>
-
-                <dt class="col-sm-3">{% trans 'RE Number' %}</dt>
-                <dd class="col-sm-9">{{ object.re_code|default:'-' }}</dd>
-
-                <dt class="col-sm-3">{% trans 'Relevant Dates' %}</dt>
-                <dd class="col-sm-9">
-                    {{ object.display_date_range|default:'-' }}
-                </dd>
-                <dt class="col-sm-3">{% trans 'Year for Ordering' %}</dt>
-                <dd class="col-sm-9">{{ object.order_year }}</dd>
-
-            </dl>
-            <p>
-                <small>
-                {% include 'research/partials/render_last_modified_info.html' with object=object %}
-                </small>
-            </p>
-        </section>
-        <hr>
-        <section>
-
-            <div class='d-flex justify-content-between w-100'>
-                <div>
-                    <h5 class='mb-3 mr-3'>{% trans 'Introduction' %}</h5>
-                </div>
-                <div>
-                    {% if perms.research.change_antiquarian and has_object_lock %}
-                    <button
-                      class="btn text-primary p-0 ml-2"
-                      hx-get="{% url 'antiquarian:update_introduction' object.pk %}"
-                      hx-target=".introduction-container"
-                      hx-swap="innerHTML">{% trans 'Edit' %}</button>
-                    {% endif %}
-                </div>
-            </div>
-            <div class="introduction-container rich-text-form-container">
-                {% include 'research/partials/text_object_preview.html' with text_object=object.introduction %}
-            </div>
-
-        </section>
-
-        <hr>
-        <section>
-            <div class='d-flex justify-content-between mb-3'>
-                <div>
-                    <h5>{% trans 'Ordered Material' %}</h5>
-                </div>
-            </div>
-
-            {% include 'research/partials/ordered_work_area.html' with antiquarian=object can_edit=perms.research.change_antiquarian has_object_lock=has_object_lock %}
-
-        </section>
-
-        <hr>
-
-        <section id="bibliography">
-          <div class='d-flex justify-content-between mb-3'>
+    <hr>
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
             <div>
-              <h5>{% trans 'Bibliography' %}</h5>
+                <h5>{% trans 'Details' %}</h5>
             </div>
-            <div id="bib-buttons-area">
-              {% if has_object_lock and perms.research.change_bibliographyitem %}
-                <button type="button" class='btn text-primary p-0 ml-2' hx-get="{% url "antiquarian:refresh_bibliography" pk=antiquarian.pk %}" hx-trigger="click">{% trans 'Refresh bibliography from mentions' %}</button>
-              {% endif %}
+            <div>
+                {% if perms.research.change_antiquarian and has_object_lock %}
+                <a href='{% url "antiquarian:update" object.pk %}'>{% trans 'Edit' %}</a>
+                {% endif %}
             </div>
-          </div>
-          {% if object.bibliography_items.count > 0 %}
-            {% include 'research/partials/antiquarian_bibliography_list.html' with bibliography_items=object.bibliography_items %}
-            {% else %}
-            <p> This antiquarian has no associated bibliography </p>
-            {% endif %}
-        </section>
+        </div>
 
+        <dl class="row mb-0">
+            <dt class="col-sm-3">{% trans 'Name' %}</dt>
+            <dd class="col-sm-9">{{ object.name }}</dd>
+
+            <dt class="col-sm-3">{% trans 'Name for Alphabetisation' %}</dt>
+            <dd class="col-sm-9">{{ object.order_name }}</dd>
+
+            <dt class="col-sm-3">{% trans 'RE Number' %}</dt>
+            <dd class="col-sm-9">{{ object.re_code|default:'-' }}</dd>
+
+            <dt class="col-sm-3">{% trans 'Relevant Dates' %}</dt>
+            <dd class="col-sm-9">
+                {{ object.display_date_range|default:'-' }}
+            </dd>
+            <dt class="col-sm-3">{% trans 'Year for Ordering' %}</dt>
+            <dd class="col-sm-9">{{ object.order_year }}</dd>
+
+        </dl>
+        <p>
+            <small>
+            {% include 'research/partials/render_last_modified_info.html' with object=object %}
+            </small>
+        </p>
+    </section>
+{% endif %}
+
+
+    <hr>
+    <section>
+        <div class='d-flex justify-content-between w-100'>
+            <div>
+                <h5 class='mb-3 mr-3'>{% trans 'Introduction' %}</h5>
+            </div>
+            <div>
+                {% if perms.research.change_antiquarian and has_object_lock %}
+                <button
+                    class="btn text-primary p-0 ml-2"
+                    hx-get="{% url 'antiquarian:update_introduction' object.pk %}"
+                    hx-target=".introduction-container"
+                    hx-swap="innerHTML">{% trans 'Edit' %}</button>
+                {% endif %}
+            </div>
+        </div>
+        {% if object.introduction|safe != "<p><br></p>" or request.user.is_authenticated %}
+        <div class="introduction-container rich-text-form-container">
+            {% include 'research/partials/text_object_preview.html' with text_object=object.introduction %}
+        </div>
+        {% else %}
+        <em class="text-muted">{{object}} has no introduction</em>
+        {% endif %}
+    </section>
+
+
+    <hr>
+    <section>
+        <div class='d-flex justify-content-between mb-3'>
+            <div>
+                <h5>{% trans 'Ordered Material' %}</h5>
+            </div>
+        </div>
+
+        {% include 'research/partials/ordered_work_area.html' with antiquarian=object can_edit=perms.research.change_antiquarian has_object_lock=has_object_lock %}
+
+    </section>
+
+    <hr>
+    <section id="bibliography">
+        <div class='d-flex justify-content-between mb-3'>
+        <div>
+            <h5>{% trans 'Bibliography' %}</h5>
+        </div>
+        <div id="bib-buttons-area">
+            {% if has_object_lock and perms.research.change_bibliographyitem %}
+            <button type="button" class='btn text-primary p-0 ml-2' hx-get="{% url "antiquarian:refresh_bibliography" pk=antiquarian.pk %}" hx-trigger="click">{% trans 'Refresh bibliography from mentions' %}</button>
+            {% endif %}
+        </div>
+        </div>
+        {% if object.bibliography_items.count > 0 %}
+        {% include 'research/partials/antiquarian_bibliography_list.html' with bibliography_items=object.bibliography_items %}
+        {% else %}
+        <em class="text-muted">This antiquarian has no associated bibliography </em>
+        {% endif %}
+    </section>
 
 {% endblock %}
+{% endwith %}

@@ -10,7 +10,7 @@ from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from rard.research.models import Topic
-from rard.research.views.mixins import CheckLockMixin
+from rard.research.views.mixins import CanLockMixin, CheckLockMixin
 
 
 class TopicListView(ListView):
@@ -32,7 +32,7 @@ class TopicListView(ListView):
         return HttpResponseRedirect(self.request.path)
 
 
-class TopicDetailView(DetailView):
+class TopicDetailView(CanLockMixin, DetailView):
     model = Topic
 
     def get_context_data(self, *args, **kwargs):

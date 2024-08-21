@@ -3,9 +3,27 @@
 {% block title %}Citing Author {{object.name}} {% endblock %}
 
 {% block heading %}{{ object }}{% endblock %}
+{% with request.user|has_lock:object as has_object_lock %}
 
 {% block action %}
+{% if request.user.is_authenticated %}
+{% include 'research/partials/render_locked_info.html' %}
 
+<div class='d-flex justify-content-end'>
+{% if has_object_lock %}
+    {% if perms.research.delete_citingauthor %}
+    <form novalidate class='form-inline' action='{% url "citingauthor:delete" object.pk %}' method='POST'>
+        {% csrf_token %}
+        <div class='form-group'>
+            <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+                data-what='citing author'>{% trans 'Delete' %}</button>
+        </div>
+    </form>
+    {% endif %}
+{% endif %}
+</div>
+
+{% endif %}
 {% endblock %}
 
 
@@ -112,3 +130,4 @@
 
 
 {% endblock %}
+{% endwith %}

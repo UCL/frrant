@@ -365,7 +365,11 @@ button.insert {
   height: 100vh;
   background-color: #ffff00;
 }
-
+.aq-date-range {
+  font-size: 0.55em;
+  display: inline;
+  margin-inline-end: 0;
+}
 .topic-list-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);

@@ -6,9 +6,28 @@
 {% endblock %}
 
 {% block last_modified %}{% endblock %}
+{% with request.user|has_lock:object as has_object_lock %}
 
 {% block action %}
+{% if request.user.is_authenticated %}
 
+{% include 'research/partials/render_locked_info.html' %}
+
+<div class='d-flex justify-content-end'>
+    {% if has_object_lock %}
+        {% if perms.research.delete_bibliographyitem %}
+            <form novalidate class='form-inline' action='{% url "bibliography:delete" object.pk %}' method='POST'>
+                {% csrf_token %}
+                <div class='form-group'>
+                    <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+                        data-what='bibliography'>{% trans 'Delete' %}</button>
+                </div>
+            </form>
+        {% endif %}
+    {% endif %}
+</div>
+
+{% endif %}
 {% endblock %}
 
 {% block inner %}
@@ -69,3 +88,4 @@
 
 
 {% endblock %}
+{% endwith %}

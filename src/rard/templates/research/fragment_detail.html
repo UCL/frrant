@@ -9,8 +9,14 @@
     {{ block.super }}
     <script src="{% static 'js/check_forms_dirty.js' %}"></script>
 {% endblock %}
+{% with request.user|has_lock:object as has_object_lock %}
 
 {% block action %}
+{% if request.user.is_authenticated %}
+
+{% include 'research/partials/render_locked_info.html' with is_fragment="fragment" %}
+
+{% endif %}
 {% endblock %}
 
 {% block inner %}
@@ -235,6 +241,5 @@
     {% include 'research/partials/section/duplicates_section.html' with object=object %}
     {% endif %}
 
-
-
 {% endblock %}
+{% endwith %}

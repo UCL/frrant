@@ -53,6 +53,7 @@ from rard.research.models.base import AppositumFragmentLink, FragmentLink
 from rard.research.models.fragment import AnonymousTopicLink
 from rard.research.views.mention import MentionSearchView
 from rard.research.views.mixins import (
+    CanLockMixin,
     CheckLockMixin,
     GetWorkLinkRequestDataMixin,
     TextObjectFieldUpdateMixin,
@@ -706,7 +707,7 @@ class RemoveAnonymousAppositumLinkView(
         return redirect(self.get_success_url())
 
 
-class FragmentDetailView(DetailView):
+class FragmentDetailView(CanLockMixin, DetailView):
     model = Fragment
 
     def get_context_data(self, **kwargs):

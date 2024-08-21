@@ -22,6 +22,7 @@ from rard.research.views.fragment import (
     HistoricalBaseCreateView,
 )
 from rard.research.views.mixins import (
+    CanLockMixin,
     CheckLockMixin,
     GetWorkLinkRequestDataMixin,
     TextObjectFieldUpdateMixin,
@@ -49,7 +50,7 @@ class TestimoniumListView(ListView):
     model = Testimonium
 
 
-class TestimoniumDetailView(DetailView):
+class TestimoniumDetailView(CanLockMixin, DetailView):
     model = Testimonium
 
     def get_context_data(self, **kwargs):
