@@ -18,11 +18,7 @@
 
 {% block action %}
 {% if request.user.is_authenticated %}
-
 {% include 'research/partials/render_locked_info.html' with is_work="work" %}
-
-{% endwith %}
-
 {% endif %}
 {% endblock %}
 

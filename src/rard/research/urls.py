@@ -52,9 +52,14 @@ def get_model_pks(model):
         yield {"pk": instance.pk}
 
 
+def get_topic_slugs():
+    for topic in Topic.objects.all():
+        yield {"slug": topic.slug}
+
+
 # app_name = "research"
 urlpatterns = [
-    path("", views.HomeView.as_view(), name="home"),
+    distill_path("", views.HomeView.as_view(), name="home"),
     path("ajax/move-link/", views.MoveLinkView.as_view(), name="move_link"),
     path("ajax/move-topic/", views.MoveTopicView.as_view(), name="move_topic"),
     path(
@@ -304,11 +309,10 @@ urlpatterns = [
                         views.FragmentUpdatePublicCommentaryView.as_view(),
                         name="update_public_commentary",
                     ),
-                    distill_path(
+                    path(
                         "<pk>/public-commentary/",
                         views.FragmentPublicCommentaryView.as_view(),
                         name="public_commentary_mentions",
-                        distill_func=lambda: get_model_pks(Fragment),
                     ),
                     path(
                         "<pk>/link-work/",
@@ -433,11 +437,10 @@ urlpatterns = [
                         views.AnonymousFragmentUpdatePublicCommentaryView.as_view(),
                         name="update_public_commentary",
                     ),
-                    distill_path(
+                    path(
                         "<pk>/public-commentary/",
                         views.AnonymousFragmentPublicCommentaryView.as_view(),
                         name="public_commentary_mentions",
-                        distill_func=lambda: get_model_pks(AnonymousFragment),
                     ),
                     path(
                         "<pk>/delete/",
@@ -510,11 +513,10 @@ urlpatterns = [
                         views.TestimoniumUpdatePublicCommentaryView.as_view(),
                         name="update_public_commentary",
                     ),
-                    distill_path(
+                    path(
                         "<pk>/public-commentary/",
                         views.TestimoniumPublicCommentaryView.as_view(),
                         name="public_commentary_mentions",
-                        distill_func=lambda: get_model_pks(Testimonium),
                     ),
                     path(
                         "<pk>/link-work/",
@@ -572,7 +574,7 @@ urlpatterns = [
                         "<slug>/",
                         views.TopicDetailView.as_view(),
                         name="detail",
-                        distill_func=lambda: get_model_pks(Topic),
+                        distill_func=lambda: get_topic_slugs(),
                     ),
                     path(
                         "<slug>/update/", views.TopicUpdateView.as_view(), name="update"
