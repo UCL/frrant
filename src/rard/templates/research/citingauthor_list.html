@@ -36,7 +36,9 @@
                         {% if citingauthor.display_date_range %}
                         <span class='date-range-element text-muted'><small>[{{ citingauthor.display_date_range }}]</small></span>
                         {% endif %}
+                        {% if request.user.is_authenticated %}
                         {% include 'research/partials/render_inline_lock_icon.html' with object=citingauthor %}
+                        {% endif %}
                     {% endwith %}
                 </div>
 
@@ -51,7 +53,9 @@
                         {% with item.get_display_name as link_text %}
                             <a href='{{ item.get_absolute_url }}'>{{ link_text }}</a>
                         {% endwith %}
+                        {% if request.user.is_authenticated %}
                         {% include 'research/partials/render_inline_lock_icon.html' with object=item %}
+                        {% endif %}
 
                         <button class="btn btn-link toggle-element-button" type="button" data-toggles="item_{{ forloop.counter0 }}"></button>
 

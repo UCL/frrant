@@ -11,8 +11,9 @@
                 {% with link.fragment.get_display_name as link_text %}
                     <a href='{% url "anonymous_fragment:detail" link.fragment.pk %}'>{{ link_text }}</a>
                 {% endwith %}
+                {% if request.user.is_authenticated %}
                 {% include 'research/partials/render_inline_lock_icon.html' with object=fragment %}
-
+                {% endif %}
                 <button class="btn btn-link toggle-element-button" type="button" data-toggles="anonfragment_{{ link.fragment.pk }}"></button>
             </span>
         </li>

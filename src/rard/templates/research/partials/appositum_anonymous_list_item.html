@@ -7,7 +7,9 @@
       <li class="unstyled">
         <span>
                 <a href='{% url "anonymous_fragment:detail" anonymous_fragment.pk %}'>{{anonymous_fragment.get_display_name}}</a>
-            {% include 'research/partials/render_inline_lock_icon.html' with object=appositum %}
+                {% if request.user.is_authenticated %}
+                {% include 'research/partials/render_inline_lock_icon.html' with object=appositum %}
+                {% endif %}
         </span>
   </div>
   <div class='rard-list-item-actions'>
