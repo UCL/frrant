@@ -1,7 +1,7 @@
 {% extends "research/detail_base.html" %}
 {% load i18n bootstrap4 object_lock links_for_work static %}
 {% block title %}{{object.name}}{% endblock %}
-{% block heading %}{{ object.name }} <p class="text-muted aq-date-range">({{ object.display_date_range|default:'-' }}) </p> {% endblock %}
+{% block heading %}{{ object.name }} <p class="text-muted title-date-range">[{{ object.display_date_range|default:'-' }}] </p> {% endblock %}
 
 {% block last_modified %}{% endblock %}
 

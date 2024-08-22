@@ -1,6 +1,6 @@
 {% extends "research/detail_base.html" %}
 {% load i18n object_lock %}
-{% block title %}Citing Author {{object.name}} {% endblock %}
+{% block title %}Citing Author {{object.name}} <p class="text-muted title-date-range">[{{ object.display_date_range|default:'-' }}]</p> {% endblock %}
 
 {% block heading %}{{ object }}{% endblock %}
 
@@ -30,6 +30,7 @@
 {% with request.user|has_lock:object as has_object_lock %}
 {% with request.user.is_staff as can_edit %}
 
+{% if request.user.is_authenticated %}
     <hr>
     <section>
         <div class='d-flex justify-content-between mb-3'>
@@ -58,9 +59,9 @@
             <dd class="col-sm-9">{{ object.order_year }}</dd>
         </dl>
     </section>
+{% endif %}
 
     <hr>
-
     <section>
         <div class='d-flex justify-content-between mb-3'>
             <div>
@@ -122,11 +123,16 @@
                 {% endif %}
             </div>
         </div>
+
+        {% if object.bibliography_items.count > 0 %}
         {% for item in object.bibliography_items.all %}
 
         {% include 'research/partials/bibliography_list_item.html' with can_edit=can_edit has_object_lock=has_object_lock %}
 
         {% endfor %}
+        {% else %}
+        <em class="text-muted">This author has no associated bibliography </em>
+        {% endif %}
     </section>
 
 {% endwith %}

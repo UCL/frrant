@@ -4,7 +4,7 @@
 
 <div class='rard-list-item d-flex justify-content-between'>
     <div>
-        <li>
+        <li class="unstyled ml-3">
             {% with citingwork.title as link_text %}
                 <a href='{% url "citingauthor:work_detail" citingwork.pk %}'>{{ link_text }}</a>
                 {% if citingwork.display_date_range %}

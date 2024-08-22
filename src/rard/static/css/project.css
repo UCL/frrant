@@ -137,7 +137,8 @@ table.books-widget .book-order {
   content: "-";
 }
 
-.open-button {
+.open-button,
+.scroll-button {
   background-color: #555;
   color: white;
   padding: 16px 20px;
@@ -222,7 +223,8 @@ table.books-widget .book-order {
 
 /* Add some hover effects to buttons */
 .symbol-popup .form-container .btn:hover,
-.open-button:hover {
+.open-button:hover,
+.scroll-button:hover {
   opacity: 1;
 }
 
@@ -262,7 +264,19 @@ table.books-widget .book-order {
   padding-top: 5px;
   border-radius: 0.25rem;
 }
+.scroll-button {
+  background-color: #00b3ff;
+  right: 100px;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out, visibility 0s 0.3s;
 
+  &.show {
+    visibility: visible;
+    opacity: 0.7;
+    transition: opacity 0.3s ease-in-out;
+  }
+}
 /***** other base, "temporary demo css" ******/
 
 .bad-link {
@@ -365,7 +379,7 @@ button.insert {
   height: 100vh;
   background-color: #ffff00;
 }
-.aq-date-range {
+.title-date-range {
   font-size: 0.55em;
   display: inline;
   margin-inline-end: 0;
