@@ -2,12 +2,30 @@ import os
 
 from django.conf.urls import include
 from django.urls import path
+from django_distill import distill_path
 
 import rard.research.views as views
 
 IS_DISTILL = os.getenv("DJANGO_DISTILL", "False") == "True"
 common_patterns = []
-if not IS_DISTILL:
+
+if IS_DISTILL:
+    from rard.research.models import Antiquarian, BibliographyItem
+    from rard.research.models.citing_work import CitingAuthor, CitingWork
+    from rard.research.models.fragment import AnonymousFragment, Fragment
+    from rard.research.models.testimonium import Testimonium
+    from rard.research.models.topic import Topic
+    from rard.research.models.work import Work
+
+    def get_model_pks(model):
+        for instance in model.objects.all():
+            yield {"pk": instance.pk}
+
+    def get_topic_slugs():
+        for topic in Topic.objects.all():
+            yield {"slug": topic.slug}
+
+else:
     # common urls for both fragments and testimonia for shared views that we
     # want to expose under different namespaces
     common_patterns = [
@@ -45,7 +63,7 @@ if not IS_DISTILL:
 
 # app_name = "research"
 urlpatterns = [
-    path("", views.HomeView.as_view(), name="home"),
+    distill_path("", views.HomeView.as_view(), name="home"),
     path("ajax/move-link/", views.MoveLinkView.as_view(), name="move_link"),
     path("ajax/move-topic/", views.MoveTopicView.as_view(), name="move_topic"),
     path(
@@ -78,16 +96,17 @@ urlpatterns = [
         include(
             (
                 [
-                    path("list/", views.AntiquarianListView.as_view(), name="list"),
-                    path(
-                        "create/",
-                        views.AntiquarianCreateView.as_view(),
-                        name="create",
+                    distill_path(
+                        "list/", views.AntiquarianListView.as_view(), name="list"
                     ),
                     path(
+                        "create/", views.AntiquarianCreateView.as_view(), name="create"
+                    ),
+                    distill_path(
                         "<pk>/",
                         views.AntiquarianDetailView.as_view(),
                         name="detail",
+                        distill_func=lambda: get_model_pks(Antiquarian),
                     ),
                     path(
                         "<pk>/introduction/",
@@ -104,10 +123,11 @@ urlpatterns = [
                         views.AntiquarianUpdateIntroductionView.as_view(),
                         name="update_introduction",
                     ),
-                    path(
+                    distill_path(
                         "<pk>/bibliography/",
                         views.BibliographySectionView.as_view(),
                         name="bibliography",
+                        distill_func=lambda: get_model_pks(Antiquarian),
                     ),
                     path(
                         "<pk>/refresh_bibliography/",
@@ -160,12 +180,12 @@ urlpatterns = [
         include(
             (
                 [
-                    path(
-                        "",
-                        views.BibliographyOverviewView.as_view(),
-                        name="overview",
+                    distill_path(
+                        "", views.BibliographyOverviewView.as_view(), name="overview"
                     ),
-                    path("list/", views.BibliographyListView.as_view(), name="list"),
+                    distill_path(
+                        "list/", views.BibliographyListView.as_view(), name="list"
+                    ),
                     path(
                         "create/",
                         views.BibliographyCreateView.as_view(),
@@ -176,10 +196,11 @@ urlpatterns = [
                         views.BibliographyCreateInlineView.as_view(),
                         name="create_inline",
                     ),
-                    path(
+                    distill_path(
                         "<pk>/",
                         views.BibliographyDetailView.as_view(),
                         name="detail",
+                        distill_func=lambda: get_model_pks(BibliographyItem),
                     ),
                     path(
                         "<pk>/update/",
@@ -202,23 +223,16 @@ urlpatterns = [
         include(
             (
                 [
-                    path("list/", views.WorkListView.as_view(), name="list"),
+                    distill_path("list/", views.WorkListView.as_view(), name="list"),
                     path("create/", views.WorkCreateView.as_view(), name="create"),
-                    path(
+                    distill_path(
                         "<pk>/",
                         views.WorkDetailView.as_view(),
                         name="detail",
+                        distill_func=lambda: get_model_pks(Work),
                     ),
-                    path(
-                        "<pk>/update/",
-                        views.WorkUpdateView.as_view(),
-                        name="update",
-                    ),
-                    path(
-                        "<pk>/delete/",
-                        views.WorkDeleteView.as_view(),
-                        name="delete",
-                    ),
+                    path("<pk>/update/", views.WorkUpdateView.as_view(), name="update"),
+                    path("<pk>/delete/", views.WorkDeleteView.as_view(), name="delete"),
                     path(
                         "<pk>/create-book/",
                         views.BookCreateView.as_view(),
@@ -270,7 +284,9 @@ urlpatterns = [
         include(
             (
                 [
-                    path("list/", views.FragmentListView.as_view(), name="list"),
+                    distill_path(
+                        "list/", views.FragmentListView.as_view(), name="list"
+                    ),
                     path("create/", views.FragmentCreateView.as_view(), name="create"),
                     path(
                         "<pk>/update/",
@@ -333,10 +349,11 @@ urlpatterns = [
                         {"model_name": "fragment"},
                         name="duplicate",
                     ),
-                    path(
+                    distill_path(
                         "<pk>/",
                         views.FragmentDetailView.as_view(),
                         name="detail",
+                        distill_func=lambda: get_model_pks(Fragment),
                     ),
                     path(
                         "<pk>/create-original-text/",
@@ -361,10 +378,8 @@ urlpatterns = [
         include(
             (
                 [
-                    path(
-                        "list/",
-                        views.AnonymousFragmentListView.as_view(),
-                        name="list",
+                    distill_path(
+                        "list/", views.AnonymousFragmentListView.as_view(), name="list"
                     ),
                     path(
                         "create/",
@@ -447,10 +462,11 @@ urlpatterns = [
                         views.AnonymousFragmentConvertToFragmentView.as_view(),
                         name="convert_to_fragment",
                     ),
-                    path(
+                    distill_path(
                         "<pk>/",
                         views.AnonymousFragmentDetailView.as_view(),
                         name="detail",
+                        distill_func=lambda: get_model_pks(AnonymousFragment),
                     ),
                     path(
                         "<pk>/create-original-text/",
@@ -470,11 +486,11 @@ urlpatterns = [
         include(
             (
                 [
-                    path("list/", views.TestimoniumListView.as_view(), name="list"),
+                    distill_path(
+                        "list/", views.TestimoniumListView.as_view(), name="list"
+                    ),
                     path(
-                        "create/",
-                        views.TestimoniumCreateView.as_view(),
-                        name="create",
+                        "create/", views.TestimoniumCreateView.as_view(), name="create"
                     ),
                     path(
                         "<pk>/update/",
@@ -532,10 +548,11 @@ urlpatterns = [
                         views.TestimoniumDeleteView.as_view(),
                         name="delete",
                     ),
-                    path(
+                    distill_path(
                         "<pk>/",
                         views.TestimoniumDetailView.as_view(),
                         name="detail",
+                        distill_func=lambda: get_model_pks(Testimonium),
                     ),
                     path(
                         "<pk>/create-original-text/",
@@ -555,22 +572,19 @@ urlpatterns = [
         include(
             (
                 [
-                    path("list/", views.TopicListView.as_view(), name="list"),
+                    distill_path("list/", views.TopicListView.as_view(), name="list"),
                     path("create/", views.TopicCreateView.as_view(), name="create"),
-                    path(
+                    distill_path(
                         "<slug>/",
                         views.TopicDetailView.as_view(),
                         name="detail",
+                        distill_func=lambda: get_topic_slugs(),
                     ),
                     path(
-                        "<slug>/update/",
-                        views.TopicUpdateView.as_view(),
-                        name="update",
+                        "<slug>/update/", views.TopicUpdateView.as_view(), name="update"
                     ),
                     path(
-                        "<slug>/delete/",
-                        views.TopicDeleteView.as_view(),
-                        name="delete",
+                        "<slug>/delete/", views.TopicDeleteView.as_view(), name="delete"
                     ),
                 ],
                 "research",
@@ -583,7 +597,9 @@ urlpatterns = [
         include(
             (
                 [  # TODO after new structure
-                    path("list/", views.ConcordanceListView.as_view(), name="list"),
+                    distill_path(
+                        "list/", views.ConcordanceListView.as_view(), name="list"
+                    ),
                     path(
                         "original-text/<pk>/create/",
                         views.ConcordanceCreateView.as_view(),
@@ -610,7 +626,7 @@ urlpatterns = [
         include(
             (
                 [
-                    path("", views.SearchView.as_view(), name="home"),
+                    distill_path("", views.SearchView.as_view(), name="home"),
                     path(
                         "ajax/mention/",
                         views.MentionSearchView.as_view(),
@@ -632,10 +648,8 @@ urlpatterns = [
         include(
             (
                 [
-                    path(
-                        "list/",
-                        views.UnlinkedFragmentListView.as_view(),
-                        name="list",
+                    distill_path(
+                        "list/", views.UnlinkedFragmentListView.as_view(), name="list"
                     ),
                 ],
                 "research",
@@ -648,7 +662,7 @@ urlpatterns = [
         include(
             (
                 [
-                    path(
+                    distill_path(
                         "<model_name>/<pk>/history/",
                         views.HistoryListView.as_view(),
                         name="list",
@@ -664,17 +678,20 @@ urlpatterns = [
         include(
             (
                 [
-                    path("list/", views.CitingAuthorListView.as_view(), name="list"),
-                    path("all/", views.CitingAuthorFullListView.as_view(), name="all"),
-                    path(
-                        "create/",
-                        views.CitingAuthorCreateView.as_view(),
-                        name="create",
+                    distill_path(
+                        "list/", views.CitingAuthorListView.as_view(), name="list"
+                    ),
+                    distill_path(
+                        "all/", views.CitingAuthorFullListView.as_view(), name="all"
                     ),
                     path(
+                        "create/", views.CitingAuthorCreateView.as_view(), name="create"
+                    ),
+                    distill_path(
                         "<pk>/",
                         views.CitingAuthorDetailView.as_view(),
                         name="detail",
+                        distill_func=lambda: get_model_pks(CitingAuthor),
                     ),
                     path(
                         "<pk>/delete/",
@@ -696,10 +713,11 @@ urlpatterns = [
                         views.CitingWorkCreateView.as_view(),
                         name="create_work",
                     ),
-                    path(
+                    distill_path(
                         "work/<pk>/",
                         views.CitingWorkDetailView.as_view(),
                         name="work_detail",
+                        distill_func=lambda: get_model_pks(CitingWork),
                     ),
                     path(
                         "work/<pk>/update/",
@@ -718,10 +736,3 @@ urlpatterns = [
         ),
     ),
 ]
-if IS_DISTILL:
-    from .distill_urls import urlpatterns as distill_urlpatterns
-
-    print("distiller active")
-    urlpatterns += (
-        distill_urlpatterns  # distill ones should take precedence as they are appended
-    )
