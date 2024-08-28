@@ -100,7 +100,7 @@ def edition_select(request):
 
         if not part_format:
             # set the part_format as the template part for the selected edition
-            get_part_format(edition)
+            part_format = get_part_format(edition)
 
         context = {
             "edition": Edition.objects.get(pk=edition),
