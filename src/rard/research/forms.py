@@ -1135,10 +1135,10 @@ class EditionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["new_description"].widget.attrs.update(
-            {"style": "width:35vw", "disabled": ""}
+            {"style": "width:clamp(20vw,30vw,50%)", "disabled": ""}
         )
         self.fields["part_format"].widget.attrs.update(
-            {"style": "width:35vw", "disabled": ""}
+            {"style": "max-width:35vw", "disabled": ""}
         )
 
     edition = forms.ModelChoiceField(

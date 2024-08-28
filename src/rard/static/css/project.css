@@ -491,10 +491,13 @@ section.footnotes {
     pointer-events: none;
     background-color: #e9ecef;
   }
-  .new-edition > .form-group {
-    margin-right: 3vw;
-    width: fit-content;
-    max-width: 40vw;
+  .new-edition {
+    column-gap: 4vw;
+    > .form-group {
+      margin-right: 3vw;
+      width: fit-content;
+      max-width: 35vw;
+    }
   }
   .form-group:has(#id_content_type),
   .form-group:has(#id_display_order),
