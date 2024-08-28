@@ -11,7 +11,11 @@
         {% bootstrap_field concordance_form.identifier %}
         {% if not is_update %}
         <h2 class="alphabetum">Or create a new Part Identifier</h2>
+
+        {% if part_format is not None %}
         <p>{{part_format}}</p>
+        {% endif %}
+
         {% bootstrap_field concordance_form.new_identifier %}
         {% endif %}
         <div class="d-flex justify-content-around">
