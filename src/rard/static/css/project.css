@@ -511,9 +511,12 @@ section.footnotes {
   }
 }
 
+/* concordance search */
 .concordance-search__wrapper {
+  column-gap: 3vw;
   .form-group {
     margin-inline: 0.5rem;
+    max-width: 50%;
   }
 }
 .loader-wrapper {
