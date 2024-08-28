@@ -244,7 +244,8 @@ class ConcordanceCreateView(
                 )
                 new_identifier_instance.save()
                 identifier = new_identifier_instance.pk
-
+            elif identifier is None:
+                identifier = get_part_format(edition).pk
             self.form_valid(concordance_form, identifier=identifier)
             return redirect(self.get_success_url())
         else:
@@ -252,7 +253,6 @@ class ConcordanceCreateView(
             concordance_form.cleaned_data["identifier"] = identifier
             edition = Edition.objects.get(pk=edition)
             part_format = get_part_format(edition)
-            print(part_format)
             return render(
                 request,
                 self.template_name,
