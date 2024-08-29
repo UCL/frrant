@@ -75,24 +75,21 @@ def edition_select(request):
     original_text = request.POST.get("original_text", None)
     part_format = request.POST.get("part_format", None)
 
-    if part_format is None:
-        part_format = "[none]"
-
-    if not (part_format.startswith("[") and part_format.endswith("]")):
-        part_format = f"[{part_format}]"
-
     edition_form = EditionForm(request.POST)
     if edition_form.is_valid():
         if new_edition:
+            if part_format is None:
+                part_format = "[none]"
+
+            if not (part_format.startswith("[") and part_format.endswith("]")):
+                part_format = f"[{part_format}]"
+
             """create a new edition and template PI"""
             new_edition_instance = Edition.objects.create(
                 name=edition_form.cleaned_data["new_edition"],
                 description=edition_form.cleaned_data["new_description"],
             )
             new_edition_instance.save()
-
-            if "[" and "]" not in part_format:
-                part_format = f"[{part_format}]"
 
             pi = PartIdentifier.objects.create(
                 edition=new_edition_instance, value=part_format
@@ -218,8 +215,7 @@ class ConcordanceCreateView(
     model = ConcordanceModel
     permission_required = ("research.add_concordance",)
     form_class = ConcordanceModelCreateForm
-    # template_name = "research/concordancemodel_form.html"
-    template_name = "research/concordance_alt_form.html"
+    template_name = "research/concordancemodel_form.html"
 
     def dispatch(self, request, *args, **kwargs):
         # need to ensure we have the lock object view attribute
@@ -241,6 +237,10 @@ class ConcordanceCreateView(
         edition = request.POST.get("edition", None)
         new_identifier = request.POST.get("new_identifier", None)
         identifier = request.POST.get("identifier", None)
+
+        if new_identifier.startswith("[") and new_identifier.endswith("]"):
+            new_identifier = new_identifier[1:-1]
+
         concordance_form = ConcordanceModelCreateForm(request.POST)
         if concordance_form.is_valid():
             if new_identifier:

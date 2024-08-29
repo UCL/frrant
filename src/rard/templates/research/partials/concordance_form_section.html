@@ -8,26 +8,53 @@
         <input type="hidden" name="edition" value={{edition.pk}}>
         {% endif %}
 
+        <div class="identifier-select">
         {% bootstrap_field concordance_form.identifier %}
         {% if not is_update %}
-        <h2 class="alphabetum">Or create a new Part Identifier</h2>
+        <h2 class="alphabetum btn-link new-identifier-btn">Or create a new Part Identifier >></h2>
+        {% endif %}
+        </div>
 
+        <div class="new-identifier invisible">
         {% if part_format is not None %}
         <p>{{part_format}}</p>
         {% endif %}
-
-        {% bootstrap_field concordance_form.new_identifier %}
-        {% endif %}
-        <div class="d-flex justify-content-around">
+            <div class="d-flex flex-row justify-content-around">
+            {% bootstrap_field concordance_form.new_identifier %}
             {% bootstrap_field concordance_form.display_order %}
-            {% bootstrap_field concordance_form.content_type %}
+            </div>
+            <h2 class="alphabetum btn-link select-identifier-btn">Or select Part Identifier >></h2>
         </div>
+
+        <script>
+            var newIdentifierArea = document.querySelector(".new-identifier");
+            var identifierSelectArea = document.querySelector(".identifier-select");
+
+            if(document.getElementById("id_identifier").disabled){
+                identifierSelectArea.classList.add("invisible");
+                newIdentifierArea.classList.remove("invisible");
+                document.querySelector(".select-identifier-btn").classList.add("invisible")
+            }
+
+        // swap between the forms
+        document.querySelector(".new-identifier-btn").onclick = ()=>{
+            identifierSelectArea.classList.add("invisible");
+            newIdentifierArea.classList.remove("invisible");
+        };
+        document.querySelector(".select-identifier-btn").onclick = ()=>{
+            identifierSelectArea.classList.remove("invisible");
+            newIdentifierArea.classList.add("invisible");
+    }
+
+        </script>
+
         <div class="d-flex justify-content-around">
+            {% bootstrap_field concordance_form.content_type %}
             {% bootstrap_field concordance_form.reference %}
             {% bootstrap_field concordance_form.concordance_order %}
         </div>
 
-        <button type="submit" class="btn btn-primary">
+        <button type="submit" class="btn btn-primary ">
         {% if object %}
             {% trans 'Save' %}
         {% else %}

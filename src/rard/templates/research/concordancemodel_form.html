@@ -36,50 +36,50 @@
 <div class="concordance-form__area">
 
 {% if edition_form %}
-    <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST' id="edition_form">
-        {% csrf_token %}
+<form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='POST' id="edition_form">
+    {% csrf_token %}
 
-        <div class="d-flex justify-content-between">
-        {% bootstrap_field edition_form.edition %}
-        </div>
-        <h2 class="alphabetum">Or create a new Edition</h2>
-        <div class="d-flex new-edition justify-content-between">
-            {% bootstrap_field edition_form.new_edition %}
-            {% bootstrap_field edition_form.new_description %}
+    <div class="d-flex flex-column justify-content-between edition-select">
+    {% bootstrap_field edition_form.edition %}
+    <h2 class="alphabetum btn-link new-edition-btn">Or create a new Edition >></h2>
+    </div>
+
+    <div class="d-flex flex-column new-edition invisible justify-content-between">
+        <div class="d-flex flex-row">
+        {% bootstrap_field edition_form.new_edition %}
+        {% bootstrap_field edition_form.new_description %}
         </div>
         <div>
             {% bootstrap_field edition_form.part_format %}
             <input type="hidden" name="original_text" value={{original_text.pk}}>
-
         </div>
-        <script>
-                // this disables the new description field if there's no value in the new edition field
-                var newDescriptionElem=document.getElementById("id_new_description");
-                var partFormatElem=document.getElementById("id_part_format");
-                var newEditionElem=document.getElementById("id_new_edition");
+        <h2 class="alphabetum btn-link select-edition-btn">Or select Edition >></h2>
+    </div>
+    <br>
+    <script>
+        document.querySelector(".new-edition-btn").onclick = ()=>{
+            document.querySelector(".edition-select").classList.add("invisible");
+            document.querySelector(".new-edition").classList.remove("invisible");
+    };
+    document.querySelector(".select-edition-btn").onclick = ()=>{
+        document.querySelector(".edition-select").classList.remove("invisible");
+        document.querySelector(".new-edition").classList.add("invisible");
+}
 
-                newEditionElem.addEventListener("input", function() {
-                    if (newEditionElem.value.trim() === '') {
-                    newDescriptionElem.disabled = true;
-                    partFormatElem.disabled = true;
-                    document.getElementById("id_edition").disabled = false;
+    </script>
+<button type="button" class="btn btn-primary" hx-post="{% url 'concordance:edition_select' %}" hx-target="#edition_form" hx-trigger="click" hx-swap="outerHTML">{% trans 'Next' %}</button>
+</form>
 
-                } else {
-                    newDescriptionElem.disabled = false;
-                    partFormatElem.disabled = false;
-                    document.getElementById("id_edition").disabled = true;
-                }
-                })
-
-            </script>
-        <button type="button" class="btn btn-primary" hx-post="{% url 'concordance:edition_select' %}" hx-target="#edition_form" hx-trigger="click" hx-swap="outerHTML">{% trans 'Next' %}</button>
-    </form>
 {% endif %}
 
 {% if concordance_form %}
     {% include 'research/partials/concordance_form_section.html' %}
+
 {% endif %}
 
 <button type="button" class="btn btn-outline-secondary mt-1 concordance-cancel" onclick="window.location.href='{{original_text.owner.get_absolute_url}}'">{% trans 'Cancel' %}</button>
+
 </div>
+
+
 {% endblock %}

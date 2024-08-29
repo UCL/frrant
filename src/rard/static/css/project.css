@@ -482,6 +482,12 @@ section.footnotes {
 }
 
 /* for concordance form */
+.invisible {
+  position: absolute;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.6s ease;
+}
 .concordance-form__area {
   min-height: 30vh;
   margin-inline: 2vw;
@@ -493,23 +499,29 @@ section.footnotes {
   }
   .new-edition {
     column-gap: 4vw;
-    > .form-group {
+    .form-group {
       margin-right: 3vw;
       width: fit-content;
       max-width: 35vw;
     }
   }
+  .flex-row:has(#id_new_identifier) {
+    column-gap: 2vw;
+  }
+  .form-group:has(#id_display_order) {
+    max-width: 40%;
+  }
+
   .form-group:has(#id_content_type),
-  .form-group:has(#id_display_order),
   .form-group:has(#id_reference),
   .form-group:has(#id_concordance_order) {
     width: fit-content;
-    max-width: 30vw;
+    max-width: 30%;
   }
 
   .concordance-cancel {
-    position: absolute;
-    bottom: 1rem;
+    position: relative;
+    bottom: 2.5rem;
     left: 8rem;
   }
 }
