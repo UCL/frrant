@@ -78,6 +78,9 @@ def edition_select(request):
     if part_format is None:
         part_format = "[none]"
 
+    if not (part_format.startswith("[") and part_format.endswith("]")):
+        part_format = f"[{part_format}]"
+
     edition_form = EditionForm(request.POST)
     if edition_form.is_valid():
         if new_edition:
@@ -215,7 +218,8 @@ class ConcordanceCreateView(
     model = ConcordanceModel
     permission_required = ("research.add_concordance",)
     form_class = ConcordanceModelCreateForm
-    template_name = "research/concordancemodel_form.html"
+    # template_name = "research/concordancemodel_form.html"
+    template_name = "research/concordance_alt_form.html"
 
     def dispatch(self, request, *args, **kwargs):
         # need to ensure we have the lock object view attribute
