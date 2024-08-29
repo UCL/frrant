@@ -75,6 +75,9 @@ def edition_select(request):
     original_text = request.POST.get("original_text", None)
     part_format = request.POST.get("part_format", None)
 
+    if part_format is None:
+        part_format = "[none]"
+
     edition_form = EditionForm(request.POST)
     if edition_form.is_valid():
         if new_edition:

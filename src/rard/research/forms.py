@@ -1157,10 +1157,14 @@ class EditionForm(forms.ModelForm):
         required=False,
         help_text="Enter full name of edition eg. Brills New Jacoby",
     )
+    part_format_help_text = (
+        "Enter format in brackets, eg. [1-10 Arabic numerals] or [none] if no parts for this edition."
+        + "\n If left blank, this will default to [none]"
+    )  # splitting to appease linter error
     part_format = forms.CharField(
         label="format of parts",
         required=False,
-        help_text="Enter format in brackets, eg. [1-10 Arabic numerals] or [none] if no parts for this edition",
+        help_text=part_format_help_text,
     )
 
 
