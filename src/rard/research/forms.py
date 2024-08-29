@@ -1187,7 +1187,7 @@ class ConcordanceModelCreateForm(forms.ModelForm):
     new_identifier = forms.CharField(
         label="New Part Identifier",
         required=False,
-        help_text="You do not need to include the edition name, only the relevant part identifier without brackets[]",
+        help_text="You do not need to include the edition name, only the relevant part identifier without brackets[ ]",
     )
     display_order = forms.CharField(
         required=False,
