@@ -238,7 +238,11 @@ class ConcordanceCreateView(
         new_identifier = request.POST.get("new_identifier", None)
         identifier = request.POST.get("identifier", None)
 
-        if new_identifier.startswith("[") and new_identifier.endswith("]"):
+        if (
+            new_identifier is not None
+            and new_identifier.startswith("[")
+            and new_identifier.endswith("]")
+        ):
             new_identifier = new_identifier[1:-1]
 
         concordance_form = ConcordanceModelCreateForm(request.POST)
