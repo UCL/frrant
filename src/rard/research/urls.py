@@ -544,7 +544,7 @@ urlpatterns = [
                         name="fetch_parts",
                     ),
                     path(
-                        "create/<pk>",
+                        "create/<ot_pk>/<e_pk>/<p_pk>/",
                         views.ConcordanceCreateView.as_view(),
                         name="create_s2",
                     ),
