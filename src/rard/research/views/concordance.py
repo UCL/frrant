@@ -193,7 +193,7 @@ class ConcordanceEditionView(
     def post(self, request, *args, **kwargs):
         edition = request.POST.get("edition", None)
         new_edition = request.POST.get("new_edition", None)
-        original_text = request.POST.get("original_text", self.get_original_text())
+        original_text = request.POST.get("original_text", self.get_original_text().pk)
         part_format = request.POST.get("part_format", None)
 
         edition_form = EditionForm(request.POST)
@@ -223,8 +223,16 @@ class ConcordanceEditionView(
             if not part_format:
                 # set the part_format as the template part for the selected edition
                 part_format = get_part_format(edition).pk
+
             return redirect(
-                f"{reverse('concordance:create_s2', kwargs={'pk': original_text})}?edition={edition}&part_format={part_format}"
+                reverse(
+                    "concordance:create_s2",
+                    kwargs={
+                        "ot_pk": original_text,
+                        "e_pk": edition,
+                        "p_pk": part_format,
+                    },
+                )
             )
         else:
             # form not valid
@@ -244,7 +252,6 @@ class ConcordanceCreateView(
     model = ConcordanceModel
     permission_required = ("research.add_concordance",)
     form_class = ConcordanceModelCreateForm
-    template_name = "research/partials/concordance_form_section.html"
 
     def dispatch(self, request, *args, **kwargs):
         # need to ensure we have the lock object view attribute
@@ -254,14 +261,14 @@ class ConcordanceCreateView(
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request, *args, **kwargs):
-        edition = request.GET.get("edition", None)
-        part_format = request.GET.get("part_format", None)
+        edition = self.kwargs.get("e_pk", None)
+        part_format = self.kwargs.get("p_pk", None)
         concordance_form = ConcordanceModelCreateForm(
             edition=edition, part_format=part_format
         )
         return render(
             request,
-            self.template_name,
+            "research/partials/concordance_form_section.html",
             context=self.get_context_data(
                 concordance_form=concordance_form,
                 ediiton=edition,
@@ -270,7 +277,7 @@ class ConcordanceCreateView(
         )
 
     def post(self, request, *args, **kwargs):
-        edition = request.POST.get("edition", None)
+        edition = request.POST.get("edition", self.kwargs.get("e_pk"))
         new_identifier = request.POST.get("new_identifier", None)
         identifier = request.POST.get("identifier", None)
 
@@ -302,7 +309,7 @@ class ConcordanceCreateView(
             part_format = get_part_format(edition)
             return render(
                 request,
-                self.template_name,
+                "research/concordancemodel_form.html",
                 context=self.get_context_data(
                     concordance_form=concordance_form,
                     edition=edition,
@@ -324,7 +331,7 @@ class ConcordanceCreateView(
     def get_original_text(self, *args, **kwargs):
         if not getattr(self, "original_text", False):
             self.original_text = get_object_or_404(
-                OriginalText, pk=self.kwargs.get("pk", None)
+                OriginalText, pk=self.kwargs.get("ot_pk", None)
             )
         return self.original_text
 
@@ -335,14 +342,21 @@ class ConcordanceCreateView(
         **kwargs,
     ):
         original_text = self.get_original_text()
-        print(args, kwargs)
-        edition = kwargs.get("edition", None)
-        part_format = kwargs.get("part_format", None)
+        edition_pk = self.kwargs.get("e_pk")
+        pf_pk = self.kwargs.get("p_pk")
+        edition = Edition.objects.get(pk=edition_pk)
+        part_format = PartIdentifier.objects.get(pk=pf_pk)
+
         return {
             "concordance_form": concordance_form,
             "original_text": original_text,
             "request_action": reverse(
-                "concordance:create_s2", kwargs={"pk": original_text.pk}
+                "concordance:create_s2",
+                kwargs={
+                    "ot_pk": original_text.pk,
+                    "e_pk": edition_pk,
+                    "p_pk": pf_pk,
+                },
             ),
             "part_format": part_format,
             "edition": edition,

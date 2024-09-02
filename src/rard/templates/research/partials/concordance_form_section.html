@@ -1,13 +1,16 @@
 {% load i18n bootstrap4 %}
+<h1 class="alphabetum">{% if is_update %}Update{% else %}Add{% endif %} Concordance Details</h1>
+
 <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request_action }}' class="form" method='POST'>
     {% csrf_token %}
+    <input type="hidden" name="original_text" value={{original_text.pk}}>
 
-    <h1 class="alphabetum">{% if is_update %}Update{% else %}Add{% endif %} Concordance Details</h2>
         <strong>Edition: {{edition}} {% if is_update %} {{object.identifier.edition}} {% endif %} </strong>
         {% if not is_update %}
         <input type="hidden" name="edition" value={{edition.pk}}>
         {% endif %}
 
+        <h2 class="alphabetum mt-2">{% trans 'Identifier details' %} </h2>
         <div class="identifier-select">
         {% bootstrap_field concordance_form.identifier %}
         {% if not is_update %}
@@ -47,7 +50,7 @@
     }
 
         </script>
-
+        <h2 class="alphabetum mt-2">{% trans 'Concordance details' %} </h2>
         <div class="d-flex justify-content-between mt-3">
             {% bootstrap_field concordance_form.content_type %}
             {% bootstrap_field concordance_form.reference %}

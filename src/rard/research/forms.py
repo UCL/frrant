@@ -1135,11 +1135,9 @@ class EditionForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["new_description"].widget.attrs.update(
-            {"style": "width:clamp(20vw,30vw,50%)", "disabled": ""}
+            {"style": "width:clamp(20vw,30vw,50%)"}
         )
-        self.fields["part_format"].widget.attrs.update(
-            {"style": "max-width:35vw", "disabled": ""}
-        )
+        self.fields["part_format"].widget.attrs.update({"style": "max-width:35vw"})
 
     edition = forms.ModelChoiceField(
         queryset=Edition.objects.all().order_by("name"),
@@ -1196,7 +1194,10 @@ class ConcordanceModelCreateForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         edition_id = kwargs.pop("edition", None)
-        part_format = kwargs.get("part_format", None)
+        part_format = kwargs.pop("part_format", None)
+        if part_format is not None:
+            part_format = PartIdentifier.objects.get(pk=part_format)
+
         super().__init__(*args, **kwargs)
         if not edition_id:  # if existing selected, it comes as an arg, not a kwarg
             data = args[0] if args else {}
@@ -1227,6 +1228,7 @@ class ConcordanceModelCreateForm(forms.ModelForm):
         # disable new identifier when relevant
         if "none" in str(part_format):
             self.fields["new_identifier"].disabled = True
+            self.fields["display_order"].disabled = True
             self.fields["new_identifier"].required = False
             self.fields["identifier"].empty_label = None
             self.fields["identifier"].widget.attrs.update(
