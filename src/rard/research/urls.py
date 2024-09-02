@@ -544,13 +544,13 @@ urlpatterns = [
                         name="fetch_parts",
                     ),
                     path(
-                        "edition-select/",
-                        views.edition_select,
-                        name="edition_select",
+                        "create/<pk>",
+                        views.ConcordanceCreateView.as_view(),
+                        name="create_s2",
                     ),
                     path(
                         "original-text/<pk>/create/",
-                        views.ConcordanceCreateView.as_view(),
+                        views.ConcordanceEditionView.as_view(),
                         name="create",
                     ),
                     path(

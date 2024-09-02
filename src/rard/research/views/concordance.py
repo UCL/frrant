@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.decorators import method_decorator
+from django.views import View
 from django.views.decorators.http import require_POST
 from django.views.generic import ListView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
@@ -67,63 +68,6 @@ def create_edition_bib_item(pk):
     BibliographyItem.objects.create(
         authors=edition.name, author_surnames=edition.name, title=edition.description
     )
-
-
-def edition_select(request):
-    edition = request.POST.get("edition", None)
-    new_edition = request.POST.get("new_edition", None)
-    original_text = request.POST.get("original_text", None)
-    part_format = request.POST.get("part_format", None)
-
-    edition_form = EditionForm(request.POST)
-    if edition_form.is_valid():
-        if new_edition:
-            if part_format is None:
-                part_format = "[none]"
-
-            if not (part_format.startswith("[") and part_format.endswith("]")):
-                part_format = f"[{part_format}]"
-
-            """create a new edition and template PI"""
-            new_edition_instance = Edition.objects.create(
-                name=edition_form.cleaned_data["new_edition"],
-                description=edition_form.cleaned_data["new_description"],
-            )
-            new_edition_instance.save()
-
-            pi = PartIdentifier.objects.create(
-                edition=new_edition_instance, value=part_format
-            )
-            part_format = pi  # set like this so the string displays properly
-
-            edition = new_edition_instance.pk
-            create_edition_bib_item(edition)
-
-        concordance_form = ConcordanceModelCreateForm(request.POST, edition=edition)
-
-        if not part_format:
-            # set the part_format as the template part for the selected edition
-            part_format = get_part_format(edition)
-
-        context = {
-            "edition": Edition.objects.get(pk=edition),
-            "concordance_form": concordance_form,
-            "original_text": original_text,
-            "part_format": part_format,
-            "request_action": reverse(
-                "concordance:create", kwargs={"pk": original_text}
-            ),
-        }
-        return render(
-            request, "research/partials/concordance_form_section.html", context
-        )
-    else:
-        # form not valid
-        return render(
-            request,
-            "research/partials/concordance_form_section.html",
-            {"edition_form": edition_form},
-        )
 
 
 class ConcordanceListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
@@ -206,16 +150,21 @@ class ConcordanceListView(LoginRequiredMixin, PermissionRequiredMixin, ListView)
         return context
 
 
-class ConcordanceCreateView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, CreateView
+class ConcordanceEditionView(
+    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, View
 ):
     check_lock_object = "top_level_object"
-
-    # create a concordance for an original text
-    model = ConcordanceModel
-    permission_required = ("research.add_concordance",)
-    form_class = ConcordanceModelCreateForm
+    model = Edition
+    permission_required = ("research.add_edition",)
+    form_class = EditionForm
     template_name = "research/concordancemodel_form.html"
+
+    def get_original_text(self, *args, **kwargs):
+        if not getattr(self, "original_text", False):
+            self.original_text = get_object_or_404(
+                OriginalText, pk=self.kwargs.get("pk", None)
+            )
+        return self.original_text
 
     def dispatch(self, request, *args, **kwargs):
         # need to ensure we have the lock object view attribute
@@ -226,11 +175,98 @@ class ConcordanceCreateView(
 
     def get(self, request, *args, **kwargs):
         edition_form = EditionForm()
-        concordance_form = None
+        original_text = self.get_original_text()
+
+        edition = kwargs.get("edition", None)
+        context = {
+            "edition_form": edition_form,
+            "concordance_form": None,
+            "original_text": original_text,
+            "edition": edition,
+        }
         return render(
             request,
             self.template_name,
-            context=self.get_context_data(edition_form, concordance_form),
+            context=context,
+        )
+
+    def post(self, request, *args, **kwargs):
+        edition = request.POST.get("edition", None)
+        new_edition = request.POST.get("new_edition", None)
+        original_text = request.POST.get("original_text", self.get_original_text())
+        part_format = request.POST.get("part_format", None)
+
+        edition_form = EditionForm(request.POST)
+        if edition_form.is_valid():
+            if new_edition:
+                if part_format is None:
+                    part_format = "[none]"
+
+                if not (part_format.startswith("[") and part_format.endswith("]")):
+                    part_format = f"[{part_format}]"
+
+                """create a new edition and template PI"""
+                new_edition_instance = Edition.objects.create(
+                    name=edition_form.cleaned_data["new_edition"],
+                    description=edition_form.cleaned_data["new_description"],
+                )
+                new_edition_instance.save()
+
+                pi = PartIdentifier.objects.create(
+                    edition=new_edition_instance, value=part_format
+                )
+                part_format = pi.pk
+
+                edition = new_edition_instance.pk
+                create_edition_bib_item(edition)
+
+            if not part_format:
+                # set the part_format as the template part for the selected edition
+                part_format = get_part_format(edition).pk
+            return redirect(
+                f"{reverse('concordance:create_s2', kwargs={'pk': original_text})}?edition={edition}&part_format={part_format}"
+            )
+        else:
+            # form not valid
+            return render(
+                request,
+                "research/partials/concordancemodel_form.html",
+                {"edition_form": edition_form},
+            )
+
+
+class ConcordanceCreateView(
+    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, CreateView
+):
+    check_lock_object = "top_level_object"
+
+    # create a concordance for an original text
+    model = ConcordanceModel
+    permission_required = ("research.add_concordance",)
+    form_class = ConcordanceModelCreateForm
+    template_name = "research/partials/concordance_form_section.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        # need to ensure we have the lock object view attribute
+        # initialised in dispatch
+        self.top_level_object = self.get_original_text().owner
+
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        edition = request.GET.get("edition", None)
+        part_format = request.GET.get("part_format", None)
+        concordance_form = ConcordanceModelCreateForm(
+            edition=edition, part_format=part_format
+        )
+        return render(
+            request,
+            self.template_name,
+            context=self.get_context_data(
+                concordance_form=concordance_form,
+                ediiton=edition,
+                part_format=part_format,
+            ),
         )
 
     def post(self, request, *args, **kwargs):
@@ -294,21 +330,21 @@ class ConcordanceCreateView(
 
     def get_context_data(
         self,
-        edition_form=None,
         concordance_form=None,
         *args,
         **kwargs,
     ):
         original_text = self.get_original_text()
-
+        print(args, kwargs)
         edition = kwargs.get("edition", None)
+        part_format = kwargs.get("part_format", None)
         return {
-            "edition_form": edition_form,
             "concordance_form": concordance_form,
             "original_text": original_text,
             "request_action": reverse(
-                "concordance:create", kwargs={"pk": original_text.pk}
+                "concordance:create_s2", kwargs={"pk": original_text.pk}
             ),
+            "part_format": part_format,
             "edition": edition,
         }
 

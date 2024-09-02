@@ -46,10 +46,10 @@ from .comments import CommentDeleteView, TextObjectFieldCommentListView
 from .concordance import (
     ConcordanceCreateView,
     ConcordanceDeleteView,
+    ConcordanceEditionView,
     ConcordanceListView,
     ConcordanceUpdateView,
     OldConcordanceDeleteView,
-    edition_select,
     fetch_parts,
     fetch_works,
 )
@@ -191,6 +191,7 @@ __all__ = [
     "CommentDeleteView",
     "ConcordanceCreateView",
     "ConcordanceDeleteView",
+    "ConcordanceEditionView",
     "ConcordanceListView",
     "ConcordanceUpdateView",
     "OldConcordanceDeleteView",
@@ -276,5 +277,4 @@ __all__ = [
     "fetch_books",
     "fetch_works",
     "fetch_parts",
-    "edition_select",
 ]
