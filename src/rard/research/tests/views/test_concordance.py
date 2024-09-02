@@ -21,7 +21,10 @@ from rard.research.views import (
     ConcordanceListView,
     ConcordanceUpdateView,
 )
-from rard.research.views.concordance import OldConcordanceDeleteView
+from rard.research.views.concordance import (
+    ConcordanceEditionView,
+    OldConcordanceDeleteView,
+)
 from rard.users.tests.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
@@ -55,7 +58,7 @@ class TestConcordanceViews(TestCase):
         )
 
     def test_creation_edition_step(self):
-        url = reverse("concordance:edition_select")
+        url = reverse("concordance:create", kwargs={"pk": self.original_text.pk})
         data = {
             "edition": self.edition.pk,
             "original_text": self.original_text.pk,
@@ -63,16 +66,24 @@ class TestConcordanceViews(TestCase):
 
         request = RequestFactory().post(url, data=data)
         request.user = self.user
-        response = ConcordanceCreateView.as_view()(request, pk=self.original_text.pk)
+        response = ConcordanceEditionView.as_view()(request, pk=self.original_text.pk)
 
-        # check it returns the next stage
-        self.assertFalse("id_new_edition" in response.content.decode())
-        self.assertTrue("id_new_identifier" in response.content.decode())
-        # check selected edition value passed
-        self.assertTrue(f"value={self.edition.pk}" in response.content.decode())
+        # check it returns the next stage with correct details
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url,
+            f"/concordance/create/{self.original_text.pk}/{self.edition.pk}/{self.identifier_template.pk}/",
+        )
 
     def test_creation_concordance_step(self):
-        url = reverse("concordance:create", kwargs={"pk": self.original_text.pk})
+        url = reverse(
+            "concordance:create_s2",
+            kwargs={
+                "ot_pk": self.original_text.pk,
+                "e_pk": self.edition.pk,
+                "p_pk": self.identifier_template.pk,
+            },
+        )
         data = {
             "reference": "55.l",
             "content_type": "F",
@@ -84,7 +95,12 @@ class TestConcordanceViews(TestCase):
         request.user = self.user
         concordance_count = self.original_text.concordance_models.count()
 
-        response = ConcordanceCreateView.as_view()(request, pk=self.original_text.pk)
+        response = ConcordanceCreateView.as_view()(
+            request,
+            ot_pk=self.original_text.pk,
+            e_pk=self.edition.pk,
+            p_pk=self.identifier_template.pk,
+        )
         self.original_text.refresh_from_db()
         # check the new concordance is associated with the original text
         self.assertEqual(
@@ -96,7 +112,7 @@ class TestConcordanceViews(TestCase):
 
     def test_creation_with_new_content(self):
         # edition part
-        url = reverse("concordance:edition_select")
+        url = reverse("concordance:create", kwargs={"pk": self.original_text.pk})
         data = {
             "new_edition": "PBJ",
             "original_text": self.original_text.pk,
@@ -108,16 +124,23 @@ class TestConcordanceViews(TestCase):
         response = self.client.post(url, data=data)
         pbj = Edition.objects.get(name="PBJ")
         self.assertIsNotNone(pbj)
-        self.assertIn(str(pbj), response.content.decode())
+        self.assertIn(str(pbj.pk), response.url)
         template_part = PartIdentifier.objects.get(edition=pbj)
         self.assertTrue(template_part.is_template)
-        self.assertIn(str(template_part), response.content.decode())
+        self.assertIn(str(template_part.pk), response.url)
         self.assertIsNotNone(
             response.content.decode().find('required id="id_new_identifier"')
         )
 
         # concordance part
-        url = reverse("concordance:create", kwargs={"pk": self.original_text.pk})
+        url = reverse(
+            "concordance:create_s2",
+            kwargs={
+                "ot_pk": self.original_text.pk,
+                "e_pk": pbj.pk,
+                "p_pk": template_part.pk,
+            },
+        )
         data = {
             "reference": "25.j",
             "content_type": "F",
@@ -128,8 +151,12 @@ class TestConcordanceViews(TestCase):
         request = RequestFactory().post(url, data=data)
         request.user = self.user
         concordance_count = self.original_text.concordance_models.count()
-
-        response = ConcordanceCreateView.as_view()(request, pk=self.original_text.pk)
+        response = ConcordanceCreateView.as_view()(
+            request,
+            ot_pk=self.original_text.pk,
+            e_pk=pbj.pk,
+            p_pk=template_part.pk,
+        )
         self.original_text.refresh_from_db()
         self.assertEqual(
             self.original_text.concordance_models.count(), (concordance_count + 1)
@@ -267,7 +294,11 @@ class TestConcordanceViews(TestCase):
         for view_class in (ConcordanceCreateView,):
             view = view_class()
             view.request = request
-            view.kwargs = {"pk": self.original_text.pk}
+            view.kwargs = {
+                "ot_pk": self.original_text.pk,
+                "e_pk": self.edition.pk,
+                "p_pk": self.identifier_template.pk,
+            }
             view.dispatch(request)
             self.assertEqual(view.top_level_object, self.original_text.owner)
 
