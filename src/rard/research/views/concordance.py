@@ -1,4 +1,5 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.db import DatabaseError
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -57,10 +58,16 @@ def fetch_parts(request):
 
 
 def get_part_format(edition):
-    first_part = PartIdentifier.objects.filter(edition=edition).first()
-    if first_part and first_part.is_template:
-        part_format = first_part
-        return part_format
+    """Get the first part identifier that is a template for the given edition.
+    If no template exists, raise a DatabaseError since all Editions should have
+    a template."""
+    first_part = (
+        PartIdentifier.objects.filter(edition=edition).filter(is_template=True).first()
+    )
+    if first_part:
+        return first_part
+    else:
+        raise DatabaseError(f"No template part identifier exists for edition {edition}")
 
 
 def create_edition_bib_item(pk):
