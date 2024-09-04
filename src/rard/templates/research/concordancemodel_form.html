@@ -20,7 +20,7 @@
     <label>For original text:</label>
 
         <div>
-            {% include 'research/partials/original_text_preview.html' with original_text=original_text %}
+            {% include 'research/partials/original_text_preview.html' with original_text=original_text hide_last_modified=True %}
         </div>
 {% if original_text.concordances.count != 0 %}
 <div>

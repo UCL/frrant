@@ -1,32 +1,30 @@
 {% load i18n bootstrap4 %}
-<h1 class="alphabetum">{% if is_update %}Update{% else %}Add{% endif %} Concordance Details</h1>
 
 <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request_action }}' class="form" method='POST'>
     {% csrf_token %}
     <input type="hidden" name="original_text" value={{original_text.pk}}>
-
-        <strong>Edition: {{edition}} {% if is_update %} {{object.identifier.edition}} {% endif %} </strong>
+    <div class="form-section">
+        <h2 class="alphabetum mt-2">{% trans 'Edition' %} </h2>
+        <p><strong>{{edition}}</strong></p>
         {% if not is_update %}
         <input type="hidden" name="edition" value={{edition.pk}}>
         {% endif %}
+    </div>
 
-        <h2 class="alphabetum mt-2">{% trans 'Identifier details' %} </h2>
+    <div class="form-section">
         <div class="identifier-select">
         {% bootstrap_field concordance_form.identifier %}
         {% if not is_update %}
-        <h2 class="alphabetum btn-link new-identifier-btn">Or create a new Part Identifier >></h2>
+        <p class="btn-link new-identifier-btn small">Or create a new Part Identifier >></p>
         {% endif %}
         </div>
 
         <div class="new-identifier invisible">
-        {% if part_format is not None %}
-        <p>{{part_format}}</p>
-        {% endif %}
             <div class="d-flex flex-row justify-content-around">
             {% bootstrap_field concordance_form.new_identifier %}
             {% bootstrap_field concordance_form.display_order %}
             </div>
-            <h2 class="alphabetum btn-link select-identifier-btn">Or select Part Identifier >></h2>
+            <h2 class="btn-link select-identifier-btn small">Or select Part Identifier >></h2>
         </div>
 
         <script>
@@ -50,12 +48,15 @@
     }
 
         </script>
-        <h2 class="alphabetum mt-2">{% trans 'Concordance details' %} </h2>
+
+    </div>
+    <div class="form-section">
         <div class="d-flex justify-content-between mt-3">
             {% bootstrap_field concordance_form.content_type %}
             {% bootstrap_field concordance_form.reference %}
             {% bootstrap_field concordance_form.concordance_order %}
         </div>
+    </div>
 
         <button type="submit" class="btn btn-primary ">
         {% if object %}

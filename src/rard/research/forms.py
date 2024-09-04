@@ -1194,24 +1194,31 @@ class ConcordanceModelCreateForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         edition_id = kwargs.pop("edition", None)
-        part_format = kwargs.pop("part_format", None)
-        if part_format is not None:
-            part_format = PartIdentifier.objects.get(pk=part_format)
-
-        super().__init__(*args, **kwargs)
         if not edition_id:  # if existing selected, it comes as an arg, not a kwarg
             data = args[0] if args else {}
             edition_id = data.get("edition", None)
+        qs = PartIdentifier.objects.filter(edition=edition_id)
 
-        qs = PartIdentifier.objects.filter(edition=edition_id).order_by("edition")
+        part_format = kwargs.pop("part_format", None)
+        if part_format is not None:
+            part_format = qs.get(pk=part_format)
+
+        super().__init__(*args, **kwargs)
+
         if not part_format:
-            first_part = PartIdentifier.objects.filter(edition=edition_id).first()
+            first_part = qs.first()
             if first_part and first_part.is_template:
                 part_format = first_part
 
         self.fields["reference"].required = True
         self.fields["reference"].help_text = "Eg. 130c"
         self.fields["concordance_order"].help_text = "Eg. 130.3"
+
+        new_pi_help = (
+            f"Format: {part_format}. You do not need to include the edition name, "
+            + "only the relevant part identifier without brackets[ ]"
+        )
+        self.fields["new_identifier"].help_text = new_pi_help
 
         # baseline for identifier field
         self.fields["identifier"].required = False
