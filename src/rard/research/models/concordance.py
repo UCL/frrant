@@ -18,7 +18,7 @@ class PartIdentifierManager(models.Manager):
                     default=Value(False),
                 )
             )
-            .order_by("-is_template", "edition__name", "value")
+            .order_by("-is_template", "edition__name", "display_order")
         )
 
 
@@ -33,7 +33,9 @@ class PartIdentifier(HistoryModelMixin, BaseModel):
 
     edition = models.ForeignKey("Edition", on_delete=models.CASCADE)
     value = models.CharField(max_length=250, blank=False)
-    display_order = models.CharField(max_length=30, blank=True)
+    display_order = models.CharField(
+        max_length=30, blank=True
+    )  # Name for ordering purposes
 
 
 class Edition(HistoryModelMixin, BaseModel):
@@ -107,7 +109,7 @@ class ConcordanceModel(HistoryModelMixin, BaseModel):
     @staticmethod
     def get_ordered_queryset(queryset):
         return queryset.order_by(
-            "identifier",
+            "identifier__display_order",
             Case(
                 When(content_type="T", then=0),
                 When(content_type="F", then=1),

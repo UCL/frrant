@@ -127,21 +127,18 @@ class ConcordanceListView(LoginRequiredMixin, PermissionRequiredMixin, ListView)
                 ]
                 results_qs = {"frrant": results, "concordances": filtered_concordances}
 
-        elif edition_pk or identifier_pk:
+        elif edition_pk:
             # also sort by this rather than by the frrant thing
             self.sort_by_antiquarian = False
-            # todo:
             if edition_pk:
                 results_qs = ConcordanceModel.get_ordered_queryset(
-                    queryset.filter(identifier__edition=edition_pk).order_by(
-                        "identifier__display_order"
-                    )
+                    queryset.filter(identifier__edition=edition_pk)
                 )
-                if identifier_pk:
+                if (
+                    identifier_pk
+                ):  # Identifier should not be an option without an edition
                     results_qs = ConcordanceModel.get_ordered_queryset(
-                        queryset.filter(identifier=identifier_pk).order_by(
-                            "identifier__display_order"
-                        )
+                        queryset.filter(identifier=identifier_pk)
                     )
         else:
             results_qs = queryset.none()
