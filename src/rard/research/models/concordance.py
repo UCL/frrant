@@ -1,16 +1,32 @@
+import re
+
 from django.db import models
-from django.db.models import Case, IntegerField, When
+from django.db.models import Case, IntegerField, Value, When
 
 from rard.research.models.mixins import HistoryModelMixin
 from rard.utils.basemodel import BaseModel
 
 
+class PartIdentifierManager(models.Manager):
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .annotate(
+                is_template=Case(
+                    When(value__regex=r".*\[.*\].*", then=Value(True)),
+                    default=Value(False),
+                )
+            )
+            .order_by("-is_template", "edition__name", "value")
+        )
+
+
 class PartIdentifier(HistoryModelMixin, BaseModel):
-    class Meta:
-        ordering = ["edition__name", "value"]
+    objects = PartIdentifierManager()
 
     def __str__(self):
-        if self.is_template:
+        if re.search(self.value, r".*\[.*\].*"):
             return f"format for {self.edition.name}: {self.value}"
         else:
             return f"{self.edition.name}: {self.value}"
@@ -18,10 +34,6 @@ class PartIdentifier(HistoryModelMixin, BaseModel):
     edition = models.ForeignKey("Edition", on_delete=models.CASCADE)
     value = models.CharField(max_length=250, blank=False)
     display_order = models.CharField(max_length=30, blank=True)
-
-    @property
-    def is_template(self):
-        return "[" in self.value and "]" in self.value
 
 
 class Edition(HistoryModelMixin, BaseModel):
@@ -36,6 +48,11 @@ class Edition(HistoryModelMixin, BaseModel):
     description = models.CharField(
         max_length=200, blank=True, null=True
     )  # need to add this to master bib
+
+    def get_part_format(self):
+        return (
+            PartIdentifier.objects.filter(edition=self).filter(is_template=True).first()
+        )
 
 
 class ConcordanceModel(HistoryModelMixin, BaseModel):

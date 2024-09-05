@@ -20,16 +20,17 @@
     <label>For original text:</label>
 
         <div>
-            {% include 'research/partials/original_text_preview.html' with original_text=original_text %}
+            {% include 'research/partials/original_text_preview.html' with original_text=original_text hide_last_modified=True %}
         </div>
 {% if original_text.concordances.count != 0 %}
 <div>
     This original text has some existing concordances in the old format:
-    <div>
+    <ul class="list-inline">
     {% for c in original_text.concordances.all %}
-    {{c}} |
+        <li class="list-inline-item">{{c}}</li>
+        <li class="list-inline-item">{% if not forloop.last %}|{% endif %}</li>
     {% endfor %}
-    </div>
+    </ul>
 </div>
 <br>
 {% endif %}

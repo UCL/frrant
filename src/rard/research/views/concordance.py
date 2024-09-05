@@ -1,4 +1,5 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.db import DatabaseError
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -57,10 +58,16 @@ def fetch_parts(request):
 
 
 def get_part_format(edition):
-    first_part = PartIdentifier.objects.filter(edition=edition).first()
-    if first_part and first_part.is_template:
-        part_format = first_part
-        return part_format
+    """Get the first part identifier that is a template for the given edition.
+    If no template exists, raise a DatabaseError since all Editions should have
+    a template."""
+    first_part = (
+        PartIdentifier.objects.filter(edition=edition).filter(is_template=True).first()
+    )
+    if first_part:
+        return first_part
+    else:
+        raise DatabaseError(f"No template part identifier exists for edition {edition}")
 
 
 def create_edition_bib_item(pk):
@@ -199,7 +206,7 @@ class ConcordanceEditionView(
         edition_form = EditionForm(request.POST)
         if edition_form.is_valid():
             if new_edition:
-                if part_format is None:
+                if not part_format:
                     part_format = "[none]"
 
                 if not (part_format.startswith("[") and part_format.endswith("]")):
@@ -382,6 +389,8 @@ class ConcordanceUpdateView(
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
+        edition = self.object.identifier.edition
+        part_format = edition.get_part_format()
         context.update(
             {
                 "original_text": self.object.original_text,
@@ -390,6 +399,8 @@ class ConcordanceUpdateView(
                 "request_action": reverse(
                     "concordance:update", kwargs={"pk": self.object.pk}
                 ),
+                "part_format": part_format,
+                "edition": edition,
             }
         )
         return context

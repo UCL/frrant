@@ -490,7 +490,7 @@ section.footnotes {
 }
 .concordance-form__area {
   min-height: 30vh;
-  margin-inline: 2vw;
+  /* margin-inline: 2vw; */
 
   [disable-selection="true"] {
     color: gray;
@@ -524,6 +524,10 @@ section.footnotes {
     bottom: 2.5rem;
     left: 8rem;
   }
+}
+
+.form-section {
+  margin-bottom: 3rem;
 }
 
 /* concordance search */
