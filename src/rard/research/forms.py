@@ -1248,12 +1248,19 @@ class ConcordanceModelUpdateForm(forms.ModelForm):
         model = ConcordanceModel
         fields = [
             "identifier",
+            "new_identifier",
             "display_order",
             "content_type",
             "reference",
             "concordance_order",
         ]
         labels = {"identifier": "Part Identifier"}
+
+    new_identifier = forms.CharField(
+        label="New Part Identifier",
+        required=False,
+        help_text="You do not need to include the edition name, only the relevant part identifier without brackets[ ]",
+    )
 
     display_order = forms.CharField(
         label="optional ordering",
@@ -1272,7 +1279,7 @@ class ConcordanceModelUpdateForm(forms.ModelForm):
             qs = PartIdentifier.objects.filter(
                 edition=self.instance.identifier.edition
             ).order_by("edition")
-            self.fields["identifier"].queryset = qs
+            self.fields["identifier"].queryset = qs.filter(is_template=False)
 
 
 class ConcordanceModelSearchForm(forms.Form):

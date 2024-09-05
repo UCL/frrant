@@ -206,7 +206,7 @@ class ConcordanceEditionView(
         edition_form = EditionForm(request.POST)
         if edition_form.is_valid():
             if new_edition:
-                if part_format is None:
+                if not part_format:
                     part_format = "[none]"
 
                 if not (part_format.startswith("[") and part_format.endswith("]")):
@@ -389,6 +389,8 @@ class ConcordanceUpdateView(
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
+        edition = self.object.identifier.edition
+        part_format = edition.get_part_format()
         context.update(
             {
                 "original_text": self.object.original_text,
@@ -397,6 +399,8 @@ class ConcordanceUpdateView(
                 "request_action": reverse(
                     "concordance:update", kwargs={"pk": self.object.pk}
                 ),
+                "part_format": part_format,
+                "edition": edition,
             }
         )
         return context

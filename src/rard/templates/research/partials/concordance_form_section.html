@@ -19,6 +19,7 @@
         {% endif %}
         </div>
 
+        {% if not is_update %}
         <div class="new-identifier invisible">
             <div class="d-flex flex-row justify-content-around">
             {% bootstrap_field concordance_form.new_identifier %}
@@ -48,6 +49,7 @@
     }
 
         </script>
+        {% endif %}
 
     </div>
     <div class="form-section">

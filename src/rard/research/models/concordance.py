@@ -49,6 +49,11 @@ class Edition(HistoryModelMixin, BaseModel):
         max_length=200, blank=True, null=True
     )  # need to add this to master bib
 
+    def get_part_format(self):
+        return (
+            PartIdentifier.objects.filter(edition=self).filter(is_template=True).first()
+        )
+
 
 class ConcordanceModel(HistoryModelMixin, BaseModel):
     def __str__(self):
