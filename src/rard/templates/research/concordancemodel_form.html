@@ -25,11 +25,12 @@
 {% if original_text.concordances.count != 0 %}
 <div>
     This original text has some existing concordances in the old format:
-    <div>
+    <ul class="list-inline">
     {% for c in original_text.concordances.all %}
-    {{c}} |
+        <li class="list-inline-item">{{c}}</li>
+        <li class="list-inline-item">{% if not forloop.last %}|{% endif %}</li>
     {% endfor %}
-    </div>
+    </ul>
 </div>
 <br>
 {% endif %}
