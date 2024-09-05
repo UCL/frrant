@@ -1214,10 +1214,13 @@ class ConcordanceModelCreateForm(forms.ModelForm):
         self.fields["reference"].help_text = "Eg. 130c"
         self.fields["concordance_order"].help_text = "Eg. 130.3"
 
-        new_pi_help = (
-            f"Format: {part_format}. You do not need to include the edition name, "
-            + "only the relevant part identifier without brackets[ ]"
-        )
+        if part_format.value == "[none]":
+            new_pi_help = "Format is [none]; this edition has no parts."
+        else:
+            new_pi_help = (
+                f"Format: {part_format}. You do not need to include the edition name, "
+                + "only the relevant part identifier without brackets[ ]"
+            )
         self.fields["new_identifier"].help_text = new_pi_help
 
         # baseline for identifier field
