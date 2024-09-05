@@ -287,7 +287,7 @@ class ConcordanceCreateView(
         edition = request.POST.get("edition", self.kwargs.get("e_pk"))
         new_identifier = request.POST.get("new_identifier", None)
         identifier = request.POST.get("identifier", None)
-
+        display_order = request.POST.get("display_order", None)
         if (
             new_identifier is not None
             and new_identifier.startswith("[")
@@ -307,6 +307,10 @@ class ConcordanceCreateView(
                 identifier = new_identifier_instance.pk
             elif identifier is None:
                 identifier = get_part_format(edition).pk
+
+            if display_order is None:
+                display_order = identifier.value
+
             self.form_valid(concordance_form, identifier=identifier)
             return redirect(self.get_success_url())
         else:
