@@ -183,9 +183,5 @@ class Migration(migrations.Migration):
             },
             bases=(rard.research.models.mixins.HistoryModelMixin, models.Model),
         ),
-        migrations.AlterModelOptions(
-            name="partidentifier",
-            options={"ordering": ["edition__name", "value"]},
-        ),
         migrations.RunPython(import_data_from_csv, migrations.RunPython.noop),
     ]
