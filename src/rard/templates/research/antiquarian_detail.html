@@ -75,13 +75,10 @@
                         <div class='d-flex justify-content-between mb-3'>
                         <div>{{ concordance }}</div>
                         <div>
-                            {% if perms.research.add_antiquarianconcordance and has_object_lock %}
+                            {% if has_object_lock %}
                             <form novalidate class='form-inline' action='{% url "antiquarian:delete_concordance" concordance.pk %}' method='POST'>
                                 {% csrf_token %}
                                 <div class='form-row align-items-center'>
-                                    {% if perms.research.change_antiquarianconcordance %}
-                                    <a href='{% url "antiquarian:update_concordance" concordance.pk %}'>Edit</a>
-                                    {% endif %}
                                     {% if perms.research.delete_concordance %}
                                     <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
                                         data-what='concordance'>{% trans 'Delete' %}</button>
@@ -94,9 +91,6 @@
                     </div>
                     {% endfor %}
                 </dd>
-                {% if perms.research.add_antiquarianconcordance and has_object_lock %}
-                <dd class="col-sm-2 actions"><a style='float:right' href='{% url "antiquarian:create_concordance" object.pk %}'>Add</a></dd>
-                {% endif %}
             </dl>
 
         </section>

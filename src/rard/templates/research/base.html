@@ -80,7 +80,7 @@
       {% if perms.research.view_concordance %}
       <a class='nav-link {% if "concordance" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
         href='{% url "concordance:list" %}'>
-        {% trans 'Concordance' %}
+        {% trans 'Concordances' %}
       </a>
       {% endif %}
       {% if perms.research.view_bibliographyitem %}

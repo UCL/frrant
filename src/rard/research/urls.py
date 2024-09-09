@@ -130,16 +130,6 @@ urlpatterns = [
                         name="create_bibliography",
                     ),
                     path(
-                        "<pk>/concordance/create/",
-                        views.AntiquarianConcordanceCreateView.as_view(),
-                        name="create_concordance",
-                    ),
-                    path(
-                        "concordance/<pk>/update/",
-                        views.AntiquarianConcordanceUpdateView.as_view(),
-                        name="update_concordance",
-                    ),
-                    path(
                         "concordance/<pk>/delete/",
                         views.AntiquarianConcordanceDeleteView.as_view(),
                         name="delete_concordance",
@@ -544,8 +534,23 @@ urlpatterns = [
                 [
                     path("list/", views.ConcordanceListView.as_view(), name="list"),
                     path(
-                        "original-text/<pk>/create/",
+                        "fetch-works/",
+                        views.fetch_works,
+                        name="fetch_works",
+                    ),
+                    path(
+                        "fetch-parts/",
+                        views.fetch_parts,
+                        name="fetch_parts",
+                    ),
+                    path(
+                        "create/<ot_pk>/<e_pk>/<p_pk>/",
                         views.ConcordanceCreateView.as_view(),
+                        name="create_s2",
+                    ),
+                    path(
+                        "original-text/<pk>/create/",
+                        views.ConcordanceEditionView.as_view(),
                         name="create",
                     ),
                     path(
@@ -557,6 +562,11 @@ urlpatterns = [
                         "<pk>/delete/",
                         views.ConcordanceDeleteView.as_view(),
                         name="delete",
+                    ),
+                    path(
+                        "<pk>/delete-old/",
+                        views.OldConcordanceDeleteView.as_view(),
+                        name="delete_old",
                     ),
                 ],
                 "research",

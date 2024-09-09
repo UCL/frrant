@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import reverse_lazy
 from django.utils.safestring import mark_safe
 
-from .models import Symbol, SymbolGroup
+from .models import Edition, PartIdentifier, Symbol, SymbolGroup
 
 # set the 'view site' linl in the admin
 admin.site.site_url = reverse_lazy("home")
@@ -34,3 +34,14 @@ class SymbolAdmin(admin.ModelAdmin):
 @admin.register(SymbolGroup)
 class SymbolGroupAdmin(admin.ModelAdmin):
     pass
+
+
+@admin.register(Edition)
+class EditionAdmin(admin.ModelAdmin):
+    list_display = ("name", "description")
+
+
+@admin.register(PartIdentifier)
+class PartIdentifierAdmin(admin.ModelAdmin):
+    list_display = ("value", "edition")
+    readonly_fields = ("edition",)
