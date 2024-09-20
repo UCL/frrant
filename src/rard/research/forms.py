@@ -1189,7 +1189,7 @@ class ConcordanceModelCreateForm(forms.ModelForm):
     )
     display_order = forms.CharField(
         required=False,
-        help_text="When ordering alphabetically, what would you like this identifier sorted as?",
+        help_text="When ordering alphabetically or numerically, what would you like this identifier sorted as?",
     )
 
     def __init__(self, *args, **kwargs):
@@ -1268,7 +1268,7 @@ class ConcordanceModelUpdateForm(forms.ModelForm):
     display_order = forms.CharField(
         label="optional ordering",
         required=False,
-        help_text="When ordering alphabetically, what would you like this identifier sorted as?",
+        help_text="When ordering alphabetically or numerically, what would you like this identifier sorted as?",
     )
 
     def __init__(self, *args, **kwargs):
