@@ -64,7 +64,7 @@ class ConcordanceModel(HistoryModelMixin, BaseModel):
                 f"{self.identifier.edition.name} ({self.content_type}) {self.reference}"
             )
         else:
-            return f"{self.identifier} ({self.content_type}) {self.reference}"
+            return f"{self.identifier} {self.content_type}{self.reference}"
 
     original_text = models.ForeignKey(
         "OriginalText",
@@ -80,8 +80,8 @@ class ConcordanceModel(HistoryModelMixin, BaseModel):
     TYPE_CHOICES = [
         ("F", "Fragment"),
         ("T", "Testimonium"),
-        ("App", "Appendix"),
-        ("P.", "Pagination"),
+        ("(A)", "Appendix"),
+        ("p. ", "Pagination"),
         ("NA", "N/A"),
     ]
     content_type = models.CharField(max_length=5, choices=TYPE_CHOICES)
@@ -113,8 +113,8 @@ class ConcordanceModel(HistoryModelMixin, BaseModel):
             Case(
                 When(content_type="T", then=0),
                 When(content_type="F", then=1),
-                When(content_type="App", then=2),
-                When(content_type="P.", then=3),
+                When(content_type="p. ", then=2),
+                When(content_type="(A)", then=3),
                 When(content_type="NA", then=4),
                 output_field=IntegerField(),
             ),
