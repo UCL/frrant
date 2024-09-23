@@ -1,4 +1,5 @@
 var workSelectElem;
+var partSelectElem;
 
 document.addEventListener("DOMContentLoaded", function () {
   document.addEventListener("htmx:configRequest", function (event) {
@@ -50,6 +51,16 @@ function enableWork() {
 function disableWork() {
   workSelectElem.disabled = true;
   workSelectElem.innerHTML = "";
+}
+
+function disableParts() {
+  partSelectElem.disabled = true;
+  partSelectElem.innerHTML = "";
+}
+
+function resetSelections() {
+  disableWork();
+  disableParts();
 }
 
 function updateLabel(elem) {
