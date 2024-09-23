@@ -151,8 +151,8 @@ class Migration(migrations.Migration):
                         choices=[
                             ("F", "Fragment"),
                             ("T", "Testimonium"),
-                            ("App", "Appendix"),
-                            ("P.", "Pagination"),
+                            ("(A)", "Appendix"),
+                            ("p. ", "Pagination"),
                             ("NA", "N/A"),
                         ],
                         max_length=5,

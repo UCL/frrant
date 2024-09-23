@@ -22,9 +22,10 @@
 
 <form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='GET' id="concordance-search__form" hx-post="{{ request.path }}" hx-target="#concordance-search__results" hx-trigger="change from:select">
   {% csrf_token %}
-  <div class="mb-2 d-flex row justify-content-end"><button type="reset" onclick="disableWork()" class="btn btn-sm btn-outline-danger">Reset selections</button>
+  <div class="mb-2 d-flex row justify-content-end"><button type="reset" onclick="resetSelections()" class="btn btn-sm btn-outline-danger">Reset selections</button>
   </div>
   <div class="d-flex row mx-3 concordance-search__wrapper">
+
   {% bootstrap_form form %}
 
   </div>
