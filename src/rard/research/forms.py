@@ -1315,13 +1315,7 @@ class ConcordanceModelSearchForm(forms.Form):
     antiquarian = forms.ModelChoiceField(
         queryset=a_qs,
         required=False,
-        widget=forms.Select(
-            attrs={
-                "hx-get": "/concordance/fetch-works/",
-                "hx-target": "#id_work",
-                "hx-trigger": "change",
-            }
-        ),
+        widget=forms.Select(),
     )
     work = forms.ModelChoiceField(
         queryset=w_qs,
@@ -1331,13 +1325,7 @@ class ConcordanceModelSearchForm(forms.Form):
     edition = forms.ModelChoiceField(
         queryset=e_qs,
         required=False,
-        widget=forms.Select(
-            attrs={
-                "hx-get": "/concordance/fetch-parts/",
-                "hx-target": "#id_identifier",
-                "hx-trigger": "change",
-            }
-        ),
+        widget=forms.Select(),
     )
     identifier = forms.ModelChoiceField(
         queryset=i_qs,
@@ -1355,6 +1343,21 @@ class ConcordanceModelSearchForm(forms.Form):
         self.fields["edition"].label = self.label_w_badge("Edition", self.e_qs)
         self.fields["identifier"].label = self.label_w_badge(
             "Part Identifier", self.i_qs
+        )
+
+        self.fields["antiquarian"].widget.attrs.update(
+            {
+                "hx-get": reverse("concordance:fetch_works"),
+                "hx-target": "#id_work",
+                "hx-trigger": "change",
+            }
+        )
+        self.fields["edition"].widget.attrs.update(
+            {
+                "hx-get": reverse("concordance:fetch_parts"),
+                "hx-target": "#id_identifier",
+                "hx-trigger": "change",
+            }
         )
 
         if antiquarian:
