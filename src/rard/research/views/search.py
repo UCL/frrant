@@ -1,6 +1,7 @@
 import re
 from functools import partial
 from itertools import chain
+from string import punctuation
 
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -66,15 +67,21 @@ rard_folds = [
 
 WILDCARD_SINGLE_CHAR = settings.WILDCARD_SINGLE_CHAR
 WILDCARD_MANY_CHAR = settings.WILDCARD_MANY_CHAR
-WILDCARD_CHARS = [WILDCARD_SINGLE_CHAR, WILDCARD_MANY_CHAR]
-PUNCTUATION_BASE = r"!£$%^&*()_+-={}:@~;\'#|\\<>?,./`¬"
+WILDCARD_PROXIMITY_IND = "~"
+WILDCARD_PROXIMITY_SEP = ":"
+WILDCARD_CHARS = [
+    WILDCARD_SINGLE_CHAR,
+    WILDCARD_MANY_CHAR,
+    WILDCARD_PROXIMITY_IND,
+    WILDCARD_PROXIMITY_SEP,
+]
+PUNCTUATION = punctuation + "£¬"
 # PUNCTUATION should include wildcard chars as it is used with content rather than
 # search terms
-PUNCTUATION = PUNCTUATION_BASE + r'[]"'
-# Remove wildcard characters from PUNCTUATION_BASE which is used to screen
+# Remove wildcard characters for PUNCTUATION_BASE which is used to screen
 # out punctuation from search terms
-PUNCTUATION_BASE = PUNCTUATION_BASE.translate({ord(c): None for c in WILDCARD_CHARS})
-PUNCTUATION_RE = re.compile(r"[\[\]{0}]".format(PUNCTUATION_BASE))
+PUNCTUATION_BASE = PUNCTUATION.translate({ord(c): None for c in WILDCARD_CHARS})
+PUNCTUATION_RE = re.compile("[" + re.escape(PUNCTUATION_BASE) + "]")
 
 
 @method_decorator(require_GET, name="dispatch")
@@ -163,14 +170,22 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
 
         def get_keywords(self, search_string):
             """
-            Turns a string into a series of keywords. This is mostly splittling
+            Turns a string into a series of keywords. This is mostly splitting
             by whitespace, but strings surrounded by double quotes are
-            returned verbatim. Each keywords is converted to a regular expression
+            returned verbatim and those containing proximity wildcard consume
+            the whole search string. Each keywords is converted to a regular expression
             if self.lookup is regex.
+
+            Regex alternatives:
+            1. Captures whole search string if it contains proximity wildcard (~)
+               between two other words.
+            2. Captures everything inside double quotes
+            3. Captures individual words
             """
-            segments = search_string.split('"')
-            single_keywords = " ".join(segments[::2]).split()
-            keywords = segments[1::2] + single_keywords
+            # regex 1st alternative matches proximity wil
+            keywords = re.findall(
+                r"(.+\s~\d?:?\d?\s.+|(?<=\")[^\"]*(?=\")|[^\s\"]+)", search_string
+            )
             if self.lookup == "regex":
                 keywords = self.transform_keywords_to_regex(keywords)
             return keywords
@@ -178,26 +193,57 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         def transform_keywords_to_regex(self, keywords):
             """Takes a list of keywords which may include wildcard characters
             and converts them into a list of equivalent regular expressions.
-            Example:
+            In the case of proximity search this function is called again to
+            handle wildcards.
+
+            Note: these regular expressions are for postgresql which has a
+            slightly different syntax to python's re module.
+
+            Examples:
             >>> transform_keywords_to_regex(["?ulius", "c*sar"])
             ["\\m\\wulius\\M", "\\mc\\w*sar\\M"]
+            >>> transform_keywords_to_regex(['qua? ~1:2 di*um'])
+            ["\\mqua\\w\\M\\s(?:\\w+\\s){1,2}di\\w*um"]
 
             :param keywords: A list of strings to search
             :type keywords: list
             :return: list of regular expressions
             :rtype: list
             """
-            for i, kw in enumerate(keywords):
-                reg_kw = r"\m"  # \m matches start of word
-                for char in kw:
-                    if char == WILDCARD_SINGLE_CHAR:
-                        reg_kw += r"\w"  # a single word char (greek chars work here)
-                    elif char == WILDCARD_MANY_CHAR:
-                        reg_kw += r"\w*"  # zero or more word characters
-                    else:
-                        reg_kw += char
-                reg_kw += r"\M"  # \M matches end of word
-                keywords[i] = reg_kw
+            # Proximity searches have one keyword and contain tilde character
+            if len(keywords) == 1 and "~" in keywords[0]:
+                # Split keyword around proximity search
+                [(fore, prox_op, aft)] = re.findall(
+                    r"(.*)\s(~\d?:?\d?)\s(.*)", keywords[0]
+                )
+                # Fore and aft can be multi-word strings containing wildcards so loop back
+                fore = self.transform_keywords_to_regex([fore])
+                aft = self.transform_keywords_to_regex([aft])
+                [(min_words, max_words)] = re.findall(r"~(\d)?:?(\d)?", prox_op)
+                min_words = "0" if not min_words else min_words
+                if max_words:
+                    prox_reg = rf"\s(?:\w+\s){{{min_words},{max_words}}}"
+                elif min_words:
+                    prox_reg = rf"\s(?:\w+\s){{{min_words}}}"
+                else:
+                    # Shouldn't happen, just ignore
+                    prox_reg = ""
+                keywords = ["".join(fore) + prox_reg + "".join(aft)]
+            else:
+                for i, kw in enumerate(keywords):
+                    reg_kw = r"\m"  # \m matches start of word
+                    for char in kw:
+                        if char == WILDCARD_SINGLE_CHAR:
+                            reg_kw += (
+                                r"\w"  # a single word char (greek chars work here)
+                            )
+                        elif char == WILDCARD_MANY_CHAR:
+                            reg_kw += r"\w*"  # zero or more word characters
+                        else:
+                            reg_kw += char
+                    reg_kw += r"\M"  # \M matches end of word
+                    keywords[i] = reg_kw
+            print(keywords)
             return keywords
 
         def do_match(
@@ -267,7 +313,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             words_before_group = rf"((?:\S+\s){{0,{before}}})"
             keywords_group = "|".join(keywords)
             keywords_group = r"(" + keywords_group + r")"
-            words_after_group = rf"(\s(?:\S+\s){{0,{after}}})"
+            words_after_group = rf"(.?\s(?:\S+\s){{0,{after}}})"
             return words_before_group + keywords_group + words_after_group
 
         def match(self, query_set, query_string, add_snippet=False):
@@ -286,7 +332,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         def match_folded(self, query_set, query_string, add_snippet=False):
             annotation_name = "folded{0}".format(self.folded_number)
             self.folded_number += 1
-            keywords = self.keywords + " " + self.folded_keywords
+            keywords = self.folded_keywords
             return self.do_match(
                 query_set,
                 query_string,
