@@ -14,6 +14,7 @@ from rard.research.forms import (
     CitingWorkIntroductionForm,
 )
 from rard.research.models import CitingAuthor, CitingWork, OriginalText
+from rard.research.models.text_object_field import TextObjectField
 from rard.research.views.mixins import (
     CanLockMixin,
     CheckLockMixin,
@@ -206,6 +207,19 @@ class CitingAuthorUpdateIntroductionView(
     hx_trigger = "intro-updated"
     textobject_field = "introduction"
 
+    def create_intro_if_does_not_exist(self, *args, **kwargs):
+        # If a TOF is not created for the introduction an error will be
+        # thrown when trying to save as it will try to save something that
+        # does not exist
+        author = self.get_object()
+        if author.introduction is None:
+            author.introduction = TextObjectField.objects.create(content="")
+            author.save()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.create_intro_if_does_not_exist()
+        return super().dispatch(request, *args, **kwargs)
+
 
 class CitingAuthorIntroductionView(TextObjectFieldViewMixin):
     model = CitingAuthor
@@ -266,6 +280,19 @@ class CitingWorkUpdateIntroductionView(
     form_class = CitingWorkIntroductionForm
     hx_trigger = "intro-updated"
     textobject_field = "introduction"
+
+    def create_intro_if_does_not_exist(self, *args, **kwargs):
+        # If a TOF is not created for the introduction an error will be
+        # thrown when trying to save as it will try to save something that
+        # does not exist
+        work = self.get_object()
+        if work.introduction is None:
+            work.introduction = TextObjectField.objects.create(content="")
+            work.save()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.create_intro_if_does_not_exist()
+        return super().dispatch(request, *args, **kwargs)
 
 
 class CitingWorkIntroductionView(TextObjectFieldViewMixin):
