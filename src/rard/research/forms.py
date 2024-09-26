@@ -1099,6 +1099,12 @@ class CitingWorkCreateForm(forms.ModelForm):
         )
 
 
+class CitingWorkIntroductionForm(IntroductionFormBase):
+    class Meta:
+        model = CitingWork
+        fields = ()
+
+
 class CitingAuthorUpdateForm(forms.ModelForm):
     class Meta:
         model = CitingAuthor
@@ -1123,6 +1129,12 @@ class CitingAuthorUpdateForm(forms.ModelForm):
             ].initial = self.instance.bibliography_items.all()
             if self.instance.is_anonymous_citing_author():
                 self.fields["order_name"].disabled = True
+
+
+class CitingAuthorIntroductionForm(IntroductionFormBase):
+    class Meta:
+        model = CitingAuthor
+        fields = ()
 
 
 class EditionForm(forms.ModelForm):

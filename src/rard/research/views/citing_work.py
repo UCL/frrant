@@ -7,9 +7,20 @@ from django.views.generic import ListView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
-from rard.research.forms import CitingAuthorUpdateForm, CitingWorkCreateForm
+from rard.research.forms import (
+    CitingAuthorIntroductionForm,
+    CitingAuthorUpdateForm,
+    CitingWorkCreateForm,
+    CitingWorkIntroductionForm,
+)
 from rard.research.models import CitingAuthor, CitingWork, OriginalText
-from rard.research.views.mixins import CanLockMixin, CheckLockMixin, DateOrderMixin
+from rard.research.views.mixins import (
+    CanLockMixin,
+    CheckLockMixin,
+    DateOrderMixin,
+    TextObjectFieldUpdateMixin,
+    TextObjectFieldViewMixin,
+)
 
 
 class CitingAuthorCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
@@ -186,6 +197,22 @@ class CitingAuthorCreateWorkView(
         return reverse("citingauthor:work_detail", kwargs={"pk": self.object.pk})
 
 
+class CitingAuthorUpdateIntroductionView(
+    TextObjectFieldUpdateMixin, CitingAuthorUpdateView
+):
+    model = CitingAuthor
+    permission_required = ("research.change_citingauthor",)
+    form_class = CitingAuthorIntroductionForm
+    hx_trigger = "intro-updated"
+    textobject_field = "introduction"
+
+
+class CitingAuthorIntroductionView(TextObjectFieldViewMixin):
+    model = CitingAuthor
+    permission_required = ("research.view_citingauthor",)
+    textobject_field = "introduction"
+
+
 class CitingWorkCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = CitingWork
     permission_required = ("research.add_citingwork",)
@@ -229,3 +256,19 @@ class CitingWorkDeleteView(
     model = CitingWork
     success_url = reverse_lazy("citingauthor:list")
     permission_required = ("research.delete_citingwork",)
+
+
+class CitingWorkUpdateIntroductionView(
+    TextObjectFieldUpdateMixin, CitingWorkUpdateView
+):
+    model = CitingWork
+    permission_required = ("research.change_citingwork",)
+    form_class = CitingWorkIntroductionForm
+    hx_trigger = "intro-updated"
+    textobject_field = "introduction"
+
+
+class CitingWorkIntroductionView(TextObjectFieldViewMixin):
+    model = CitingWork
+    permission_required = ("research.view_citingwork",)
+    textobject_field = "introduction"

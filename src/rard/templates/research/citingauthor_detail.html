@@ -61,6 +61,28 @@
     </section>
 
     <hr>
+    <section>
+
+        <div class='d-flex justify-content-between w-100'>
+            <div>
+                <h5 class='mb-3 mr-3'>{% trans 'Introduction' %}</h5>
+            </div>
+            <div>
+                {% if perms.research.change_citingauthor and has_object_lock %}
+                <button
+                  class="btn text-primary p-0 ml-2"
+                  hx-get="{% url 'citingauthor:update_introduction' object.pk %}"
+                  hx-target=".introduction-container"
+                  hx-swap="innerHTML">{% trans 'Edit' %}</button>
+                {% endif %}
+            </div>
+        </div>
+        <div class="introduction-container rich-text-form-container">
+            {% include 'research/partials/text_object_preview.html' with text_object=object.introduction %}
+        </div>
+
+    </section>
+    <hr>
 
     <section>
         <div class='d-flex justify-content-between mb-3'>

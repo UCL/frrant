@@ -650,6 +650,16 @@ urlpatterns = [
                         name="update",
                     ),
                     path(
+                        "<pk>/introduction/",
+                        views.CitingAuthorIntroductionView.as_view(),
+                        name="introduction",
+                    ),
+                    path(
+                        "<pk>/update/introduction/",
+                        views.CitingAuthorUpdateIntroductionView.as_view(),
+                        name="update_introduction",
+                    ),
+                    path(
                         "<pk>/work/create/",
                         views.CitingAuthorCreateWorkView.as_view(),
                         name="create_work_for_author",
@@ -673,6 +683,16 @@ urlpatterns = [
                         "work/<pk>/delete/",
                         views.CitingWorkDeleteView.as_view(),
                         name="delete_work",
+                    ),
+                    path(
+                        "work/<pk>/introduction/",
+                        views.CitingWorkIntroductionView.as_view(),
+                        name="introduction_for_work",
+                    ),
+                    path(
+                        "work/<pk>/update/introduction/",
+                        views.CitingWorkUpdateIntroductionView.as_view(),
+                        name="update_introduction_for_work",
                     ),
                 ],
                 "research",
