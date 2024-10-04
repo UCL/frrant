@@ -69,18 +69,20 @@ WILDCARD_SINGLE_CHAR = settings.WILDCARD_SINGLE_CHAR
 WILDCARD_MANY_CHAR = settings.WILDCARD_MANY_CHAR
 WILDCARD_PROXIMITY_IND = "~"
 WILDCARD_PROXIMITY_SEP = ":"
-WILDCARD_CHARS = [
+QUOTE_CHAR = '"'
+CTRL_CHARS = [
     WILDCARD_SINGLE_CHAR,
     WILDCARD_MANY_CHAR,
     WILDCARD_PROXIMITY_IND,
     WILDCARD_PROXIMITY_SEP,
+    QUOTE_CHAR,
 ]
 PUNCTUATION = punctuation + "£¬"
 # PUNCTUATION should include wildcard chars as it is used with content rather than
 # search terms
 # Remove wildcard characters for PUNCTUATION_BASE which is used to screen
 # out punctuation from search terms
-PUNCTUATION_BASE = PUNCTUATION.translate({ord(c): None for c in WILDCARD_CHARS})
+PUNCTUATION_BASE = PUNCTUATION.translate({ord(c): None for c in CTRL_CHARS})
 PUNCTUATION_RE = re.compile("[" + re.escape(PUNCTUATION_BASE) + "]")
 
 
@@ -107,7 +109,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             # only use regex for search terms containing wildcards
             self.lookup = "regex"
             # # If wildcard characters appear in keywords, use regex lookup
-            # if any([char in self.keywords for char in WILDCARD_CHARS]):
+            # if any([char in self.keywords for char in CTRL_CHARS]):
             #     self.lookup = "regex"
             # else:
             #     self.lookup = "contains"
@@ -183,11 +185,14 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             3. Captures individual words
             """
             # regex 1st alternative matches proximity wil
+            print(f"search string: {search_string}")
             keywords = re.findall(
                 r"(.+\s~\d?:?\d?\s.+|(?<=\")[^\"]*(?=\")|[^\s\"]+)", search_string
             )
             if self.lookup == "regex":
+                print(f"keywords before transform: {keywords}")
                 keywords = self.transform_keywords_to_regex(keywords)
+                print(f"keywords after transform: {keywords}")
             return keywords
 
         def transform_keywords_to_regex(self, keywords):
