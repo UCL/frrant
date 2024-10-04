@@ -444,6 +444,46 @@ class TestSearchView(TestCase):
         self.assertEqual(do_search(view.fragment_search, "again"), [f3])
         self.assertEqual(do_search(view.fragment_search, "again?"), [])
 
+    def test_proximity_search(self):
+        # Run a particular search and return a list of results
+        def do_search(search_function, keywords):
+            return list(search_function(SearchView.Term(keywords)))
+
+        cw = CitingWork.objects.create(title="citing_work")
+        f1 = Fragment.objects.create()
+        content1 = (
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, "
+            "sed do eiusmod tempor incididunt ut labore et dolore magna"
+            "aliqua."
+        )
+        f1.original_texts.create(**{"citing_work": cw, "content": content1})
+
+        view = SearchView()
+
+        # Test exact number of intervening words
+        self.assertEqual(do_search(view.fragment_search, "Lorem ~4 consectetur"), [f1])
+        self.assertEqual(do_search(view.fragment_search, "Lorem ~4 amet"), [])
+        self.assertEqual(do_search(view.fragment_search, "Lorem ~4 adipiscing"), [])
+
+        # Test at least N words
+        self.assertEqual(do_search(view.fragment_search, "Lorem ~:4 consectetur"), [f1])
+        self.assertEqual(do_search(view.fragment_search, "Lorem ~:4 amet"), [f1])
+        self.assertEqual(do_search(view.fragment_search, "Lorem ~:4 adipiscing"), [])
+
+        # Test N or more words
+        self.assertEqual(do_search(view.fragment_search, "Lorem ~4: consectetur"), [f1])
+        self.assertEqual(do_search(view.fragment_search, "Lorem ~4: amet"), [])
+        # self.assertEqual(do_search(view.fragment_search, "Lorem ~4: adipiscing"), [f1])
+
+        # Test upper and lower bounds together
+        self.assertEqual(
+            do_search(view.fragment_search, "Lorem ~3:5 consectetur"), [f1]
+        )
+        self.assertEqual(do_search(view.fragment_search, "Lorem ~3:5 amet"), [f1])
+        self.assertEqual(do_search(view.fragment_search, "Lorem ~3:5 adipiscing"), [f1])
+        self.assertEqual(do_search(view.fragment_search, "Lorem ~3:5 sit"), [])
+        self.assertEqual(do_search(view.fragment_search, "Lorem ~3:5 elit"), [])
+
     def test_search_snippets(self):
         raw_content = (
             "Lorem ipsum dolor sit amet, <span class='test consectatur'>"
