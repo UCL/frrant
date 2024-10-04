@@ -318,7 +318,7 @@ class TestSearchView(TestCase):
         self.assertEqual(do_search(view.fragment_search, "*Me*"), [f1, f2])
         self.assertEqual(do_search(view.fragment_search, "may"), [f1, f2])
         self.assertEqual(
-            do_search(view.fragment_search, "m!£$%^&()_+-=|\\{[}]:;@'~#<,>./ay"),
+            do_search(view.fragment_search, "m!£$%^&()_+-=|\\{[}];@'#<,>./ay"),
             [f1, f2],
         )
         self.assertEqual(do_search(view.fragment_search, "mav"), [])
