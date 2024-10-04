@@ -484,6 +484,14 @@ class TestSearchView(TestCase):
         self.assertEqual(do_search(view.fragment_search, "Lorem ~3:5 sit"), [])
         self.assertEqual(do_search(view.fragment_search, "Lorem ~3:5 elit"), [])
 
+        # Test wildcards work in combination
+        self.assertEqual(do_search(view.fragment_search, "Lor*m ~3:5 consect*"), [f1])
+
+        # Test quotation works
+        self.assertEqual(
+            do_search(view.fragment_search, 'Lorem ~3:5 "consectetur adipiscing"'), [f1]
+        )
+
     def test_search_snippets(self):
         raw_content = (
             "Lorem ipsum dolor sit amet, <span class='test consectatur'>"

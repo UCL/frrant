@@ -217,10 +217,10 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             """
             # Proximity searches have one keyword and contain tilde character
             if len(keywords) == 1 and "~" in keywords[0]:
+                # Remove any '"' characters
+                kw = keywords[0].replace('"', "")
                 # Split keyword around proximity search
-                [(fore, prox_op, aft)] = re.findall(
-                    r"(.*)\s(~\d?:?\d?)\s(.*)", keywords[0]
-                )
+                [(fore, prox_op, aft)] = re.findall(r"(.*)\s(~\d?:?\d?)\s(.*)", kw)
                 # Fore and aft can be multi-word strings containing wildcards so loop back
                 fore = self.transform_keywords_to_regex([fore])
                 aft = self.transform_keywords_to_regex([aft])
