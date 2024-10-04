@@ -66,7 +66,9 @@
                 <input type="text" class="form-control alphabetum" name='q' {% if search_term %}value="{{ search_term }}"{% endif %} placeholder="Enter search terms">
                 <small id="searchHelpBlock" class="form-text text-muted">
                   Match a single character with {{WILDCARD_SINGLE_CHAR}},
-                  or match zero or more characters with {{WILDCARD_MANY_CHAR}}
+                  match zero or more characters with {{WILDCARD_MANY_CHAR}},
+                  or match proximity with "word1 ~n:m word2" where n and m indicate
+                  the upper and lower bounds for the number of intervening words.
                 </small>
             </div>
             <div class='col-auto'>
