@@ -473,7 +473,7 @@ class TestSearchView(TestCase):
         # Test N or more words
         self.assertEqual(do_search(view.fragment_search, "Lorem ~4: consectetur"), [f1])
         self.assertEqual(do_search(view.fragment_search, "Lorem ~4: amet"), [])
-        # self.assertEqual(do_search(view.fragment_search, "Lorem ~4: adipiscing"), [f1])
+        self.assertEqual(do_search(view.fragment_search, "Lorem ~4: adipiscing"), [f1])
 
         # Test upper and lower bounds together
         self.assertEqual(

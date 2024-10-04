@@ -224,11 +224,14 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                 # Fore and aft can be multi-word strings containing wildcards so loop back
                 fore = self.transform_keywords_to_regex([fore])
                 aft = self.transform_keywords_to_regex([aft])
-                [(min_words, max_words)] = re.findall(r"~(\d)?:?(\d)?", prox_op)
+                [(min_words, isRange, max_words)] = re.findall(
+                    r"~(\d)?(:)?(\d)?", prox_op
+                )
                 min_words = "0" if not min_words else min_words
                 if max_words:
                     prox_reg = rf"\s(?:\w+\s){{{min_words},{max_words}}}"
                 elif min_words:
+                    min_words = min_words + "," if isRange else min_words
                     prox_reg = rf"\s(?:\w+\s){{{min_words}}}"
                 else:
                     # Shouldn't happen, just ignore
