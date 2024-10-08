@@ -267,11 +267,11 @@ class DynamicTextField(TextField):
 
             def link_bibliography_mentions(self):
                 """
-                If this model has a related antiquarian, search content
+                If this model has a related antiquarian or author, search content
                 for @mentions referencing bibliographyitems and add them
-                to antiquarian.bibliography_items.
+                to (antiquarian/author).bibliography_items.
                 If there is a related (anonymous)fragment or testimonium,
-                do the same for any related antiquarians
+                do the same for any related antiquarians/authors
                 """
                 if self.fragment:
                     antiquarians = {
@@ -302,6 +302,12 @@ class DynamicTextField(TextField):
 
                 if self.book:
                     antiquarians = {ant for ant in self.book.work.antiquarian_set.all()}
+
+                if self.citing_work:
+                    antiquarians = {self.citing_work.author}
+
+                if self.citing_author:
+                    antiquarians = {self.citing_author}
 
                 value = getattr(self, field_name)
                 soup = bs4.BeautifulSoup(value, features="html.parser")
