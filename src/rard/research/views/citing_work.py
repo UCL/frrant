@@ -272,9 +272,7 @@ class CitingWorkDeleteView(
     permission_required = ("research.delete_citingwork",)
 
 
-class CitingWorkUpdateIntroductionView(
-    TextObjectFieldUpdateMixin, CitingWorkUpdateView
-):
+class CitingWorkUpdateIntroductionView(TextObjectFieldUpdateMixin, UpdateView):
     model = CitingWork
     permission_required = ("research.change_citingwork",)
     form_class = CitingWorkIntroductionForm
@@ -282,6 +280,7 @@ class CitingWorkUpdateIntroductionView(
     textobject_field = "introduction"
 
     def create_intro_if_does_not_exist(self, *args, **kwargs):
+        print("creating intro since it doesn't exist")
         # If a TOF is not created for the introduction an error will be
         # thrown when trying to save as it will try to save something that
         # does not exist
