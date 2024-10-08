@@ -17,6 +17,8 @@ class TestCitingWork(TestCase):
         # check we can create with just title
         citing_work = CitingWork.objects.create(title="title")
         self.assertTrue(CitingWork.objects.filter(pk=citing_work.pk).exists())
+        # check introduction also created
+        self.assertIsNotNone(CitingWork.objects.get(pk=citing_work.pk).introduction.pk)
 
     def test_required_fields(self):
         self.assertFalse(CitingWork._meta.get_field("title").blank)
@@ -83,6 +85,8 @@ class TestCitingAuthor(TestCase):
         # check we can create with just title
         author = CitingAuthor.objects.create(name="name")
         self.assertTrue(CitingAuthor.objects.filter(pk=author.pk).exists())
+        # check introduction also created
+        self.assertIsNotNone(CitingAuthor.objects.get(pk=author.pk).introduction.pk)
 
     def test_required_fields(self):
         self.assertFalse(CitingAuthor._meta.get_field("name").blank)
