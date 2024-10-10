@@ -185,14 +185,11 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             3. Captures individual words
             """
             # regex 1st alternative matches proximity wil
-            print(f"search string: {search_string}")
             keywords = re.findall(
                 r"(.+\s~\d?:?\d?\s.+|(?<=\")[^\"]*(?=\")|[^\s\"]+)", search_string
             )
             if self.lookup == "regex":
-                print(f"keywords before transform: {keywords}")
                 keywords = self.transform_keywords_to_regex(keywords)
-                print(f"keywords after transform: {keywords}")
             return keywords
 
         def transform_keywords_to_regex(self, keywords):
@@ -239,7 +236,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                 keywords = ["".join(fore) + prox_reg + "".join(aft)]
             else:
                 for i, kw in enumerate(keywords):
-                    reg_kw = r"\m"  # \m matches start of word
+                    reg_kw = r""  # \m matches start of word
                     for char in kw:
                         if char == WILDCARD_SINGLE_CHAR:
                             reg_kw += (
@@ -249,9 +246,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                             reg_kw += r"\w*"  # zero or more word characters
                         else:
                             reg_kw += char
-                    reg_kw += r"\M"  # \M matches end of word
                     keywords[i] = reg_kw
-            print(keywords)
             return keywords
 
         def do_match(
