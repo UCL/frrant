@@ -236,7 +236,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                 keywords = ["".join(fore) + prox_reg + "".join(aft)]
             else:
                 for i, kw in enumerate(keywords):
-                    reg_kw = r""  # \m matches start of word
+                    reg_kw = r"\y"  # \y matches start or end of word
                     for char in kw:
                         if char == WILDCARD_SINGLE_CHAR:
                             reg_kw += (
@@ -246,6 +246,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                             reg_kw += r"\w*"  # zero or more word characters
                         else:
                             reg_kw += char
+                    reg_kw += r"\y"
                     keywords[i] = reg_kw
             return keywords
 
@@ -317,7 +318,8 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             keywords_group = "|".join(keywords)
             keywords_group = r"(" + keywords_group + r")"
             words_after_group = rf"(.?\s(?:\S+\s){{0,{after}}})"
-            return words_before_group + keywords_group + words_after_group
+            snippet_regex = words_before_group + keywords_group + words_after_group
+            return snippet_regex
 
         def match(self, query_set, query_string, add_snippet=False):
             annotation_name = "cleaned{0}".format(self.cleaned_number)
