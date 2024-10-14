@@ -2,14 +2,14 @@
 
 {% load i18n humanize %}
 
-<div class="card mb-3 bg-light  {% if translation.approved %}border-success{% endif %}">
+<div class="card mb-3 bg-light  {% if translation.approved and has_object_lock %}border-success{% endif %}">
     <div class="card-body">
         <div class='card-text'>
             <div class='d-flex justify-content-between'>
                 <div class='alphabetum'>
                     {{ translation.translated_text|safe }}
                 </div>
-                {% if translation.approved %}
+                {% if translation.approved and has_object_lock %}
                 <div class='text-success mt-n3'>
                     <small>{% trans 'Approved' %}</small>
                 </div>

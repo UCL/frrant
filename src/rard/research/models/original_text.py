@@ -126,6 +126,8 @@ class OriginalText(HistoryModelMixin, BaseModel):
 
 
 class Concordance(HistoryModelMixin, BaseModel):
+    # this stays until we have transitioned all existing concordances to the new format
+    # likely there should be 0 at this point
     history = HistoricalRecords()
 
     def related_lock_object(self):

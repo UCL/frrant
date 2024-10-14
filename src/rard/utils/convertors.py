@@ -50,15 +50,15 @@ def transfer_duplicates(source, destination):
 def transfer_data_between_fragments(source, destination):
     # Directly assigned fields
     destination.name = source.name
-    destination.date_range = source.date_range
     destination.collection_id = source.collection_id
-    destination.order_year = source.order_year
     # Fields requiring set method
-    # Testimonia don't have topics so ignore if it's the source or destination
+    # Testimonia don't have topics, date_range or order_year so ignore if it's the source or destination
     if not (
         destination.__class__.__name__ == "Testimonium"
         or source.__class__.__name__ == "Testimonium"
     ):
+        destination.date_range = source.date_range
+        destination.order_year = source.order_year
         destination.topics.set(source.topics.all())
     destination.images.set(source.images.all())
     # source is no longer the owner after this:

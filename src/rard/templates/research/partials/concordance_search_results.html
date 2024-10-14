@@ -1,0 +1,68 @@
+<div class="loader-wrapper">
+    <div class="loader" id="loader"></div>
+</div>
+{% if ant_sort %}
+{% if results.frrant|length < 1 %}
+    <div class="text-center">Sorry, no results. Try another search.</div>
+{% else %}
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+        <tr>
+          <th scope="col">FRRAnt</th>
+          <th scope="col">Authors</th>
+        </tr>
+      </thead>
+      <tbody class='alphabetum'>
+        {% for item in results.frrant %}
+          <tr>
+              <td>
+                  <a href='{{ item.get_absolute_url }}'>{{ item }}</a>
+              </td>
+
+            {% for concordance in results.concordances %}
+              <td>
+                {% if concordance.original_text in item.original_texts.all %}
+                {{ concordance }}
+                {% endif %}
+              </td>
+          {% endfor %}
+            </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+</div>
+{% endif %}
+{% else %}
+{% comment %} if it was an edition/PI search {% endcomment %}
+ {% if results.count < 1 %}
+    <div class="text-center">Sorry, no results. Try another search.</div>
+{% else %}
+<div class="table-responsive">
+    <table class="table table-hover">
+
+        <thead>
+        <tr>
+          <th scope="col">Author</th>
+          <th scope="col">FRRAnt</th>
+        </tr>
+      </thead>
+      <tbody class='alphabetum'>
+        {% for item in results %}
+          <tr>
+             <td>
+                {{item}}
+              </td>
+
+              <td>
+                  <a href='{{ item.original_text.owner.get_absolute_url }}'>{{ item.original_text.owner }}</a>
+              </td>
+
+            </tr>
+        {% endfor %}
+      </tbody>
+
+    </table>
+</div>
+{% endif %}
+{% endif %}

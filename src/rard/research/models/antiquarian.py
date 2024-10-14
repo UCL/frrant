@@ -452,6 +452,7 @@ Antiquarian.init_text_object_fields()
 
 
 class AntiquarianConcordance(HistoryModelMixin, BaseModel):
+    # remove this when we remove the concordance code
     history = HistoricalRecords()
 
     def related_lock_object(self):

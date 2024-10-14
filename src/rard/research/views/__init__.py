@@ -1,7 +1,5 @@
 from .antiquarian import (
-    AntiquarianConcordanceCreateView,
     AntiquarianConcordanceDeleteView,
-    AntiquarianConcordanceUpdateView,
     AntiquarianCreateView,
     AntiquarianDeleteView,
     AntiquarianDetailView,
@@ -48,8 +46,12 @@ from .comments import CommentDeleteView, TextObjectFieldCommentListView
 from .concordance import (
     ConcordanceCreateView,
     ConcordanceDeleteView,
+    ConcordanceEditionView,
     ConcordanceListView,
     ConcordanceUpdateView,
+    OldConcordanceDeleteView,
+    fetch_parts,
+    fetch_works,
 )
 from .fragment import (
     AddAppositumAnonymousLinkView,
@@ -150,9 +152,7 @@ __all__ = [
     "AddAppositumAnonymousLinkView",
     "AddAppositumFragmentLinkView",
     "AddAppositumGeneralLinkView",
-    "AntiquarianConcordanceCreateView",
     "AntiquarianConcordanceDeleteView",
-    "AntiquarianConcordanceUpdateView",
     "AntiquarianCreateView",
     "AntiquarianWorkCreateView",
     "AntiquarianDeleteView",
@@ -191,8 +191,10 @@ __all__ = [
     "CommentDeleteView",
     "ConcordanceCreateView",
     "ConcordanceDeleteView",
+    "ConcordanceEditionView",
     "ConcordanceListView",
     "ConcordanceUpdateView",
+    "OldConcordanceDeleteView",
     "CreateApparatusCriticusLineView",
     "DeleteApparatusCriticusLineView",
     "RefreshOriginalTextContentView",
@@ -273,4 +275,6 @@ __all__ = [
     "WorkUpdateIntroductionView",
     "WorkIntroductionView",
     "fetch_books",
+    "fetch_works",
+    "fetch_parts",
 ]

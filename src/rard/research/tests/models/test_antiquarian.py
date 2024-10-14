@@ -226,14 +226,24 @@ class TestAntiquarian(TestCase):
     def test_collate_unknown(self):
         data = {"name": "John Smith", "re_code": "smitre001"}
         a = Antiquarian.objects.create(**data)
+        f = Fragment.objects.create(name="fragment")
         original_unknown_pk = a.unknown_work.pk
         additional_unknown = Work.objects.create(unknown=True, name="Unknown Work")
         additional_unknown.antiquarian_set.add(a)
+        FragmentLink.objects.create(
+            antiquarian=a,
+            fragment=f,
+            work=additional_unknown,
+        )
         additional_unknown.save()
         self.assertEqual(a.works.filter(unknown=True).count(), 2)
+        self.assertEqual(a.fragmentlinks.all().count(), 1)
+        self.assertEqual(a.fragmentlinks.first().work, additional_unknown)
         collate_unknown(a)
         self.assertEqual(a.works.filter(unknown=True).count(), 1)
         self.assertEqual(original_unknown_pk, a.unknown_work.pk)
+        self.assertEqual(a.fragmentlinks.all().count(), 1)
+        self.assertEqual(a.fragmentlinks.first().work, a.unknown_work)
 
 
 class TestWorkLink(TestCase):

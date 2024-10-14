@@ -1,11 +1,11 @@
 {% extends "research/list_base.html" %}
-{% load i18n %}
+{% load i18n bootstrap4 static %}
 {% block title %}
-    {% trans 'Concordances' %}
+    {% trans 'Concordance Search' %}
 {% endblock %}
 
 {% block heading %}
-    {% trans 'Concordance Table' %}
+    {% trans 'Concordance Search' %}
 {% endblock %}
 
 {% block action %}{% endblock %}
@@ -14,54 +14,27 @@
 
 {% block inner %}
 
-  {% if page_obj.paginator.count > 0 %}
-
-    {% with max_length=column_range|length %}
-
-    <style>
-      .table-responsive {
-        width: 100%;
-        overflow: auto;
-      }
-      td, th {
-        white-space: nowrap;
-      }
-    </style>
-
-
-<div class=" table-responsive">
-    <table class="table table-hover">
-      <thead>
-        <tr>
-          <th scope="col">FRRAnt</th>
-          {% for i in column_range %}
-          <th scope="col">Author {{ forloop.counter }}</th>
-          {% endfor %}
-        </tr>
-      </thead>
-      <tbody class='alphabetum'>
-        {% for object in page_obj %}
-          <tr>
-              <td>
-                  <a href='{{ object.frrant.url }}'>{{ object.frrant.display_name }}</a>
-              </td>
-
-          {# NB the object here is a dictionary created by ConcordanceListView #}
-          {% for c in object.concordances %}
-              <td {% if forloop.last %}{% if forloop.counter < max_length %}colspan='{{ max_length }}'{% endif %}{% endif %}>
-                {{ c.source }} {{ c.identifier }}
-              </td>
-          {% endfor %}
-            </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+<script src="{% static 'js/concordanceSearchScripts.js' %} "></script>
+<div>
+  <p>
+    Searching by Antiquarian or Work will return results regardless of existing concordances. Please note that when searching by Edition the options available to search have associated concordances. Options with no associated concordances have been hidden.</p>
 </div>
-    {% endwith %}
 
-  {% endif %}
+<form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request.path }}' class="form" method='GET' id="concordance-search__form" hx-post="{{ request.path }}" hx-target="#concordance-search__results" hx-trigger="change from:select">
+  {% csrf_token %}
+  <div class="mb-2 d-flex row justify-content-end"><button type="reset" onclick="resetSelections()" class="btn btn-sm btn-outline-danger">Reset selections</button>
+  </div>
+  <div class="d-flex row mx-3 concordance-search__wrapper">
 
-  {{ block.super }}
+  {% bootstrap_form form %}
 
+  </div>
+</form>
+
+<div id="concordance-search__results" class="my-3 pb-2">
+  <div class="loader-wrapper">
+  <div class="loader" id="loader"></div>
+  </div>
+</div>
 
 {% endblock %}

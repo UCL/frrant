@@ -226,7 +226,7 @@ class TestTestimoniumConversionViews(TestCase):
         self.assertEqual(
             new_testimonium.original_texts.first().content, "sic semper tyrannis"
         )
-        self.assertEqual(new_testimonium.date_range, "509 BCE - 31 BCE")
+        self.assertEqual(new_testimonium.collection_id, 1)
         self.assertEqual(new_testimonium.commentary.content, "hello")
 
     def test_convert_testimonium_to_unlinked_fragment(self):
@@ -237,5 +237,4 @@ class TestTestimoniumConversionViews(TestCase):
         self.assertEqual(
             new_fragment.original_texts.first().content, "sic semper tyrannis"
         )
-        self.assertEqual(new_fragment.date_range, "509 BCE - 31 BCE")
         self.assertEqual(new_fragment.commentary.content, "hello")
