@@ -274,40 +274,40 @@ class DynamicTextField(TextField):
                 do the same for any related antiquarians/authors
                 """
                 if self.fragment:
-                    antiquarians = {
+                    bib_owners = {
                         link.antiquarian
                         for link in self.fragment.get_all_links()
                         if link.antiquarian is not None
                     }
 
                 if self.anonymousfragment:
-                    antiquarians = {
+                    bib_owners = {
                         link.antiquarian
                         for link in self.anonymousfragment.get_all_links()
                         if link.antiquarian is not None
                     }
 
                 if self.testimonium:
-                    antiquarians = {
+                    bib_owners = {
                         link.antiquarian
                         for link in self.testimonium.get_all_links()
                         if link.antiquarian is not None
                     }
 
                 if self.antiquarian:
-                    antiquarians = {self.antiquarian}
+                    bib_owners = {self.antiquarian}
 
                 if self.work:
-                    antiquarians = {ant for ant in self.work.antiquarian_set.all()}
+                    bib_owners = {ant for ant in self.work.antiquarian_set.all()}
 
                 if self.book:
-                    antiquarians = {ant for ant in self.book.work.antiquarian_set.all()}
+                    bib_owners = {ant for ant in self.book.work.antiquarian_set.all()}
 
                 if self.citing_work:
-                    antiquarians = {self.citing_work.author}
+                    bib_owners = {self.citing_work.author}
 
                 if self.citing_author:
-                    antiquarians = {self.citing_author}
+                    bib_owners = {self.citing_author}
 
                 value = getattr(self, field_name)
                 soup = bs4.BeautifulSoup(value, features="html.parser")
@@ -322,8 +322,8 @@ class DynamicTextField(TextField):
                                 app_label="research", model_name=model_name
                             )
                             bib_item = model.objects.get(pk=int(pkstr))
-                            for ant in antiquarians:
-                                ant.bibliography_items.add(bib_item)
+                            for owner in bib_owners:
+                                owner.bibliography_items.add(bib_item)
 
                         except ObjectDoesNotExist:
                             # If bibliography item has been deleted, we want to ignore,
