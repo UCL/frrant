@@ -163,6 +163,7 @@ class BibliographySectionView(LoginRequiredMixin, PermissionRequiredMixin, ListV
     context_object_name = "bibliography_items"
     permission_required = ("research.view_bibliographyitem",)
 
+    # todo: update this to dynamically work with authors and ants
     def get_queryset(self) -> QuerySet[Any]:
         if self.model is not None:
             queryset = self.model._default_manager.all()
@@ -173,6 +174,8 @@ class BibliographySectionView(LoginRequiredMixin, PermissionRequiredMixin, ListV
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        if self.ant_pk:
+            context["antiquarian"] = Antiquarian.objects.get(id=self.ant_pk)
         if self.ant_pk:
             context["antiquarian"] = Antiquarian.objects.get(id=self.ant_pk)
         return context

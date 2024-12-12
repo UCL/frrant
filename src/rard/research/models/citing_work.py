@@ -90,6 +90,40 @@ class CitingAuthor(
             self.order_name = self.name
         super().save(*args, **kwargs)
 
+    def refresh_bibliography_items_from_mentions(self):
+        from rard.research.models import AnonymousFragment, Fragment, Testimonium
+
+        """Author bibliography should be derived from bibliography
+        items mentioned in:
+        - the author's introduction
+        - the introduction to works by that author, and introductions
+          to any citing works
+        - commentaries belonging to any fragments, testimonia, or
+          apposita linked to that author
+        """
+        self.bibliography_items.clear()  # Start with a blank slate
+        # Link bib mentions from introduction
+        self.introduction.link_bibliography_mentions_in_content()
+        # Now loop through linked items
+        for fr in Fragment.objects.filter(
+            original_texts__citing_work__author=self
+        ).distinct():
+            fr.commentary.link_bibliography_mentions_in_content()
+
+        for tt in Testimonium.objects.filter(
+            original_texts__citing_work__author=self
+        ).distinct():
+            tt.commentary.link_bibliography_mentions_in_content()
+
+        for an in AnonymousFragment.objects.filter(
+            original_texts__citing_work__author=self
+        ).distinct():
+            an.commentary.link_bibliography_mentions_in_content()
+
+        for work in CitingWork.objects.filter(author=self).distinct():
+            if work.introduction:
+                work.introduction.link_bibliography_mentions_in_content()
+
 
 CitingAuthor.init_text_object_fields()
 

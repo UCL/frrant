@@ -660,6 +660,16 @@ urlpatterns = [
                         name="update_introduction",
                     ),
                     path(
+                        "<pk>/bibliography/",
+                        views.BibliographySectionView.as_view(),
+                        name="bibliography",
+                    ),
+                    path(
+                        "<pk>/refresh_bibliography/",
+                        views.ca_refresh_bibliography_from_mentions,
+                        name="refresh_bibliography",
+                    ),
+                    path(
                         "<pk>/work/create/",
                         views.CitingAuthorCreateWorkView.as_view(),
                         name="create_work_for_author",

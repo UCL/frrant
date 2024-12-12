@@ -45,6 +45,7 @@ from .citing_work import (
     CitingWorkIntroductionView,
     CitingWorkUpdateIntroductionView,
     CitingWorkUpdateView,
+    ca_refresh_bibliography_from_mentions,
 )
 from .comments import CommentDeleteView, TextObjectFieldCommentListView
 from .concordance import (
@@ -280,6 +281,7 @@ __all__ = [
     "WorkListView",
     "WorkUpdateView",
     "refresh_bibliography_from_mentions",
+    "ca_refresh_bibliography_from_mentions",
     "WorkUpdateIntroductionView",
     "WorkIntroductionView",
     "fetch_books",
