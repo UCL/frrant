@@ -102,6 +102,7 @@ urlpatterns = [
                     path(
                         "<pk>/bibliography/",
                         views.BibliographySectionView.as_view(),
+                        {"related_model": "antiquarian"},
                         name="bibliography",
                     ),
                     path(
@@ -662,6 +663,7 @@ urlpatterns = [
                     path(
                         "<pk>/bibliography/",
                         views.BibliographySectionView.as_view(),
+                        {"related_model": "citing_author"},
                         name="bibliography",
                     ),
                     path(
