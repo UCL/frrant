@@ -3,6 +3,7 @@ hx-trigger="refreshed-bibliography from:body, intro-updated from:body"
 hx-get="{% url 'citingauthor:bibliography' pk=citingauthor.pk %}"
 hx-swap="outerHTML">
 
+
 {% for item in bibliography_items.all %}
 
 {% include 'research/partials/bibliography_list_item.html' with can_edit=perms.research.change_citingauthor has_object_lock=has_object_lock %}
