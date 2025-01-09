@@ -636,7 +636,7 @@ class OriginalTextForm(OriginalTextAuthorForm):
         # work to the original text instance in the view
         self.set_citing_work_required(True)
         self.fields["content"].widget.attrs["class"] = "enableCKEditor"
-        if original_text.apparatus_criticus_items.count() > 0:
+        if original_text and original_text.apparatus_criticus_items.count() > 0:
             self.fields["content"].widget.attrs["class"] += " enableApparatusCriticus"
 
     def set_citing_work_required(self, required):
