@@ -576,7 +576,7 @@ class OriginalTextDetailsForm(forms.ModelForm):
             if original_text.apparatus_criticus_items.count() > 0:
                 self.fields["content"].widget.attrs[
                     "class"
-                ] += "enableApparatusCriticus"
+                ] += " enableApparatusCriticus"
 
     def clean_reference_order(self):
         # Reference order needs to be stored as a string with leading 0s such
@@ -623,10 +623,7 @@ class OriginalTextForm(OriginalTextAuthorForm):
         original_text = kwargs.get("instance", None)
         if original_text and original_text.pk:
             original_text.update_content_mentions()
-            if original_text.apparatus_criticus_items.count() > 0:
-                self.fields["content"].widget.attrs[
-                    "class"
-                ] += "enableApparatusCriticus"
+
         if original_text and original_text.reference_order:
             original_text.reference_order = (
                 original_text.remove_reference_order_padding()
@@ -638,7 +635,9 @@ class OriginalTextForm(OriginalTextAuthorForm):
         # of an existing instance to be blank and assign a newly-created
         # work to the original text instance in the view
         self.set_citing_work_required(True)
-        self.fields["content"].widget.attrs["class"] += "enableCKEditor"
+        self.fields["content"].widget.attrs["class"] = "enableCKEditor"
+        if original_text.apparatus_criticus_items.count() > 0:
+            self.fields["content"].widget.attrs["class"] += " enableApparatusCriticus"
 
     def set_citing_work_required(self, required):
         # to allow set/reset required fields dynically in the view
