@@ -138,12 +138,25 @@
             <div>
                 <h5>{% trans 'Bibliography' %}</h5>
             </div>
+
             <div class="loader-wrapper">
-            <div class="loader" id="loader"></div>
-        </div>
-            <div class="d-flex flex-column">
+                <div id="loader" class="loader htmx-indicator"></div>
+            </div>
+
+            <div id="bib-buttons-area" class="d-flex justify-space-between">
+
                 {% if perms.research.change_citingauthor and has_object_lock %}
-                 <button type="button" id="bib-refresh" class='btn text-primary text-right d-block' hx-get="{% url "citingauthor:refresh_bibliography" pk=citingauthor.pk %}" hx-trigger="click">{% trans 'Refresh bibliography from mentions' %}</button>
+
+                <button
+                    type="button"
+                    id="bib-refresh"
+                    class='btn text-primary text-right d-block'
+                    hx-get="{% url "citingauthor:refresh_bibliography" pk=citingauthor.pk %}"
+                    hx-trigger="click"
+                    hx-indicator="#loader"
+                >
+                    {% trans 'Refresh bibliography from mentions' %}
+                </button>
 
                 {% endif %}
             </div>
@@ -153,18 +166,4 @@
     </section>
 
     {% endwith %}
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const refreshBtn = document.getElementById("bib-refresh");
-        refreshBtn.addEventListener("click", function() {
-            const loader = document.querySelector('.loader-wrapper > .loader');
-            if (loader) {
-                loader.style.visibility = 'visible';
-                setTimeout(function() {
-                    loader.style.visibility = 'hidden';
-                }, 2000);
-            }
-        });
-    });
-</script>
 {% endblock %}
