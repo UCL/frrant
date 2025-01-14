@@ -3,11 +3,13 @@ from django.urls import reverse
 from django.utils.translation import gettext as _
 from simple_history.models import HistoricalRecords
 
-from rard.research.models.mixins import HistoryModelMixin
+from rard.research.models.mixins import HistoryModelMixin, TextObjectFieldMixin
 from rard.utils.basemodel import BaseModel, DatedModel, LockableModel
 
 
-class CitingAuthor(HistoryModelMixin, LockableModel, DatedModel, BaseModel):
+class CitingAuthor(
+    HistoryModelMixin, TextObjectFieldMixin, LockableModel, DatedModel, BaseModel
+):
     class Meta:
         ordering = ("order_name",)
 
@@ -26,6 +28,15 @@ class CitingAuthor(HistoryModelMixin, LockableModel, DatedModel, BaseModel):
     bibliography_items = models.ManyToManyField(
         "BibliographyItem", related_name="citing_authors", blank=True
     )
+
+    introduction = models.OneToOneField(
+        "TextObjectField",
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="introduction_for_%(class)s",
+    )
+
+    plain_introduction = models.TextField(blank=False, default="")
 
     @classmethod
     def get_anonymous_citing_author(cls):
@@ -79,8 +90,47 @@ class CitingAuthor(HistoryModelMixin, LockableModel, DatedModel, BaseModel):
             self.order_name = self.name
         super().save(*args, **kwargs)
 
+    def refresh_bibliography_items_from_mentions(self):
+        from rard.research.models import AnonymousFragment, Fragment, Testimonium
 
-class CitingWork(HistoryModelMixin, LockableModel, DatedModel, BaseModel):
+        """Author bibliography should be derived from bibliography
+        items mentioned in:
+        - the author's introduction
+        - the introduction to works by that author, and introductions
+          to any citing works
+        - commentaries belonging to any fragments, testimonia, or
+          apposita linked to that author
+        """
+        self.bibliography_items.clear()  # Start with a blank slate
+        # Link bib mentions from introduction
+        self.introduction.link_bibliography_mentions_in_content()
+        # Now loop through linked items
+        for fr in Fragment.objects.filter(
+            original_texts__citing_work__author=self
+        ).distinct():
+            fr.commentary.link_bibliography_mentions_in_content()
+
+        for tt in Testimonium.objects.filter(
+            original_texts__citing_work__author=self
+        ).distinct():
+            tt.commentary.link_bibliography_mentions_in_content()
+
+        for an in AnonymousFragment.objects.filter(
+            original_texts__citing_work__author=self
+        ).distinct():
+            an.commentary.link_bibliography_mentions_in_content()
+
+        for work in CitingWork.objects.filter(author=self).distinct():
+            if work.introduction:
+                work.introduction.link_bibliography_mentions_in_content()
+
+
+CitingAuthor.init_text_object_fields()
+
+
+class CitingWork(
+    HistoryModelMixin, TextObjectFieldMixin, LockableModel, DatedModel, BaseModel
+):
     history = HistoricalRecords(excluded_fields=[])
 
     def related_lock_object(self):
@@ -98,6 +148,15 @@ class CitingWork(HistoryModelMixin, LockableModel, DatedModel, BaseModel):
     title = models.CharField(max_length=256, blank=False)
 
     edition = models.CharField(max_length=128, blank=True)
+
+    introduction = models.OneToOneField(
+        "TextObjectField",
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="introduction_for_%(class)s",
+    )
+
+    plain_introduction = models.TextField(blank=False, default="")
 
     def get_absolute_url(self):
         return reverse("citingauthor:work_detail", kwargs={"pk": self.pk})
@@ -127,3 +186,6 @@ class CitingWork(HistoryModelMixin, LockableModel, DatedModel, BaseModel):
         if not self.author:
             self.author = CitingAuthor.get_anonymous_citing_author()
         super().save(*args, **kwargs)
+
+
+CitingWork.init_text_object_fields()

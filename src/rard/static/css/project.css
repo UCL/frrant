@@ -589,3 +589,9 @@ section.footnotes {
     background-position: 50% 0, 100% 0, 100% 100%, 0 100%;
   }
 }
+
+.htmx-request .loader,
+.htmx-request.loader {
+  opacity: 1;
+  visibility: visible;
+}

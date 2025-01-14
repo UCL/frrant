@@ -1,15 +1,29 @@
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 from django.views.generic import ListView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
-from rard.research.forms import CitingAuthorUpdateForm, CitingWorkCreateForm
+from rard.research.forms import (
+    CitingAuthorIntroductionForm,
+    CitingAuthorUpdateForm,
+    CitingWorkCreateForm,
+    CitingWorkIntroductionForm,
+)
 from rard.research.models import CitingAuthor, CitingWork, OriginalText
-from rard.research.views.mixins import CanLockMixin, CheckLockMixin, DateOrderMixin
+from rard.research.models.text_object_field import TextObjectField
+from rard.research.views.mixins import (
+    CanLockMixin,
+    CheckLockMixin,
+    DateOrderMixin,
+    TextObjectFieldUpdateMixin,
+    TextObjectFieldViewMixin,
+)
 
 
 class CitingAuthorCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
@@ -186,6 +200,35 @@ class CitingAuthorCreateWorkView(
         return reverse("citingauthor:work_detail", kwargs={"pk": self.object.pk})
 
 
+class CitingAuthorUpdateIntroductionView(
+    TextObjectFieldUpdateMixin, CitingAuthorUpdateView
+):
+    model = CitingAuthor
+    permission_required = ("research.change_citingauthor",)
+    form_class = CitingAuthorIntroductionForm
+    hx_trigger = "intro-updated"
+    textobject_field = "introduction"
+
+    def create_intro_if_does_not_exist(self, *args, **kwargs):
+        # If a TOF is not created for the introduction an error will be
+        # thrown when trying to save as it will try to save something that
+        # does not exist
+        author = self.get_object()
+        if author.introduction is None:
+            author.introduction = TextObjectField.objects.create(content="")
+            author.save()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.create_intro_if_does_not_exist()
+        return super().dispatch(request, *args, **kwargs)
+
+
+class CitingAuthorIntroductionView(TextObjectFieldViewMixin):
+    model = CitingAuthor
+    permission_required = ("research.view_citingauthor",)
+    textobject_field = "introduction"
+
+
 class CitingWorkCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = CitingWork
     permission_required = ("research.add_citingwork",)
@@ -229,3 +272,50 @@ class CitingWorkDeleteView(
     model = CitingWork
     success_url = reverse_lazy("citingauthor:list")
     permission_required = ("research.delete_citingwork",)
+
+
+class CitingWorkUpdateIntroductionView(TextObjectFieldUpdateMixin, UpdateView):
+    model = CitingWork
+    permission_required = ("research.change_citingwork",)
+    form_class = CitingWorkIntroductionForm
+    hx_trigger = "intro-updated"
+    textobject_field = "introduction"
+
+    def create_intro_if_does_not_exist(self, *args, **kwargs):
+        # If a TOF is not created for the introduction an error will be
+        # thrown when trying to save as it will try to save something that
+        # does not exist
+        work = self.get_object()
+        if work.introduction is None:
+            work.introduction = TextObjectField.objects.create(content="")
+            work.save()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.create_intro_if_does_not_exist()
+        return super().dispatch(request, *args, **kwargs)
+
+
+class CitingWorkIntroductionView(TextObjectFieldViewMixin):
+    model = CitingWork
+    permission_required = ("research.view_citingwork",)
+    textobject_field = "introduction"
+
+
+@require_GET
+@login_required
+@permission_required("research.change_citingauthor")
+def ca_refresh_bibliography_from_mentions(request, pk):
+    """Given the pk of a Citing Author object, call its
+    refresh_bibliography_items_from_mentions method to
+    parse DynamicTextFields for mentions of bibliography
+    items and link these directly."""
+    try:
+        author = CitingAuthor.objects.get(pk=pk)
+    except CitingAuthor.DoesNotExist:
+        raise Http404("No Citing Authors found matching the query")
+    author.refresh_bibliography_items_from_mentions()
+    response = HttpResponse(
+        status=204,
+    )
+    response.headers["HX-Trigger"] = "refreshed-bibliography"
+    return response
