@@ -17,7 +17,7 @@
         </ul>
     </div>
 
-
+    <button type='button' class="btn btn-outline-secondary btn-sm mb-2" data-toggle="collapse" data-target=".multi-collapse" aria-expanded="false" aria-controls="{% for work in object.ordered_works.all %}list_{{ work.pk }} {% endfor %}">{% trans "Expand all" %}</button>
 
     {% for work in object.ordered_works.all %}
 
@@ -63,8 +63,8 @@
         {% endif %}
 
 
-        <ul class="collapse" id="list_{{work.pk}}">
-            <div class='ordered-list' id='multi-collapse'>
+        <ul class="collapse multi-collapse" id="list_{{work.pk}}">
+            <div class='ordered-list'>
 
                 {% if tlinks %}
                 {% for link in tlinks %}
