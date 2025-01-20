@@ -34,11 +34,11 @@
                         {% if work.unknown == True and not flinks and not tlinks and not alinks %}
                         {% elif work.unknown == True %}
                         <b class='my-3 mr-1'><a href='{% url "work:detail" work.pk %}' >{{ work.name }}</a></b>
-                        <button type='button' class="btn btn-text text-primary pl-2" data-toggle="collapse" data-target="#list_{{work.pk}}" role="button" aria-expanded="false" aria-controls="list_{{work.pk}}"><i class='fas fa-caret-down'></i></button>
+                        <button type='button' class="btn btn-text text-primary pl-2 collapse-button" data-toggle="collapse" data-target="#list_{{work.pk}}" role="button" aria-expanded="false" aria-controls="list_{{work.pk}}"><i class='fas fa-chevron-down'><small class='ml-1 text-muted'>{% trans "Expand" %}</small></i></button>
 
                         {% else %}
                         <b class='my-3 mr-1'><a href='{% url "work:detail" work.pk %}'>{{ work.name }}</a></b>
-                        <button type='button' class="btn btn-text text-primary" data-toggle="collapse" data-target="#list_{{work.pk}}" role="button" aria-expanded="false" aria-controls="list_{{work.pk}}"><i class='fas fa-caret-down'></i></button>
+                        <button type='button' class="btn btn-text text-primary collapse-button" data-toggle="collapse" data-target="#list_{{work.pk}}" role="button" aria-expanded="false" aria-controls="list_{{work.pk}}"><i class='fas fa-chevron-down'><small class='ml-1 text-muted'>{% trans "Expand" %}</small></i></button>
 
                         {% if can_edit and has_object_lock %}
                         <button type='button' class='drag-handle btn btn-light btn-sm' style='cursor: move;' data-pos='{{ forloop.counter0 }}'><i class='fas fa-bars'></i></button>
@@ -109,3 +109,43 @@
 </div>
 
 {% endwith %}
+
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+        var collapseElementList = [].slice.call(document.querySelectorAll('ul.collapse'));
+        var collapseButtonList = [].slice.call(document.querySelectorAll('.collapse-button'));
+
+        function onClassChange(mutationList, observer) {
+            mutationList.forEach((mutation) => {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                    let targetElement = mutation.target;
+                    if (targetElement.classList.contains('show')) {
+                        // Find the button that controls this collapsible element and update the content
+                        var btn = collapseButtonList.find(btn => btn.getAttribute('data-target') === '#' + targetElement.id);
+                        if (btn) {
+                            btn.innerHTML = "<i class='fas fa-chevron-up'><small class='ml-1 text-muted'>{% trans 'Collapse' %}</small></i>";
+                        }
+                    } else {
+                        var btn = collapseButtonList.find(btn => btn.getAttribute('data-target') === '#' + targetElement.id);
+                        if (btn) {
+                            btn.innerHTML = "<i class='fas fa-chevron-down'><small class='ml-1 text-muted'>{% trans 'Expand' %}</small></i>";
+                        }
+                    }
+                }
+            });
+        }
+
+        // for each collapse element, attach a mutation observer
+        collapseElementList.forEach( (collapseEl)=> {
+            const observer = new MutationObserver(onClassChange);
+
+            // Start observing for changes to class
+            observer.observe(collapseEl, {
+                attributes: true,
+                attributeFilter: ['class']
+            });
+
+            });
+
+    });
+</script>
