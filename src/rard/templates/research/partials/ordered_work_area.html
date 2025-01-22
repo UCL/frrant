@@ -34,15 +34,14 @@
                         {% if work.unknown == True and not flinks and not tlinks and not alinks %}
                         {% elif work.unknown == True %}
                         <b class='my-3 mr-1'><a href='{% url "work:detail" work.pk %}' >{{ work.name }}</a></b>
-                        <span class="badge badge-secondary">{{ tlinks.count|add:flinks.count|add:alinks.count }}
-                        </span>
 
-                        <button type='button' class="btn btn-link btn-sm pl-2 collapse-button" data-toggle="collapse" data-target="#list_{{work.pk}}" role="button" aria-expanded="false" aria-controls="list_{{work.pk}}"><i class='fas fa-chevron-down'><small class='ml-1 text-muted sans-serif'>{% trans "Expand" %}</small></i></button>
+                        <button type='button' class="btn btn-outline-primary btn-sm pl-2 badge badge-pill collapse-button sans-serif" data-toggle="collapse" data-target="#list_{{work.pk}}" role="button" aria-expanded="false" aria-controls="list_{{work.pk}}">{{ tlinks.count|add:flinks.count|add:alinks.count }}<i class='fas ml-2 fa-chevron-down'>
+                        </i></button>
 
                         {% else %}
                         <b class='my-3 mr-1'><a href='{% url "work:detail" work.pk %}'>{{ work.name }}</a></b>
-                        <button type='button' class="btn btn-link btn-sm collapse-button" data-toggle="collapse" data-target="#list_{{work.pk}}" role="button" aria-expanded="false" aria-controls="list_{{work.pk}}"><i class='fas fa-chevron-down'><small class='ml-1 text-muted sans-serif '>{% trans "Expand" %}</small></i></button> <span class="badge badge-secondary">{{ tlinks.count|add:flinks.count|add:alinks.count }}
-                        </span>
+                        <button type='button' class="btn btn-outline-primary collapse-button sans-serif badge badge-pill" data-toggle="collapse" data-target="#list_{{work.pk}}" role="button" aria-expanded="false" aria-controls="list_{{work.pk}}">{{ tlinks.count|add:flinks.count|add:alinks.count }}<i class='fas ml-2 fa-chevron-down'>
+                        </i></button>
 
                         {% if can_edit and has_object_lock %}
                         <button type='button' class='drag-handle btn btn-light btn-sm' style='cursor: move;' data-pos='{{ forloop.counter0 }}'><i class='fas fa-bars'></i></button>
@@ -146,12 +145,15 @@
                         // Find the button that controls this collapsible element and update the content
                         var btn = collapseButtonList.find(btn => btn.getAttribute('data-target') === '#' + targetElement.id);
                         if (btn) {
-                            btn.innerHTML = "<i class='fas fa-chevron-up'><small class='ml-1 text-muted sans-serif '>{% trans 'Collapse' %}</small></i>";
+                            btn.querySelector("i").classList.remove("fa-chevron-down");
+                            btn.querySelector("i").classList.add("fa-chevron-up");
+
                         }
                     } else {
                         var btn = collapseButtonList.find(btn => btn.getAttribute('data-target') === '#' + targetElement.id);
                         if (btn) {
-                            btn.innerHTML = "<i class='fas fa-chevron-down'><small class='ml-1 text-muted sans-serif '>{% trans 'Expand' %}</small></i>";
+                            btn.querySelector("i").classList.remove("fa-chevron-up");
+                            btn.querySelector("i").classList.add("fa-chevron-down");
                         }
                     }
 
