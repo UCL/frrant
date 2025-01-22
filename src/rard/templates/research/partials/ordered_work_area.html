@@ -17,7 +17,7 @@
         </ul>
     </div>
 
-    <button type='button' id="multi-collapse-control" class="btn btn-outline-secondary btn-sm mb-2" data-toggle="collapse" data-target=".multi-collapse" aria-expanded="false" aria-controls="{% for work in object.ordered_works.all %}list_{{ work.pk }} {% endfor %}">{% trans "Expand all" %}</button>
+    <button type='button' id="multi-collapse-control" class="btn btn-outline-secondary btn-sm mb-2 exp" data-toggle="collapse" data-target=".multi-collapse" aria-expanded="false" aria-controls="{% for work in object.ordered_works.all %}list_{{ work.pk }} {% endfor %}">{% trans "Expand all" %}</button>
 
     {% for work in object.ordered_works.all %}
 
@@ -120,6 +120,23 @@
         var collapseButtonList = [].slice.call(document.querySelectorAll('.collapse-button'));
         var expandAllBtn = document.getElementById('multi-collapse-control');
 
+        $('#multi-collapse-control').click(function(e) {
+            // when the expand all button is clicked handle collapse/show manually (jQuery)
+            e.preventDefault();
+
+           if ($(this).hasClass('exp')) {
+
+                $('ul.collapse').each(function() {
+                    $(this).collapse('show');
+                    e.stopPropagation();
+                });
+            } else {
+                $('ul.collapse').each(function() {
+                    $(this).collapse('hide');
+                    e.stopPropagation();
+                });
+            }
+        });
 
         function onClassChange(mutationList, observer) {
             mutationList.forEach((mutation) => {
@@ -140,10 +157,12 @@
 
                     // Only change expand all to collapse all if all are open
                     if (collapseElementList.length === collapseElementList.filter(el => el.classList.contains('show')).length) {
-                        console.log("changing expand all")
                         expandAllBtn.innerText = "{% trans 'Collapse all' %}";
+                        expandAllBtn.classList.remove('exp');
                     }
-                    else {expandAllBtn.innerText = "{% trans 'Expand all' %}";}
+                    else {expandAllBtn.innerText = "{% trans 'Expand all' %}";
+                        expandAllBtn.classList.add('exp');
+                    }
                 }
             });
         }
