@@ -17,6 +17,8 @@
         </ul>
     </div>
 
+    <button type='button' id="multi-collapse-control" class="btn btn-outline-secondary btn-sm mb-2 exp" data-toggle="collapse" data-target=".multi-collapse" aria-expanded="false" aria-controls="{% for work in object.ordered_works.all %}list_{{ work.pk }} {% endfor %}">{% trans "Expand all" %}</button>
+
     {% for work in object.ordered_works.all %}
 
     <div class='drop-target' data-pos='{{ forloop.counter0 }}' data-objecttype='work'>
@@ -31,10 +33,15 @@
                     <div>
                         {% if work.unknown == True and not flinks and not tlinks and not alinks %}
                         {% elif work.unknown == True %}
-                        <b class='my-3 mr-3'><a href='{% url "work:detail" work.pk %}'>{{ work.name }}</a></b>
+                        <b class='my-3 mr-1'><a href='{% url "work:detail" work.pk %}' >{{ work.name }}</a></b>
+
+                        <button type='button' class="btn btn-outline-primary btn-sm pl-2 badge badge-pill collapse-button sans-serif" data-toggle="collapse" data-target="#list_{{work.pk}}" role="button" aria-expanded="false" aria-controls="list_{{work.pk}}">{{ tlinks.count|add:flinks.count|add:alinks.count }}<i class='fas ml-2 fa-chevron-down'>
+                        </i></button>
 
                         {% else %}
-                        <b class='my-3 mr-3'><a href='{% url "work:detail" work.pk %}'>{{ work.name }}</a></b>
+                        <b class='my-3 mr-1'><a href='{% url "work:detail" work.pk %}'>{{ work.name }}</a></b>
+                        <button type='button' class="btn btn-outline-primary collapse-button sans-serif badge badge-pill" data-toggle="collapse" data-target="#list_{{work.pk}}" role="button" aria-expanded="false" aria-controls="list_{{work.pk}}">{{ tlinks.count|add:flinks.count|add:alinks.count }}<i class='fas ml-2 fa-chevron-down'>
+                        </i></button>
 
                         {% if can_edit and has_object_lock %}
                         <button type='button' class='drag-handle btn btn-light btn-sm' style='cursor: move;' data-pos='{{ forloop.counter0 }}'><i class='fas fa-bars'></i></button>
@@ -59,7 +66,7 @@
         {% endif %}
 
 
-        <ul>
+        <ul class="collapse multi-collapse" id="list_{{work.pk}}">
             <div class='ordered-list'>
 
                 {% if tlinks %}
@@ -105,3 +112,74 @@
 </div>
 
 {% endwith %}
+
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+        var collapseElementList = [].slice.call(document.querySelectorAll('ul.collapse'));
+        var collapseButtonList = [].slice.call(document.querySelectorAll('.collapse-button'));
+        var expandAllBtn = document.getElementById('multi-collapse-control');
+
+        $('#multi-collapse-control').click(function(e) {
+            // when the expand all button is clicked handle collapse/show manually (jQuery)
+            e.preventDefault();
+
+           if ($(this).hasClass('exp')) {
+
+                $('ul.collapse').each(function() {
+                    $(this).collapse('show');
+                    e.stopPropagation();
+                });
+            } else {
+                $('ul.collapse').each(function() {
+                    $(this).collapse('hide');
+                    e.stopPropagation();
+                });
+            }
+        });
+
+        function onClassChange(mutationList, observer) {
+            mutationList.forEach((mutation) => {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                    let targetElement = mutation.target;
+                    if (targetElement.classList.contains('show')) {
+                        // Find the button that controls this collapsible element and update the content
+                        var btn = collapseButtonList.find(btn => btn.getAttribute('data-target') === '#' + targetElement.id);
+                        if (btn) {
+                            btn.querySelector("i").classList.remove("fa-chevron-down");
+                            btn.querySelector("i").classList.add("fa-chevron-up");
+
+                        }
+                    } else {
+                        var btn = collapseButtonList.find(btn => btn.getAttribute('data-target') === '#' + targetElement.id);
+                        if (btn) {
+                            btn.querySelector("i").classList.remove("fa-chevron-up");
+                            btn.querySelector("i").classList.add("fa-chevron-down");
+                        }
+                    }
+
+                    // Only change expand all to collapse all if all are open
+                    if (collapseElementList.length === collapseElementList.filter(el => el.classList.contains('show')).length) {
+                        expandAllBtn.innerText = "{% trans 'Collapse all' %}";
+                        expandAllBtn.classList.remove('exp');
+                    }
+                    else {expandAllBtn.innerText = "{% trans 'Expand all' %}";
+                        expandAllBtn.classList.add('exp');
+                    }
+                }
+            });
+        }
+
+        // for each collapse element, attach a mutation observer
+        collapseElementList.forEach( (collapseEl)=> {
+            const observer = new MutationObserver(onClassChange);
+
+            // Start observing for changes to class
+            observer.observe(collapseEl, {
+                attributes: true,
+                attributeFilter: ['class']
+            });
+
+        });
+
+    });
+</script>
