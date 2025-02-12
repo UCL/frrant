@@ -138,9 +138,26 @@
             <div>
               <h5>{% trans 'Bibliography' %}</h5>
             </div>
-            <div id="bib-buttons-area">
+
+            <div class="loader-wrapper">
+                <div id="loader" class="loader htmx-indicator"></div>
+            </div>
+
+            <div id="bib-buttons-area" class="d-flex justify-space-between">
+
               {% if has_object_lock and perms.research.change_bibliographyitem %}
-                <button type="button" class='btn text-primary p-0 ml-2' hx-get="{% url "antiquarian:refresh_bibliography" pk=antiquarian.pk %}" hx-trigger="click">{% trans 'Refresh bibliography from mentions' %}</button>
+
+              <button
+                  type="button"
+                  id="bib-refresh"
+                  class='btn text-primary p-0 ml-2'
+                  hx-get="{% url "antiquarian:refresh_bibliography" pk=antiquarian.pk %}"
+                  hx-trigger="click"
+                  hx-indicator="#loader"
+              >
+                  {% trans 'Refresh bibliography from mentions' %}
+              </button>
+
               {% endif %}
             </div>
           </div>

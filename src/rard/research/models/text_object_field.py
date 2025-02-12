@@ -21,7 +21,13 @@ class TextObjectField(HistoryModelMixin, BaseModel):
 
     def get_history_title(self):
         obj = self.get_related_object()
-        if obj.__class__.__name__ in ["Antiquarian", "Work", "Book"]:
+        if obj.__class__.__name__ in [
+            "Antiquarian",
+            "Work",
+            "Book",
+            "CitingAuthor",
+            "CitingWork",
+        ]:
             return "Introduction"
         return "Commentary"
 
@@ -118,6 +124,20 @@ class TextObjectField(HistoryModelMixin, BaseModel):
 
         related = self.get_related_object()
         return related if isinstance(related, Book) else None
+
+    @property
+    def citing_author(self):
+        from rard.research.models import CitingAuthor
+
+        related = self.get_related_object()
+        return related if isinstance(related, CitingAuthor) else None
+
+    @property
+    def citing_work(self):
+        from rard.research.models import CitingWork
+
+        related = self.get_related_object()
+        return related if isinstance(related, CitingWork) else None
 
 
 class PublicCommentaryMentions(models.Model):

@@ -216,9 +216,14 @@ class TextObjectFieldUpdateMixin(object):
         elif model_name == "book":
             model_namespace = "work"
             url_name = "book_introduction"
+        # And another for citing works
+        elif model_name == "citingwork":
+            model_namespace = "citingauthor"
+            url_name = "introduction_for_work"
         else:
             model_namespace = model_name
             url_name = self.textobject_field
+
         context["cancel_url"] = reverse(
             f"{model_namespace}:{url_name}", args=[self.object.id]
         )

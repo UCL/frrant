@@ -466,6 +466,11 @@ class CitingWorkForm(forms.ModelForm):
         required=False,
         label="New Author Name",
     )
+    introduction_text = forms.CharField(
+        widget=forms.Textarea,
+        required=False,
+        label="Introduction",
+    )
 
     class Meta:
         model = CitingWork
@@ -476,6 +481,7 @@ class CitingWorkForm(forms.ModelForm):
             "new_author_name",
             "title",
             "edition",
+            "introduction_text",
         )
         labels = {
             "author": _("Choose Existing Author"),
@@ -486,6 +492,17 @@ class CitingWorkForm(forms.ModelForm):
         # this form is initially optional as the user might instead choose
         # and existing citing work from a separate form
         self.set_required(False)
+        if self.instance.introduction:
+            self.fields[
+                "introduction_text"
+            ].initial = self.instance.introduction.content
+            self.fields["introduction_text"].widget.attrs[
+                "class"
+            ] = "enableMentions enableFootnotes enableCKEditor"
+        else:
+            self.fields["introduction_text"].attrs = {
+                "placeholder": "introduction for citing work"
+            }
 
     def set_required(self, required):
         # to allow set/reset required fields dynically in the view
@@ -512,6 +529,9 @@ class CitingWorkForm(forms.ModelForm):
                 new_author_name = self.cleaned_data["new_author_name"]
                 author = CitingAuthor.objects.create(name=new_author_name)
                 instance.author = author
+            # introduction will have been created at this point
+            instance.introduction.content = self.cleaned_data["introduction_text"]
+            instance.introduction.save_without_historical_record()
             instance.save()
         return instance
 
@@ -577,9 +597,11 @@ class OriginalTextDetailsForm(forms.ModelForm):
         if original_text:
             self.fields["content"].widget.attrs["data-object"] = original_text.pk
             # Only enable apparatus criticus editing if object exists
-            self.fields["content"].widget.attrs[
-                "class"
-            ] = "enableApparatusCriticus enableCKEditor"
+            self.fields["content"].widget.attrs["class"] = "enableCKEditor"
+            if original_text.apparatus_criticus_items.count() > 0:
+                self.fields["content"].widget.attrs[
+                    "class"
+                ] += " enableApparatusCriticus"
 
     def clean_reference_order(self):
         # Reference order needs to be stored as a string with leading 0s such
@@ -638,9 +660,9 @@ class OriginalTextForm(OriginalTextAuthorForm):
         # of an existing instance to be blank and assign a newly-created
         # work to the original text instance in the view
         self.set_citing_work_required(True)
-        self.fields["content"].widget.attrs[
-            "class"
-        ] = "enableApparatusCriticus enableCKEditor"
+        self.fields["content"].widget.attrs["class"] = "enableCKEditor"
+        if original_text and original_text.apparatus_criticus_items.count() > 0:
+            self.fields["content"].widget.attrs["class"] += " enableApparatusCriticus"
 
     def set_citing_work_required(self, required):
         # to allow set/reset required fields dynically in the view
@@ -1092,11 +1114,39 @@ class CitingWorkCreateForm(forms.ModelForm):
             "date_range",
         )
 
+    introduction_text = forms.CharField(
+        widget=forms.Textarea,
+        required=False,
+        label="Introduction",
+    )
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["author"].queryset = CitingAuthor.objects.exclude(
             order_name=CitingAuthor.ANONYMOUS_ORDERNAME
         )
+        self.fields["introduction_text"].widget.attrs[
+            "class"
+        ] = "enableMentions enableFootnotes enableCKEditor"
+        if self.instance.introduction:
+            self.fields[
+                "introduction_text"
+            ].initial = self.instance.introduction.content
+
+    def save(self, commit=True):
+        instance = super().save(commit)
+        if commit:
+            instance.save_without_historical_record()
+            # introduction will have been created at this point
+            instance.introduction.content = self.cleaned_data["introduction_text"]
+            instance.introduction.save_without_historical_record()
+        return instance
+
+
+class CitingWorkIntroductionForm(IntroductionFormBase):
+    class Meta:
+        model = CitingWork
+        fields = ()
 
 
 class CitingAuthorUpdateForm(forms.ModelForm):
@@ -1107,12 +1157,18 @@ class CitingAuthorUpdateForm(forms.ModelForm):
             "order_name",
             "order_year",
             "date_range",
+            "introduction_text",
         )
 
     bibliography_items = BibliographyModelMultipleChoiceField(
         widget=forms.CheckboxSelectMultiple,
         queryset=BibliographyItem.objects.all(),
         required=False,
+    )
+    introduction_text = forms.CharField(
+        widget=forms.Textarea,
+        required=False,
+        label="Introduction",
     )
 
     def __init__(self, *args, **kwargs):
@@ -1123,6 +1179,29 @@ class CitingAuthorUpdateForm(forms.ModelForm):
             ].initial = self.instance.bibliography_items.all()
             if self.instance.is_anonymous_citing_author():
                 self.fields["order_name"].disabled = True
+
+            self.fields["introduction_text"].widget.attrs[
+                "class"
+            ] = "enableMentions enableFootnotes enableCKEditor"
+            if self.instance.introduction:
+                self.fields[
+                    "introduction_text"
+                ].initial = self.instance.introduction.content
+
+    def save(self, commit=True):
+        instance = super().save(commit)
+        if commit:
+            instance.save_without_historical_record()
+            # introduction will have been created at this point
+            instance.introduction.content = self.cleaned_data["introduction_text"]
+            instance.introduction.save_without_historical_record()
+        return instance
+
+
+class CitingAuthorIntroductionForm(IntroductionFormBase):
+    class Meta:
+        model = CitingAuthor
+        fields = ()
 
 
 class EditionForm(forms.ModelForm):

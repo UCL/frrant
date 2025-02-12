@@ -61,6 +61,28 @@
     </section>
 
     <hr>
+    <section>
+
+        <div class='d-flex justify-content-between w-100'>
+            <div>
+                <h5 class='mb-3 mr-3'>{% trans 'Introduction' %}</h5>
+            </div>
+            <div>
+                {% if perms.research.change_citingauthor and has_object_lock %}
+                <button
+                  class="btn text-primary p-0 ml-2"
+                  hx-get="{% url 'citingauthor:update_introduction' object.pk %}"
+                  hx-target=".introduction-container"
+                  hx-swap="innerHTML">{% trans 'Edit' %}</button>
+                {% endif %}
+            </div>
+        </div>
+        <div class="introduction-container rich-text-form-container">
+            {% include 'research/partials/text_object_preview.html' with text_object=object.introduction %}
+        </div>
+
+    </section>
+    <hr>
 
     <section>
         <div class='d-flex justify-content-between mb-3'>
@@ -88,8 +110,6 @@
             <div>
                 <h5>{% trans 'Linked Material' %}</h5>
             </div>
-            <div>
-            </div>
         </div>
 
 
@@ -111,25 +131,37 @@
 
     <hr>
 
-    <section>
+    <section id="bibliography">
         <div class='d-flex justify-content-between mb-3'>
             <div>
                 <h5>{% trans 'Bibliography' %}</h5>
             </div>
-            <div>
+
+            <div class="loader-wrapper">
+                <div id="loader" class="loader htmx-indicator"></div>
+            </div>
+
+            <div id="bib-buttons-area" class="d-flex justify-space-between">
+
                 {% if perms.research.change_citingauthor and has_object_lock %}
-                <a href='{% url "citingauthor:update" object.pk %}'>{% trans 'Add existing' %}</a><p></p>
-                <a href='{% url "bibliography:create" %}'>{% trans 'Add new' %}</a>
+
+                <button
+                    type="button"
+                    id="bib-refresh"
+                    class='btn text-primary text-right d-block'
+                    hx-get="{% url "citingauthor:refresh_bibliography" pk=citingauthor.pk %}"
+                    hx-trigger="click"
+                    hx-indicator="#loader"
+                >
+                    {% trans 'Refresh bibliography from mentions' %}
+                </button>
+
                 {% endif %}
             </div>
         </div>
-        {% for item in object.bibliography_items.all %}
 
-        {% include 'research/partials/bibliography_list_item.html' with can_edit=perms.research.change_citingauthor has_object_lock=has_object_lock %}
-
-        {% endfor %}
+        {% include 'research/partials/citing_author_bibliography_list.html' with bibliography_items=object.bibliography_items %}
     </section>
 
     {% endwith %}
-
 {% endblock %}

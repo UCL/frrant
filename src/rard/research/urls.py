@@ -102,6 +102,7 @@ urlpatterns = [
                     path(
                         "<pk>/bibliography/",
                         views.BibliographySectionView.as_view(),
+                        {"related_model": "antiquarian"},
                         name="bibliography",
                     ),
                     path(
@@ -650,6 +651,27 @@ urlpatterns = [
                         name="update",
                     ),
                     path(
+                        "<pk>/introduction/",
+                        views.CitingAuthorIntroductionView.as_view(),
+                        name="introduction",
+                    ),
+                    path(
+                        "<pk>/update/introduction/",
+                        views.CitingAuthorUpdateIntroductionView.as_view(),
+                        name="update_introduction",
+                    ),
+                    path(
+                        "<pk>/bibliography/",
+                        views.BibliographySectionView.as_view(),
+                        {"related_model": "citing_author"},
+                        name="bibliography",
+                    ),
+                    path(
+                        "<pk>/refresh_bibliography/",
+                        views.ca_refresh_bibliography_from_mentions,
+                        name="refresh_bibliography",
+                    ),
+                    path(
                         "<pk>/work/create/",
                         views.CitingAuthorCreateWorkView.as_view(),
                         name="create_work_for_author",
@@ -673,6 +695,16 @@ urlpatterns = [
                         "work/<pk>/delete/",
                         views.CitingWorkDeleteView.as_view(),
                         name="delete_work",
+                    ),
+                    path(
+                        "work/<pk>/introduction/",
+                        views.CitingWorkIntroductionView.as_view(),
+                        name="introduction_for_work",
+                    ),
+                    path(
+                        "work/<pk>/update/introduction/",
+                        views.CitingWorkUpdateIntroductionView.as_view(),
+                        name="update_introduction_for_work",
                     ),
                 ],
                 "research",
