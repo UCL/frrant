@@ -900,7 +900,8 @@ ReferenceFormset = inlineformset_factory(
 class TestimoniumForm(HistoricalFormBase):
     class Meta:
         model = Testimonium
-        fields = ()
+        fields = ("tags",)
+        widgets = {"tags": forms.CheckboxSelectMultiple}
 
 
 class BaseLinkWorkForm(forms.ModelForm):
