@@ -599,3 +599,9 @@ section.footnotes {
   opacity: 1;
   visibility: visible;
 }
+
+#searchHelpBlock {
+  a {
+    font-size: 100% !important;
+  }
+}
