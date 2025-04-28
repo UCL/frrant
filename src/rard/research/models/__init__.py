@@ -10,7 +10,7 @@ from .linkable import ApparatusCriticusItem
 from .original_text import Concordance, OriginalText, Translation
 from .reference import Reference
 from .symbols import Symbol, SymbolGroup
-from .testimonium import Testimonium
+from .testimonium import Testimonium, TestimoniumTag
 from .text_object_field import PublicCommentaryMentions, TextObjectField
 from .topic import Topic
 from .work import Book, Work
@@ -34,6 +34,7 @@ __all__ = [
     "Symbol",
     "SymbolGroup",
     "Testimonium",
+    "TestimoniumTag",
     "TextObjectField",
     "Topic",
     "TopicLink",
