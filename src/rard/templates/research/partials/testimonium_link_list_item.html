@@ -20,6 +20,9 @@
                     {{ link_text }}
                 {% endif %}
                 {% endwith %}
+                {% for tag in link.testimonium.tags.all %}
+                <span class='badge badge-pill badge-secondary'>{{ tag }}</span>
+                {% endfor %}
 
                 <button class="btn btn-link toggle-element-button" type="button" data-toggles="testimoniumlink_{{ link.pk }}"></button>
 
