@@ -6,8 +6,7 @@ from django.db import migrations, models
 def create_testimonium_tags(apps, schema_editor):
     TestimoniumTag = apps.get_model('research', 'TestimoniumTag')
     tags = [
-        "Modus Operandi",
-        "Biography: Family",
+        "Biography: Intellectual (Modus Operandi)",
         "Biography: General",
     ]
     for tag in tags:
