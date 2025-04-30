@@ -1,4 +1,5 @@
 from django.contrib.contenttypes.fields import GenericRelation
+from django.db import models
 from django.urls import reverse
 from simple_history.models import HistoricalRecords
 
@@ -7,6 +8,21 @@ from rard.utils.shared_functions import organise_links
 from rard.utils.text_processors import make_plain_text
 
 from .base import HistoricalBaseModel, TestimoniumLink
+
+
+class TestimoniumTag(models.Model):
+    """
+    A tag for a Testimonium.
+    """
+
+    class Meta:
+        verbose_name = "Testimonium Tag"
+        verbose_name_plural = "Testimonium Tags"
+
+    name = models.CharField(max_length=128, blank=False, unique=True)
+
+    def __str__(self):
+        return self.name
 
 
 class Testimonium(HistoryModelMixin, HistoricalBaseModel):
@@ -22,6 +38,12 @@ class Testimonium(HistoryModelMixin, HistoricalBaseModel):
     LINK_TYPE = TestimoniumLink
 
     original_texts = GenericRelation("OriginalText", related_query_name="testimonia")
+    tags = models.ManyToManyField(
+        TestimoniumTag,
+        blank=True,
+        related_name="testimonia",
+        verbose_name="Tags",
+    )
 
     def definite_book_links(self):
         return (
