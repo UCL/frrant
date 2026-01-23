@@ -1,5 +1,3 @@
-version: '3.3'
-
 volumes:
   development_postgres_data: {}
   development_postgres_data_backups: {}
