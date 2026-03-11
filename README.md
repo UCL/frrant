@@ -271,7 +271,12 @@ Run the `src/loaddata.sh` script to load this:
 
 ### 9. Requirements
 
-Requirements are applied when the containers are built.
+To get a virtual environment outside of your docker environment (for example, to make your editor's language server work correctly), use `uv` (from the base directory):
+
+```bash
+uv venv --python 3.12
+uv pip install --requirements src/requirements/local.txt
+```
 
 ### 10. Pre-commit
 
