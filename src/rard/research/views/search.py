@@ -14,7 +14,7 @@ from django.db.models import (
     Q,
     QuerySet,
     TextField,
-    Value
+    Value,
 )
 from django.db.models.functions import Lower
 from django.shortcuts import redirect
@@ -95,7 +95,8 @@ PUNCTUATION = punctuation + "£¬"
 PUNCTUATION_BASE = PUNCTUATION.translate({ord(c): None for c in CTRL_CHARS})
 PUNCTUATION_RE = re.compile("[" + re.escape(PUNCTUATION_BASE) + "]")
 
-type MatcherCallable = Callable[[QuerySet, str, bool], QuerySet]
+MatcherCallable = Callable[[QuerySet, str, bool], QuerySet]
+
 
 @method_decorator(require_GET, name="dispatch")
 class SearchView(LoginRequiredMixin, TemplateView, ListView):
@@ -175,7 +176,9 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                 matcher = self.add_keyword(matcher, keyword)
             return matcher
 
-        def add_keyword(self, old: Callable[[str], Q], keyword: str) -> Callable[[str], Q]:
+        def add_keyword(
+            self, old: Callable[[str], Q], keyword: str
+        ) -> Callable[[str], Q]:
             """
             Add another keyword to a matcher function.
 
@@ -245,7 +248,8 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                 kw = keywords[0].replace('"', "")
                 # Split keyword around proximity search
                 [(fore, prox_op, aft)] = re.findall(r"(.*)\s(~\d?:?\d?)\s(.*)", kw)
-                # Fore and aft can be multi-word strings containing wildcards so loop back
+                # Fore and aft can be multi-word strings containing wildcards
+                # so loop back
                 fore = self.transform_keywords_to_regex([fore])
                 aft = self.transform_keywords_to_regex([aft])
                 [(min_words, isRange, max_words)] = re.findall(
@@ -253,7 +257,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                 )
                 min_words = "0" if not min_words else min_words
                 if max_words:
-                    prox_reg = rf"\s(?:\w+\s){{{min_words},{max_words}}}"
+                    prox_reg = rf"\s(?:\w+\s){{{min_words}, {max_words}}}"
                 elif min_words:
                     min_words = min_words + "," if isRange else min_words
                     prox_reg = rf"\s(?:\w+\s){{{min_words}}}"
@@ -285,7 +289,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             query: Callable[[str], Q],
             matcher: Callable[[str], Q],
             keywords: str,
-            add_snippet: bool=False,
+            add_snippet: bool = False,
         ) -> QuerySet:
             """
             Get the queryset for this match portion.
@@ -306,7 +310,9 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             )
             annotated = query_set.alias(**{annotation_name: expression})
             matches = annotated.filter(matcher(annotation_name + "__regex"))
-            snippet = self.snippet_query(keywords, query_string) if add_snippet else Value("")
+            snippet = (
+                self.snippet_query(keywords, query_string) if add_snippet else Value("")
+            )
             matches = matches.annotate(snippet=snippet)
             return matches
 
@@ -315,7 +321,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             Get an expression for a getting a snippet.
 
             :param keywords: A string of keywords (from the user's query)
-            :param query_string: The string for accessing the field to make a snippet of.
+            :param query_string: The string for accessing the field.
             :return: An expression for extracting the snippet from the field.
             """
             return Func(
@@ -352,7 +358,9 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                 output_field=TextField(),
             )
 
-        def get_snippet_regex(self, keywords: str, before: int=5, after: int=5) -> str:
+        def get_snippet_regex(
+            self, keywords: str, before: int = 5, after: int = 5
+        ) -> str:
             """
             Get a regular expression that extracts a snippet from text.
 
@@ -360,20 +368,23 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             ``REGEXP_REPLACE(content, snippet_regex, '\1<span>\2</span>\3')``.
 
             :param keywords: String of keywords (the user's query)
-            :param before: The number of words before a keyword we'd like in the snippet.
+            :param before: The number of words before a keyword we'd like
+              in the snippet.
             :param after: The number of words after a keyword we'd like in the snippet.
             :return: A regex that has three capturing groups: 1 is the previous words,
               2 is the keyword that was matched, 3 is the subsequent words.
             """
             keywords = self.get_keywords(keywords)
-            words_before_group = rf"((?:\S+\s){{0,{before}}})"
+            words_before_group = rf"((?:\S+\s){{0, {before}}})"
             keywords_group = "|".join(keywords)
             keywords_group = r"(" + keywords_group + r")"
-            words_after_group = rf"(.?\s(?:\S+\s){{0,{after}}})"
+            words_after_group = rf"(.?\s(?:\S+\s){{0, {after}}})"
             snippet_regex = words_before_group + keywords_group + words_after_group
             return snippet_regex
 
-        def match(self, query_set: QuerySet, query_string: str, add_snippet: bool=False) -> QuerySet:
+        def match(
+            self, query_set: QuerySet, query_string: str, add_snippet: bool = False
+        ) -> QuerySet:
             """
             Get the queryset for matching one type of objects, without Latin folding.
 
@@ -399,7 +410,9 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                 add_snippet=add_snippet,
             )
 
-        def match_folded(self, query_set: QuerySet, query_string: str, add_snippet: bool=False) -> QuerySet:
+        def match_folded(
+            self, query_set: QuerySet, query_string: str, add_snippet: bool = False
+        ) -> QuerySet:
             """
             Get the queryset for matching one type of objects, with Latin folding.
 
@@ -446,10 +459,11 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         [group_name, "all content", "orginal texts", "translations", "commentary"]
         """
 
-        type SearchField = tuple[str, str]
+        SearchField = tuple[str, str]
         """
-        A pair of (lookup string, foldedness); foldedness is "folded" or "non-folded".
-        This is used to override the default search fields for a particular kind of search.
+        A pair of (lookup string, foldedness); foldedness is "folded" or
+        "non-folded". This is used to override the default search fields for
+        a particular kind of search.
         """
 
         search_types: list[SearchField] = [
@@ -557,10 +571,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     # move to queryset on model managers
     @classmethod
     def antiquarian_search(
-        cls,
-        terms: Term,
-        ant_filter: Iterable[str] | None=None,
-        **kwargs: Any
+        cls, terms: Term, ant_filter: Iterable[str] | None = None, **kwargs: Any
     ) -> Iterable[Any]:
         """
         Find all the ``Antiquarian``s that match the query.
@@ -595,7 +606,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     def work_search(
         cls,
         terms: Term,
-        ant_filter: Iterable[str] | None=None,
+        ant_filter: Iterable[str] | None = None,
         **kwargs: Any,
     ) -> Iterable[Any]:
         """
@@ -620,7 +631,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     def book_search(
         cls,
         terms: Term,
-        ant_filter: Iterable[str] | None=None,
+        ant_filter: Iterable[str] | None = None,
         **kwargs: Any,
     ) -> Iterable[Any]:
         """
@@ -645,7 +656,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         cls,
         terms: Term,
         qs: QuerySet,
-        search_field: SearchMethodGroup.SearchField | None=None
+        search_field: SearchMethodGroup.SearchField | None = None,
     ) -> Iterable[Any]:
         """
         Find all the ``Fragment``, ``AnonymousFragment`` or ``Testimonium``
@@ -677,9 +688,9 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     def fragment_search(
         cls,
         terms: Term,
-        ant_filter: Iterable[str] | None=None,
-        ca_filter: Iterable[str] | None=None,
-        search_field: SearchMethodGroup.SearchField | None=None,
+        ant_filter: Iterable[str] | None = None,
+        ca_filter: Iterable[str] | None = None,
+        search_field: SearchMethodGroup.SearchField | None = None,
         **kwargs: Any,
     ) -> Iterable[Any]:
         """
@@ -702,9 +713,9 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     def testimonium_search(
         cls,
         terms: Term,
-        ant_filter: Iterable[str] | None=None,
-        ca_filter: Iterable[str] | None=None,
-        search_field: SearchMethodGroup.SearchField | None=None,
+        ant_filter: Iterable[str] | None = None,
+        ca_filter: Iterable[str] | None = None,
+        search_field: SearchMethodGroup.SearchField | None = None,
         **kwargs: Any,
     ) -> Iterable[Any]:
         """
@@ -727,10 +738,10 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     def anonymous_fragment_search(
         cls,
         terms: Term,
-        ant_filter: Iterable[str] | None=None,
-        ca_filter: Iterable[str] | None=None,
-        search_field: SearchMethodGroup.SearchField | None=None,
-        qs: QuerySet | None=None,
+        ant_filter: Iterable[str] | None = None,
+        ca_filter: Iterable[str] | None = None,
+        search_field: SearchMethodGroup.SearchField | None = None,
+        qs: QuerySet | None = None,
         **kwargs: Any,
     ) -> Iterable[Any]:
         """
@@ -754,9 +765,9 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     def appositum_search(
         cls,
         terms: Term,
-        ant_filter: Iterable[str] | None=None,
-        ca_filter: Iterable[str] | None=None,
-        search_field: SearchMethodGroup.SearchField | None=None,
+        ant_filter: Iterable[str] | None = None,
+        ca_filter: Iterable[str] | None = None,
+        search_field: SearchMethodGroup.SearchField | None = None,
         **kwargs: Any,
     ) -> Iterable[Any]:
         """
@@ -783,8 +794,8 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     def apparatus_criticus_search(
         cls,
         terms: Term,
-        ant_filter: Iterable[str] | None=None,
-        ca_filter: Iterable[str] | None=None,
+        ant_filter: Iterable[str] | None = None,
+        ca_filter: Iterable[str] | None = None,
         **kwargs: Any,
     ) -> Iterable[Any]:
         """
@@ -817,8 +828,8 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     def bibliography_search(
         cls,
         terms: Term,
-        ant_filter: Iterable[str] | None=None,
-        ca_filter: Iterable[str] | None=None,
+        ant_filter: Iterable[str] | None = None,
+        ca_filter: Iterable[str] | None = None,
         **kwargs: Any,
     ) -> Iterable[Any]:
         """
@@ -840,7 +851,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     def citing_author_search(
         cls,
         terms: Term,
-        ca_filter: Iterable[str] | None=None,
+        ca_filter: Iterable[str] | None = None,
         **kwargs: Any,
     ) -> Iterable[Any]:
         """
@@ -857,10 +868,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
 
     @classmethod
     def citing_work_search(
-        cls,
-        terms: Term,
-        ca_filter: Iterable[str] | None=None,
-        **kwargs
+        cls, terms: Term, ca_filter: Iterable[str] | None = None, **kwargs
     ) -> Iterable[Any]:
         """
         Find all the ``CitingWork``s that match the query.
@@ -878,9 +886,9 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     def get_filtered_model_qs(
         cls,
         model: type,
-        qs: QuerySet | None=None,
-        ant_filter: Iterable[str] | None=None,
-        ca_filter: Iterable[str] | None=None
+        qs: QuerySet | None = None,
+        ant_filter: Iterable[str] | None = None,
+        ca_filter: Iterable[str] | None = None,
     ) -> QuerySet:
         """
         Get a query set filtered by antiquarian and/or citing author.
