@@ -582,7 +582,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     def topic_search(cls, terms: Term, **kwargs: Any) -> Iterable[Any]:
         """
         Find all the ``Topic``s that match the query.
-        
+
         :param term: Object representing the user's query.
         :param kwargs: Ignored. Here to allow compatibility with other search functions.
         :return: The Topics found.
@@ -600,7 +600,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     ) -> Iterable[Any]:
         """
         Find all the ``Work``s that match the query.
-        
+
         :param term: Object representing the user's query.
         :param ant_filter: A list of antiquarians to include in the search.
         :param kwargs: Ignored. Here to allow compatibility with other search functions.
@@ -625,7 +625,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     ) -> Iterable[Any]:
         """
         Find all the ``Book``s that match the query.
-        
+
         :param term: Object representing the user's query.
         :param ant_filter: A list of antiquarians to include in the search.
         :param kwargs: Ignored. Here to allow compatibility with other search functions.
@@ -684,7 +684,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     ) -> Iterable[Any]:
         """
         Find all the ``Fragment``s that match the query.
-        
+
         :param term: Object representing the user's query.
         :param ant_filter: A list of antiquarians to include in the search.
         :param ca_filter: A list of citing authors to include in the search.
@@ -709,7 +709,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     ) -> Iterable[Any]:
         """
         Find all the ``Testimonium`` objects that match the query.
-        
+
         :param term: Object representing the user's query.
         :param ant_filter: A list of antiquarians to include in the search.
         :param ca_filter: A list of citing authors to include in the search.
@@ -735,7 +735,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     ) -> Iterable[Any]:
         """
         Find all the ``AnonymousFragment``s that match the query.
-        
+
         :param term: Object representing the user's query.
         :param ant_filter: A list of antiquarians to include in the search.
         :param ca_filter: A list of citing authors to include in the search.
@@ -762,7 +762,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         """
         Find all the ``AnonymousFragment``s that have associated appositum
           fragments and that match the query.
-        
+
         :param term: Object representing the user's query.
         :param ant_filter: A list of antiquarians to include in the search.
         :param ca_filter: A list of citing authors to include in the search.
