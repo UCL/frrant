@@ -257,7 +257,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                 )
                 min_words = "0" if not min_words else min_words
                 if max_words:
-                    prox_reg = rf"\s(?:\w+\s){{{min_words}, {max_words}}}"
+                    prox_reg = rf"\s(?:\w+\s){{{min_words},{max_words}}}"
                 elif min_words:
                     min_words = min_words + "," if isRange else min_words
                     prox_reg = rf"\s(?:\w+\s){{{min_words}}}"
@@ -375,10 +375,10 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
               2 is the keyword that was matched, 3 is the subsequent words.
             """
             keywords = self.get_keywords(keywords)
-            words_before_group = rf"((?:\S+\s){{0, {before}}})"
+            words_before_group = rf"((?:\S+\s){{0,{before}}})"
             keywords_group = "|".join(keywords)
             keywords_group = r"(" + keywords_group + r")"
-            words_after_group = rf"(.?\s(?:\S+\s){{0, {after}}})"
+            words_after_group = rf"(.?\s(?:\S+\s){{0,{after}}})"
             snippet_regex = words_before_group + keywords_group + words_after_group
             return snippet_regex
 
