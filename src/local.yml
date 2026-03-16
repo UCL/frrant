@@ -40,8 +40,6 @@ services:
       - local_postgres_data_backups:/backups
     env_file:
       - ./.envs/.local/.postgres
-    ports:
-      - "15432:5432"
 
   elasticsearch:
     container_name: elasticsearch
