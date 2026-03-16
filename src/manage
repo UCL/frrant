@@ -1,1 +1,1 @@
-docker compose -f local.yml run --rm django python manage.py $@
+docker compose -f local.yml run --user="$(id -u):$(id -g)" --rm django python manage.py $@
