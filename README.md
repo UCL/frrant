@@ -25,16 +25,9 @@ This project uses containers. Below are set up instructions and useful commands.
 ### 1. Install Docker Engine
 
 - Follow the instructions here for your platform: https://docs.docker.com/get-docker/
-- You will need to create a free Docker account and sign into it
+- You don't need Docker Desktop necessarily, the command line tool is sufficient.
 
-### 2. Generate ssh keys for GitHub (if not already done)
-
-- Log into GitHub
-- Select 'Settings' from the drop down on the top right menu
-- Select 'SSH and GPG keys' from the left menu
-- Follow the [instructions in their guide](https://docs.github.com/articles/generating-an-ssh-key/)
-
-### 3. Setup a virtual environment and checkout the RARD source code
+### 2. Checkout the RARD source code
 
 - Create a working folder, e.g. `~/projects/` and `cd` into it
 
@@ -46,33 +39,7 @@ This project uses containers. Below are set up instructions and useful commands.
 
 ```git checkout development```
 
-- Create a virtual environment; e.g. with virtualenvwrapper:
-
-```mkvirtualenv -a ~/projects/frrant frrant```
-
-- Install the requirements for local development (including pre-commit, flake8, black etc.):
-
-```pip install -r src/requirements/local.txt```
-
-### 4. Tell Docker about your folder
-
-Docker needs to know the full path of your project folder (so it can look for changes)
-
-- Open the Docker application
-- Find 'Preferences' and then 'Resources'
-- Click 'File Sharing'
-- Remove any unnecesary folders e.g. `/tmp`, `/var`
-(Docker can use a lot of resources when watching folders for changes so it is best to keep this list to the absolute minimum)
-- Click 'Add' (or '+') to add a new folder
-- Browse to your projects folder and click 'Open'
-- Click 'Apply and Restart'
-
-(Docker needs to restart for the changes to take effect).
-
-More info is available online for your specific client, e.g. here for the Mac client:
-https://docs.docker.com/docker-for-mac/#file-sharing
-
-### 5. Build the containers
+### 3. Build the containers
 
 - For the example project location above:
 
@@ -80,22 +47,23 @@ https://docs.docker.com/docker-for-mac/#file-sharing
 
 Note that for running locally (on our own machines) we use the `local.yml` config and not `production.yml` which is for deployment to the production platform.
 
-```docker-compose -f local.yml build```
+```docker compose -f local.yml build```
 
-to ensure everything is built from scratch, you can add `--no-cache`
-```docker-compose -f local.yml build --no-cache```
+(or `docker-compose` for older versions of Docker) to ensure everything is built from scratch, you can add `--no-cache`
+
+```docker compose -f local.yml build --no-cache```
 
 - Bring up the project
 
-```docker-compose -f local.yml up```
+```docker compose -f local.yml up```
 
 or as a background process:
 
-```docker-compose -f local.yml up -d```
+```docker compose -f local.yml up -d```
 
 NB the output will be hidden when run in the background. To inspect the logs after the fact:
 
-```docker-compose -f local.yml logs -f```
+```docker compose -f local.yml logs -f```
 
 (the `-f` will update the output as more log messages come in. Omit `-f` to just see a snapshot).
 
@@ -103,19 +71,19 @@ NB the output will be hidden when run in the background. To inspect the logs aft
 
 To restart the project, e.g. if some changes have been made to code that don't need the container to be rebuilt then use:
 
-```docker-compose -f local.yml down```
+```docker compose -f local.yml down```
 
-```docker-compose -f local.yml up```
+```docker compose -f local.yml up```
 
 If any changes are made to the machine configuration, e.g. new pip packages installed, then the project will need to be rebuilt. Safest is to rebuild with no cache (see above) though this will take longer. Depending on the change it might be advisable to try rebuilding first without the `--no-cache` option to save time.
 
-```docker-compose -f local.yml down```
+```docker compose -f local.yml down```
 
-```docker-compose -f local.yml build [--no-cache]```
+```docker compose -f local.yml build [--no-cache]```
 
-```docker-compose -f local.yml up```
+```docker compose -f local.yml up```
 
-### 6. User Accounts
+### 4. User Accounts
 
 User accounts are created by the superuser. For convenience, and *on local development containers only* a superuser account is automatically created when the container is built.
 
@@ -125,25 +93,36 @@ Create users in the standard Django admin.
 
 Log out of the admin and navigate to `localhost:8000` and follow the links to log in with the credentials you entered.
 
-### 7. Useful Docker commands
+### 5. Useful Docker commands
 
-Commands (shell or Django commands etc) are run on the Docker container via `docker-compose` using the local configuration.
+Commands (shell or Django commands etc) are run on the Docker container via `docker compose` using the local configuration.
 
 Your container needs to be running while these commands are run.
 
-#### To stop a container:
+#### To stop the containers:
 
-```docker-compose -f local.yml down```
+```docker compose -f local.yml down```
 
-#### To stop a container and remove the volumes
+#### To stop the containers and remove the volumes
 
 The `-v` option will delete any volume data e.g. Postgres data
 
-```docker-compose -f local.yml down -v```
+```docker compose -f local.yml down -v```
 
 #### Open a Django shell:
 
-```docker-compose -f local.yml run django python manage.py shell```
+A couple of useful shell scripts, `manage` (for Linux and Mac) and `manage.bat` (for Windows)
+have been provided in the `src` directory.
+These can be used like the standard `manage.py` script provided by Django,
+but inside the local Docker compose network.
+
+So, from the `src` directory, on Linux or Mac you can run:
+
+```./manage shell```
+
+Or at a Windows command prompt equivalently:
+
+```manage.bat shell```
 
 ### Open a PostgreSQL shell in local:
 
@@ -158,27 +137,29 @@ e.g.:
 
 (for example `createsuperuser`)
 
-```docker-compose -f local.yml run django python manage.py <command> [arguments]```
+```./manage <command> [arguments]```
 
-### 8. Running Tests:
+(or `manage.bat` on Windows)
+
+### 6. Running Tests:
 
 #### Run unit tests:
 
 Note that by adding `--rm` to the commands then the container in which the tests are run is deleted once the tests have finished.
 
-```docker-compose -f local.yml run --rm django pytest```
+```docker compose -f local.yml run --rm django pytest```
 
 #### Run unit tests with coverage:
 
-```docker-compose -f local.yml run --rm django coverage run -m pytest```
+```docker compose -f local.yml run --rm django coverage run -m pytest```
 
 NB to view coverage results,
 
-```docker-compose -f local.yml run --rm django coverage report```
+```docker compose -f local.yml run --rm django coverage report```
 
 which prints a top-level summary to the console. Alternatively for more detail, run
 
-```docker-compose -f local.yml run --rm django coverage html```
+```docker compose -f local.yml run --rm django coverage html```
 
 which creates a local folder `htmlcov`. Browse to the file `index.html` in that folder
 
@@ -193,7 +174,7 @@ or just run the failing test or test class (marked with @pytest.mark.failingtest
 #### Check all of the below together:
 
 ```
-Git add .
+git add .
 pre-commit
 ```
 
@@ -201,29 +182,29 @@ if you get a red Fail message, run both lines again until there are no Fails
 
 #### Check code comprehensively:
 
-```docker-compose -f local.yml run --rm django flake8```
+```docker compose -f local.yml run --rm django flake8```
 
 (no errors means check passed)
 
 #### Check code style only:
 
-```docker-compose -f local.yml run --rm django pycodestyle```
+```docker compose -f local.yml run --rm django pycodestyle```
 
 (no errors means style check passed)
 
 #### Check object types:
 
-```docker-compose -f local.yml run --rm django mypy rard```
+```docker compose -f local.yml run --rm django mypy rard```
 
 #### Fix import order:
 
 The command below will correct the order of your python imports to meet the standard
 
-```docker-compose -f local.yml run --rm django isort .```
+```docker compose -f local.yml run --rm django isort .```
 
 (import order errors when running the flake8 command should be fixed automatically by running the above command)
 
-### 9. Django Migrations
+### 7. Django Migrations
 
 If you make changes to model definitions (i.e. in the `models.py` files) then these need to be reflected in a migration file.
 
@@ -231,21 +212,21 @@ A migration file is a Python 'patch' file generated by Django to apply the chang
 
 If you have made a change to a model and need to generate a migration file:
 
-```docker-compose -f local.yml run django python manage.py makemigrations```
+```./manage makemigrations```
 
 You will then either need to restart your container so that these changes are applied:
 
-```docker-compose -f local.yml down```
+```docker compose -f local.yml down```
 
-```docker-compose -f local.yml up```
+```docker compose -f local.yml up -d```
 
 and these migrations are applied. Alternatively, to apply the latest migrations without restarting the container:
 
-```docker-compose -f local.yml run django python manage.py migrate```
+```./manage migrate```
 
 Sometimes migrations cannot be automatically generated, e.g. if two developers have both generated migration files and Django doesn't know which in which order they should be applied. If the two migrations are independent of one another (i.e. relate to different models) then Django can automatically merge these migration files for you by running:
 
-```docker-compose -f local.yml run django python manage.py makemigrations --merge```
+```./manage makemigrations --merge```
 
 and following the instructions.
 
@@ -258,26 +239,26 @@ If you have made changes to your models and have not generated a migration file 
 
 NB In our case we would run the suggested `manage.py` commands via the Docker container in the way shown above, i.e.
 
-```docker-compose -f local.yml run django python manage.py makemigrations```
+```./manage makemigrations```
 
 and
 
-```docker-compose -f local.yml run django python manage.py migrate```
+```./manage migrate```
 
 
 If your static files (css, js, fonts etc) have changed then on the production environments you will also need to refresh all of the static files in the deployed static folder.
 
-```docker-compose -f production.yml run django python manage.py collectstatic```
+```docker compose -f production.yml run --rm django python manage.py collectstatic```
 
 Answer 'yes' to the 'are you sure question'. It might say something like '0 files updated' but this message is notoriously misleading. Check to see whether the static files (js etc) being used are the ones you expect.
 
-### 10. Loading data fixtures
+### 8. Loading data fixtures
 
 To take a snapshot of e.g. the production database and install it locally we do the following:
 
 Go to the production machine and run the following command:
 
-```sudo docker-compose -f production.yml run --rm django python manage.py dumpdata --indent=4  --natural-foreign --natural-primary -a  > dump.json```
+```sudo docker compose -f production.yml run --rm django python manage.py dumpdata --indent=4  --natural-foreign --natural-primary -a  > dump.json```
 
 This dumps all (-a) the data in the database into a json file that we can load locally. Check the end of the file to ensure there are no unexpected characters, particularly if you get an error similar to:
 ```
@@ -289,11 +270,11 @@ Now scp the json file to your local machine and run the following commands:
 
 First, remove existing database:
 
-```docker-compose -f local.yml down -v```
+```docker compose -f local.yml down -v```
 
 Rebuild database:
 
-```docker-compose -f local.yml up -d --build```
+```docker compose -f local.yml up -d --build```
 
 Run the `src/loaddata.sh` script to load this:
 
@@ -301,11 +282,11 @@ Run the `src/loaddata.sh` script to load this:
 ./loaddata.sh dump.json
 ```
 
-### 11. Requirements
+### 9. Requirements
 
 Requirements are applied when the containers are built.
 
-### 12. Pre-commit
+### 10. Pre-commit
 
 The requirements file for local development includes pre-commit. To set this up on your machine, make sure you're in the frrant directory and run:
 
