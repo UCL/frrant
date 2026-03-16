@@ -111,7 +111,18 @@ The `-v` option will delete any volume data e.g. Postgres data
 
 #### Open a Django shell:
 
+A couple of useful shell scripts, `manage` (for Linux and Mac) and `manage.bat` (for Windows)
+have been provided in the `src` directory.
+These can be used like the standard `manage.py` script provided by Django,
+but inside the local Docker compose network.
+
+So, from the `src` directory, on Linux or Mac you can run:
+
 ```./manage shell```
+
+Or at a Windows command prompt equivalently:
+
+```manage.bat shell```
 
 ### Open a PostgreSQL shell in local:
 
@@ -127,6 +138,8 @@ e.g.:
 (for example `createsuperuser`)
 
 ```./manage <command> [arguments]```
+
+(or `manage.bat` on Windows)
 
 ### 6. Running Tests:
 
