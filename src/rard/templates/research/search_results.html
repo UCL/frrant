@@ -86,6 +86,7 @@
       <a href='{{ object.get_absolute_url }}' class="list-group-item list-group-item-action flex-column align-items-start">
         <div class="d-flex w-100 justify-content-between">
           <h5 class="mb-1">{{ object }}</h5>
+          <p>####{{object.name | safe}}##{{object.display_name | safe}}####</p>
           <p><span class='badge badge-secondary badge-pill'>{{ object|get_object_class }}</span></p>
         </div>
         <p class="mb-1">{{object.snippet | safe }}</p>

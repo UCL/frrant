@@ -7,22 +7,36 @@ from typing import Any
 
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.postgres.aggregates import StringAgg
 from django.db.models import (
+    Case,
+    CharField,
     Expression,
     ExpressionWrapper,
+    F,
     Func,
+    OuterRef,
     Q,
     QuerySet,
+    Subquery,
     TextField,
     Value,
+    When,
 )
-from django.db.models.functions import Lower
+from django.db.models.functions import Cast, Coalesce, Concat, Lower, NullIf
+from django.db.models.expressions import RawSQL
 from django.shortcuts import redirect
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_GET
 from django.views.generic import ListView, TemplateView
 
+from rard.research.models.base import (
+    AppositumFragmentLink,
+    FragmentLink,
+    TestimoniumLink
+)
 from rard.research.models import (
+    antiquarian,
     AnonymousFragment,
     Antiquarian,
     BibliographyItem,
@@ -96,6 +110,12 @@ PUNCTUATION_BASE = PUNCTUATION.translate({ord(c): None for c in CTRL_CHARS})
 PUNCTUATION_RE = re.compile("[" + re.escape(PUNCTUATION_BASE) + "]")
 
 MatcherCallable = Callable[[QuerySet, str, bool], QuerySet]
+
+
+class ConcatNullable(Func):
+    """Concatenate strings with ||. Any NULL argument produces a NULL result."""
+    template = "%(expressions)s"
+    arg_joiner = " || "
 
 
 @method_decorator(require_GET, name="dispatch")
@@ -568,6 +588,93 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             qs = qs.exclude(id__in=[o.id for o in matches])
         return chain(*results)
 
+    @classmethod
+    def annotate_fragment(cls, qs: QuerySet) -> QuerySet:
+        """Annotate a queryset returning ``Fragment``s with data we need."""
+        # All the m2m links between Antiquarians and a Work
+        work_antiquarians = antiquarian.WorkLink.objects.filter(
+            work=OuterRef("work")
+        ).annotate(ant_name=F("antiquarian__name"))
+        # All the TestimoniuFragmentLinks that reference a Fragment
+        link_query = FragmentLink.objects.filter(
+            fragment=OuterRef("pk")
+        ).annotate(link_name=Case(
+            When(Q(work__unknown=False), then=Concat(
+                Coalesce(
+                    NullIf(StringAgg(Subquery(work_antiquarians.values("ant_name")), delimiter=", "), Value("")),
+                    Concat(Value("Unlinked "), Cast(F("fragment__pk"), CharField())),
+                ),
+                Value(": "),
+                F("work__name"),
+                Value(" F"),
+                Cast(F("work_order") + 1, CharField()),
+                Value(" ["),
+                F("antiquarian__name"),
+                Value("]"),
+            ))
+        ), default=Concat(
+            F("antiquarian__name"),
+            Value(" T"),
+            Cast(F("work_order") + 1, CharField()),
+        ))
+        return qs.annotate(display_name=Coalesce(
+            NullIf(StringAgg(Subquery(link_query.values("link_name")), delimiter=", "), Value("")),
+            Concat(Value("Unlinked "), Cast(F("pk"), CharField())),
+        ))
+
+    @classmethod
+    def annotate_annonymous_fragment(cls, qs: QuerySet) -> QuerySet:
+        """Annotate a queryset returning AnonymousFragments with data we need."""
+        return qs.annotate(display_name=Concat(
+            Value("Anonymous A"),
+            Cast(Value("order"), CharField()),
+        ))
+
+    @classmethod
+    def annotate_testimonium(cls, qs: QuerySet) -> QuerySet:
+        """Annotate a queryset returning Testimonia with the data we need."""
+        # All the m2m links between Antiquarians and a Work
+        work_antiquarians = antiquarian.WorkLink.objects.filter(
+            work=OuterRef("work")
+        ).annotate(ant_name=F("antiquarian__name"))
+        # All the TestimoniumLinks that reference a Testimonium
+        link_query = TestimoniumLink.objects.filter(
+            testimonium=OuterRef("pk")
+        ).annotate(link_name=Case(
+            When(Q(work__unknown=False), then=Concat(
+                Coalesce(
+                    NullIf(StringAgg(Subquery(work_antiquarians.values("ant_name")), delimiter=", "), Value("")),
+                    Concat(Value("Unlinked "), Cast(F("testimonium__pk"), CharField())),
+                ),
+                Value(": "),
+                F("work__name"),
+                Value(" T"),
+                Cast(F("work_order") + 1, CharField()),
+                Value(" ["),
+                F("antiquarian__name"),
+                Value("]"),
+            ))
+        ), default=Concat(
+            F("antiquarian__name"),
+            Value(" T"),
+            Cast(F("work_order") + 1, CharField()),
+        ))
+        # get_link_names()
+        #    if link.work and not link.work.unknown:
+        #        name = f"{display_name(link.work)} T{link.work_order + 1} [{link.antiquarian}]"
+        #    else:
+        #        name = f"{link.antiquarian} T{link.work_order + 1}"
+        # _render_display_name()
+        #first_line = None
+        #if len(names) == 0:
+        #    first_line = "Unlinked {}".format(self.pk)
+        #else:
+        #    first_line = names[0]
+        return qs.annotate(display_name=Coalesce(
+            NullIf(StringAgg(Subquery(link_query.values("link_name")), delimiter=", "), Value("")),
+            Concat(Value("Unlinked "), Cast(F("pk"), CharField())),
+        ))
+
     # move to queryset on model managers
     @classmethod
     def antiquarian_search(
@@ -617,7 +724,13 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         :param kwargs: Ignored. Here to allow compatibility with other search functions.
         :return: The Works found.
         """
-        qs = cls.get_filtered_model_qs(Work, ant_filter=ant_filter)
+        qs = cls.get_filtered_model_qs(Work, ant_filter=ant_filter).annotate(
+            display_name=Concat(
+                Cast(StringAgg("antiquarian__name", delimiter=", "), CharField()),
+                Value(": "),
+                F("name"),
+            )
+        )
         search_fields = [
             ("name", terms.match),
             ("subtitle", terms.match),
@@ -642,7 +755,14 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         :param kwargs: Ignored. Here to allow compatibility with other search functions.
         :return: The Books found.
         """
-        qs = cls.get_filtered_model_qs(Book, ant_filter=ant_filter)
+        qs = cls.get_filtered_model_qs(Book, ant_filter=ant_filter).annotate(
+            display_name=Coalesce(
+                ConcatNullable(Value("Book "), F("number"), Value(": "), F("subtitle")),
+                ConcatNullable(Value("Book "), F("number")),
+                F("subtitle"),
+                output_field=CharField(),
+            )
+        )
         search_fields = [
             ("subtitle", terms.match),
             ("work__antiquarian__name", terms.match),
@@ -704,9 +824,9 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         :param kwargs: Ignored. Here to allow compatibility with other search functions.
         :return: The Fragments found.
         """
-        qs = cls.get_filtered_model_qs(
+        qs = cls.annotate_fragment(cls.get_filtered_model_qs(
             Fragment, ant_filter=ant_filter, ca_filter=ca_filter
-        )
+        ))
         return cls.original_text_owner_search(terms, qs, search_field=search_field)
 
     @classmethod
@@ -729,9 +849,9 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         :param kwargs: Ignored. Here to allow compatibility with other search functions.
         :return: The Testimonia found.
         """
-        qs = cls.get_filtered_model_qs(
+        qs = cls.annotate_testimonium(cls.get_filtered_model_qs(
             Testimonium, ant_filter=ant_filter, ca_filter=ca_filter
-        )
+        ))
         return cls.original_text_owner_search(terms, qs, search_field=search_field)
 
     @classmethod
@@ -756,9 +876,9 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         :return: The Fragments found.
         """
         if not qs:
-            qs = cls.get_filtered_model_qs(
+            qs = cls.annotate_annonymous_fragment(cls.get_filtered_model_qs(
                 AnonymousFragment, ant_filter=ant_filter, ca_filter=ca_filter
-            )
+            ))
         return cls.original_text_owner_search(terms, qs, search_field=search_field)
 
     @classmethod
@@ -783,9 +903,9 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         :return: The Fragments found.
         """
         qs = AnonymousFragment.objects.exclude(appositumfragmentlinks_from=None).all()
-        qs = cls.get_filtered_model_qs(
+        qs = cls.annotate_annonymous_fragment(cls.get_filtered_model_qs(
             AnonymousFragment, qs=qs, ant_filter=ant_filter, ca_filter=ca_filter
-        )
+        ))
         return cls.anonymous_fragment_search(
             terms, qs=qs, search_field=search_field, **kwargs
         )
@@ -809,15 +929,15 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         :return: The objects found.
         """
         query_string = "original_texts__apparatus_criticus_items__content"
-        qst = cls.get_filtered_model_qs(
+        qst = cls.annotate_testimonium(cls.get_filtered_model_qs(
             Testimonium, ant_filter=ant_filter, ca_filter=ca_filter
-        )
-        qsa = cls.get_filtered_model_qs(
+        ))
+        qsa = cls.annotate_annonymous_fragment(cls.get_filtered_model_qs(
             AnonymousFragment, ant_filter=ant_filter, ca_filter=ca_filter
-        )
-        qsf = cls.get_filtered_model_qs(
+        ))
+        qsf = cls.annotate_fragment(cls.get_filtered_model_qs(
             Fragment, ant_filter=ant_filter, ca_filter=ca_filter
-        )
+        ))
         return chain(
             terms.match_folded(qsf, query_string, add_snippet=True).distinct(),
             terms.match_folded(qsa, query_string, add_snippet=True).distinct(),
@@ -843,7 +963,18 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         """
         qs = cls.get_filtered_model_qs(
             BibliographyItem, ant_filter=ant_filter, ca_filter=ca_filter
-        )
+        ).annotate(display_name=Concat(
+            F("author_surnames"),
+            Coalesce(ConcatNullable(Value(" ["), F("year"), Value("]")), Value("")),
+            Value(": "),
+            Cast(Func(
+                F("title"),
+                Value(r"\s*<[^>]*>\s*"),
+                Value(" "),
+                Value("g"),
+                function="REGEXP_REPLACE",
+            ), output_field=CharField()),
+        ))
         search_fields = [("authors", terms.match), ("title", terms.match)]
         return cls.generic_content_search(qs, search_fields)
 
@@ -878,7 +1009,17 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         :param kwargs: Ignored. Here to allow compatibility with other search functions.
         :return: The Citing Works found.
         """
-        qs = cls.get_filtered_model_qs(CitingWork, ca_filter=ca_filter)
+        qs = cls.get_filtered_model_qs(CitingWork, ca_filter=ca_filter).annotate(
+            display_name=Concat(
+                Coalesce(
+                    F("author__name"),
+                    Value("Anonymous"),
+                    output_field=CharField(),
+                ),
+                Value(", "),
+                F("title"),
+            )
+        )
         search_fields = [("title", terms.match), ("edition", terms.match)]
         return cls.generic_content_search(qs, search_fields)
 
@@ -905,6 +1046,8 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         if ant_filter:
             if model in [Fragment, Testimonium]:
                 qs = qs.filter(linked_antiquarians__in=ant_filter)
+            if model == FragmentLink:
+                qs = qs.filter(fragment__linked_antiquarians__in=ant_filter)
             if model == AnonymousFragment:
                 qs = qs.filter(appositumfragmentlinks_from__antiquarian__in=ant_filter)
             if model == Antiquarian:
@@ -916,6 +1059,8 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         if ca_filter:
             if model in [Fragment, AnonymousFragment, Testimonium]:
                 qs = qs.filter(original_texts__citing_work__author__in=ca_filter)
+            if model == FragmentLink:
+                qs = qs.filter(fragment__original_texts__citing_work__author__in=ca_filter)
             if model == CitingWork:
                 qs = qs.filter(author__in=ca_filter)
             if model == CitingAuthor:
