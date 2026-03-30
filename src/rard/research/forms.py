@@ -372,7 +372,7 @@ class WorkForm(forms.ModelForm):
             instance.save_without_historical_record()
             # introduction will have been created at this point
             if not instance.introduction:
-                instance.introduction = TextObjectField().objects.create(content="")
+                instance.introduction = TextObjectField.objects.create(content="")
                 instance.save()
             instance.introduction.content = self.cleaned_data["introduction_text"]
             instance.introduction.save_without_historical_record()

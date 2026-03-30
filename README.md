@@ -61,11 +61,11 @@ or as a background process:
 
 ```docker compose -f local.yml up -d```
 
-NB the output will be hidden when run in the background. To inspect the logs after the fact:
+NB the output will be hidden when run in the background. To inspect the logs:
 
 ```docker compose -f local.yml logs -f```
 
-(the `-f` will update the output as more log messages come in. Omit `-f` to just see a snapshot).
+(the `-f` will update the output as more log messages come in. Omit `-f` to see just a snapshot).
 
 - With the container running, browse to `localhost:8000` in your browser and you should see the project's home page.
 
