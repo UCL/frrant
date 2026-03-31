@@ -602,20 +602,22 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             When(Q(work__unknown=False), then=Concat(
                 Coalesce(
                     NullIf(StringAgg(Subquery(work_antiquarians.values("ant_name")), delimiter=", "), Value("")),
-                    Concat(Value("Unlinked "), Cast(F("fragment__pk"), CharField())),
+                    Value("Anonymous"),
                 ),
                 Value(": "),
                 F("work__name"),
                 Value(" F"),
                 Cast(F("work_order") + 1, CharField()),
-                Value(" ["),
+                Value(" [="),
                 F("antiquarian__name"),
+                Value(" F"),
+                Cast(F("order") + 1, CharField()),
                 Value("]"),
-            ))
-        ), default=Concat(
-            F("antiquarian__name"),
-            Value(" T"),
-            Cast(F("work_order") + 1, CharField()),
+            )), default=Concat(
+                F("antiquarian__name"),
+                Value(" F"),
+                Cast(F("order") + 1, CharField()),
+            )
         ))
         return qs.annotate(display_name=Coalesce(
             NullIf(StringAgg(Subquery(link_query.values("link_name")), delimiter=", "), Value("")),
@@ -644,7 +646,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             When(Q(work__unknown=False), then=Concat(
                 Coalesce(
                     NullIf(StringAgg(Subquery(work_antiquarians.values("ant_name")), delimiter=", "), Value("")),
-                    Concat(Value("Unlinked "), Cast(F("testimonium__pk"), CharField())),
+                    Value("Anonymous"),
                 ),
                 Value(": "),
                 F("work__name"),
@@ -653,23 +655,12 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                 Value(" ["),
                 F("antiquarian__name"),
                 Value("]"),
-            ))
-        ), default=Concat(
-            F("antiquarian__name"),
-            Value(" T"),
-            Cast(F("work_order") + 1, CharField()),
+            )), default=Concat(
+                F("antiquarian__name"),
+                Value(" T"),
+                Cast(F("work_order") + 1, CharField()),
+            )
         ))
-        # get_link_names()
-        #    if link.work and not link.work.unknown:
-        #        name = f"{display_name(link.work)} T{link.work_order + 1} [{link.antiquarian}]"
-        #    else:
-        #        name = f"{link.antiquarian} T{link.work_order + 1}"
-        # _render_display_name()
-        #first_line = None
-        #if len(names) == 0:
-        #    first_line = "Unlinked {}".format(self.pk)
-        #else:
-        #    first_line = names[0]
         return qs.annotate(display_name=Coalesce(
             NullIf(StringAgg(Subquery(link_query.values("link_name")), delimiter=", "), Value("")),
             Concat(Value("Unlinked "), Cast(F("pk"), CharField())),
