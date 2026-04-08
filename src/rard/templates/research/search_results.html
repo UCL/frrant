@@ -1,5 +1,5 @@
 {% extends "research/list_base.html" %}
-{% load i18n get_object_class %}
+{% load i18n get_object_class get_detail_page %}
 
 
 {% block heading %}
@@ -83,11 +83,10 @@
 
     <div class="list-group list-group-flush">
     {% for object in page_obj %}
-      <a href='{{ object.get_absolute_url }}' class="list-group-item list-group-item-action flex-column align-items-start">
+      <a href='{{ object | get_detail_page }}' class="list-group-item list-group-item-action flex-column align-items-start">
         <div class="d-flex w-100 justify-content-between">
-          <h5 class="mb-1">{{ object }}</h5>
-          <p>####{{object.name | safe}}##{{object.display_name | safe}}####</p>
-          <p><span class='badge badge-secondary badge-pill'>{{ object|get_object_class }}</span></p>
+          <h5 class="mb-1">{{ object.display_name | safe }}</h5>
+          <p><span class='badge badge-secondary badge-pill'>{{ object.class_name | safe }}</span></p>
         </div>
         <p class="mb-1">{{object.snippet | safe }}</p>
       </a>

@@ -589,82 +589,79 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         return chain(*results)
 
     @classmethod
-    def annotate_fragment(cls, qs: QuerySet) -> QuerySet:
-        """Annotate a queryset returning ``Fragment``s with data we need."""
-        # All the m2m links between Antiquarians and a Work
+    def annotate_fragment_or_testimonium(cls, qs: QuerySet, name: str, link_type: type, tag: str) -> QuerySet:
+        """
+        Annotate a queryset returning Fragments or Testimonia with data we need.
+
+        :param name: The name of the model being annotated; "Fragment" or "Testimonium"
+        :param link_type: The m2m model between the fragment or testimonium and
+          the Work.
+        :param tag: The letter used to denote Fragment or Testimonium.
+        """
+        # All the antiquarians associated with a work, aggregated together
+        tag_str = " " + tag
         work_antiquarians = antiquarian.WorkLink.objects.filter(
             work=OuterRef("work")
-        ).annotate(ant_name=F("antiquarian__name"))
-        # All the TestimoniuFragmentLinks that reference a Fragment
-        link_query = FragmentLink.objects.filter(
-            fragment=OuterRef("pk")
-        ).annotate(link_name=Case(
-            When(Q(work__unknown=False), then=Concat(
+        ).values("work").annotate(
+            ant_names=StringAgg("antiquarian__name", delimiter=", ")
+        )
+        # All the Testimonium or FragmentLinks that reference a Fragment or Testimonium
+        lname = name.lower()
+        link_query = link_type.objects.filter(
+            **{lname: OuterRef("pk")}
+        ).values(lname).annotate(link_name=StringAgg(Case(
+            When(work__unknown=False, then=Concat(
                 Coalesce(
-                    NullIf(StringAgg(Subquery(work_antiquarians.values("ant_name")), delimiter=", "), Value("")),
+                    NullIf(Subquery(work_antiquarians.values("ant_names")), Value("")),
                     Value("Anonymous"),
                 ),
                 Value(": "),
                 F("work__name"),
-                Value(" F"),
+                Value(tag_str),
                 Cast(F("work_order") + 1, CharField()),
-                Value(" [="),
+                Value(" [= "),
                 F("antiquarian__name"),
-                Value(" F"),
+                Value(tag_str),
                 Cast(F("order") + 1, CharField()),
                 Value("]"),
             )), default=Concat(
                 F("antiquarian__name"),
-                Value(" F"),
+                Value(tag_str),
                 Cast(F("order") + 1, CharField()),
             )
-        ))
-        return qs.annotate(display_name=Coalesce(
-            NullIf(StringAgg(Subquery(link_query.values("link_name")), delimiter=", "), Value("")),
-            Concat(Value("Unlinked "), Cast(F("pk"), CharField())),
-        ))
+        ), delimiter=", "))
+        return qs.annotate(
+            class_name=Value(name),
+            detail_page=Value(f"{lname}:detail"),
+            display_name=Coalesce(
+                NullIf(Subquery(link_query.values("link_name")), Value("")),
+                Concat(Value("Unlinked "), Cast(F("pk"), CharField())),
+            ),
+            key=F("id"),
+        )
+
+    @classmethod
+    def annotate_fragment(cls, qs: QuerySet) -> QuerySet:
+        """Annotate a queryset returning ``Fragment``s with data we need."""
+        return cls.annotate_fragment_or_testimonium(qs, "Fragment", FragmentLink, "F")
 
     @classmethod
     def annotate_annonymous_fragment(cls, qs: QuerySet) -> QuerySet:
         """Annotate a queryset returning AnonymousFragments with data we need."""
-        return qs.annotate(display_name=Concat(
-            Value("Anonymous A"),
-            Cast(Value("order"), CharField()),
-        ))
+        return qs.annotate(
+            class_name=Value("AnonymousFragment"),
+            detail_page=Value("anonymous_fragment:detail"),
+            display_name=Concat(
+                Value("Anonymous F"),
+                Cast(F("order") + 1, CharField()),
+            ),
+            key=F("id"),
+        )
 
     @classmethod
     def annotate_testimonium(cls, qs: QuerySet) -> QuerySet:
         """Annotate a queryset returning Testimonia with the data we need."""
-        # All the m2m links between Antiquarians and a Work
-        work_antiquarians = antiquarian.WorkLink.objects.filter(
-            work=OuterRef("work")
-        ).annotate(ant_name=F("antiquarian__name"))
-        # All the TestimoniumLinks that reference a Testimonium
-        link_query = TestimoniumLink.objects.filter(
-            testimonium=OuterRef("pk")
-        ).annotate(link_name=Case(
-            When(Q(work__unknown=False), then=Concat(
-                Coalesce(
-                    NullIf(StringAgg(Subquery(work_antiquarians.values("ant_name")), delimiter=", "), Value("")),
-                    Value("Anonymous"),
-                ),
-                Value(": "),
-                F("work__name"),
-                Value(" T"),
-                Cast(F("work_order") + 1, CharField()),
-                Value(" ["),
-                F("antiquarian__name"),
-                Value("]"),
-            )), default=Concat(
-                F("antiquarian__name"),
-                Value(" T"),
-                Cast(F("work_order") + 1, CharField()),
-            )
-        ))
-        return qs.annotate(display_name=Coalesce(
-            NullIf(StringAgg(Subquery(link_query.values("link_name")), delimiter=", "), Value("")),
-            Concat(Value("Unlinked "), Cast(F("pk"), CharField())),
-        ))
+        return cls.annotate_fragment_or_testimonium(qs, "Testimonium", TestimoniumLink, "T")
 
     # move to queryset on model managers
     @classmethod
@@ -679,7 +676,12 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         :param kwargs: Ignored. Here to allow compatibility with other search functions.
         :return: The Antiquarians found.
         """
-        qs = cls.get_filtered_model_qs(Antiquarian, ant_filter=ant_filter)
+        qs = cls.get_filtered_model_qs(Antiquarian, ant_filter=ant_filter).annotate(
+            class_name=Value("Antiquarian"),
+            detail_page=Value("antiquarian:detail"),
+            display_name=F("name"),
+            key=F("id"),
+        )
         search_fields = [
             ("name", terms.match),
             ("plain_introduction", terms.match),
@@ -696,7 +698,12 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         :param kwargs: Ignored. Here to allow compatibility with other search functions.
         :return: The Topics found.
         """
-        qs = Topic.objects.all()
+        qs = Topic.objects.all().annotate(
+            class_name=Value("Topic"),
+            detail_page=Value("topic:detail"),
+            display_name=F("name"),
+            key=F("slug"),
+        )
         search_fields = [("name", terms.match)]
         return cls.generic_content_search(qs, search_fields)
 
@@ -716,11 +723,14 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         :return: The Works found.
         """
         qs = cls.get_filtered_model_qs(Work, ant_filter=ant_filter).annotate(
+            class_name=Value("Work"),
+            detail_page=Value("work:detail"),
             display_name=Concat(
                 Cast(StringAgg("antiquarian__name", delimiter=", "), CharField()),
                 Value(": "),
                 F("name"),
-            )
+            ),
+            key=F("id"),
         )
         search_fields = [
             ("name", terms.match),
@@ -747,12 +757,15 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         :return: The Books found.
         """
         qs = cls.get_filtered_model_qs(Book, ant_filter=ant_filter).annotate(
+            class_name=Value("Book"),
+            detail_page=Value("book:detail"),
             display_name=Coalesce(
                 ConcatNullable(Value("Book "), F("number"), Value(": "), F("subtitle")),
                 ConcatNullable(Value("Book "), F("number")),
                 F("subtitle"),
                 output_field=CharField(),
-            )
+            ),
+            key=F("id"),
         )
         search_fields = [
             ("subtitle", terms.match),
@@ -954,18 +967,23 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         """
         qs = cls.get_filtered_model_qs(
             BibliographyItem, ant_filter=ant_filter, ca_filter=ca_filter
-        ).annotate(display_name=Concat(
-            F("author_surnames"),
-            Coalesce(ConcatNullable(Value(" ["), F("year"), Value("]")), Value("")),
-            Value(": "),
-            Cast(Func(
-                F("title"),
-                Value(r"\s*<[^>]*>\s*"),
-                Value(" "),
-                Value("g"),
-                function="REGEXP_REPLACE",
-            ), output_field=CharField()),
-        ))
+        ).annotate(
+            class_name=Value("BibliographyItem"),
+            detail_page=Value("bibliography:detail"),
+            display_name=Concat(
+                F("author_surnames"),
+                Coalesce(ConcatNullable(Value(" ["), F("year"), Value("]")), Value("")),
+                Value(": "),
+                Cast(Func(
+                    F("title"),
+                    Value(r"\s*<[^>]*>\s*"),
+                    Value(" "),
+                    Value("g"),
+                    function="REGEXP_REPLACE",
+                ), output_field=CharField()),
+            ),
+            key=F("id"),
+        )
         search_fields = [("authors", terms.match), ("title", terms.match)]
         return cls.generic_content_search(qs, search_fields)
 
@@ -984,7 +1002,12 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         :param kwargs: Ignored. Here to allow compatibility with other search functions.
         :return: The Citing Authors found.
         """
-        qs = cls.get_filtered_model_qs(CitingAuthor, ca_filter=ca_filter)
+        qs = cls.get_filtered_model_qs(CitingAuthor, ca_filter=ca_filter).annotate(
+            class_name=Value("CitingAuthor"),
+            detail_page=Value("citingauthor:detail"),
+            display_name=Coalesce(F("name"), Value("Unnamed Author")),
+            key=F("id"),
+        )
         search_fields = [("name", terms.match)]
         return cls.generic_content_search(qs, search_fields)
 
@@ -1001,6 +1024,8 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         :return: The Citing Works found.
         """
         qs = cls.get_filtered_model_qs(CitingWork, ca_filter=ca_filter).annotate(
+            class_name=Value("CitingWork"),
+            detail_page=Value("citingauthor:work_detail"),
             display_name=Concat(
                 Coalesce(
                     F("author__name"),
@@ -1009,7 +1034,8 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                 ),
                 Value(", "),
                 F("title"),
-            )
+            ),
+            key=F("id"),
         )
         search_fields = [("title", terms.match), ("edition", terms.match)]
         return cls.generic_content_search(qs, search_fields)
