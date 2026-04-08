@@ -5,6 +5,8 @@ from pathlib import Path
 
 import environ
 
+import sqlparse.engine.grouping
+
 ROOT_DIR = Path(__file__).resolve(strict=True).parent.parent.parent
 # rard/ is where we create new apps
 APPS_DIR = ROOT_DIR / "rard"
@@ -283,3 +285,5 @@ BOOTSTRAP4 = {
 
 UPLOAD_FOLDER = "uploads"
 UPLOAD_ROOT = str(ROOT_DIR / UPLOAD_FOLDER)
+
+sqlparse.engine.grouping.MAX_GROUPING_TOKENS = 50000

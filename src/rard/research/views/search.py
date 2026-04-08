@@ -1,7 +1,6 @@
 import re
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Sequence
 from functools import partial
-from itertools import chain
 from string import punctuation
 from typing import Any
 
@@ -15,6 +14,7 @@ from django.db.models import (
     ExpressionWrapper,
     F,
     Func,
+    IntegerField,
     OuterRef,
     Q,
     QuerySet,
@@ -24,14 +24,12 @@ from django.db.models import (
     When,
 )
 from django.db.models.functions import Cast, Coalesce, Concat, Lower, NullIf
-from django.db.models.expressions import RawSQL
 from django.shortcuts import redirect
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_GET
 from django.views.generic import ListView, TemplateView
 
 from rard.research.models.base import (
-    AppositumFragmentLink,
     FragmentLink,
     TestimoniumLink
 )
@@ -571,7 +569,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     def generic_content_search(
         cls,
         qs: QuerySet,
-        search_fields: Iterable[tuple[str, MatcherCallable]],
+        search_fields: Sequence[tuple[str, MatcherCallable]],
     ) -> Iterable[QuerySet]:
         """
         Find all the objects that match the query.
@@ -581,13 +579,13 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
           and the function to clean or fold the results of these lookups.
         :return: All the objects found.
         """
-        results: list[QuerySet] = []
-        for field_name, match_function in search_fields:
-            matches = match_function(qs, field_name, add_snippet=True)
-            results.append(matches)
-            # Remove objects from queryset once matched so they don't get matched twice
-            qs = qs.exclude(id__in=[o.id for o in matches])
-        return chain(*results)
+        results: list[QuerySet] = [
+            match_function(qs, field_name, add_snippet=True)
+            for field_name, match_function in search_fields
+        ]
+        if len(results) <= 1:
+            return results
+        return [results[0].union(*results[1:])]
 
     @classmethod
     def annotate_fragment_or_testimonium(cls, qs: QuerySet, name: str, link_type: type, tag: str) -> QuerySet:
@@ -631,7 +629,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                 Cast(F("order") + 1, CharField()),
             )
         ), delimiter=", "))
-        return qs.annotate(
+        return qs.values(
             class_name=Value(name),
             detail_page=Value(f"{lname}:detail"),
             display_name=Coalesce(
@@ -639,6 +637,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                 Concat(Value("Unlinked "), Cast(F("pk"), CharField())),
             ),
             key=F("id"),
+            slug_key=Value(None, output_field=CharField()),
         )
 
     @classmethod
@@ -649,7 +648,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     @classmethod
     def annotate_annonymous_fragment(cls, qs: QuerySet) -> QuerySet:
         """Annotate a queryset returning AnonymousFragments with data we need."""
-        return qs.annotate(
+        return qs.values(
             class_name=Value("AnonymousFragment"),
             detail_page=Value("anonymous_fragment:detail"),
             display_name=Concat(
@@ -657,6 +656,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                 Cast(F("order") + 1, CharField()),
             ),
             key=F("id"),
+            slug_key=Value(None, output_field=CharField()),
         )
 
     @classmethod
@@ -668,7 +668,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     @classmethod
     def antiquarian_search(
         cls, terms: Term, ant_filter: Iterable[str] | None = None, **kwargs: Any
-    ) -> Iterable[Any]:
+    ) -> Iterable[QuerySet]:
         """
         Find all the ``Antiquarian``s that match the query.
 
@@ -677,11 +677,12 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         :param kwargs: Ignored. Here to allow compatibility with other search functions.
         :return: The Antiquarians found.
         """
-        qs = cls.get_filtered_model_qs(Antiquarian, ant_filter=ant_filter).annotate(
+        qs = cls.get_filtered_model_qs(Antiquarian, ant_filter=ant_filter).values(
             class_name=Value("Antiquarian"),
             detail_page=Value("antiquarian:detail"),
             display_name=F("name"),
             key=F("id"),
+            slug_key=Value(None, output_field=CharField()),
         )
         search_fields = [
             ("name", terms.match),
@@ -691,7 +692,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         return cls.generic_content_search(qs, search_fields)
 
     @classmethod
-    def topic_search(cls, terms: Term, **kwargs: Any) -> Iterable[Any]:
+    def topic_search(cls, terms: Term, **kwargs: Any) -> Iterable[QuerySet]:
         """
         Find all the ``Topic``s that match the query.
 
@@ -699,11 +700,12 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         :param kwargs: Ignored. Here to allow compatibility with other search functions.
         :return: The Topics found.
         """
-        qs = Topic.objects.all().annotate(
+        qs = Topic.objects.all().values(
             class_name=Value("Topic"),
             detail_page=Value("topic:detail"),
             display_name=F("name"),
-            key=F("slug"),
+            key=Value(None, output_field=IntegerField()),
+            slug_key=F("slug"),
         )
         search_fields = [("name", terms.match)]
         return cls.generic_content_search(qs, search_fields)
@@ -714,7 +716,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         terms: Term,
         ant_filter: Iterable[str] | None = None,
         **kwargs: Any,
-    ) -> Iterable[Any]:
+    ) -> Iterable[QuerySet]:
         """
         Find all the ``Work``s that match the query.
 
@@ -723,7 +725,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         :param kwargs: Ignored. Here to allow compatibility with other search functions.
         :return: The Works found.
         """
-        qs = cls.get_filtered_model_qs(Work, ant_filter=ant_filter).annotate(
+        qs = cls.get_filtered_model_qs(Work, ant_filter=ant_filter).values(
             class_name=Value("Work"),
             detail_page=Value("work:detail"),
             display_name=Concat(
@@ -732,6 +734,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                 F("name"),
             ),
             key=F("id"),
+            slug_key=Value(None, output_field=CharField()),
         )
         search_fields = [
             ("name", terms.match),
@@ -748,7 +751,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         terms: Term,
         ant_filter: Iterable[str] | None = None,
         **kwargs: Any,
-    ) -> Iterable[Any]:
+    ) -> Iterable[QuerySet]:
         """
         Find all the ``Book``s that match the query.
 
@@ -757,7 +760,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         :param kwargs: Ignored. Here to allow compatibility with other search functions.
         :return: The Books found.
         """
-        qs = cls.get_filtered_model_qs(Book, ant_filter=ant_filter).annotate(
+        qs = cls.get_filtered_model_qs(Book, ant_filter=ant_filter).values(
             class_name=Value("Book"),
             detail_page=Value("book:detail"),
             display_name=Coalesce(
@@ -767,6 +770,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                 output_field=CharField(),
             ),
             key=F("id"),
+            slug_key=Value(None, output_field=CharField()),
         )
         search_fields = [
             ("subtitle", terms.match),
@@ -880,7 +884,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         :param kwargs: Ignored. Here to allow compatibility with other search functions.
         :return: The Fragments found.
         """
-        if not qs:
+        if qs is None:
             qs = cls.annotate_annonymous_fragment(cls.get_filtered_model_qs(
                 AnonymousFragment, ant_filter=ant_filter, ca_filter=ca_filter
             ))
@@ -943,11 +947,10 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         qsf = cls.annotate_fragment(cls.get_filtered_model_qs(
             Fragment, ant_filter=ant_filter, ca_filter=ca_filter
         ))
-        return chain(
-            terms.match_folded(qsf, query_string, add_snippet=True).distinct(),
-            terms.match_folded(qsa, query_string, add_snippet=True).distinct(),
-            terms.match_folded(qst, query_string, add_snippet=True).distinct(),
-        )
+        return [terms.match_folded(qsf, query_string, add_snippet=True).union(
+            terms.match_folded(qsa, query_string, add_snippet=True),
+            terms.match_folded(qst, query_string, add_snippet=True),
+        )]
 
     @classmethod
     def bibliography_search(
@@ -968,7 +971,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         """
         qs = cls.get_filtered_model_qs(
             BibliographyItem, ant_filter=ant_filter, ca_filter=ca_filter
-        ).annotate(
+        ).values(
             class_name=Value("BibliographyItem"),
             detail_page=Value("bibliography:detail"),
             display_name=Concat(
@@ -984,6 +987,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                 ), output_field=CharField()),
             ),
             key=F("id"),
+            slug_key=Value(None, output_field=CharField()),
         )
         search_fields = [("authors", terms.match), ("title", terms.match)]
         return cls.generic_content_search(qs, search_fields)
@@ -1003,11 +1007,12 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         :param kwargs: Ignored. Here to allow compatibility with other search functions.
         :return: The Citing Authors found.
         """
-        qs = cls.get_filtered_model_qs(CitingAuthor, ca_filter=ca_filter).annotate(
+        qs = cls.get_filtered_model_qs(CitingAuthor, ca_filter=ca_filter).values(
             class_name=Value("CitingAuthor"),
             detail_page=Value("citingauthor:detail"),
             display_name=Coalesce(F("name"), Value("Unnamed Author")),
             key=F("id"),
+            slug_key=Value(None, output_field=CharField()),
         )
         search_fields = [("name", terms.match)]
         return cls.generic_content_search(qs, search_fields)
@@ -1024,7 +1029,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         :param kwargs: Ignored. Here to allow compatibility with other search functions.
         :return: The Citing Works found.
         """
-        qs = cls.get_filtered_model_qs(CitingWork, ca_filter=ca_filter).annotate(
+        qs = cls.get_filtered_model_qs(CitingWork, ca_filter=ca_filter).values(
             class_name=Value("CitingWork"),
             detail_page=Value("citingauthor:work_detail"),
             display_name=Concat(
@@ -1037,6 +1042,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                 F("title"),
             ),
             key=F("id"),
+            slug_key=Value(None, output_field=CharField()),
         )
         search_fields = [("title", terms.match), ("edition", terms.match)]
         return cls.generic_content_search(qs, search_fields)
@@ -1059,7 +1065,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         :param ca_filter: List of citing authors to filter on.
         :return: The filtered query set.
         """
-        if not qs:
+        if qs is None:
             qs = model.objects.all()
         if ant_filter:
             if model in [Fragment, Testimonium]:
@@ -1138,14 +1144,16 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             to_search = self.SEARCH_METHODS["default_methods"].keys()
 
         result_set = [
-            self.SEARCH_METHODS["all_methods"][what](terms, **filter_kwargs)
+            q
             for what in to_search
+            for q in self.SEARCH_METHODS["all_methods"][what](terms, **filter_kwargs)
         ]
 
-        queryset_chain = chain(*result_set)
-
-        # return a list...
-        return sorted(queryset_chain, key=lambda instance: instance.pk, reverse=True)
+        if len(result_set) == 0:
+            return []
+        if len(result_set) == 1:
+            return result_set[0]
+        return result_set[0].union(*result_set[1:])
 
     def antiquarians_and_authors_and_bibliographies_in_object_list(self, object_list):
         """Generate lists of Antiquarians, Citing Authors and Bibliographies
@@ -1202,6 +1210,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                             )
                         )
                     )
+                # This stuff won't work! Change it to .class_name=="Antiquarian" then find by .key
                 elif obj_type == Antiquarian:
                     antiquarians.append(object)
                 elif obj_type == BibliographyItem:
