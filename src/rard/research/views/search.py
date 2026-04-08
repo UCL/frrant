@@ -499,13 +499,14 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             ("commentary", ("plain_commentary", "non-folded")),
         ]
 
-        def __init__(self, group_name, core_method):
+        def __init__(self, group_name: str, core_method: Callable[..., QuerySet]) -> None:
             self.group_name = group_name
-            self.methods = {}
-            for content_field, search_field in self.search_types:
-                self.methods[f"{group_name}_{content_field}"] = partial(
+            self.methods = {
+                f"{group_name}_{content_field}": partial(
                     core_method, search_field=search_field
                 )
+                for content_field, search_field in self.search_types
+            }
             self.default_method_name = f"{group_name}_{self.search_types[0][0]}"
 
         @property
@@ -517,7 +518,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             return [self.group_name] + [type[0] for type in self.search_types]
 
     @property
-    def SEARCH_METHODS(self):
+    def SEARCH_METHODS(self) -> dict[str, dict[str, Callable[..., QuerySet]]]:
         fragment_search_methods = self.SearchMethodGroup(
             "fragments", self.fragment_search
         )
@@ -570,8 +571,8 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     def generic_content_search(
         cls,
         qs: QuerySet,
-        search_fields: tuple[str, MatcherCallable],
-    ) -> Iterable[Any]:
+        search_fields: Iterable[tuple[str, MatcherCallable]],
+    ) -> Iterable[QuerySet]:
         """
         Find all the objects that match the query.
 
@@ -580,7 +581,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
           and the function to clean or fold the results of these lookups.
         :return: All the objects found.
         """
-        results = []
+        results: list[QuerySet] = []
         for field_name, match_function in search_fields:
             matches = match_function(qs, field_name, add_snippet=True)
             results.append(matches)
@@ -781,7 +782,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         terms: Term,
         qs: QuerySet,
         search_field: SearchMethodGroup.SearchField | None = None,
-    ) -> Iterable[Any]:
+    ) -> Iterable[QuerySet]:
         """
         Find all the ``Fragment``, ``AnonymousFragment`` or ``Testimonium``
         objects that have original texts that match the user's query.
@@ -816,7 +817,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         ca_filter: Iterable[str] | None = None,
         search_field: SearchMethodGroup.SearchField | None = None,
         **kwargs: Any,
-    ) -> Iterable[Any]:
+    ) -> Iterable[QuerySet]:
         """
         Find all the ``Fragment``s that match the query.
 
@@ -841,7 +842,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         ca_filter: Iterable[str] | None = None,
         search_field: SearchMethodGroup.SearchField | None = None,
         **kwargs: Any,
-    ) -> Iterable[Any]:
+    ) -> Iterable[QuerySet]:
         """
         Find all the ``Testimonium`` objects that match the query.
 
@@ -867,7 +868,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         search_field: SearchMethodGroup.SearchField | None = None,
         qs: QuerySet | None = None,
         **kwargs: Any,
-    ) -> Iterable[Any]:
+    ) -> Iterable[QuerySet]:
         """
         Find all the ``AnonymousFragment``s that match the query.
 
@@ -893,7 +894,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         ca_filter: Iterable[str] | None = None,
         search_field: SearchMethodGroup.SearchField | None = None,
         **kwargs: Any,
-    ) -> Iterable[Any]:
+    ) -> Iterable[QuerySet]:
         """
         Find all the ``AnonymousFragment``s that have associated appositum
           fragments and that match the query.
@@ -921,7 +922,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         ant_filter: Iterable[str] | None = None,
         ca_filter: Iterable[str] | None = None,
         **kwargs: Any,
-    ) -> Iterable[Any]:
+    ) -> Iterable[QuerySet]:
         """
         Find all the ``Fragment``, ``AnonymousFragment`` or ``Testimonium``
         objects that have apparatus criticus text that match the user's query.
@@ -955,7 +956,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         ant_filter: Iterable[str] | None = None,
         ca_filter: Iterable[str] | None = None,
         **kwargs: Any,
-    ) -> Iterable[Any]:
+    ) -> Iterable[QuerySet]:
         """
         Find all the ``BibliographyItem``s that match the query.
 
@@ -993,7 +994,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         terms: Term,
         ca_filter: Iterable[str] | None = None,
         **kwargs: Any,
-    ) -> Iterable[Any]:
+    ) -> Iterable[QuerySet]:
         """
         Find all the ``CitingAuthor``s that match the query.
 
@@ -1014,7 +1015,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     @classmethod
     def citing_work_search(
         cls, terms: Term, ca_filter: Iterable[str] | None = None, **kwargs
-    ) -> Iterable[Any]:
+    ) -> Iterable[QuerySet]:
         """
         Find all the ``CitingWork``s that match the query.
 
@@ -1130,18 +1131,16 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
 
         terms = SearchView.Term(keywords)
 
-        result_set = []
-
         to_search = self.request.GET.getlist("what", ["all"])
         if to_search == ["all"]:
             # Use default methods rather than all because we don't want
             # to search same fragment several times with different methods
             to_search = self.SEARCH_METHODS["default_methods"].keys()
 
-        for what in to_search:
-            result_set.append(
-                self.SEARCH_METHODS["all_methods"][what](terms, **filter_kwargs)
-            )
+        result_set = [
+            self.SEARCH_METHODS["all_methods"][what](terms, **filter_kwargs)
+            for what in to_search
+        ]
 
         queryset_chain = chain(*result_set)
 
