@@ -23,3 +23,59 @@ def make_plain_text(content):
     no_lone_numbers = re.sub(r"\s\d{1,2}\s", " ", no_punctuation)  # mentions
     no_excess_space = re.sub(r" +", " ", no_lone_numbers)
     return no_excess_space
+
+
+# Fold [X,Y] transforms all instances of Y into X before matching
+# Folds are applied in the specified order, so we don't need
+# 'uul' <- 'vul' if we already have 'u' <- 'v'
+rard_folds = [
+    ["ast", "a est"],
+    ["ost", "o est"],
+    ["umst", "um est"],
+    ["am", "an"],
+    ["ausa", "aussa"],
+    ["nn", "bn"],
+    ["tt", "bt"],
+    ["pp", "bp"],
+    ["rr", "br"],
+    ["ch", "cch"],
+    ["clu", "culu"],
+    ["claud", "clod"],
+    ["has", "hasce"],
+    ["his", "hisce"],
+    ["hos", "hosce"],
+    ["i", "ii"],
+    ["i", "j"],
+    ["um", "im"],
+    ["lagr", "lagl"],
+    ["mb", "nb"],
+    ["ll", "nl"],
+    ["mm", "nm"],
+    ["mp", "np"],
+    ["mp", "ndup"],
+    ["rr", "nr"],
+    ["um", "om"],
+    ["u", "v"],
+    ["u", "y"],
+    ["uu", "w"],
+    ["ulc", "ulch"],
+    ["uul", "uol"],
+    ["ui", "uui"],
+    ["uum", "uom"],
+    ["x", "xs"],
+]
+
+
+punctuation_re = re.compile(
+    f"(&[lg]t;)|[{re.escape(string.punctuation)}£¬]"
+)
+
+
+def fold_latin(content: str) -> str:
+    for fold_to, fold_from in rard_folds:
+        content = content.replace(fold_from, fold_to)
+    return content
+
+
+def fold_latin_and_remove_punctuation(content: str) -> str:
+    return fold_latin(punctuation_re.sub("", content))

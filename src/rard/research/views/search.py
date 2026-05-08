@@ -2,6 +2,7 @@ import re
 from functools import partial
 from itertools import chain
 from string import punctuation
+from collections.abc import Iterable
 
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -24,46 +25,8 @@ from rard.research.models import (
     Topic,
     Work,
 )
+from rard.utils.text_processors import fold_latin
 
-# Fold [X,Y] transforms all instances of Y into X before matching
-# Folds are applied in the specified order, so we don't need
-# 'uul' <- 'vul' if we already have 'u' <- 'v'
-rard_folds = [
-    ["ast", "a est"],
-    ["ost", "o est"],
-    ["umst", "um est"],
-    ["am", "an"],
-    ["ausa", "aussa"],
-    ["nn", "bn"],
-    ["tt", "bt"],
-    ["pp", "bp"],
-    ["rr", "br"],
-    ["ch", "cch"],
-    ["clu", "culu"],
-    ["claud", "clod"],
-    ["has", "hasce"],
-    ["his", "hisce"],
-    ["hos", "hosce"],
-    ["i", "ii"],
-    ["i", "j"],
-    ["um", "im"],
-    ["lagr", "lagl"],
-    ["mb", "nb"],
-    ["ll", "nl"],
-    ["mm", "nm"],
-    ["mp", "np"],
-    ["mp", "ndup"],
-    ["rr", "nr"],
-    ["um", "om"],
-    ["u", "v"],
-    ["u", "y"],
-    ["uu", "w"],
-    ["ulc", "ulch"],
-    ["uul", "uol"],
-    ["ui", "uui"],
-    ["uum", "uom"],
-    ["x", "xs"],
-]
 
 WILDCARD_SINGLE_CHAR = settings.WILDCARD_SINGLE_CHAR
 WILDCARD_MANY_CHAR = settings.WILDCARD_MANY_CHAR
@@ -99,54 +62,33 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         """
 
         def __init__(self, keywords):
-            self.cleaned_number = 1
-            self.folded_number = 1
-            # Remove all punctuation except wildcard characers
-            self.keywords = PUNCTUATION_RE.sub("", keywords).lower()
-
             # Using regex for everything doesn't seem to have a big impact
             # But replace this line with the alternative code if you want to
             # only use regex for search terms containing wildcards
-            self.lookup = "regex"
+            self.lookup = "iregex"
             # # If wildcard characters appear in keywords, use regex lookup
-            # if any([char in self.keywords for char in CTRL_CHARS]):
-            #     self.lookup = "regex"
+            # if any([char in keywords for char in CTRL_CHARS]):
+            #     self.lookup = "iregex"
             # else:
-            #     self.lookup = "contains"
+            #     self.lookup = "icontains"
 
-            # The basic function query function will first eliminate html less than
-            # and greater than character codes, then punctuation,
-            # and lowercase the 'haystack' strings to be searched.
-            self.basic_query = lambda q: Lower(
-                Func(
-                    Func(
-                        q,
-                        Value("&[gl]t;"),
-                        Value(""),
-                        Value("g"),
-                        function="regexp_replace",
-                    ),
-                    Value(PUNCTUATION),
-                    Value(""),
-                    function="translate",
-                )
-            )
-            self.query = self.basic_query
-            # Now we call add_fold repeatedly to add more
-            # folds to self.query
-            k = self.keywords
-            for fold_to, fold_from in rard_folds:
-                if fold_from in k:
-                    k = k.replace(fold_from, fold_to)
-                    self.add_fold(fold_from, fold_to)
-                elif fold_to in k:
-                    self.add_fold(fold_from, fold_to)
-            self.folded_keywords = k
-            self.folded_matcher = self.get_matcher(k)
+            # Remove all punctuation except wildcard characers
+            keyword_string = PUNCTUATION_RE.sub("", keywords).lower()
+            self.keywords = self.get_keywords(keyword_string)
+
+            self.folded_keywords = [
+                fold_latin(keyword)
+                for keyword in self.keywords
+            ]
+
+            if self.lookup.endswith("regex"):
+                self.keywords = self.transform_keywords_to_regex(self.keywords)
+                self.folded_keywords = self.transform_keywords_to_regex(self.folded_keywords)
+
+            self.folded_matcher = self.get_matcher(self.folded_keywords)
             self.nonfolded_matcher = self.get_matcher(self.keywords)
 
-        def get_matcher(self, keywords):
-            keyword_list = self.get_keywords(keywords)
+        def get_matcher(self, keyword_list: Iterable[str]):
             if len(keyword_list) == 0:
                 # want a keyword that will always succeed
                 first_keyword = ""
@@ -164,12 +106,6 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         def add_keyword(self, old, keyword):
             return lambda f: Q(**{f: keyword}) & old(f)
 
-        def add_fold(self, fold_from, fold_to):
-            old = self.query
-            self.query = lambda q: Func(
-                old(q), Value(fold_from), Value(fold_to), function="replace"
-            )
-
         def get_keywords(self, search_string):
             """
             Turns a string into a series of keywords. This is mostly splitting
@@ -184,12 +120,10 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             2. Captures everything inside double quotes
             3. Captures individual words
             """
-            # regex 1st alternative matches proximity wil
+            # regex 1st alternative matches proximity, 2nd quoted phrase, 3rd word
             keywords = re.findall(
-                r"(.+\s~\d?:?\d?\s.+|(?<=\")[^\"]*(?=\")|[^\s\"]+)", search_string
+                r"(.+\s~\d*:?\d*\s.+|(?<=\")[^\"]*(?=\")|[^\s\"]+)", search_string
             )
-            if self.lookup == "regex":
-                keywords = self.transform_keywords_to_regex(keywords)
             return keywords
 
         def transform_keywords_to_regex(self, keywords):
@@ -254,24 +188,18 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             self,
             query_set,
             query_string,
-            annotation_name,
-            query,
             matcher,
-            keywords,
+            keyword_list: Iterable[str],
             add_snippet=False,
         ):
-            expression = ExpressionWrapper(
-                query(query_string), output_field=TextField()
-            )
-            annotated = query_set.annotate(**{annotation_name: expression})
-            matches = annotated.filter(matcher(annotation_name + "__" + self.lookup))
+            matches = query_set.filter(matcher(f"{query_string}__{self.lookup}"))
             if add_snippet:
-                matches = self.annotate_with_snippet(matches, keywords, query_string)
+                matches = self.annotate_with_snippet(matches, keyword_list, query_string)
             else:
                 matches = matches.annotate(snippet=Value(""))
             return matches
 
-        def annotate_with_snippet(self, qs, keywords, query_string):
+        def annotate_with_snippet(self, qs, keyword_list: Iterable[str], query_string):
             return qs.annotate(
                 snippet=Func(
                     Func(
@@ -279,7 +207,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                             Func(
                                 Func(
                                     query_string,
-                                    Value(self.get_snippet_regex(keywords)),
+                                    Value(self.get_snippet_regex(keyword_list)),
                                     Value(
                                         r'START_SNIPPET\1<span class="search-snippet">'
                                         r"\2</span>\3...END_SNIPPET"
@@ -308,43 +236,33 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                 )
             )
 
-        def get_snippet_regex(self, keywords, before=5, after=5):
+        def get_snippet_regex(self, keywords: Iterable[str], before=5, after=5):
             """This regex should give us three capturing groups we can use
             with postgres REGEXP_REPLACE to insert <span> tags around our keywords;
             e.g. REGEXP_REPLACE('content',headline_regex,'\1 <span>\2</span>\3')
             """
-            keywords = self.get_keywords(keywords)
             words_before_group = rf"((?:\S+\s){{0,{before}}})"
             keywords_group = "|".join(keywords)
-            keywords_group = r"(" + keywords_group + r")"
+            keywords_group = f"({keywords_group})"
             words_after_group = rf"(.?\s(?:\S+\s){{0,{after}}})"
             snippet_regex = words_before_group + keywords_group + words_after_group
             return snippet_regex
 
         def match(self, query_set, query_string, add_snippet=False):
-            annotation_name = "cleaned{0}".format(self.cleaned_number)
-            self.cleaned_number += 1
             return self.do_match(
                 query_set,
                 query_string,
-                annotation_name,
-                self.basic_query,
                 self.nonfolded_matcher,
                 self.keywords,
                 add_snippet=add_snippet,
             )
 
         def match_folded(self, query_set, query_string, add_snippet=False):
-            annotation_name = "folded{0}".format(self.folded_number)
-            self.folded_number += 1
-            keywords = self.folded_keywords
             return self.do_match(
                 query_set,
                 query_string,
-                annotation_name,
-                self.query,
                 self.folded_matcher,
-                keywords,
+                self.folded_keywords,
                 add_snippet=add_snippet,
             )
 
@@ -370,7 +288,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
 
         search_types = [
             ("all content", None),
-            ("original texts", ["original_texts__plain_content", "folded"]),
+            ("original texts", ["original_texts__folded_content", "folded"]),
             (
                 "translations",
                 [
@@ -451,8 +369,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
     @classmethod
     def generic_content_search(cls, qs, search_fields):
         results = []
-        for field in search_fields:
-            field_name, match_function = field
+        for field_name, match_function in search_fields:
             matches = match_function(qs, field_name, add_snippet=True)
             results.append(matches)
             # Remove objects from queryset once matched so they don't get matched twice
@@ -508,7 +425,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             search_fields = [(search_field[0], match_function)]
         else:
             search_fields = [
-                ("original_texts__plain_content", terms.match_folded),
+                ("original_texts__folded_content", terms.match_folded),
                 ("original_texts__translation__plain_translated_text", terms.match),
                 ("plain_commentary", terms.match),
                 ("original_texts__translation__translator_name", terms.match),

@@ -7,7 +7,10 @@ from simple_history.models import HistoricalRecords
 from rard.research.models.mixins import HistoryModelMixin
 from rard.research.models.reference import Reference
 from rard.utils.basemodel import BaseModel, DynamicTextField
-from rard.utils.text_processors import make_plain_text
+from rard.utils.text_processors import (
+    make_plain_text,
+    fold_latin_and_remove_punctuation,
+)
 
 
 class OriginalText(HistoryModelMixin, BaseModel):
@@ -53,6 +56,9 @@ class OriginalText(HistoryModelMixin, BaseModel):
     # Also store copy without html or punctuation for search purposes
     plain_content = models.TextField(blank=False, default="")
 
+    # Also store a copy with all folds applied
+    folded_content = models.TextField(blank=False, default="")
+
     # to be nuked eventually. not required now but hidden from view
     # to preserve previous values in case our data migration is insufficient
     apparatus_criticus = DynamicTextField(default="", blank=True)
@@ -71,6 +77,10 @@ class OriginalText(HistoryModelMixin, BaseModel):
         of list items don't get merged (and other things like that)"""
         if self.content:
             self.plain_content = make_plain_text(self.content)
+            self.folded_content = fold_latin_and_remove_punctuation(self.plain_content)
+            uf = kwargs.get("update_fields")
+            if uf is not None and "content" in uf:
+                kwargs["update_fields"] = {"plain_content", "folded_content"}.union(uf)
         super(OriginalText, self).save(*args, **kwargs)
 
     def apparatus_criticus_lines(self):
