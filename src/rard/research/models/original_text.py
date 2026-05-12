@@ -8,8 +8,8 @@ from rard.research.models.mixins import HistoryModelMixin
 from rard.research.models.reference import Reference
 from rard.utils.basemodel import BaseModel, DynamicTextField
 from rard.utils.text_processors import (
-    make_plain_text,
     fold_latin_and_remove_punctuation,
+    make_plain_text,
 )
 
 

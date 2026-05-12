@@ -3,19 +3,11 @@ from collections.abc import Callable, Iterable
 from functools import partial
 from itertools import chain
 from string import punctuation
-from collections.abc import Iterable
 from typing import Any
 
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import (
-    Expression,
-    Func,
-    Q,
-    QuerySet,
-    TextField,
-    Value,
-)
+from django.db.models import Expression, Func, Q, QuerySet, TextField, Value
 from django.shortcuts import redirect
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_GET
@@ -34,7 +26,6 @@ from rard.research.models import (
     Work,
 )
 from rard.utils.text_processors import fold_latin
-
 
 WILDCARD_SINGLE_CHAR = settings.WILDCARD_SINGLE_CHAR
 WILDCARD_MANY_CHAR = settings.WILDCARD_MANY_CHAR
@@ -87,14 +78,13 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             keyword_string = PUNCTUATION_RE.sub("", keywords).lower()
             self.keywords = self.get_keywords(keyword_string)
 
-            self.folded_keywords = [
-                fold_latin(keyword)
-                for keyword in self.keywords
-            ]
+            self.folded_keywords = [fold_latin(keyword) for keyword in self.keywords]
 
             if self.lookup.endswith("regex"):
                 self.keywords = self.transform_keywords_to_regex(self.keywords)
-                self.folded_keywords = self.transform_keywords_to_regex(self.folded_keywords)
+                self.folded_keywords = self.transform_keywords_to_regex(
+                    self.folded_keywords
+                )
 
             self.folded_matcher = self.get_matcher(self.folded_keywords)
             self.nonfolded_matcher = self.get_matcher(self.keywords)
@@ -235,7 +225,9 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             """
             matches = query_set.filter(matcher(f"{query_string}__{self.lookup}"))
             snippet = (
-                self.snippet_query(keyword_list, query_string) if add_snippet else Value("")
+                self.snippet_query(keyword_list, query_string)
+                if add_snippet
+                else Value("")
             )
             matches = matches.annotate(snippet=snippet)
             return matches

@@ -66,9 +66,7 @@ rard_folds: list[tuple[str, str]] = [
 ]
 
 
-punctuation_re = re.compile(
-    f"(&[lg]t;)|[{re.escape(string.punctuation)}£¬]"
-)
+punctuation_re = re.compile(f"(&[lg]t;)|[{re.escape(string.punctuation)}£¬]")
 
 
 def fold_latin(content: str) -> str:
