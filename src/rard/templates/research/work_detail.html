@@ -1,5 +1,5 @@
 {% extends "research/detail_base.html" %}
-{% load i18n object_lock links_for_work bootstrap4 static humanize %}
+{% load i18n object_lock bootstrap4 static humanize %}
 {% block title %}Work: {{object.name}} ({{object.antiquarian_set.first}})
 {% if editing == 'introduction' %}: Editing Introduction {% endif %}
 {% endblock %}
