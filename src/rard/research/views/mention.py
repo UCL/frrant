@@ -112,7 +112,7 @@ class MentionSearchView(LoginRequiredMixin, View):
     def work_search(cls, keywords):
         qs = Work.objects.annotate(
             author_title=Concat(
-                StringAgg("antiquarian__name", delimiter=","),
+                StringAgg("antiquarian__name", delimiter=",", default=""),
                 Value(" "),
                 F("name"),
                 output_field=CharField(),

@@ -192,7 +192,7 @@ class TestAnonymousFragmentAppositaViews(TestCase):
         self.assertEqual(self.af1.anonymous_fragments.count(), 0)
         view(request, pk=self.af1.pk)
         self.assertEqual(self.af1.anonymous_fragments.count(), 1)
-        self.assertQuerysetEqual(self.af1.anonymous_fragments.all(), [self.af2])
+        self.assertQuerySetEqual(self.af1.anonymous_fragments.all(), [self.af2])
 
     def test_unlink_apposita_and_anonymous_fragment(self):
         """Use RemoveAppositumFragmentLinkView to remove an existing appositum link between

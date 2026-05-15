@@ -187,7 +187,7 @@ class Antiquarian(
         # single db update
         with transaction.atomic():
             links = WorkLink.objects.filter(antiquarian=self).order_by(
-                "work__unknown", models.F(("order")).asc(nulls_first=False)
+                "work__unknown", models.F(("order")).asc(nulls_last=True)
             )
             for count, link in enumerate(links):
                 if link.order != count:

@@ -6,7 +6,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
 from django.views.generic import FormView, ListView
 from django.views.generic.detail import DetailView
-from django.views.generic.edit import DeleteView, UpdateView
+from django.views.generic.edit import DeleteView, UpdateView, View
 
 from rard.research.forms import (
     TestimoniumAntiquariansForm,
@@ -266,80 +266,70 @@ class TestimoniumUpdateWorkLinkView(
 
 @method_decorator(require_POST, name="dispatch")
 class RemoveTestimoniumLinkView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
+    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, View
 ):
-    """When requesting link removal, one link will be removed/reassigned if from a work link
-    If from an antiquarian link, all links will be removed"""
+    """
+    Just a POST endpoint for deleting a Testimonium link.
+
+    Two modes of operation: if the form has ``antiquarian_request`` then
+    this is the PK of the Testimonium and the URL PK is for the Antiquarian;
+    in this case all the ``TestimoniumLinks`` between this Antiquarian and
+    this Testimonium will be removed.
+
+    If the form has no ``antiquarian_request`` then the URL PK is for the
+    ``TestimoniumLink`` and this will be removed.
+    """
 
     check_lock_object = "testimonium"
     model = TestimoniumLink
 
-    def dispatch(self, request, *args, **kwargs):
-        # need to ensure we have the lock object view attribute
-        # initialised in dispatch
-        if "antiquarian_request" in request.POST:
-            antiquarian_pk = kwargs["pk"]
-            testimonium_pk = request.POST.get("antiquarian_request")
-            self.get_antiquarian(antiquarian_pk)
-            self.get_testimonium(testimonium_pk)
-        else:
-            self.get_testimonium()
-        return super().dispatch(request, *args, **kwargs)
-
     permission_required = ("research.change_testimonium",)
 
-    def get_success_url(self, *args, **kwargs):
+    def get_object(self):
+        """Get the object that we need to check the lock for: this is the Testimonium."""
+        return self.testimonium
+
+    def dispatch(self, request, *args, **kwargs):
+        pk = self.kwargs["pk"]
+        antiquarian_request = request.POST.get("antiquarian_request", None)
+        if antiquarian_request is None:
+            self.link = TestimoniumLink.objects.get(pk=pk)
+            self.testimonium = self.link.testimonium
+            self.antiquarian = self.link.antiquarian
+        else:
+            self.link = None
+            self.testimonium = Testimonium.objects.get(pk=antiquarian_request)
+            self.antiquarian = Antiquarian.objects.get(pk=pk)
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_success_url(self):
         return self.request.META.get(
             "HTTP_REFERER",
             reverse("testimonium:detail", kwargs={"pk": self.testimonium.pk}),
         )
 
-    def get_antiquarian(self, *args, **kwargs):
-        if not getattr(self, "antiquarian", False):
-            pk = args[0]
-            self.antiquarian = Antiquarian.objects.get(pk=pk)
-        return self.antiquarian
+    def get_response(self):
+        return HttpResponseRedirect(self.get_success_url())
 
-    def get_testimonium(self, *args, **kwargs):
-        if not getattr(self, "testimonium", False):
-            if "antiquarian_request" in self.request.POST:
-                pk = args[0]
-                self.testimonium = Testimonium.objects.get(pk=pk)
-            else:
-                self.testimonium = self.get_object().testimonium
-        return self.testimonium
+    def post(self, request, *args, **kwargs):
+        return self.delete(request, *args, **kwargs)
 
     def delete(self, request, *args, **kwargs):
-        success_url = self.get_success_url()
-        testimonium = self.get_testimonium()
-
-        if "antiquarian_request" in request.POST:
-            antiquarian = self.get_antiquarian()
-            antiquarian_testimoniumlinks = TestimoniumLink.objects.filter(
-                antiquarian=antiquarian, testimonium=testimonium
-            )
-            for link in antiquarian_testimoniumlinks:
-                link.delete()
-
+        if self.link is None:
+            self.model.objects.filter(
+                antiquarian=self.antiquarian,
+                testimonium=self.testimonium,
+            ).delete()
+            return self.get_response()
+        how_many_links = TestimoniumLink.objects.filter(
+            antiquarian=self.antiquarian,
+            testimonium=self.testimonium,
+        ).count()
+        if how_many_links == 1:
+            reassign_to_unknown(self.link)
         else:
-            self.object = self.get_object()
-            antiquarian = self.object.antiquarian
-            # Determine if it should reassign to unknown
-            # if no other links reassign to unknown
-            # otherwise delete the link
-            if (
-                len(
-                    TestimoniumLink.objects.filter(
-                        antiquarian=antiquarian, testimonium=testimonium
-                    )
-                )
-                == 1
-            ):
-                reassign_to_unknown(self.object)
-            else:
-                self.object.delete()
-
-        return HttpResponseRedirect(success_url)
+            self.link.delete()
+        return self.get_response()
 
 
 @method_decorator(require_POST, name="dispatch")

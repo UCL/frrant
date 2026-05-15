@@ -185,7 +185,7 @@ class TestAntiquarian(TestCase):
         )
         aq1.bibliography_items.add(bib_init)
         aq1.save()
-        self.assertQuerysetEqual(aq1.bibliography_items.all(), [bib_init])
+        self.assertQuerySetEqual(aq1.bibliography_items.all(), [bib_init])
 
         fr1 = Fragment.objects.create(name="fr1")
         fr2 = Fragment.objects.create(name="fr2")
@@ -221,7 +221,7 @@ class TestAntiquarian(TestCase):
 
         # bib init should have been removed, and all those mentioned by related
         # objects should be added.
-        self.assertQuerysetEqual(aq1.bibliography_items.all(), target_bibs)
+        self.assertQuerySetEqual(aq1.bibliography_items.all(), target_bibs)
 
     def test_collate_unknown(self):
         data = {"name": "John Smith", "re_code": "smitre001"}

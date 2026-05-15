@@ -28,7 +28,9 @@ class WorkManager(models.Manager):
         # Make sure anonymous works are at the top with nulls_first parameter
 
         return qs.annotate(
-            authors=StringAgg("worklink__antiquarian__order_name", delimiter=",")
+            authors=StringAgg(
+                "worklink__antiquarian__order_name", delimiter=",", default=None
+            )
         ).order_by(models.F(("authors")).asc(nulls_first=True), "name", "order_year")
 
 

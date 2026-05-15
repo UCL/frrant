@@ -8,10 +8,10 @@ hiredis==3.3.0  # https://github.com/redis/hiredis-py
 
 # Django
 # ------------------------------------------------------------------------------
-django==3.2.25  # https://www.djangoproject.com/
-django-environ==0.4.5  # https://github.com/joke2k/django-environ
-django-model-utils==4.0.0  # https://github.com/jazzband/django-model-utils
+django==4.2.30  # https://www.djangoproject.com/
+django-environ==0.13  # https://github.com/joke2k/django-environ
+django-model-utils==5.0.0  # https://github.com/jazzband/django-model-utils
 django-redis==4.12.1  # https://github.com/jazzband/django-redis
-django-bootstrap4==2.2.0  # https://pypi.org/project/django-bootstrap4/
+django-bootstrap4==26.1  # https://pypi.org/project/django-bootstrap4/
 django-simple-history==2.12.0  # https://pypi.org/project/django-simple-history/
-django-crispy-forms==1.14.0
+django-crispy-forms==2.5

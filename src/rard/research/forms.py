@@ -346,9 +346,11 @@ class WorkForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super().clean()
         if "books" in cleaned_data:
-            existing_book_numbers = [
-                str(b.number) for b in self.instance.book_set.all()
-            ]
+            existing_book_numbers = (
+                [str(b.number) for b in self.instance.book_set.all()]
+                if self.instance.pk
+                else []
+            )  # cannot use book_set if instance isn't saved yet
             new_book_numbers = [
                 b["num"] for b in cleaned_data.get("books") if "num" in b
             ]
