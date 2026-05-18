@@ -7,16 +7,7 @@ from typing import Any
 
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import (
-    Expression,
-    ExpressionWrapper,
-    Func,
-    Q,
-    QuerySet,
-    TextField,
-    Value,
-)
-from django.db.models.functions import Lower
+from django.db.models import Expression, Func, Q, QuerySet, TextField, Value
 from django.shortcuts import redirect
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_GET
@@ -34,46 +25,7 @@ from rard.research.models import (
     Topic,
     Work,
 )
-
-# Fold [X,Y] transforms all instances of Y into X before matching
-# Folds are applied in the specified order, so we don't need
-# 'uul' <- 'vul' if we already have 'u' <- 'v'
-rard_folds: list[tuple[str, str]] = [
-    ("ast", "a est"),
-    ("ost", "o est"),
-    ("umst", "um est"),
-    ("am", "an"),
-    ("ausa", "aussa"),
-    ("nn", "bn"),
-    ("tt", "bt"),
-    ("pp", "bp"),
-    ("rr", "br"),
-    ("ch", "cch"),
-    ("clu", "culu"),
-    ("claud", "clod"),
-    ("has", "hasce"),
-    ("his", "hisce"),
-    ("hos", "hosce"),
-    ("i", "ii"),
-    ("i", "j"),
-    ("um", "im"),
-    ("lagr", "lagl"),
-    ("mb", "nb"),
-    ("ll", "nl"),
-    ("mm", "nm"),
-    ("mp", "np"),
-    ("mp", "ndup"),
-    ("rr", "nr"),
-    ("um", "om"),
-    ("u", "v"),
-    ("u", "y"),
-    ("uu", "w"),
-    ("ulc", "ulch"),
-    ("uul", "uol"),
-    ("ui", "uui"),
-    ("uum", "uom"),
-    ("x", "xs"),
-]
+from rard.utils.text_processors import fold_latin
 
 WILDCARD_SINGLE_CHAR = settings.WILDCARD_SINGLE_CHAR
 WILDCARD_MANY_CHAR = settings.WILDCARD_MANY_CHAR
@@ -106,57 +58,38 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         functions relevant to them.
         """
 
-        def __init__(self, keywords: str) -> None:
+        def __init__(self, keywords: str):
             """
             Initialize ``Term`` with the keywords.
 
             :param keywords: The user's query; a string of keywords.
             """
-            self.cleaned_number = 1
-            self.folded_number = 1
-            # Remove all punctuation except wildcard characers
-            self.keywords = PUNCTUATION_RE.sub("", keywords).lower()
+            # Using regex for everything doesn't seem to have a big impact
+            # But replace this line with the alternative code if you want to
+            # only use regex for search terms containing wildcards
+            self.lookup = "iregex"
+            # # If wildcard characters appear in keywords, use regex lookup
+            # if any([char in keywords for char in CTRL_CHARS]):
+            #     self.lookup = "iregex"
+            # else:
+            #     self.lookup = "icontains"
 
-            # The basic function query function will first eliminate html less than
-            # and greater than character codes, then punctuation,
-            # and lowercase the 'haystack' strings to be searched.
-            self.basic_query: Callable[[str], Expression] = lambda q: Lower(
-                Func(
-                    Func(
-                        q,
-                        Value("&[gl]t;"),
-                        Value(""),
-                        Value("g"),
-                        function="regexp_replace",
-                    ),
-                    Value(PUNCTUATION),
-                    Value(""),
-                    function="translate",
+            # Remove all punctuation except wildcard characers
+            keyword_string = PUNCTUATION_RE.sub("", keywords).lower()
+            self.keywords = self.get_keywords(keyword_string)
+
+            self.folded_keywords = [fold_latin(keyword) for keyword in self.keywords]
+
+            if self.lookup.endswith("regex"):
+                self.keywords = self.transform_keywords_to_regex(self.keywords)
+                self.folded_keywords = self.transform_keywords_to_regex(
+                    self.folded_keywords
                 )
-            )
-            self.query: Callable[[str], Expression] = self.basic_query
-            # Now we call add_fold repeatedly to add more
-            # folds to self.query
-            k = self.keywords
-            # we will add each relevant fold_to -> fold_from replacement
-            for fold_to, fold_from in rard_folds:
-                # if fold_from is in any of the keywords
-                if fold_from in k:
-                    # then replace it in the keywords
-                    k = k.replace(fold_from, fold_to)
-                    # and get it replaced in all the strings searched.
-                    self.add_fold(fold_from, fold_to)
-                # otherwise if fold_to is in the keywords
-                elif fold_to in k:
-                    # get it replaced in the strings searched,
-                    # but we don't need to replace anything in the keywords.
-                    self.add_fold(fold_from, fold_to)
-                # otherwise this fold is not relevant
-            self.folded_keywords = k
-            self.folded_matcher = self.get_matcher(k)
+
+            self.folded_matcher = self.get_matcher(self.folded_keywords)
             self.nonfolded_matcher = self.get_matcher(self.keywords)
 
-        def get_matcher(self, keywords: str) -> Callable[[str], Q]:
+        def get_matcher(self, keyword_list: Iterable[str]) -> Callable[[str], Q]:
             """
             Get a matcher for the keyword string.
 
@@ -164,7 +97,6 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             :return: A function that takes a lookup string and returns an
               expression that matches these keywords in that lookup string.
             """
-            keyword_list = self.get_keywords(keywords)
             if len(keyword_list) == 0:
                 # want a query that will always succeed
                 return ~Q(pk__in=[])
@@ -191,19 +123,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             """
             return lambda f: Q(**{f: keyword}) & old(f)
 
-        def add_fold(self, fold_from: str, fold_to: str) -> None:
-            """
-            Add another fold to ``self.query``.
-
-            :param fold_from: The string to find and replace.
-            :param fold_to: The replacement string.
-            """
-            old = self.query
-            self.query = lambda q: Func(
-                old(q), Value(fold_from), Value(fold_to), function="replace"
-            )
-
-        def get_keywords(self, search_string):
+        def get_keywords(self, search_string: str) -> list[str]:
             """
             Turns a string into a series of keywords. This is mostly splitting
             by whitespace, but strings surrounded by double quotes are
@@ -216,11 +136,11 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             2. Captures everything inside double quotes
             3. Captures individual words
             """
-            # regex 1st alternative matches proximity wil
+            # regex 1st alternative matches proximity, 2nd quoted phrase, 3rd word
             keywords = re.findall(
-                r"(.+\s~\d?:?\d?\s.+|(?<=\")[^\"]*(?=\")|[^\s\"]+)", search_string
+                r"(.+\s~\d*:?\d*\s.+|(?<=\")[^\"]*(?=\")|[^\s\"]+)", search_string
             )
-            return self.transform_keywords_to_regex(keywords)
+            return keywords
 
         def transform_keywords_to_regex(self, keywords):
             """Takes a list of keywords which may include wildcard characters
@@ -285,11 +205,9 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             self,
             query_set: QuerySet,
             query_string: str,
-            annotation_name: str,
-            query: Callable[[str], Q],
             matcher: Callable[[str], Q],
-            keywords: str,
-            add_snippet: bool = False,
+            keyword_list: Iterable[str],
+            add_snippet=False,
         ) -> QuerySet:
             """
             Get the queryset for this match portion.
@@ -305,18 +223,16 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             :param add_snippet: Should we add a snippet to the resulting queryset?
             :return: The queryset of results and snippets.
             """
-            expression = ExpressionWrapper(
-                query(query_string), output_field=TextField()
-            )
-            annotated = query_set.alias(**{annotation_name: expression})
-            matches = annotated.filter(matcher(annotation_name + "__regex"))
+            matches = query_set.filter(matcher(f"{query_string}__{self.lookup}"))
             snippet = (
-                self.snippet_query(keywords, query_string) if add_snippet else Value("")
+                self.snippet_query(keyword_list, query_string)
+                if add_snippet
+                else Value("")
             )
             matches = matches.annotate(snippet=snippet)
             return matches
 
-        def snippet_query(self, keywords: str, query_string: str) -> Expression:
+        def snippet_query(self, keyword_list: str, query_string: str) -> Expression:
             """
             Get an expression for a getting a snippet.
 
@@ -330,7 +246,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                         Func(
                             Func(
                                 query_string,
-                                Value(self.get_snippet_regex(keywords)),
+                                Value(self.get_snippet_regex(keyword_list)),
                                 Value(
                                     r'START_SNIPPET\1<span class="search-snippet">'
                                     r"\2</span>\3...END_SNIPPET"
@@ -358,26 +274,24 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                 output_field=TextField(),
             )
 
-        def get_snippet_regex(
-            self, keywords: str, before: int = 5, after: int = 5
-        ) -> str:
+        def get_snippet_regex(self, keywords: Iterable[str], before=5, after=5) -> str:
             """
             Get a regular expression that extracts a snippet from text.
 
             For example we can make an HTML snippet with the Postgres SQL
             ``REGEXP_REPLACE(content, snippet_regex, '\1<span>\2</span>\3')``.
 
-            :param keywords: String of keywords (the user's query)
+            :param keywords: Iterable of keywords (the user's query) -- they
+              have already been split by unquoted space
             :param before: The number of words before a keyword we'd like
               in the snippet.
             :param after: The number of words after a keyword we'd like in the snippet.
             :return: A regex that has three capturing groups: 1 is the previous words,
               2 is the keyword that was matched, 3 is the subsequent words.
             """
-            keywords = self.get_keywords(keywords)
             words_before_group = rf"((?:\S+\s){{0,{before}}})"
             keywords_group = "|".join(keywords)
-            keywords_group = r"(" + keywords_group + r")"
+            keywords_group = f"({keywords_group})"
             words_after_group = rf"(.?\s(?:\S+\s){{0,{after}}})"
             snippet_regex = words_before_group + keywords_group + words_after_group
             return snippet_regex
@@ -398,13 +312,9 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             :return: The queryset of results and snippets. The snippet annotation
               (if present) has the name ``snippet``.
             """
-            annotation_name = "cleaned{0}".format(self.cleaned_number)
-            self.cleaned_number += 1
             return self.do_match(
                 query_set,
                 query_string,
-                annotation_name,
-                self.basic_query,
                 self.nonfolded_matcher,
                 self.keywords,
                 add_snippet=add_snippet,
@@ -426,16 +336,11 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             :return: The queryset of results and snippets. The snippet annotation
               (if present) has the name ``snippet``.
             """
-            annotation_name = "folded{0}".format(self.folded_number)
-            self.folded_number += 1
-            keywords = self.folded_keywords
             return self.do_match(
                 query_set,
                 query_string,
-                annotation_name,
-                self.query,
                 self.folded_matcher,
-                keywords,
+                self.folded_keywords,
                 add_snippet=add_snippet,
             )
 
@@ -468,7 +373,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
 
         search_types: list[SearchField] = [
             ("all content", None),
-            ("original texts", ("original_texts__plain_content", "folded")),
+            ("original texts", ("original_texts__folded_content", "folded")),
             (
                 "translations",
                 (
@@ -675,7 +580,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             search_fields = [(search_field[0], match_function)]
         else:
             search_fields = [
-                ("original_texts__plain_content", terms.match_folded),
+                ("original_texts__folded_content", terms.match_folded),
                 ("original_texts__translation__plain_translated_text", terms.match),
                 ("plain_commentary", terms.match),
                 ("original_texts__translation__translator_name", terms.match),
