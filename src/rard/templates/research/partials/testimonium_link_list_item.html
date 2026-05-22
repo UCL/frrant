@@ -10,7 +10,7 @@
 <div id='testimoniumlink_{{ link.pk }}' data-link='{{ link.pk }}' data-antiquarian='{{ link.antiquarian.pk }}' draggable='false' data-objecttype='testimonium' data-pos='{{ forloop.counter0 }}'  class='drag-item ordered-list-item rard-list-item d-flex justify-content-between'>
     <div>
         <li class="unstyled">
-                {% with link_text=testimonium|name_in_context:work %}
+                {% with link_text=testimonium|name_in_context:work|safe %}
                 {% if perms.research.view_testimonium %}
 
                 {% include 'research/partials/render_definite_indicators.html' with link=link %}
