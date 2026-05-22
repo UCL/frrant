@@ -29,9 +29,9 @@
 
             <div id='work_{{ work.pk }}' class='parent-ordering-group drag-item ordered-list-item' draggable='false' data-work='{{ work.pk }}' data-antiquarian='{{ object.pk }}' data-objecttype='work' data-pos='{{ forloop.counter0 }}'>
                 <div class='d-flex justify-content-between w-100'>
-                    {% with tlinks=w2tlinks|get_item_list:work %}
-                    {% with flinks=w2flinks|get_item_list:work %}
-                    {% with alinks=w2alinks|get_item_list:work %}
+                    {% with tlinks=w2tlinks|get_item_list:work.id %}
+                    {% with flinks=w2flinks|get_item_list:work.id %}
+                    {% with alinks=w2alinks|get_item_list:work.id %}
 
                     <div>
                         {% if work.unknown == True and not flinks and not tlinks and not alinks %}
