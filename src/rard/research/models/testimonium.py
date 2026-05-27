@@ -93,10 +93,14 @@ class Testimonium(HistoryModelMixin, HistoricalBaseModel):
     def get_all_names(self):
         return [link.get_display_name() for link in self.get_all_links()]
 
-    def get_link_names(self, show_certainty=True):
+    def get_link_names(self, show_certainty=True, first_work=None):
         links = self.get_all_links().order_by(
             "-work__unknown", "work", "antiquarian", "order"
         )
+        if first_work:
+            first_links = links.filter(work=first_work)
+            other_links = links.exclude(work=first_work)
+            links = list(first_links) + list(other_links)
         names = []
         for link in links:
             if link.work and not link.work.unknown:
