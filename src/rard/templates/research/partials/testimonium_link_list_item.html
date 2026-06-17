@@ -1,6 +1,6 @@
 {# Assumes context objects named 'link' and 'link_text'. Optional disable_link_controls to display but disable the link controls #}
 
-{% load i18n %}
+{% load i18n name_in_context %}
 
 {% with testimonium=link.linked %}
 
@@ -10,7 +10,7 @@
 <div id='testimoniumlink_{{ link.pk }}' data-link='{{ link.pk }}' data-antiquarian='{{ link.antiquarian.pk }}' draggable='false' data-objecttype='testimonium' data-pos='{{ forloop.counter0 }}'  class='drag-item ordered-list-item rard-list-item d-flex justify-content-between'>
     <div>
         <li class="unstyled">
-                {% with testimonium.get_display_name as link_text %}
+                {% with link_text=testimonium|name_in_context:work %}
                 {% if perms.research.view_testimonium %}
 
                 {% include 'research/partials/render_definite_indicators.html' with link=link %}
