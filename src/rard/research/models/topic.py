@@ -48,7 +48,7 @@ class Topic(HistoryModelMixin, OrderableModel, LockableModel, BaseModel):
         # single db update
         with transaction.atomic():
             links = TopicLink.objects.filter(topic=self).order_by(
-                models.F(("order")).asc(nulls_first=False)
+                models.F(("order")).asc(nulls_last=True)
             )
             for count, link in enumerate(links):
                 link.order = count

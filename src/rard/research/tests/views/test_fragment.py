@@ -408,7 +408,7 @@ class TestFragmentConvertViews(TestCase):
             self.anon_fragment_with_apposita
         )
         # self.af2 was apposita to anon fragment, should now be apposita to new fragment
-        self.assertQuerysetEqual(new_unlinked_fragment.apposita.all(), [self.af2])
+        self.assertQuerySetEqual(new_unlinked_fragment.apposita.all(), [self.af2])
 
     def test_converted_unlinked_fragment_maintains_apposita(self):
         """If the original unlinked fragment had any apposita, those
@@ -417,7 +417,7 @@ class TestFragmentConvertViews(TestCase):
             self.unlinked_fragment_with_apposita
         )
         # self.af1 was originally apposita to the unlinked fragment
-        self.assertQuerysetEqual(new_anon_fragment.anonymous_apposita.all(), [self.af1])
+        self.assertQuerySetEqual(new_anon_fragment.anonymous_apposita.all(), [self.af1])
 
 
 class TestMoveAnonymousTopicLinkView(TestCase):
@@ -618,7 +618,7 @@ class TestOrderAnonymousFragmentListView(TestCase):
             list(response.context_data["object_list"].all()),
         )
 
-        self.assertQuerysetEqual(
+        self.assertQuerySetEqual(
             response.context_data["object_list"],
             [self.aftl1, self.aftl3, self.aftl2, self.aftl3],
         )

@@ -231,11 +231,11 @@ class TestAnonymousFragment(TestCase):
         it should not be a symmetric relationship"""
         self.anon1.anonymous_fragments.add(self.anon2)
         # First confirm anon1 has been added as an apposita of anon2
-        self.assertQuerysetEqual(self.anon1.anonymous_fragments.all(), [self.anon2])
-        self.assertQuerysetEqual(self.anon2.anonymous_apposita.all(), [self.anon1])
+        self.assertQuerySetEqual(self.anon1.anonymous_fragments.all(), [self.anon2])
+        self.assertQuerySetEqual(self.anon2.anonymous_apposita.all(), [self.anon1])
         # Now confirm anon2 is not an apposita of anon1
-        self.assertQuerysetEqual(self.anon2.anonymous_fragments.all(), [])
-        self.assertQuerysetEqual(self.anon1.anonymous_apposita.all(), [])
+        self.assertQuerySetEqual(self.anon2.anonymous_fragments.all(), [])
+        self.assertQuerySetEqual(self.anon1.anonymous_apposita.all(), [])
 
 
 class TestAnonymousTopicLink(TestCase):

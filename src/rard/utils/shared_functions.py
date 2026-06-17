@@ -34,7 +34,14 @@ def calculate_definite(organised_link_array):
 
 
 def reassign_to_unknown(worklink):
-    """Used in the Remove WorkLink Views"""
+    """
+    Reassign a Testimonium, Fragment or Appositum as an unknown work.
+
+    :params worklink: A ``TestimoniumLink``, ``FragmentLink`` or
+      ``AppositumLink``. The work will be assigned to the same
+      antiquarian it is currently assigned to, but an unknown work
+      of theirs.
+    """
     worklink.work = worklink.antiquarian.unknown_work
     worklink.book = worklink.work.unknown_book
     worklink.definite_work = False

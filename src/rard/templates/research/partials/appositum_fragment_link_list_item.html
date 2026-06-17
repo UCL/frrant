@@ -1,4 +1,4 @@
-{# Assumes a context object named 'link' and 'link_text'. Optional disable_link_controls to display but disable the link controls #}
+{# Assumes a context object named 'link'. Optional disable_link_controls to display but disable the link controls #}
 
 {% load i18n name_in_context %}
 
@@ -8,7 +8,7 @@
 <div id='anonymous_fragmentlink_{{ link.pk }}' data-link='{{ link.pk }}' data-antiquarian='{{ link.antiquarian.pk }}' draggable='false' data-objecttype='anonymous_fragment' data-pos='{{ forloop.counter0 }}' class='drag-item ordered-list-item rard-list-item d-flex justify-content-between'>
     <div>
         <li class="unstyled">
-                {% with link_text=fragment|name_in_context:work %}
+                {% with link_text=fragment|name|safe_in_context:work|safe %}
                 {% if perms.research.view_fragment %}
 
                 {% include 'research/partials/render_definite_indicators.html' with link=link %}

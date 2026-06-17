@@ -248,8 +248,9 @@ class TestAntiquarianLinkScheme(TestCase):
             a1.fragments.add(fragment)
 
         # delete one antiquarian and all these links should go
+        a0_pk = a0.pk
         a0.delete()
-        self.assertEqual(0, FragmentLink.objects.filter(antiquarian=a0).count())
+        self.assertEqual(0, FragmentLink.objects.filter(antiquarian_id=a0_pk).count())
 
         # other antiquarian unaffected
         self.assertEqual(
