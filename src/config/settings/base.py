@@ -74,6 +74,7 @@ THIRD_PARTY_APPS = [
     "bootstrap4",
     "simple_history",
     "crispy_forms",
+    "django_distill",
 ]
 
 LOCAL_APPS = [

@@ -1,42 +1,42 @@
 from django.conf.urls import include
 from django.urls import path
+from django_distill import distill_path
 
 import rard.research.views as views
 
 # common urls for both fragments and testimonia for shared views that we
 # want to expose under different namespaces
-common_patterns = [
-    path(
+def common_patterns(prefix):
+    return [path(
         "original-text/<pk>/update/",
         views.OriginalTextUpdateView.as_view(),
-        name="update_original_text",
+        name=f"{prefix}_update_original_text",
     ),
     path(
         "original-text/<pk>/update-author/",
         views.OriginalTextUpdateAuthorView.as_view(),
-        name="update_author_original_text",
+        name=f"{prefix}_update_author_original_text",
     ),
     path(
         "original-text/<pk>/delete/",
         views.OriginalTextDeleteView.as_view(),
-        name="delete_original_text",
+        name=f"{prefix}_delete_original_text",
     ),
     path(
         "original-text/<pk>/create-translation/",
         views.TranslationCreateView.as_view(),
-        name="create_translation",
+        name=f"{prefix}_create_translation",
     ),
     path(
         "translation/<pk>/update/",
         views.TranslationUpdateView.as_view(),
-        name="update_translation",
+        name=f"{prefix}_update_translation",
     ),
     path(
         "translation/<pk>/delete/",
         views.TranslationDeleteView.as_view(),
-        name="delete_translation",
-    ),
-]
+        name=f"{prefix}_delete_translation",
+    )]
 
 # history_patterns = [
 #     path("<content_type>/<pk>/history/", views.HistoryView.as_view(), name="history"),
@@ -44,7 +44,7 @@ common_patterns = [
 
 # app_name = "research"
 urlpatterns = [
-    path("", views.HomeView.as_view(), name="home"),
+    distill_path("", views.HomeView.as_view(), name="home"),
     path("ajax/move-link/", views.MoveLinkView.as_view(), name="move_link"),
     path("ajax/move-topic/", views.MoveTopicView.as_view(), name="move_topic"),
     path(
@@ -315,7 +315,7 @@ urlpatterns = [
                         name="fetch_fragments",
                     ),
                     # include common urls here
-                    path("", include(common_patterns)),
+                    path("", include(common_patterns("fragment"))),
                 ],
                 "research",
             ),
@@ -422,7 +422,7 @@ urlpatterns = [
                         name="create_original_text",
                     ),
                     # include common urls here
-                    path("", include(common_patterns)),
+                    path("", include(common_patterns("anonymous_fragment"))),
                 ],
                 "research",
             ),
@@ -500,7 +500,7 @@ urlpatterns = [
                         views.TestimoniumOriginalTextCreateView.as_view(),
                         name="create_original_text",
                     ),
-                    path("", include(common_patterns)),
+                    path("", include(common_patterns("testimonium"))),
                     # include common urls here
                 ],
                 "research",

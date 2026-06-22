@@ -448,6 +448,18 @@ Then apply the settings with e.g.
 
 If the Javascript and css is not looking how you expect after production, ensure you have run 'collectstatic' on the target machine(s). See the description given earlier.
 
+# Static site generation
+
+Bring up the project as usual, then run the commands to generate the static site.
+In this case we are generating it at `../../frrant-static`; run the following commands from the `src` directory:
+
+```
+docker compose -f production.yml up -d --build
+./manage distill-local --collectstatic --force /app/out
+```
+
+Now your files are in `src/out/`.
+
 # Project management
 During the software development stage, we work in sprint cycles that go from 2 to 4 weeks, depending on workload and availability. These have a planning meeting at the beginning, a meeting with the research team to demo all new changes, and a deployment to production if all changes have been approved by the research team during the meeting. We are currently using [this Zenhub workspace](https://app.zenhub.com/workspaces/frrant-public-612e33d9c2bb690015527ab6/board?repos=312338365) to plan tasks in each sprint, and we share a [GitHub priority board](https://github.com/UCL/frrant/projects/7) with the research team to better understand what tasks are essential for them, and which can wait.
 

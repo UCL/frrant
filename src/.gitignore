@@ -278,3 +278,6 @@ rard/media/
 
 ### dump.json
 dump.json
+
+### Static site
+out/*
