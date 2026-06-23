@@ -862,7 +862,8 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         keywords = request.GET.get("q", None)
         if keywords is not None and keywords.strip() == "":
             # empty search field. Redirect to cleared page
-            ret = redirect(request.path)
+            # Needs to be self.request or github-advanced-security complains
+            ret = redirect(self.request.path)
         else:
             ret = super().get(request, *args, **kwargs)
 
