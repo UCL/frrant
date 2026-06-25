@@ -245,6 +245,32 @@ class TestAntiquarian(TestCase):
         self.assertEqual(a.fragmentlinks.all().count(), 1)
         self.assertEqual(a.fragmentlinks.first().work, a.unknown_work)
 
+    def test_collate_unknown_preserves_other_work_links(self):
+        data = {"name": "John Smith", "re_code": "smitre002"}
+        a = Antiquarian.objects.create(**data)
+        f = Fragment.objects.create(name="fragment")
+        keep_work = Work.objects.create(name="A Known Work")
+        a.works.add(keep_work)
+        FragmentLink.objects.create(antiquarian=a, fragment=f, work=keep_work)
+
+        additional_unknown = Work.objects.create(unknown=True, name="Unknown Work")
+        additional_unknown.antiquarian_set.add(a)
+        FragmentLink.objects.create(
+            antiquarian=a,
+            fragment=f,
+            work=additional_unknown,
+        )
+
+        self.assertEqual(a.works.filter(unknown=True).count(), 2)
+        self.assertEqual(a.fragmentlinks.filter(work=keep_work).count(), 1)
+        self.assertEqual(a.fragmentlinks.filter(work=additional_unknown).count(), 1)
+
+        collate_unknown(a)
+
+        self.assertEqual(a.works.filter(unknown=True).count(), 1)
+        self.assertEqual(a.fragmentlinks.filter(work=keep_work).count(), 1)
+        self.assertEqual(a.fragmentlinks.filter(work=a.unknown_work).count(), 1)
+
 
 class TestWorkLink(TestCase):
     def test_related_queryset(self):

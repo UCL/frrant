@@ -394,6 +394,36 @@ class TestWork(TestCase):
             w.antiquarian_work_fragmentlinks.first().book, original_unknown
         )
 
+    def test_collate_unknown_preserves_other_work_links(self):
+        data = {"name": "workname", "subtitle": "Subtitle"}
+        w = Work.objects.create(**data)
+        f = Fragment.objects.create(name="fragment")
+        keep_book = Book.objects.create(unknown=False, subtitle="Known Book", work=w)
+        FragmentLink.objects.create(fragment=f, work=w, book=keep_book)
+
+        additional_unknown = Book.objects.create(
+            unknown=True, subtitle="Unknown Book", work=w
+        )
+        FragmentLink.objects.create(fragment=f, work=w, book=additional_unknown)
+
+        self.assertEqual(w.book_set.filter(unknown=True).count(), 2)
+        self.assertEqual(
+            w.antiquarian_work_fragmentlinks.filter(book=keep_book).count(), 1
+        )
+        self.assertEqual(
+            w.antiquarian_work_fragmentlinks.filter(book=additional_unknown).count(), 1
+        )
+
+        collate_unknown(w)
+
+        self.assertEqual(w.book_set.filter(unknown=True).count(), 1)
+        self.assertEqual(
+            w.antiquarian_work_fragmentlinks.filter(book=keep_book).count(), 1
+        )
+        self.assertEqual(
+            w.antiquarian_work_fragmentlinks.filter(book=w.unknown_book).count(), 1
+        )
+
 
 class TestBook(TestCase):
     def setUp(self):

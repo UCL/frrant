@@ -16,7 +16,7 @@ from rard.research.models.base import (
 from rard.research.models.mixins import HistoryModelMixin, TextObjectFieldMixin
 from rard.utils.basemodel import BaseModel, DatedModel, LockableModel, OrderableModel
 from rard.utils.decorators import disable_for_loaddata
-from rard.utils.shared_functions import collate_ub_links
+from rard.utils.shared_functions import collate_book_links
 from rard.utils.text_processors import make_plain_text
 
 
@@ -52,6 +52,8 @@ class Work(
     number_of_books = models.CharField(max_length=128, blank=True)
 
     unknown = models.BooleanField(default=False)
+
+    bibliographic = models.BooleanField(default=False)
 
     introduction = models.OneToOneField(
         "TextObjectField",
@@ -303,7 +305,7 @@ def collate_unknown(instance):
         designated_unknown = unknown_books.first()
         other_unknown_books = unknown_books.exclude(pk=designated_unknown.pk)
 
-        collate_ub_links(instance, designated_unknown)
+        collate_book_links(instance, designated_unknown, other_unknown_books)
         other_unknown_books.delete()
 
 
