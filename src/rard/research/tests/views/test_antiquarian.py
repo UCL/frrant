@@ -78,9 +78,12 @@ class TestAntiquarianWorkCreateView(TestCase):
         antiquarian.lock(request.user)
 
         AntiquarianWorkCreateView.as_view()(request, pk=antiquarian.pk)
-        self.assertEqual(antiquarian.works.exclude(unknown=True).count(), 1)
+        self.assertEqual(
+            antiquarian.works.exclude(unknown=True).exclude(bibliographic=True).count(),
+            1,
+        )
         for key, val in data.items():
-            self.assertEqual(getattr(antiquarian.works.first(), key), val)
+            self.assertEqual(getattr(antiquarian.ordered_works.first(), key), val)
 
     def test_bad_data(self):
         antiquarian = Antiquarian.objects.create()
@@ -93,7 +96,10 @@ class TestAntiquarianWorkCreateView(TestCase):
 
         AntiquarianWorkCreateView.as_view()(request, pk=antiquarian.pk)
         # no work created
-        self.assertEqual(antiquarian.works.exclude(unknown=True).count(), 0)
+        self.assertEqual(
+            antiquarian.works.exclude(unknown=True).exclude(bibliographic=True).count(),
+            0,
+        )
 
 
 class TestAntiquarianDeleteView(TestCase):

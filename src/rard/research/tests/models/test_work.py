@@ -39,25 +39,29 @@ class TestWork(TestCase):
 
         # 1. check anonymous ordering
         self.assertEqual(
-            [w for w in Work.objects.exclude(unknown=True)], [worka, workb, workc]
+            [w for w in Work.objects.exclude(unknown=True).exclude(bibliographic=True)],
+            [worka, workb, workc],
         )
 
         antc.works.add(workb)
         # this should now be last with anon works at the start
         self.assertEqual(
-            [w for w in Work.objects.exclude(unknown=True)], [worka, workc, workb]
+            [w for w in Work.objects.exclude(unknown=True).exclude(bibliographic=True)],
+            [worka, workc, workb],
         )
 
         # the name of the antiquarian should put work c second
         antb.works.add(workc)
         self.assertEqual(
-            [w for w in Work.objects.exclude(unknown=True)], [worka, workc, workb]
+            [w for w in Work.objects.exclude(unknown=True).exclude(bibliographic=True)],
+            [worka, workc, workb],
         )
         # even if we also add antc as an author of workc, as the name of
         # antiquarian antb should govern the order
         antc.works.add(workb)
         self.assertEqual(
-            [w for w in Work.objects.exclude(unknown=True)], [worka, workc, workb]
+            [w for w in Work.objects.exclude(unknown=True).exclude(bibliographic=True)],
+            [worka, workc, workb],
         )
 
         # now, put worka as a work of anta and this should be first in the
@@ -65,7 +69,8 @@ class TestWork(TestCase):
         # ahead of the others
         anta.works.add(worka)
         self.assertEqual(
-            [w for w in Work.objects.exclude(unknown=True)], [worka, workc, workb]
+            [w for w in Work.objects.exclude(unknown=True).exclude(bibliographic=True)],
+            [worka, workc, workb],
         )
 
         # final test - antiquarian name takes precedence
@@ -73,7 +78,8 @@ class TestWork(TestCase):
         antb.works.set([workb])
         antc.works.set([worka])
         self.assertEqual(
-            [w for w in Work.objects.exclude(unknown=True)], [workc, workb, worka]
+            [w for w in Work.objects.exclude(unknown=True).exclude(bibliographic=True)],
+            [workc, workb, worka],
         )
 
     def test_required_fields(self):

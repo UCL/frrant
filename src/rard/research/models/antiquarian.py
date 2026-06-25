@@ -16,7 +16,7 @@ class WorkLink(OrderableModel, models.Model):
     """Through-model for Work to Antiquarian, m2m"""
 
     class Meta:
-        ordering = ["work__unknown", "order"]
+        ordering = ["work__unknown", "work__bibliographic", "order"]
 
     def related_queryset(self):
         return self.__class__.objects.filter(

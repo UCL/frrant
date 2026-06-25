@@ -418,7 +418,8 @@ class TestWorkLinkScheme(TestCase):
             a.works.add(Work.objects.create(name=name))
 
         self.assertEqual(
-            [w.name for w in a.ordered_works.all()], names + ["Unknown Work"]
+            [w.name for w in a.ordered_works.all()],
+            names + ["Bibliographic Work", "Unknown Work"],
         )
         # try moving a work down in the order
         link = a.worklink_set.first()
@@ -431,11 +432,16 @@ class TestWorkLinkScheme(TestCase):
                 "work two",
                 "work one",
                 "work three",
+                "Bibliographic Work",
                 "Unknown Work",
             ],
         )
 
-        link = a.worklink_set.exclude(work__unknown=True).last()
+        link = (
+            a.worklink_set.exclude(work__unknown=True)
+            .exclude(work__bibliographic=True)
+            .last()
+        )
         link.up()
 
         # should have reordered
@@ -445,6 +451,7 @@ class TestWorkLinkScheme(TestCase):
                 "work two",
                 "work three",
                 "work one",
+                "Bibliographic Work",
                 "Unknown Work",
             ],
         )
@@ -596,8 +603,9 @@ class TestWorkLinkScheme(TestCase):
         works = Work.objects.all()
 
         # set up creates a work called 'work', we've created
-        # four others here called 'another' and there is a default Unknown Work
-        self.assertEqual(ADD + 2, works.count())
+        # four others here called 'another' and there are default
+        # Unknown and Bibliographic Works
+        self.assertEqual(ADD + 3, works.count())
 
         # set the antiquarian works all at once
         self.antiquarian.works.set(works)
@@ -605,10 +613,10 @@ class TestWorkLinkScheme(TestCase):
         ant_works = self.antiquarian.works.all()
         ant_fragmentlinks = self.antiquarian.fragmentlinks.all()
 
-        # check it worked - we should have 5 works in total
+        # check it worked - we should have 7 works in total
         self.assertEqual(works.count(), ant_works.count())
 
-        # we should at this point have 5 sets
+        # we should at this point have 5 sets of 10 fragment links
         # 4 linked via the work 'another' and one other work = 5
         expected = (self.NUM * ADD) + starting_fragmentlinks_count
         self.assertEqual(ant_fragmentlinks.count(), expected)
@@ -623,7 +631,7 @@ class TestWorkLinkScheme(TestCase):
             self.antiquarian.works.set(Work.objects.none())  # set to empty
 
         # antiquarian should now have fewer links directly to it
-        expected = (ant_works.count()) * self.NUM
+        expected = (max(ant_works.count() - 1, 0)) * self.NUM
         self.assertEqual(ant_fragmentlinks.count(), expected)
         # the antiquarian links have been reordered
         for count, link in enumerate(
@@ -636,9 +644,10 @@ class TestWorkLinkScheme(TestCase):
         nworks = Work.objects.count()
 
         # there should be no stray links lying around
-        self.assertEqual(FragmentLink.objects.all().count(), nfragments * nworks)
+        expected = nfragments * (nworks - 1)  # ignore bibliographic work
+        self.assertEqual(FragmentLink.objects.all().count(), expected)
 
-        for work in Work.objects.all():
+        for work in Work.objects.exclude(bibliographic=True).exclude(unknown=True):
             self.assertEqual(FragmentLink.objects.filter(work=work).count(), nfragments)
 
         # check that orphaned works have been reordered
