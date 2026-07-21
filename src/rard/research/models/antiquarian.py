@@ -115,6 +115,9 @@ class Antiquarian(
 
     class Meta:
         ordering = ["order_name", "re_code"]
+        permissions = [
+            ("set_publishable", "Can set publishable status"),
+        ]
 
     name = models.CharField(max_length=128, blank=False)
 

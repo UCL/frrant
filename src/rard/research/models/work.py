@@ -42,6 +42,9 @@ class Work(
 
     class Meta:
         ordering = ["name"]
+        permissions = [
+            ("set_publishable", "Can set publishable status"),
+        ]
 
     objects = WorkManager()
 

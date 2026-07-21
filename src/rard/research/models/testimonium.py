@@ -32,6 +32,11 @@ class Testimonium(HistoryModelMixin, HistoricalBaseModel):
         ]
     )
 
+    class Meta(HistoricalBaseModel.Meta):
+        permissions = [
+            ("set_publishable", "Can set publishable status"),
+        ]
+
     def related_lock_object(self):
         return self
 

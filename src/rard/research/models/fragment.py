@@ -62,6 +62,11 @@ class Fragment(HistoryModelMixin, HistoricalBaseModel, DatedModel):
         ]
     )
 
+    class Meta(HistoricalBaseModel.Meta):
+        permissions = [
+            ("set_publishable", "Can set publishable status"),
+        ]
+
     def related_lock_object(self):
         # what needs to be locked in order to change the object
         return self
@@ -200,6 +205,10 @@ class AnonymousFragment(
 
     class Meta(HistoricalBaseModel.Meta):
         ordering = ["order"]
+
+        permissions = [
+            ("set_publishable", "Can set publishable status"),
+        ]
 
     def related_queryset(self):
         return self.__class__.objects.all()

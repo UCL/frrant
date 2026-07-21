@@ -12,6 +12,9 @@ class CitingAuthor(
 ):
     class Meta:
         ordering = ("order_name",)
+        permissions = [
+            ("set_publishable", "Can set publishable status"),
+        ]
 
     name = models.CharField(max_length=256, blank=False)
 
@@ -134,6 +137,11 @@ class CitingWork(
     HistoryModelMixin, TextObjectFieldMixin, LockableModel, DatedModel, BaseModel
 ):
     history = HistoricalRecords(excluded_fields=[])
+
+    class Meta:
+        permissions = [
+            ("set_publishable", "Can set publishable status"),
+        ]
 
     publishable = models.BooleanField(default=False)
 
