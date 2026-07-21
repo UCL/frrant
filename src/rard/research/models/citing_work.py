@@ -13,7 +13,7 @@ class CitingAuthor(
     class Meta:
         ordering = ("order_name",)
         permissions = [
-            ("set_publishable", "Can set publishable status"),
+            ("publish_citing_author", "Can publish a citing author"),
         ]
 
     name = models.CharField(max_length=256, blank=False)
@@ -140,7 +140,7 @@ class CitingWork(
 
     class Meta:
         permissions = [
-            ("set_publishable", "Can set publishable status"),
+            ("publish_citing_work", "Can publish a citing work"),
         ]
 
     publishable = models.BooleanField(default=False)
