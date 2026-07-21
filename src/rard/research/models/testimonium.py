@@ -37,6 +37,8 @@ class Testimonium(HistoryModelMixin, HistoricalBaseModel):
 
     LINK_TYPE = TestimoniumLink
 
+    publishable = models.BooleanField(default=False)
+
     original_texts = GenericRelation("OriginalText", related_query_name="testimonia")
     tags = models.ManyToManyField(
         TestimoniumTag,

@@ -15,6 +15,8 @@ class CitingAuthor(
 
     name = models.CharField(max_length=256, blank=False)
 
+    publishable = models.BooleanField(default=False)
+
     order_name = models.CharField(
         max_length=128,
         default="",
@@ -132,6 +134,8 @@ class CitingWork(
     HistoryModelMixin, TextObjectFieldMixin, LockableModel, DatedModel, BaseModel
 ):
     history = HistoricalRecords(excluded_fields=[])
+
+    publishable = models.BooleanField(default=False)
 
     def related_lock_object(self):
         return self

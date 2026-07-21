@@ -120,6 +120,8 @@ class Antiquarian(
 
     order_name = models.CharField(max_length=128, default="", blank=True)
 
+    publishable = models.BooleanField(default=False)
+
     introduction = models.OneToOneField(
         "TextObjectField",
         on_delete=models.SET_NULL,

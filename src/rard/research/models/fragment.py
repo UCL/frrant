@@ -66,6 +66,8 @@ class Fragment(HistoryModelMixin, HistoricalBaseModel, DatedModel):
         # what needs to be locked in order to change the object
         return self
 
+    publishable = models.BooleanField(default=False)
+
     # fragments can also have topics
     topics = models.ManyToManyField("Topic", blank=True, through="TopicLink")
 
@@ -201,6 +203,8 @@ class AnonymousFragment(
 
     def related_queryset(self):
         return self.__class__.objects.all()
+
+    publishable = models.BooleanField(default=False)
 
     # these can also have topics but ordering not yet clear
     topics = models.ManyToManyField("Topic", blank=True, through="AnonymousTopicLink")

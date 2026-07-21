@@ -49,6 +49,8 @@ class Work(
 
     subtitle = models.CharField(max_length=128, blank=True)
 
+    publishable = models.BooleanField(default=False)
+
     number_of_books = models.CharField(max_length=128, blank=True)
 
     unknown = models.BooleanField(default=False)
