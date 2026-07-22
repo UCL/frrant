@@ -11,7 +11,12 @@
     </small>
 </div>
 {% endif %}
-<div>{{ object.name }}</div>
+<div>
+  {{ object.name }}
+  {% if object.publishable %}
+    <span class='badge badge-pill badge-success'>Published</span>
+  {% endif %}
+</div>
 {% endblock %}
 
 {% block last_modified %}{% endblock %}

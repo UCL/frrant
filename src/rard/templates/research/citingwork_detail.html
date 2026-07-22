@@ -9,8 +9,12 @@
     </small>
 </div>
 
-<div>{{ object.title }}</div>
-
+<div>
+    {{ object.title }}
+    {% if object.publishable %}
+        <span class='badge badge-pill badge-success'>Published</span>
+    {% endif %}
+</div>
 
 {% endblock %}
 
@@ -18,7 +22,7 @@
 
     {% with request.user|has_lock:object as has_object_lock %}
 
-        {% include 'research/partials/render_locked_info.html' %}
+        {% include 'research/partials/render_locked_info.html' with is_citing_work=citingwork %}
 
         <div class='d-flex justify-content-end'>
         {% if has_object_lock %}
