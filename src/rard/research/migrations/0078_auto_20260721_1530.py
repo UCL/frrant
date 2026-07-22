@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('research', '0078_alter_worklink_options'),
+        ('research', '0077_alter_worklink_options'),
     ]
 
     operations = [
