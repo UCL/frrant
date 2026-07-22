@@ -27,7 +27,7 @@ def add_bibliographic_works(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('research', '0076_add_folded_text'),
+        ('research', '0075_add_testimonium_tags'),
     ]
 
     operations = [
