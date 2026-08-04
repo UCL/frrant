@@ -94,8 +94,8 @@ class TestSearchView(TestCase):
         url = reverse("search:home")
         request = RequestFactory().get(url, data=data)
         view.request = request
-        # should include the unknown works for them
-        self.assertEqual(5, len(view.get_queryset()))
+        # should include the unknown and bibliographic works for them
+        self.assertEqual(7, len(view.get_queryset()))
 
     def test_empty_search_redirects(self):
         # any empty sring should be ignored
@@ -273,16 +273,37 @@ class TestSearchView(TestCase):
         w1 = Work.objects.create(name="work")
         w2 = Work.objects.create(name="nothing")
         self.assertEqual(
-            do_search(view.work_search, "work"), [w1, a1.unknown_work, a2.unknown_work]
+            do_search(view.work_search, "work"),
+            [
+                w1,
+                a1.bibliographic_work,
+                a1.unknown_work,
+                a2.bibliographic_work,
+                a2.unknown_work,
+            ],
         )
         self.assertEqual(
-            do_search(view.work_search, "WORK"), [w1, a1.unknown_work, a2.unknown_work]
+            do_search(view.work_search, "WORK"),
+            [
+                w1,
+                a1.bibliographic_work,
+                a1.unknown_work,
+                a2.bibliographic_work,
+                a2.unknown_work,
+            ],
         )
         self.assertEqual(do_search(view.work_search, "nothing"), [w2])
         self.assertEqual(do_search(view.work_search, "NothInG"), [w2])
         self.assertEqual(
             do_search(view.work_search, "*O*"),
-            [w2, w1, a1.unknown_work, a2.unknown_work],
+            [
+                w2,
+                w1,
+                a1.bibliographic_work,
+                a1.unknown_work,
+                a2.bibliographic_work,
+                a2.unknown_work,
+            ],
         )
 
         cw = CitingWork.objects.create(title="citing_work")

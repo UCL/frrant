@@ -3,6 +3,9 @@
 {% block title %}Anonymous Fragment {{object.pk}} {% endblock %}
 {% block heading %}
     {{ object.get_display_name }}
+    {% if object.publishable %}
+        <span class='badge badge-pill badge-success'>Published</span>
+    {% endif %}
 {% endblock %}
 
 {% block javascript %}

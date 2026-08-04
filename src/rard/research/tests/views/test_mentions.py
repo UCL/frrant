@@ -215,8 +215,8 @@ class TestMentionsView(TestCase):
         ) as mock_search_method:
             view.get_queryset()
             mock_search_method.assert_called_with([])
-        # no search term
-        self.assertEqual(len(list(view.get_queryset())), 6)
+        # no search term: Unknown, Bibliographic and 1 extra for each antiquarian
+        self.assertEqual(len(list(view.get_queryset())), 9)
 
         # number as search: only applicable if number in antiquarian/name
         view.request = self.request(
@@ -239,10 +239,17 @@ class TestMentionsView(TestCase):
                 "q": "wk:and",
             }
         )
-        self.assertEqual(len(list(view.get_queryset())), 3)
+        # Should return andrew's work, andropov,
+        # the unknown work for Andrew, and the bibliographic work for Andrew
+        self.assertEqual(len(list(view.get_queryset())), 4)
         self.assertCountEqual(
             list(view.get_queryset()),
-            [self.andropov, self.provisions, self.andrew.unknown_work],
+            [
+                self.andropov,
+                self.provisions,
+                self.andrew.unknown_work,
+                self.andrew.bibliographic_work,
+            ],
         )
 
     def test_anonymous_fragment_search(self):

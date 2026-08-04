@@ -1,4 +1,6 @@
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
@@ -142,6 +144,23 @@ class WorkDeleteView(
     model = Work
     success_url = reverse_lazy("work:list")
     permission_required = ("research.delete_work",)
+
+
+@require_POST
+@login_required
+@permission_required("research.publish_work")
+def work_set_publishable(request, pk):
+    """Given the pk of a Work object, set its publishable attribute to the value of the POST request"""
+    try:
+        work = Work.objects.get(pk=pk)
+    except Work.DoesNotExist:
+        raise Http404("No Works found matching the query")
+
+    work.publishable = request.POST.get("publishable", False)
+    work.save()
+
+    # Refresh the page
+    return HttpResponseRedirect(reverse("work:detail", kwargs={"pk": pk}))
 
 
 class BookCreateView(
