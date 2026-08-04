@@ -115,10 +115,15 @@ class Antiquarian(
 
     class Meta:
         ordering = ["order_name", "re_code"]
+        permissions = [
+            ("publish_antiquarian", "Can publish an antiquarian"),
+        ]
 
     name = models.CharField(max_length=128, blank=False)
 
     order_name = models.CharField(max_length=128, default="", blank=True)
+
+    publishable = models.BooleanField(default=False)
 
     introduction = models.OneToOneField(
         "TextObjectField",

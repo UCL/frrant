@@ -42,12 +42,17 @@ class Work(
 
     class Meta:
         ordering = ["name"]
+        permissions = [
+            ("publish_work", "Can publish a work"),
+        ]
 
     objects = WorkManager()
 
     name = models.CharField(max_length=128, blank=False)
 
     subtitle = models.CharField(max_length=128, blank=True)
+
+    publishable = models.BooleanField(default=False)
 
     number_of_books = models.CharField(max_length=128, blank=True)
 

@@ -1,5 +1,6 @@
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.http import HttpResponseRedirect
+from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
@@ -351,3 +352,20 @@ class TestimoniumConvertToUnlinkedFragmentView(AnonymousFragmentConvertToFragmen
         fragment = convert_testimonium_to_unlinked_fragment(self.get_object())
         success_url = reverse("fragment:detail", kwargs={"pk": fragment.pk})
         return HttpResponseRedirect(success_url)
+
+
+@require_POST
+@login_required
+@permission_required("research.publish_testimonium")
+def testimonium_set_publishable(request, pk):
+    """Given the pk of a Testimonium object, set its publishable attribute to the value of the POST request"""
+    try:
+        testimonium = Testimonium.objects.get(pk=pk)
+    except Testimonium.DoesNotExist:
+        raise Http404("No Testimoniums found matching the query")
+
+    testimonium.publishable = request.POST.get("publishable", False)
+    testimonium.save()
+
+    # Refresh the page
+    return HttpResponseRedirect(reverse("testimonium:detail", kwargs={"pk": pk}))

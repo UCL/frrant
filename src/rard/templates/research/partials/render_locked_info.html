@@ -25,23 +25,29 @@
                         </form>
 
                         {% if is_anonymousfragment %}
-                        <form novalidate class='form-group mb-0' action='{% url "anonymous_fragment:convert_to_fragment" object.pk %}' method='POST'>
-                            {% csrf_token %}
-                            <button
-                            type='submit'
-                            class='
-                            {% if object.get_all_links %}has-links{% endif %}
-                            btn btn-link text-danger confirm-convert p-1 text-nowrap
-                            '
-                            data-what='anonymous fragment'
-                            >{% trans 'Make non-anonymous' %}</button>
-                        </form>
-                        <form novalidate class='form-group mb-0' action='{% url "anonymous_fragment:duplicate" object.pk %}' method='POST'>
-                            {% csrf_token %}
-                            <button type='submit' class='btn btn-link text-info'
-                                data-what='anonymous fragment'>{% trans 'Duplicate' %}</button>
-                        </form>
-
+                            <form novalidate class='form-group mb-0' action='{% url "anonymous_fragment:convert_to_fragment" object.pk %}' method='POST'>
+                                {% csrf_token %}
+                                <button
+                                type='submit'
+                                class='
+                                {% if object.get_all_links %}has-links{% endif %}
+                                btn btn-link text-danger confirm-convert p-1 text-nowrap
+                                '
+                                data-what='anonymous fragment'
+                                >{% trans 'Make non-anonymous' %}</button>
+                            </form>
+                            <form novalidate class='form-group mb-0' action='{% url "anonymous_fragment:duplicate" object.pk %}' method='POST'>
+                                {% csrf_token %}
+                                <button type='submit' class='btn btn-link text-info'
+                                    data-what='anonymous fragment'>{% trans 'Duplicate' %}</button>
+                            </form>
+                            {% if perms.research.publish_anonymous_fragment %}
+                            <form novalidate class='form-group mb-0' action='{% url "anonymous_fragment:set_publishable" object.pk %}' method='POST'>
+                                {% csrf_token %}
+                                <input type='hidden' name='publishable' value='{% if object.publishable %}False{% else %}True{% endif %}'>
+                                <button type='submit' class='btn btn-link text-primary'>{% if object.publishable %}Unpublish{% else %}Publish{% endif %}</button>
+                            </form>
+                            {% endif %}
                         {% elif is_fragment %}
                             {% if object.is_unlinked %}
                             <form novalidate class='form-group mb-0' action='{% url "fragment:convert_to_anonymous" object.pk %}' method='POST'>
@@ -60,6 +66,13 @@
                                 <button type='submit' class='btn btn-link text-info'
                                     data-what='fragment'>{% trans 'Duplicate' %}</button>
                             </form>
+                            {% if perms.research.publish_fragment %}
+                            <form novalidate class='form-group mb-0' action='{% url "fragment:set_publishable" object.pk %}' method='POST'>
+                                {% csrf_token %}
+                                <input type='hidden' name='publishable' value='{% if object.publishable %}False{% else %}True{% endif %}'>
+                                <button type='submit' class='btn btn-link text-primary'>{% if object.publishable %}Unpublish{% else %}Publish{% endif %}</button>
+                            </form>
+                            {% endif %}
                         {% elif is_testimonium %}
                             <form novalidate class='form-group mb-0' action='{% url "testimonium:convert_to_fragment" object.pk %}' method='POST'>
                                 {% csrf_token %}
@@ -77,6 +90,45 @@
                                 <button type='submit' class='btn btn-link text-info'
                                     data-what='testimonium'>{% trans 'Duplicate' %}</button>
                             </form>
+                            {% if perms.research.publish_testimonium %}
+                            <form novalidate class='form-group mb-0' action='{% url "testimonium:set_publishable" object.pk %}' method='POST'>
+                                {% csrf_token %}
+                                <input type='hidden' name='publishable' value='{% if object.publishable %}False{% else %}True{% endif %}'>
+                                <button type='submit' class='btn btn-link text-primary'>{% if object.publishable %}Unpublish{% else %}Publish{% endif %}</button>
+                            </form>
+                            {% endif %}
+                        {% elif is_antiquarian %}
+                            {% if perms.research.publish_antiquarian %}
+                            <form novalidate class='form-group mb-0' action='{% url "antiquarian:set_publishable" object.pk %}' method='POST'>
+                                {% csrf_token %}
+                                <input type='hidden' name='publishable' value='{% if object.publishable %}False{% else %}True{% endif %}'>
+                                <button type='submit' class='btn btn-link text-primary'>{% if object.publishable %}Unpublish{% else %}Publish{% endif %}</button>
+                            </form>
+                            {% endif %}
+                        {% elif is_work %}
+                            {% if perms.research.publish_work %}
+                            <form novalidate class='form-group mb-0' action='{% url "work:set_publishable" object.pk %}' method='POST'>
+                                {% csrf_token %}
+                                <input type='hidden' name='publishable' value='{% if object.publishable %}False{% else %}True{% endif %}'>
+                                <button type='submit' class='btn btn-link text-primary'>{% if object.publishable %}Unpublish{% else %}Publish{% endif %}</button>
+                            </form>
+                            {% endif %}
+                        {% elif is_citing_work %}
+                            {% if perms.research.publish_citing_work %}
+                            <form novalidate class='form-group mb-0' action='{% url "citingauthor:work_set_publishable" object.pk %}' method='POST'>
+                                {% csrf_token %}
+                                <input type='hidden' name='publishable' value='{% if object.publishable %}False{% else %}True{% endif %}'>
+                                <button type='submit' class='btn btn-link text-primary'>{% if object.publishable %}Unpublish{% else %}Publish{% endif %}</button>
+                            </form>
+                            {% endif %}
+                        {% elif is_citing_author %}
+                            {% if perms.research.publish_citing_author %}
+                            <form novalidate class='form-group mb-0' action='{% url "citingauthor:set_publishable" object.pk %}' method='POST'>
+                                {% csrf_token %}
+                                <input type='hidden' name='publishable' value='{% if object.publishable %}False{% else %}True{% endif %}'>
+                                <button type='submit' class='btn btn-link text-primary'>{% if object.publishable %}Unpublish{% else %}Publish{% endif %}</button>
+                            </form>
+                            {% endif %}
                         {% endif %}
 
                         <hr class="m-1">

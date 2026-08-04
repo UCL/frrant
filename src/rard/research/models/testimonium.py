@@ -32,10 +32,17 @@ class Testimonium(HistoryModelMixin, HistoricalBaseModel):
         ]
     )
 
+    class Meta(HistoricalBaseModel.Meta):
+        permissions = [
+            ("publish_testimonium", "Can publish a testimonium"),
+        ]
+
     def related_lock_object(self):
         return self
 
     LINK_TYPE = TestimoniumLink
+
+    publishable = models.BooleanField(default=False)
 
     original_texts = GenericRelation("OriginalText", related_query_name="testimonia")
     tags = models.ManyToManyField(

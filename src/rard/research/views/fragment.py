@@ -1,4 +1,5 @@
 from django.contrib.auth.context_processors import PermWrapper
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.core.exceptions import BadRequest, ObjectDoesNotExist
 from django.db.models import F
@@ -1258,3 +1259,37 @@ def duplicate_fragment(request, pk, model_name):
         new_fragment.duplicate_ts.add(original_fragment)
 
     return redirect("fragment:detail", pk=new_fragment.pk)
+
+
+@require_POST
+@login_required
+@permission_required("research.publish_fragment")
+def fragment_set_publishable(request, pk):
+    """Given the pk of a Fragment object, set its publishable attribute to the value of the POST request"""
+    try:
+        fragment = Fragment.objects.get(pk=pk)
+    except Fragment.DoesNotExist:
+        raise Http404("No Fragments found matching the query")
+
+    fragment.publishable = request.POST.get("publishable", False)
+    fragment.save()
+
+    # Refresh the page
+    return HttpResponseRedirect(reverse("fragment:detail", kwargs={"pk": pk}))
+
+
+@require_POST
+@login_required
+@permission_required("research.publish_anonymous_fragment")
+def anonymous_fragment_set_publishable(request, pk):
+    """Given the pk of a AnonymousFragment object, set its publishable attribute to the value of the POST request"""
+    try:
+        anonymous_fragment = AnonymousFragment.objects.get(pk=pk)
+    except AnonymousFragment.DoesNotExist:
+        raise Http404("No AnonymousFragments found matching the query")
+
+    anonymous_fragment.publishable = request.POST.get("publishable", False)
+    anonymous_fragment.save()
+
+    # Refresh the page
+    return HttpResponseRedirect(reverse("anonymous_fragment:detail", kwargs={"pk": pk}))

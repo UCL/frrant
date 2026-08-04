@@ -1,6 +1,6 @@
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
@@ -229,6 +229,23 @@ class CitingAuthorIntroductionView(TextObjectFieldViewMixin):
     textobject_field = "introduction"
 
 
+@require_POST
+@login_required
+@permission_required("research.publish_citing_author")
+def citing_author_set_publishable(request, pk):
+    """Given the pk of a CitingAuthor object, set its publishable attribute to the value of the POST request"""
+    try:
+        citing_author = CitingAuthor.objects.get(pk=pk)
+    except CitingAuthor.DoesNotExist:
+        raise Http404("No Citing Authors found matching the query")
+
+    citing_author.publishable = request.POST.get("publishable", False)
+    citing_author.save()
+
+    # Refresh the page
+    return HttpResponseRedirect(reverse("citingauthor:detail", kwargs={"pk": pk}))
+
+
 class CitingWorkCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = CitingWork
     permission_required = ("research.add_citingwork",)
@@ -319,3 +336,20 @@ def ca_refresh_bibliography_from_mentions(request, pk):
     )
     response.headers["HX-Trigger"] = "refreshed-bibliography"
     return response
+
+
+@require_POST
+@login_required
+@permission_required("research.publish_citing_work")
+def citing_work_set_publishable(request, pk):
+    """Given the pk of a CitingWork object, set its publishable attribute to the value of the POST request"""
+    try:
+        citing_work = CitingWork.objects.get(pk=pk)
+    except CitingWork.DoesNotExist:
+        raise Http404("No Citing Works found matching the query")
+
+    citing_work.publishable = request.POST.get("publishable", False)
+    citing_work.save()
+
+    # Refresh the page
+    return HttpResponseRedirect(reverse("citingauthor:work_detail", kwargs={"pk": pk}))
