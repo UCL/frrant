@@ -318,3 +318,20 @@ def refresh_bibliography_from_mentions(request, pk):
     )
     response.headers["HX-Trigger"] = "refreshed-bibliography"
     return response
+
+
+@require_POST
+@login_required
+@permission_required("research.publish_antiquarian")
+def antiquarian_set_publishable(request, pk):
+    """Given the pk of an Antiquarian object, set its publishable attribute to the value of the POST request"""
+    try:
+        antiquarian = Antiquarian.objects.get(pk=pk)
+    except Antiquarian.DoesNotExist:
+        raise Http404("No Antiquarians found matching the query")
+
+    antiquarian.publishable = request.POST.get("publishable", False)
+    antiquarian.save()
+
+    # Refresh the page
+    return HttpResponseRedirect(reverse("antiquarian:detail", kwargs={"pk": pk}))

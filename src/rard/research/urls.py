@@ -135,6 +135,11 @@ urlpatterns = [
                         views.AntiquarianConcordanceDeleteView.as_view(),
                         name="delete_concordance",
                     ),
+                    path(
+                        "<pk>/set-publishable/",
+                        views.antiquarian_set_publishable,
+                        name="set_publishable",
+                    ),
                 ],
                 "research",
             ),
@@ -229,6 +234,11 @@ urlpatterns = [
                         views.fetch_books,
                         name="fetch_books",
                     ),
+                    path(
+                        "<pk>/set-publishable/",
+                        views.work_set_publishable,
+                        name="set_publishable",
+                    ),
                 ],
                 "research",
             ),
@@ -313,6 +323,11 @@ urlpatterns = [
                         "fetch-fragments",
                         views.fetch_fragments,
                         name="fetch_fragments",
+                    ),
+                    path(
+                        "<pk>/set-publishable/",
+                        views.fragment_set_publishable,
+                        name="set_publishable",
                     ),
                     # include common urls here
                     path("", include(common_patterns)),
@@ -421,6 +436,11 @@ urlpatterns = [
                         views.AnonymousFragmentOriginalTextCreateView.as_view(),
                         name="create_original_text",
                     ),
+                    path(
+                        "<pk>/set-publishable/",
+                        views.anonymous_fragment_set_publishable,
+                        name="set_publishable",
+                    ),
                     # include common urls here
                     path("", include(common_patterns)),
                 ],
@@ -499,6 +519,11 @@ urlpatterns = [
                         "<pk>/create-original-text/",
                         views.TestimoniumOriginalTextCreateView.as_view(),
                         name="create_original_text",
+                    ),
+                    path(
+                        "<pk>/set-publishable/",
+                        views.testimonium_set_publishable,
+                        name="set_publishable",
                     ),
                     path("", include(common_patterns)),
                     # include common urls here
@@ -705,6 +730,16 @@ urlpatterns = [
                         "work/<pk>/update/introduction/",
                         views.CitingWorkUpdateIntroductionView.as_view(),
                         name="update_introduction_for_work",
+                    ),
+                    path(
+                        "<pk>/set-publishable/",
+                        views.citing_author_set_publishable,
+                        name="set_publishable",
+                    ),
+                    path(
+                        "work/<pk>/set-publishable/",
+                        views.citing_work_set_publishable,
+                        name="work_set_publishable",
                     ),
                 ],
                 "research",

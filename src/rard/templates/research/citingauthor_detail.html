@@ -2,13 +2,18 @@
 {% load i18n object_lock %}
 {% block title %}Citing Author {{object.name}} {% endblock %}
 
-{% block heading %}{{ object }}{% endblock %}
+{% block heading %}
+    {{ object }}
+    {% if object.publishable %}
+        <span class='badge badge-pill badge-success'>Published</span>
+    {% endif %}
+{% endblock %}
 
 {% block action %}
 
     {% with request.user|has_lock:object as has_object_lock %}
 
-        {% include 'research/partials/render_locked_info.html' %}
+        {% include 'research/partials/render_locked_info.html' with is_citing_author=citingauthor %}
 
         <div class='d-flex justify-content-end'>
         {% if has_object_lock %}

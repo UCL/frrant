@@ -10,6 +10,7 @@ from .antiquarian import (
     AntiquarianWorkCreateView,
     AntiquarianWorksUpdateView,
     MoveLinkView,
+    antiquarian_set_publishable,
     refresh_bibliography_from_mentions,
 )
 from .apparatus_criticus import (
@@ -46,6 +47,8 @@ from .citing_work import (
     CitingWorkUpdateIntroductionView,
     CitingWorkUpdateView,
     ca_refresh_bibliography_from_mentions,
+    citing_author_set_publishable,
+    citing_work_set_publishable,
 )
 from .comments import CommentDeleteView, TextObjectFieldCommentListView
 from .concordance import (
@@ -93,8 +96,10 @@ from .fragment import (
     UnlinkedFragmentConvertToAnonymousView,
     UnlinkedFragmentConvertToTestimoniumView,
     UnlinkedFragmentListView,
+    anonymous_fragment_set_publishable,
     duplicate_fragment,
     fetch_fragments,
+    fragment_set_publishable,
 )
 from .history import HistoryListView
 from .home import HomeView
@@ -123,6 +128,7 @@ from .testimonium import (
     TestimoniumUpdatePublicCommentaryView,
     TestimoniumUpdateView,
     TestimoniumUpdateWorkLinkView,
+    testimonium_set_publishable,
 )
 from .topic import (
     MoveTopicView,
@@ -151,6 +157,7 @@ from .work import (
     WorkUpdateIntroductionView,
     WorkUpdateView,
     fetch_books,
+    work_set_publishable,
 )
 
 __all__ = [
@@ -164,6 +171,7 @@ __all__ = [
     "AntiquarianDetailView",
     "AntiquarianIntroductionView",
     "AntiquarianListView",
+    "antiquarian_set_publishable",
     "MoveLinkView",
     "AntiquarianUpdateView",
     "AntiquarianUpdateIntroductionView",
@@ -197,6 +205,8 @@ __all__ = [
     "CitingWorkUpdateView",
     "CitingWorkUpdateIntroductionView",
     "CitingWorkIntroductionView",
+    "citing_author_set_publishable",
+    "citing_work_set_publishable",
     "CommentDeleteView",
     "ConcordanceCreateView",
     "ConcordanceDeleteView",
@@ -237,6 +247,8 @@ __all__ = [
     "FragmentUpdateWorkLinkView",
     "FragmentUpdateAntiquariansView",
     "fetch_fragments",
+    "fragment_set_publishable",
+    "anonymous_fragment_set_publishable",
     "duplicate_fragment",
     "HistoryListView",
     "HomeView",
@@ -287,4 +299,6 @@ __all__ = [
     "fetch_books",
     "fetch_works",
     "fetch_parts",
+    "testimonium_set_publishable",
+    "work_set_publishable",
 ]

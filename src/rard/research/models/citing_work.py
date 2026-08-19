@@ -12,8 +12,13 @@ class CitingAuthor(
 ):
     class Meta:
         ordering = ("order_name",)
+        permissions = [
+            ("publish_citing_author", "Can publish a citing author"),
+        ]
 
     name = models.CharField(max_length=256, blank=False)
+
+    publishable = models.BooleanField(default=False)
 
     order_name = models.CharField(
         max_length=128,
@@ -132,6 +137,13 @@ class CitingWork(
     HistoryModelMixin, TextObjectFieldMixin, LockableModel, DatedModel, BaseModel
 ):
     history = HistoricalRecords(excluded_fields=[])
+
+    class Meta:
+        permissions = [
+            ("publish_citing_work", "Can publish a citing work"),
+        ]
+
+    publishable = models.BooleanField(default=False)
 
     def related_lock_object(self):
         return self

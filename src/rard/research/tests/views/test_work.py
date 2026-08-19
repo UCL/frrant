@@ -72,7 +72,9 @@ class TestWorkCreateView(TestCase):
 
         WorkCreateView.as_view()(request)
         a = Antiquarian.objects.get(pk=a.pk)
-        self.assertEqual(a.works.exclude(unknown=True).count(), 1)
+        self.assertEqual(
+            a.works.exclude(unknown=True).exclude(bibliographic=True).count(), 1
+        )
         self.assertIn(a.unknown_work, a.works.all())
 
     def test_create_with_books(self):
@@ -93,7 +95,9 @@ class TestWorkCreateView(TestCase):
 
         WorkCreateView.as_view()(request)
         a = Antiquarian.objects.get(pk=a.pk)
-        self.assertEqual(a.works.exclude(unknown=True).count(), 1)
+        self.assertEqual(
+            a.works.exclude(unknown=True).exclude(bibliographic=True).count(), 1
+        )
         w = a.works.first()
         self.assertEqual(Book.objects.filter(work=w, unknown=False).count(), 2)
         self.assertEqual(w.book_set.exclude(unknown=True).count(), 2)
@@ -127,8 +131,12 @@ class TestWorkUpdateView(TestCase):
         work.lock(request.user)
 
         WorkUpdateView.as_view()(request, pk=work.pk)
-        self.assertEqual(a1.works.exclude(unknown=True).count(), 1)
-        self.assertEqual(a2.works.exclude(unknown=True).count(), 0)
+        self.assertEqual(
+            a1.works.exclude(unknown=True).exclude(bibliographic=True).count(), 1
+        )
+        self.assertEqual(
+            a2.works.exclude(unknown=True).exclude(bibliographic=True).count(), 0
+        )
         self.assertEqual(Work.objects.get(pk=work.pk).name, "first")
 
         work = Work.objects.create(name="name")
@@ -145,8 +153,12 @@ class TestWorkUpdateView(TestCase):
         # view.form.instance = work
 
         view(request, pk=work.pk)
-        self.assertEqual(a1.works.exclude(unknown=True).count(), 1)
-        self.assertEqual(a2.works.exclude(unknown=True).count(), 1)
+        self.assertEqual(
+            a1.works.exclude(unknown=True).exclude(bibliographic=True).count(), 1
+        )
+        self.assertEqual(
+            a2.works.exclude(unknown=True).exclude(bibliographic=True).count(), 1
+        )
         self.assertEqual(Work.objects.get(pk=work.pk).name, "other")
 
     def test_update_with_books(self):

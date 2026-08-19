@@ -26,7 +26,7 @@ def add_folded_text_fields(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('research', '0075_add_testimonium_tags'),
+        ('research', '0079_auto_20260721_2110'),
     ]
 
     operations = [

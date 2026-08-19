@@ -42,26 +42,38 @@ def reassign_to_unknown(worklink):
     worklink.save()
 
 
-def collate_uw_links(instance, designated_unknown):
-    """Used in the collate_unknown functions on Ant/Work models"""
-    transfer_links(instance.fragmentlinks.all(), designated_unknown)
-    transfer_links(instance.testimoniumlinks.all(), designated_unknown)
-    transfer_links(instance.appositumfragmentlinks.all(), designated_unknown)
+def collate_work_links(antiquarian, designated_unknown, duplicate_works):
+    """Transfer antiquarian work-level links from duplicate works to the designated work."""
+    transfer_links(
+        antiquarian.fragmentlinks.filter(work__in=duplicate_works), designated_unknown
+    )
+    transfer_links(
+        antiquarian.testimoniumlinks.filter(work__in=duplicate_works),
+        designated_unknown,
+    )
+    transfer_links(
+        antiquarian.appositumfragmentlinks.filter(work__in=duplicate_works),
+        designated_unknown,
+    )
 
 
-def collate_ub_links(instance, designated_unknown):
+def collate_book_links(instance, designated_unknown, duplicate_books):
     """Used in the collate_unknown functions on Ant/Work models"""
     instance_type = instance.__class__.__name__
     transfer_links(
-        instance.antiquarian_work_fragmentlinks.all(), designated_unknown, instance_type
-    )
-    transfer_links(
-        instance.antiquarian_work_testimoniumlinks.all(),
+        instance.antiquarian_work_fragmentlinks.filter(book__in=duplicate_books),
         designated_unknown,
         instance_type,
     )
     transfer_links(
-        instance.antiquarian_work_appositumfragmentlinks.all(),
+        instance.antiquarian_work_testimoniumlinks.filter(book__in=duplicate_books),
+        designated_unknown,
+        instance_type,
+    )
+    transfer_links(
+        instance.antiquarian_work_appositumfragmentlinks.filter(
+            book__in=duplicate_books
+        ),
         designated_unknown,
         instance_type,
     )

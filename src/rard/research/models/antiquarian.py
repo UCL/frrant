@@ -8,7 +8,7 @@ from simple_history.models import HistoricalRecords
 from rard.research.models.mixins import HistoryModelMixin, TextObjectFieldMixin
 from rard.utils.basemodel import BaseModel, DatedModel, LockableModel, OrderableModel
 from rard.utils.decorators import disable_for_loaddata
-from rard.utils.shared_functions import collate_uw_links
+from rard.utils.shared_functions import collate_work_links
 from rard.utils.text_processors import make_plain_text
 
 
@@ -16,7 +16,7 @@ class WorkLink(OrderableModel, models.Model):
     """Through-model for Work to Antiquarian, m2m"""
 
     class Meta:
-        ordering = ["work__unknown", "order"]
+        ordering = ["work__unknown", "work__bibliographic", "order"]
 
     def related_queryset(self):
         return self.__class__.objects.filter(
@@ -115,10 +115,15 @@ class Antiquarian(
 
     class Meta:
         ordering = ["order_name", "re_code"]
+        permissions = [
+            ("publish_antiquarian", "Can publish an antiquarian"),
+        ]
 
     name = models.CharField(max_length=128, blank=False)
 
     order_name = models.CharField(max_length=128, default="", blank=True)
+
+    publishable = models.BooleanField(default=False)
 
     introduction = models.OneToOneField(
         "TextObjectField",
@@ -156,12 +161,16 @@ class Antiquarian(
         from rard.research.models import Work
 
         return Work.objects.filter(worklink__antiquarian=self).order_by(
-            "unknown", "worklink__order"
+            "unknown", "bibliographic", "worklink__order"
         )
 
     @property
     def unknown_work(self):
         return self.works.filter(unknown=True).first()
+
+    @property
+    def bibliographic_work(self):
+        return self.works.filter(bibliographic=True).first()
 
     def __str__(self):
         return self.name
@@ -187,7 +196,9 @@ class Antiquarian(
         # single db update
         with transaction.atomic():
             links = WorkLink.objects.filter(antiquarian=self).order_by(
-                "work__unknown", models.F(("order")).asc(nulls_first=False)
+                "work__unknown",
+                "work__bibliographic",
+                models.F(("order")).asc(nulls_last=True),
             )
             for count, link in enumerate(links):
                 if link.order != count:
@@ -335,6 +346,7 @@ class Antiquarian(
                     .filter(work__isnull=False)
                     .order_by(
                         "-work__unknown",
+                        "-work__bibliographic",
                         "work__worklink__order",
                         "work_order",
                     )
@@ -396,12 +408,29 @@ def collate_unknown(instance):
         designated_unknown = unknown_works.first()
         other_unknown_works = unknown_works.exclude(pk=designated_unknown.pk)
 
-        collate_uw_links(instance, designated_unknown)
+        collate_work_links(instance, designated_unknown, other_unknown_works)
         other_unknown_works.delete()
 
 
 @disable_for_loaddata
-def create_unknown_work(sender, instance, **kwargs):
+def collate_bibliographic(instance):
+    """This makes sure there's only one bibliographic work per antiquarian and combines contents if otherwise"""
+    bibliographic_works = instance.works.filter(bibliographic=True).order_by("pk")
+
+    if bibliographic_works.count() > 1:
+        designated_bibliographic = bibliographic_works.first()
+        other_bibliographic_works = bibliographic_works.exclude(
+            pk=designated_bibliographic.pk
+        )
+
+        collate_work_links(
+            instance, designated_bibliographic, other_bibliographic_works
+        )
+        other_bibliographic_works.delete()
+
+
+@disable_for_loaddata
+def create_default_works(sender, instance, **kwargs):
     from rard.research.models import Work
 
     if not instance.unknown_work:
@@ -416,6 +445,19 @@ def create_unknown_work(sender, instance, **kwargs):
         # update existing
         instance.unknown_work.antiquarian_set.add(instance)
         instance.unknown_work.save()
+
+    if not instance.bibliographic_work:
+        # create bibliographic work if doesn't exist
+        bibliographic_work = Work.objects.create(
+            name="Bibliographic Work",
+            bibliographic=True,
+        )
+        bibliographic_work.antiquarian_set.add(instance)
+        bibliographic_work.save()
+    else:
+        # update existing
+        instance.bibliographic_work.antiquarian_set.add(instance)
+        instance.bibliographic_work.save()
 
     collate_unknown(instance)
 
@@ -445,7 +487,7 @@ def remove_stale_antiquarian_links(sender, instance, **kwargs):
 
 pre_delete.connect(remove_stale_antiquarian_links, sender=Antiquarian)
 
-post_save.connect(create_unknown_work, sender=Antiquarian)
+post_save.connect(create_default_works, sender=Antiquarian)
 
 
 Antiquarian.init_text_object_fields()
