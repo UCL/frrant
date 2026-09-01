@@ -207,7 +207,8 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
             query_string: str,
             matcher: Callable[[str], Q],
             keyword_list: Iterable[str],
-            add_snippet=False,
+            add_snippet: bool = False,
+            weight: int = 1,
         ) -> QuerySet:
             """
             Get the queryset for this match portion.
@@ -221,6 +222,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
               expression for whether the field matches the query.
             :param keywords: The user's query string; a string of keywords.
             :param add_snippet: Should we add a snippet to the resulting queryset?
+            :param weight: Weight to annotate the results with.
             :return: The queryset of results and snippets.
             """
             matches = query_set.filter(matcher(f"{query_string}__{self.lookup}"))
@@ -229,7 +231,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                 if add_snippet
                 else Value("")
             )
-            matches = matches.annotate(snippet=snippet)
+            matches = matches.annotate(snippet=snippet, weight=Value(weight))
             return matches
 
         def snippet_query(self, keyword_list: str, query_string: str) -> Expression:
@@ -304,7 +306,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
 
             .. code-block:: python
 
-               results = term.match('foreign_key_1__foreign_key_2__field')
+               results = terms.match('foreign_key_1__foreign_key_2__field')
 
             :param query_set: The query set to be searched.
             :param query_string: A lookup parameter for the field to be searched.
@@ -320,6 +322,32 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                 add_snippet=add_snippet,
             )
 
+        def match_heavy(
+            self, query_set: QuerySet, query_string: str, add_snippet: bool = False
+        ) -> QuerySet:
+            """
+            Get the queryset for matching one type of objects, without Latin folding,
+            with extra weight (so they appear at the top of the)
+
+            .. code-block:: python
+
+               results = terms.match('foreign_key_1__foreign_key_2__field')
+
+            :param query_set: The query set to be searched.
+            :param query_string: A lookup parameter for the field to be searched.
+            :param add_snippet: Should we add a snippet to the resulting queryset?
+            :return: The queryset of results and snippets. The snippet annotation
+              (if present) has the name ``snippet``.
+            """
+            return self.do_match(
+                query_set,
+                query_string,
+                self.nonfolded_matcher,
+                self.keywords,
+                add_snippet=add_snippet,
+                weight=100,
+            )
+
         def match_folded(
             self, query_set: QuerySet, query_string: str, add_snippet: bool = False
         ) -> QuerySet:
@@ -328,7 +356,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
 
             .. code-block:: python
 
-              results = term.match_folded('foreign_key_1__foreign_key_2__field')
+              results = terms.match_folded('foreign_key_1__foreign_key_2__field')
 
             :param query_set: The query set to be searched.
             :param query_string: A lookup parameter for the field to be searched.
@@ -488,9 +516,9 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         """
         qs = cls.get_filtered_model_qs(Antiquarian, ant_filter=ant_filter)
         search_fields = [
-            ("name", terms.match),
+            ("name", terms.match_heavy),
             ("plain_introduction", terms.match),
-            ("re_code", terms.match),
+            ("re_code", terms.match_heavy),
         ]
         return cls.generic_content_search(qs, search_fields)
 
@@ -831,9 +859,10 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
 
     def get(self, request, *args, **kwargs):
         """Perform the search for the user."""
-        keywords = self.request.GET.get("q", None)
+        keywords = request.GET.get("q", None)
         if keywords is not None and keywords.strip() == "":
             # empty search field. Redirect to cleared page
+            # Needs to be self.request or github-advanced-security complains
             ret = redirect(self.request.path)
         else:
             ret = super().get(request, *args, **kwargs)
@@ -889,7 +918,11 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
         queryset_chain = chain(*result_set)
 
         # return a list...
-        return sorted(queryset_chain, key=lambda instance: instance.pk, reverse=True)
+        return sorted(
+            queryset_chain,
+            key=lambda instance: (instance.weight, instance.pk),
+            reverse=True,
+        )
 
     def antiquarians_and_authors_and_bibliographies_in_object_list(self, object_list):
         """Generate lists of Antiquarians, Citing Authors and Bibliographies
