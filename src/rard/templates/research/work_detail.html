@@ -13,7 +13,7 @@
 {% endif %}
 <div>
   {{ object.name }}
-  {% if object.publishable %}
+  {% if user.is_authenticated and object.publishable %}
     <span class='badge badge-pill badge-success'>Published</span>
   {% endif %}
 </div>
@@ -123,11 +123,13 @@
             {% endif %}
         </dl>
 
+        {% if user.is_authenticated %}
         <p>
           <small>
           {% include 'research/partials/render_last_modified_info.html' with object=object %}
           </small>
         </p>
+        {% endif %}
 
     </section>
 

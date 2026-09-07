@@ -77,8 +77,7 @@ def create_edition_bib_item(pk):
     )
 
 
-class ConcordanceListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
-    permission_required = "research.view_concordance"
+class ConcordanceListView(ListView):
     model = ConcordanceModel
     template_name = "research/concordance_list.html"
     context_object_name = "concordance_list"
@@ -155,7 +154,7 @@ class ConcordanceListView(LoginRequiredMixin, PermissionRequiredMixin, ListView)
 
 
 class ConcordanceEditionView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, View
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, View
 ):
     check_lock_object = "top_level_object"
     model = Edition
@@ -248,7 +247,7 @@ class ConcordanceEditionView(
 
 
 class ConcordanceCreateView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, CreateView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, CreateView
 ):
     check_lock_object = "top_level_object"
 
@@ -370,7 +369,7 @@ class ConcordanceCreateView(
 
 
 class ConcordanceUpdateView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, UpdateView
 ):
     # this doesn't redirect to the owner when done
     check_lock_object = "top_level_object"
@@ -414,7 +413,7 @@ class ConcordanceUpdateView(
 
 @method_decorator(require_POST, name="dispatch")
 class ConcordanceDeleteView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, DeleteView
 ):
     check_lock_object = "top_level_object"
 
@@ -433,7 +432,7 @@ class ConcordanceDeleteView(
 
 @method_decorator(require_POST, name="dispatch")
 class OldConcordanceDeleteView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, DeleteView
 ):
     check_lock_object = "top_level_object"
 

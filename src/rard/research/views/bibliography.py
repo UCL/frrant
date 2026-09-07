@@ -17,26 +17,21 @@ from rard.research.models.citing_work import CitingAuthor
 from rard.research.views.mixins import CanLockMixin, CheckLockMixin
 
 
-class BibliographyOverviewView(LoginRequiredMixin, PermissionRequiredMixin, View):
+class BibliographyOverviewView(View):
     template_name = "research/bibliographyitem_overview.html"
-    permission_required = ("research.view_bibliographyitem",)
 
     def get(self, request, *args, **kwargs):
         return render(self.request, template_name=self.template_name)
 
 
-class BibliographyListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class BibliographyListView(ListView):
     paginate_by = 10
     model = BibliographyItem
-    permission_required = ("research.view_bibliographyitem",)
     template_name = "research/partials/htmx_bibliography_list_page.html"
 
 
-class BibliographyDetailView(
-    CanLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DetailView
-):
+class BibliographyDetailView(CanLockMixin, DetailView):
     model = BibliographyItem
-    permission_required = ("research.view_bibliographyitem",)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -104,7 +99,7 @@ class BibliographyCreateView(LoginRequiredMixin, PermissionRequiredMixin, Create
 
 
 class BibliographyUpdateView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, UpdateView
 ):
     model = BibliographyItem
     template_name = "research/bibliographyitem_form.html"
@@ -151,7 +146,7 @@ class BibliographyUpdateView(
 
 @method_decorator(require_POST, name="dispatch")
 class BibliographyDeleteView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, DeleteView
 ):
     model = BibliographyItem
     success_url = reverse_lazy("bibliography:overview")

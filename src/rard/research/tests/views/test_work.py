@@ -58,8 +58,6 @@ class TestWorkViewPermissions(TestCase):
         self.assertIn("research.add_work", WorkCreateView.permission_required)
         self.assertIn("research.delete_work", WorkDeleteView.permission_required)
         self.assertIn("research.change_work", WorkUpdateView.permission_required)
-        self.assertIn("research.view_work", WorkListView.permission_required)
-        self.assertIn("research.view_work", WorkDetailView.permission_required)
 
 
 class TestWorkCreateView(TestCase):

@@ -230,3 +230,13 @@ class TextObjectFieldUpdateMixin(object):
         if self.textobject_field:
             context["text_object"] = getattr(context["object"], self.textobject_field)
         return context
+
+
+class PublishableMixin:
+    """Mixed in with a ListView, lets unauthorized users only see publishable links."""
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.user.is_authenticated:
+            return qs
+        return qs.filter(publishable=True)

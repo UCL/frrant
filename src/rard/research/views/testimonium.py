@@ -53,7 +53,7 @@ class TestimoniumListView(LoginRequiredMixin, PermissionRequiredMixin, ListView)
 
 
 class TestimoniumDetailView(
-    CanLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DetailView
+    PermissionRequiredMixin, CanLockMixin, LoginRequiredMixin, DetailView
 ):
     model = Testimonium
     permission_required = ("research.view_testimonium",)
@@ -70,7 +70,7 @@ class TestimoniumDetailView(
 
 @method_decorator(require_POST, name="dispatch")
 class TestimoniumDeleteView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, DeleteView
 ):
     model = Testimonium
     success_url = reverse_lazy("testimonium:list")
@@ -78,7 +78,7 @@ class TestimoniumDeleteView(
 
 
 class TestimoniumUpdateView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, UpdateView
 ):
     model = Testimonium
     form_class = TestimoniumForm
@@ -128,9 +128,9 @@ class TestimoniumPublicCommentaryView(TextObjectFieldViewMixin):
 
 
 class TestimoniumAddWorkLinkView(
+    PermissionRequiredMixin,
     CheckLockMixin,
     LoginRequiredMixin,
-    PermissionRequiredMixin,
     GetWorkLinkRequestDataMixin,
     FormView,
 ):
@@ -190,9 +190,9 @@ class TestimoniumAddWorkLinkView(
 
 
 class TestimoniumUpdateWorkLinkView(
+    PermissionRequiredMixin,
     CheckLockMixin,
     LoginRequiredMixin,
-    PermissionRequiredMixin,
     GetWorkLinkRequestDataMixin,
     UpdateView,
 ):
@@ -267,7 +267,7 @@ class TestimoniumUpdateWorkLinkView(
 
 @method_decorator(require_POST, name="dispatch")
 class RemoveTestimoniumLinkView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, DeleteView
 ):
     """When requesting link removal, one link will be removed/reassigned if from a work link
     If from an antiquarian link, all links will be removed"""

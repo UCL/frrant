@@ -21,6 +21,7 @@ from rard.research.views.mixins import (
     CanLockMixin,
     CheckLockMixin,
     DateOrderMixin,
+    PublishableMixin,
     TextObjectFieldUpdateMixin,
     TextObjectFieldViewMixin,
 )
@@ -52,7 +53,7 @@ class CitingAuthorCreateView(LoginRequiredMixin, PermissionRequiredMixin, Create
 
 
 class CitingAuthorUpdateView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, UpdateView
 ):
     form_class = CitingAuthorUpdateForm
     permission_required = ("research.change_citingauthor",)
@@ -78,14 +79,17 @@ class CitingAuthorUpdateView(
 
 
 class CitingAuthorListView(
-    DateOrderMixin, LoginRequiredMixin, PermissionRequiredMixin, ListView
+    DateOrderMixin,
+    LoginRequiredMixin,
+    PermissionRequiredMixin,
+    PublishableMixin,
+    ListView,
 ):
     paginate_by = 10
     model = OriginalText
     template_name = "research/citingauthor_list.html"
     permission_required = (
         "research.view_citingauthor",
-        "research.view_citingwork",
     )
 
     def get_queryset(self):
@@ -113,7 +117,6 @@ class CitingAuthorFullListView(
     template_name = "research/citingauthor_full_list.html"
     permission_required = (
         "research.view_citingauthor",
-        "research.view_citingwork",
     )
 
     def get_queryset(self):
@@ -122,7 +125,7 @@ class CitingAuthorFullListView(
 
 
 class CitingAuthorDetailView(
-    CanLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DetailView
+    PermissionRequiredMixin, CanLockMixin, LoginRequiredMixin, DetailView
 ):
     model = CitingAuthor
     permission_required = ("research.view_citingauthor",)
@@ -146,7 +149,7 @@ class CitingAuthorDetailView(
 
 @method_decorator(require_POST, name="dispatch")
 class CitingAuthorDeleteView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, DeleteView
 ):
     model = CitingAuthor
     success_url = reverse_lazy("citingauthor:list")
@@ -258,14 +261,13 @@ class CitingWorkCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateVi
 
 
 class CitingWorkDetailView(
-    CanLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DetailView
+    CanLockMixin, DetailView
 ):
     model = CitingWork
-    permission_required = ("research.view_citingwork",)
 
 
 class CitingWorkUpdateView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
+    CheckLockMixin, UpdateView
 ):
     model = CitingWork
     fields = (
@@ -276,15 +278,13 @@ class CitingWorkUpdateView(
         "date_range",
     )
 
-    permission_required = ("research.change_citingwork",)
-
     def get_success_url(self, *args, **kwargs):
         return reverse("citingauthor:work_detail", kwargs={"pk": self.object.pk})
 
 
 @method_decorator(require_POST, name="dispatch")
 class CitingWorkDeleteView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, DeleteView
 ):
     model = CitingWork
     success_url = reverse_lazy("citingauthor:list")

@@ -24,24 +24,23 @@ from rard.research.views.mixins import (
     CanLockMixin,
     CheckLockMixin,
     DateOrderMixin,
+    PublishableMixin,
     TextObjectFieldUpdateMixin,
     TextObjectFieldViewMixin,
 )
 
 
 class AntiquarianListView(
-    DateOrderMixin, LoginRequiredMixin, PermissionRequiredMixin, ListView
+    DateOrderMixin, PublishableMixin, ListView
 ):
     paginate_by = 10
     model = Antiquarian
-    permission_required = ("research.view_antiquarian",)
 
 
 class AntiquarianDetailView(
-    CanLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DetailView
+    CanLockMixin, DetailView
 ):
     model = Antiquarian
-    permission_required = ("research.view_antiquarian",)
 
     def post(self, *args, **kwargs):
         link_pk = self.request.POST.get("link_id", None)
@@ -194,7 +193,7 @@ class AntiquarianCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateV
 
 
 class AntiquarianUpdateView(
-    LoginRequiredMixin, CheckLockMixin, PermissionRequiredMixin, UpdateView
+    LoginRequiredMixin, PermissionRequiredMixin, CheckLockMixin, UpdateView
 ):
     model = Antiquarian
     permission_required = ("research.change_antiquarian",)
@@ -219,7 +218,7 @@ class AntiquarianIntroductionView(TextObjectFieldViewMixin):
 
 @method_decorator(require_POST, name="dispatch")
 class AntiquarianDeleteView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, DeleteView
 ):
     model = Antiquarian
     permission_required = ("research.delete_antiquarian",)
@@ -227,7 +226,7 @@ class AntiquarianDeleteView(
 
 
 class AntiquarianWorksUpdateView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, UpdateView
 ):
     model = Antiquarian
     form_class = AntiquarianUpdateWorksForm
@@ -239,7 +238,7 @@ class AntiquarianWorksUpdateView(
 
 
 class AntiquarianWorkCreateView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, CreateView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, CreateView
 ):
     # the view attribute that needs to be checked for a lock
     check_lock_object = "antiquarian"
@@ -281,7 +280,7 @@ class AntiquarianWorkCreateView(
 
 @method_decorator(require_POST, name="dispatch")
 class AntiquarianConcordanceDeleteView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, DeleteView
 ):
     check_lock_object = "antiquarian"
 

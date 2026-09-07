@@ -6,11 +6,7 @@
     <div>
         <li class="unstyled">
             {% with antiquarian as link_text %}
-                {% if perms.research.view_antiquarian %}
                 <a href='{% url "antiquarian:detail" antiquarian.pk %}'>{{ link_text }}</a>
-                {% else %}
-                    {{ link_text }}
-                {% endif %}
                 {% if antiquarian.display_date_range %}
                 <span class='date-range-element text-muted'><small>[{{ antiquarian.display_date_range }}]</small></span>
                 {% endif %}

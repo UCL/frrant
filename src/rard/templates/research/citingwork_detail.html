@@ -11,7 +11,7 @@
 
 <div>
     {{ object.title }}
-    {% if object.publishable %}
+    {% if user.is_authenticated and object.publishable %}
         <span class='badge badge-pill badge-success'>Published</span>
     {% endif %}
 </div>

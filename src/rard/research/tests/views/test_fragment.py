@@ -205,8 +205,6 @@ class TestFragmentViewPermissions(TestCase):
         self.assertIn(
             "research.delete_fragment", FragmentDeleteView.permission_required
         )
-        self.assertIn("research.view_fragment", FragmentListView.permission_required)
-        self.assertIn("research.view_fragment", FragmentDetailView.permission_required)
 
 
 class TestFragmentConvertViews(TestCase):

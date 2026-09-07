@@ -133,12 +133,6 @@ class TestAntiquarianViewPermissions(TestCase):
             "research.change_antiquarian",
             AntiquarianWorksUpdateView.permission_required,
         )
-        self.assertIn(
-            "research.view_antiquarian", AntiquarianListView.permission_required
-        )
-        self.assertIn(
-            "research.view_antiquarian", AntiquarianDetailView.permission_required
-        )
 
 
 class TestAntiquarianListView(TestCase):
@@ -164,6 +158,7 @@ class TestAntiquarianListView(TestCase):
 
     def test_ordered_queryset(self):
         view = AntiquarianListView()
+        user = UserFactory.create()
 
         # create some data to search
         a1 = Antiquarian.objects.create(name="name", re_code="1", order_year=100)
@@ -175,6 +170,7 @@ class TestAntiquarianListView(TestCase):
         }
         url = reverse("antiquarian:list")
         request = RequestFactory().get(url, data=data)
+        request.user = user
         view.request = request
         qs = view.get_queryset()
         self.assertEqual(2, len(qs))
@@ -184,6 +180,7 @@ class TestAntiquarianListView(TestCase):
             "order": "latest",
         }
         request = RequestFactory().get(url, data=data)
+        request.user = user
         view.request = request
         qs = view.get_queryset()
         self.assertEqual(2, len(qs))

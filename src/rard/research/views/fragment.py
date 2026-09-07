@@ -293,15 +293,13 @@ class AppositumCreateView(AnonymousFragmentCreateView):
         return self.owner_for
 
 
-class FragmentListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class FragmentListView(ListView):
     paginate_by = 10
     model = Fragment
-    permission_required = ("research.view_fragment",)
 
 
-class AnonymousFragmentListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class AnonymousFragmentListView(ListView):
     model = AnonymousTopicLink
-    permission_required = "research.view_fragment"
     template_name = "research/anonymousfragment_list.html"
 
     def get_selected_topic(self):
@@ -400,7 +398,7 @@ class UnlinkedFragmentListView(LoginRequiredMixin, PermissionRequiredMixin, List
 
 
 class AddAppositumGeneralLinkView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, FormView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, FormView
 ):
     check_lock_object = "anonymous_fragment"
 
@@ -501,7 +499,7 @@ class AddAppositumGeneralLinkView(
 
 
 class AddAppositumFragmentLinkView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, FormView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, FormView
 ):
     check_lock_object = "anonymous_fragment"
 
@@ -552,7 +550,7 @@ class AddAppositumFragmentLinkView(
 
 
 class AddAppositumAnonymousLinkView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, FormView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, FormView
 ):
     check_lock_object = "appositum"
 
@@ -593,7 +591,7 @@ class AddAppositumAnonymousLinkView(
 
 @method_decorator(require_POST, name="dispatch")
 class RemoveAppositumLinkView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, RedirectView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, RedirectView
 ):
     check_lock_object = "anonymous_fragment"
     permission_required = ("research.change_anonymousfragment",)
@@ -636,7 +634,7 @@ class RemoveAppositumLinkView(
 
 @method_decorator(require_POST, name="dispatch")
 class RemoveAppositumFragmentLinkView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, RedirectView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, RedirectView
 ):
     check_lock_object = "anonymous_fragment"
     permission_required = ("research.change_anonymousfragment",)
@@ -673,7 +671,7 @@ class RemoveAppositumFragmentLinkView(
 
 @method_decorator(require_POST, name="dispatch")
 class RemoveAnonymousAppositumLinkView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, RedirectView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, RedirectView
 ):
     check_lock_object = "appositum"
     permission_required = ("research.change_anonymousfragment",)
@@ -709,11 +707,8 @@ class RemoveAnonymousAppositumLinkView(
         return redirect(self.get_success_url())
 
 
-class FragmentDetailView(
-    CanLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DetailView
-):
+class FragmentDetailView(CanLockMixin, DetailView):
     model = Fragment
-    permission_required = ("research.view_fragment",)
 
     def get_context_data(self, **kwargs):
         fragment = self.get_object()
@@ -739,7 +734,7 @@ class AnonymousFragmentDetailView(FragmentDetailView):
 
 @method_decorator(require_POST, name="dispatch")
 class FragmentDeleteView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, DeleteView
 ):
     model = Fragment
     success_url = reverse_lazy("fragment:list")
@@ -754,7 +749,7 @@ class AnonymousFragmentDeleteView(FragmentDeleteView):
 
 
 class FragmentUpdateView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, UpdateView
 ):
     model = Fragment
     form_class = FragmentForm
@@ -837,7 +832,7 @@ class AnonymousFragmentPublicCommentaryView(TextObjectFieldViewMixin):
 
 @method_decorator(require_POST, name="dispatch")
 class AnonymousFragmentConvertToFragmentView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, View
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, View
 ):
     model = AnonymousFragment
     permission_required = "research.change_anonymousfragment"
@@ -913,9 +908,9 @@ class FragmentUpdateAntiquariansView(FragmentUpdateView):
 
 
 class FragmentAddWorkLinkView(
+    PermissionRequiredMixin,
     CheckLockMixin,
     LoginRequiredMixin,
-    PermissionRequiredMixin,
     GetWorkLinkRequestDataMixin,
     FormView,
 ):
@@ -969,7 +964,7 @@ class FragmentAddWorkLinkView(
 
 @method_decorator(require_POST, name="dispatch")
 class RemoveFragmentLinkView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, DeleteView
 ):
     """When requesting link removal, one link will be removed/reassigned if from a work link
     If from an antiquarian link, all links will be removed"""
@@ -1047,9 +1042,9 @@ class RemoveFragmentLinkView(
 
 
 class FragmentUpdateWorkLinkView(
+    PermissionRequiredMixin,
     CheckLockMixin,
     LoginRequiredMixin,
-    PermissionRequiredMixin,
     GetWorkLinkRequestDataMixin,
     UpdateView,
 ):

@@ -32,25 +32,6 @@ class TestCitingWorkUpdateView(TestCase):
         )
 
 
-class TestCitingWorkViewPermissions(TestCase):
-    def test_permissions(self):
-        self.assertIn(
-            "research.change_citingwork", CitingWorkUpdateView.permission_required
-        )
-        self.assertIn(
-            "research.delete_citingwork", CitingWorkDeleteView.permission_required
-        )
-        self.assertIn(
-            "research.view_citingwork", CitingWorkDetailView.permission_required
-        )
-        self.assertIn(
-            "research.view_citingauthor", CitingAuthorListView.permission_required
-        )
-        self.assertIn(
-            "research.view_citingwork", CitingAuthorListView.permission_required
-        )
-
-
 class TestCitingAuthorDetailView(TestCase):
     def setUp(self):
         # Create a citing author
