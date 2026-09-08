@@ -34,3 +34,24 @@ def appositum_links_for_work(antiquarian, work):
         args["work__isnull"] = True
 
     return antiquarian.appositumfragmentlinks.filter(**args).order_by("work_order")
+
+
+@register.filter
+def published(qs, user):
+    if user.is_authenticated:
+        return qs
+    return qs.filter(publishable=True)
+
+
+@register.filter
+def testimonium_published(qs, user):
+    if user.is_authenticated:
+        return qs
+    return qs.filter(testimonium__publishable=True)
+
+
+@register.filter
+def fragment_published(qs, user):
+    if user.is_authenticated:
+        return qs
+    return qs.filter(fragment__publishable=True)

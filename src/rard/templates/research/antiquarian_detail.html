@@ -50,13 +50,13 @@
             <dl class="row mb-0">
                 <dt class="col-sm-3">{% trans 'Name' %}</dt>
                 <dd class="col-sm-9">{{ object.name }}</dd>
-
+                {% if user.is_authorised %}
                 <dt class="col-sm-3">{% trans 'Name for Alphabetisation' %}</dt>
                 <dd class="col-sm-9">{{ object.order_name }}</dd>
 
                 <dt class="col-sm-3">{% trans 'RE Number' %}</dt>
                 <dd class="col-sm-9">{{ object.re_code|default:'-' }}</dd>
-
+                {% endif %}
                 <dt class="col-sm-3">{% trans 'Relevant Dates' %}</dt>
                 <dd class="col-sm-9">
                     {{ object.display_date_range|default:'-' }}
