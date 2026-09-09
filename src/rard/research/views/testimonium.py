@@ -46,17 +46,13 @@ class TestimoniumCreateView(PermissionRequiredMixin, HistoricalBaseCreateView):
         return context
 
 
-class TestimoniumListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class TestimoniumListView(ListView):
     paginate_by = 10
     model = Testimonium
-    permission_required = ("research.view_testimonium",)
 
 
-class TestimoniumDetailView(
-    PermissionRequiredMixin, CanLockMixin, LoginRequiredMixin, DetailView
-):
+class TestimoniumDetailView(CanLockMixin, DetailView):
     model = Testimonium
-    permission_required = ("research.view_testimonium",)
 
     def get_context_data(self, **kwargs):
         testimonium = self.get_object()

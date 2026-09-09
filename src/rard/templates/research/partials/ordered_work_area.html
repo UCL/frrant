@@ -23,7 +23,7 @@
     {% for work in object.ordered_works.all|published:user %}
         {% with tlinks=object|testimonium_links_for_work:work|testimonium_published:user %}
         {% with flinks=object|fragment_links_for_work:work|fragment_published:user %}
-        {% with alinks=object|appositum_links_for_work:work %}
+        {% with alinks=object|appositum_links_for_work:work|appositum_published:user %}
 
         <div id='work_{{ work.pk }}' class='parent-ordering-group drag-item ordered-list-item' draggable='false' data-work='{{ work.pk }}' data-antiquarian='{{ object.pk }}' data-objecttype='work' data-pos='{{ forloop.counter0 }}'>
             <div class='d-flex justify-content-between w-100'>

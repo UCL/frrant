@@ -80,17 +80,12 @@ class CitingAuthorUpdateView(
 
 class CitingAuthorListView(
     DateOrderMixin,
-    LoginRequiredMixin,
-    PermissionRequiredMixin,
     PublishableMixin,
     ListView,
 ):
     paginate_by = 10
     model = OriginalText
     template_name = "research/citingauthor_list.html"
-    permission_required = (
-        "research.view_citingauthor",
-    )
 
     def get_queryset(self):
         # NB do not call super() method here as we are doing something
@@ -109,26 +104,18 @@ class CitingAuthorListView(
         return OriginalText.objects.all().order_by(*ordering)
 
 
-class CitingAuthorFullListView(
-    DateOrderMixin, LoginRequiredMixin, PermissionRequiredMixin, ListView
-):
+class CitingAuthorFullListView(DateOrderMixin, ListView):
     paginate_by = 10
     model = OriginalText
     template_name = "research/citingauthor_full_list.html"
-    permission_required = (
-        "research.view_citingauthor",
-    )
 
     def get_queryset(self):
         # all citing authors
         return CitingAuthor.objects.all()
 
 
-class CitingAuthorDetailView(
-    PermissionRequiredMixin, CanLockMixin, LoginRequiredMixin, DetailView
-):
+class CitingAuthorDetailView(CanLockMixin, DetailView):
     model = CitingAuthor
-    permission_required = ("research.view_citingauthor",)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -260,15 +247,11 @@ class CitingWorkCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateVi
         return reverse("citingauthor:work_detail", kwargs={"pk": self.object.pk})
 
 
-class CitingWorkDetailView(
-    CanLockMixin, DetailView
-):
+class CitingWorkDetailView(CanLockMixin, DetailView):
     model = CitingWork
 
 
-class CitingWorkUpdateView(
-    CheckLockMixin, UpdateView
-):
+class CitingWorkUpdateView(CheckLockMixin, UpdateView):
     model = CitingWork
     fields = (
         "author",

@@ -9,11 +9,7 @@
         <li class="unstyled">
             <span>
                 {% with link.fragment.get_display_name as link_text %}
-                    {% if perms.research.view_fragment %}
-                    <a href='{% url "anonymous_fragment:detail" link.fragment.pk %}'>{{ link_text }}</a>
-                    {% else %}
-                        {{ link_text }}
-                    {% endif %}
+                <a href='{% url "anonymous_fragment:detail" link.fragment.pk %}'>{{ link_text }}</a>
                 {% endwith %}
                 {% include 'research/partials/render_inline_lock_icon.html' with object=fragment %}
 

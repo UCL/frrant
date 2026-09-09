@@ -8,7 +8,7 @@
 
 {% block content %}
 {% block symbol_picker %}
-
+{%if user.is_authenticated %}
 <button class="open-button picker" onclick="togglePicker()"></button>
 
 <div class="symbol-popup picker" id="myForm">
@@ -16,7 +16,7 @@
           {% include 'research/partials/symbol_picker.html' %}
   </div>
 </div>
-
+{% endif %}
 {% endblock %}
 <div class='row'>
   <div class='col mt-n4 mb-1 ml-3'>
@@ -37,30 +37,24 @@
       </a>
 
       {% comment %}
-      {% if perms.research.view_testimonium %}
       <a class='nav-link {% if "testimonium" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
         href='{% url "testimonium:list" %}'>
         {% trans 'Testimonia' %}
       </a>
-      {% endif %}
       {% endcomment %}
 
       <a class='nav-link {% if "anonymous_fragment" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
         href='{% url "anonymous_fragment:list" %}'>
         {% trans 'Anonymous Fragments' %}
       </a>
-      {% if perms.research.view_fragment %}
       <a class='nav-link {% if "unlinked_fragment" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
         href='{% url "unlinked_fragment:list" %}'>
         {% trans 'Unlinked Fragments' %}
       </a>
-      {% endif %}
-      {% if perms.research.view_citingauthor %}
       <a class='nav-link {% if "citingauthor" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
         href='{% url "citingauthor:list" %}'>
         {% trans 'Citing Authors' %}
       </a>
-      {% endif %}
       <a class='nav-link {% if "topic" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
         href='{% url "topic:list" %}'>
         {% trans 'Topics' %}

@@ -153,10 +153,9 @@ class BibliographyDeleteView(
     permission_required = ("research.delete_bibliographyitem",)
 
 
-class BibliographySectionView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class BibliographySectionView(ListView):
     model = BibliographyItem
     context_object_name = "bibliography_items"
-    permission_required = ("research.view_bibliographyitem",)
 
     def get_queryset(self) -> QuerySet[Any]:
         if self.model is not None:

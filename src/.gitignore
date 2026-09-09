@@ -275,6 +275,7 @@ rard/media/
 .env
 .envs/*
 !.envs/.local/
+/frrant
 
 ### dump.json
 dump.json

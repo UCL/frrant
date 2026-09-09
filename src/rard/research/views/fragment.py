@@ -52,6 +52,7 @@ from rard.research.views.mixins import (
     CanLockMixin,
     CheckLockMixin,
     GetWorkLinkRequestDataMixin,
+    PublishableMixin,
     TextObjectFieldUpdateMixin,
     TextObjectFieldViewMixin,
 )
@@ -298,8 +299,9 @@ class FragmentListView(ListView):
     model = Fragment
 
 
-class AnonymousFragmentListView(ListView):
+class AnonymousFragmentListView(PublishableMixin, ListView):
     model = AnonymousTopicLink
+    publishable_lookup = "fragment__publishable"
     template_name = "research/anonymousfragment_list.html"
 
     def get_selected_topic(self):
@@ -382,9 +384,8 @@ class AnonymousFragmentListView(ListView):
         return qs
 
 
-class UnlinkedFragmentListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class UnlinkedFragmentListView(ListView):
     model = Fragment
-    permission_required = "research.view_fragment"
     template_name = "research/unlinkedfragment_list.html"
     paginate_by = 15
 

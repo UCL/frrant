@@ -55,3 +55,10 @@ def fragment_published(qs, user):
     if user.is_authenticated:
         return qs
     return qs.filter(fragment__publishable=True)
+
+
+@register.filter
+def appositum_published(qs, user):
+    if user.is_authenticated:
+        return qs
+    return qs.filter(anonymous_fragment__publishable=True)

@@ -235,8 +235,10 @@ class TextObjectFieldUpdateMixin(object):
 class PublishableMixin:
     """Mixed in with a ListView, lets unauthorized users only see publishable links."""
 
+    publishable_lookup = "publishable"
+
     def get_queryset(self):
         qs = super().get_queryset()
         if self.request.user.is_authenticated:
             return qs
-        return qs.filter(publishable=True)
+        return qs.filter(**{self.publishable_lookup: True})
