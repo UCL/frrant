@@ -19,6 +19,7 @@
 {% endblock %}
 
 {% block action %}
+{% if perms.research.change_citingwork %}
 
     {% with request.user|has_lock:object as has_object_lock %}
 
@@ -39,7 +40,7 @@
         </div>
     {% endwith %}
 
-
+{% endif %}
 {% endblock %}
 
 {% block inner %}

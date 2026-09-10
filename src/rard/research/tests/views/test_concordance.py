@@ -1,6 +1,6 @@
+import os
+
 import pytest
-from django.conf import settings
-from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
@@ -69,9 +69,11 @@ class TestConcordanceViews(TestCase):
 
         # check it returns the next stage with correct details
         self.assertEqual(response.status_code, 302)
+        prefix = os.environ["URL_PREFIX"]
         self.assertEqual(
             response.url,
-            f"/concordance/create/{self.original_text.pk}/{self.edition.pk}/{self.identifier_template.pk}/",
+            f"/{prefix}concordance/create/{self.original_text.pk}"
+            f"/{self.edition.pk}/{self.identifier_template.pk}/",
         )
 
     def test_creation_concordance_step(self):

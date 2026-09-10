@@ -17,8 +17,6 @@ from rard.research.models import (
 from rard.research.views import (
     TestimoniumCreateView,
     TestimoniumDeleteView,
-    TestimoniumDetailView,
-    TestimoniumListView,
     TestimoniumUpdateView,
     duplicate_fragment,
 )
@@ -116,12 +114,6 @@ class TestTestimoniumViewPermissions(TestCase):
         )
         self.assertIn(
             "research.delete_testimonium", TestimoniumDeleteView.permission_required
-        )
-        self.assertIn(
-            "research.view_testimonium", TestimoniumListView.permission_required
-        )
-        self.assertIn(
-            "research.view_testimonium", TestimoniumDetailView.permission_required
         )
 
 

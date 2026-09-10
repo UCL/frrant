@@ -1126,6 +1126,7 @@ class MoveAnonymousTopicLinkView(LoginRequiredMixin, View):
 
     def render_valid_response(self, topic_id):
         view = AnonymousFragmentListView()
+        view.setup(self.request, *self.args, **self.kwargs)
         topic = Topic.objects.get(id=topic_id)
         qs = view.get_queryset(topic=topic)
         context = {

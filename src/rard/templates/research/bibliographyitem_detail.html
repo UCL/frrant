@@ -8,6 +8,7 @@
 {% block last_modified %}{% endblock %}
 
 {% block action %}
+{% if perms.research.change_bibliographyitem %}
 
     {% with request.user|has_lock:object as has_object_lock %}
 
@@ -27,6 +28,7 @@
             {% endif %}
         </div>
     {% endwith %}
+{% endif %}
 {% endblock %}
 
 {% block inner %}

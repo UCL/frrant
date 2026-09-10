@@ -1,3 +1,5 @@
+import os
+
 import pytest
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
@@ -6,7 +8,6 @@ from rard.research.models import Antiquarian
 from rard.research.views import (
     AntiquarianCreateView,
     AntiquarianDeleteView,
-    AntiquarianDetailView,
     AntiquarianListView,
     AntiquarianUpdateIntroductionView,
     AntiquarianUpdateView,
@@ -33,7 +34,10 @@ class TestAntiquarianSuccessUrls(TestCase):
             view.request = request
             view.object = Antiquarian()
 
-            self.assertEqual(view.get_success_url(), f"/antiquarian/{view.object.pk}/")
+            self.assertEqual(
+                view.get_success_url(),
+                f"/{os.environ['URL_PREFIX']}antiquarian/{view.object.pk}/",
+            )
 
     def test_delete_success_url(self):
         view = AntiquarianDeleteView()
@@ -66,7 +70,10 @@ class TestAntiquarianWorkCreateView(TestCase):
         view.request = request
         view.antiquarian = Antiquarian.objects.create()
 
-        self.assertEqual(view.get_success_url(), f"/antiquarian/{view.antiquarian.pk}/")
+        self.assertEqual(
+            view.get_success_url(),
+            f"/{os.environ['URL_PREFIX']}antiquarian/{view.antiquarian.pk}/",
+        )
 
     def test_create(self):
         antiquarian = Antiquarian.objects.create()
@@ -212,7 +219,10 @@ class TestAntiquarianUpdateIntroductionView(TestCase):
         # due to the conditional rendering on another view
         # // I think
         success_url = self.response.context_data["view"].get_success_url()
-        self.assertEqual(success_url, f"/antiquarian/{self.antiquarian.pk}/")
+        self.assertEqual(
+            success_url,
+            f"/{os.environ['URL_PREFIX']}antiquarian/{self.antiquarian.pk}/",
+        )
 
     def test_update_intro(self):
         """This checks that an introduction object is created

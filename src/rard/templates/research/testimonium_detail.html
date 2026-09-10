@@ -14,11 +14,13 @@
 {% endblock %}
 
 {% block action %}
+{% if perms.research.change_testimonium %}
     {% with request.user|has_lock:object as has_object_lock %}
 
         {% include 'research/partials/render_locked_info.html' with is_testimonium="testimonium" %}
 
     {% endwith %}
+{% endif %}
 {% endblock %}
 
 {% block inner %}
