@@ -21,7 +21,6 @@ from rard.research.views.mixins import (
     CanLockMixin,
     CheckLockMixin,
     DateOrderMixin,
-    PublishableMixin,
     TextObjectFieldUpdateMixin,
     TextObjectFieldViewMixin,
 )
@@ -80,7 +79,6 @@ class CitingAuthorUpdateView(
 
 class CitingAuthorListView(
     DateOrderMixin,
-    PublishableMixin,
     ListView,
 ):
     paginate_by = 10
@@ -101,7 +99,11 @@ class CitingAuthorListView(
             "citing_work",  # group by work
             "reference_order",  # then by reference
         ]
-        return OriginalText.objects.all().order_by(*ordering)
+        if self.request.user.is_authenticated:
+            return OriginalText.objects.all().order_by(*ordering)
+        return OriginalText.objects.filter(citing_work__publishable=True).order_by(
+            *ordering
+        )
 
 
 class CitingAuthorFullListView(DateOrderMixin, ListView):
@@ -110,8 +112,10 @@ class CitingAuthorFullListView(DateOrderMixin, ListView):
     template_name = "research/citingauthor_full_list.html"
 
     def get_queryset(self):
-        # all citing authors
-        return CitingAuthor.objects.all()
+        if self.request.user.is_authenticated:
+            # all citing authors
+            return CitingAuthor.objects.all()
+        return CitingAuthor.objects.filter(publishable=True)
 
 
 class CitingAuthorDetailView(CanLockMixin, DetailView):
