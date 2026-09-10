@@ -160,7 +160,7 @@
         </div>
 
 
-            {% with alinks=object.antiquarian_work_appositumfragmentlinks.all %}
+            {% with alinks=object.antiquarian_work_appositumfragmentlinks.all|appositum_published:user %}
 
 
                 {% for link in alinks %}

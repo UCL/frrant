@@ -40,7 +40,9 @@ class WorkDetailView(CanLockMixin, DetailView):
         context = super().get_context_data(**kwargs)
         work = self.get_object()
 
-        ordered_materials = work.get_ordered_materials()
+        ordered_materials = work.get_ordered_materials(
+            self.request.user.is_authenticated
+        )
 
         cleaned_ordered_materials = {
             book: materials

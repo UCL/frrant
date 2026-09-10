@@ -30,16 +30,12 @@ from rard.research.views.mixins import (
 )
 
 
-class AntiquarianListView(
-    DateOrderMixin, PublishableMixin, ListView
-):
+class AntiquarianListView(DateOrderMixin, PublishableMixin, ListView):
     paginate_by = 10
     model = Antiquarian
 
 
-class AntiquarianDetailView(
-    CanLockMixin, DetailView
-):
+class AntiquarianDetailView(CanLockMixin, DetailView):
     model = Antiquarian
 
     def post(self, *args, **kwargs):
@@ -109,7 +105,7 @@ class MoveLinkView(LoginRequiredMixin, View):
             "has_object_lock": True,
             "can_edit": True,
             "perms": PermWrapper(self.request.user),
-            "ordered_materials": work.get_ordered_materials(),
+            "ordered_materials": work.get_ordered_materials(False),
         }
         html = render_to_string(template, context)
         ajax_data = {"status": 200, "html": html}

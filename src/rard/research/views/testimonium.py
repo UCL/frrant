@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.http import Http404, HttpResponseRedirect
@@ -26,6 +28,7 @@ from rard.research.views.mixins import (
     CanLockMixin,
     CheckLockMixin,
     GetWorkLinkRequestDataMixin,
+    PublishableMixin,
     TextObjectFieldUpdateMixin,
     TextObjectFieldViewMixin,
 )
@@ -46,7 +49,7 @@ class TestimoniumCreateView(PermissionRequiredMixin, HistoricalBaseCreateView):
         return context
 
 
-class TestimoniumListView(ListView):
+class TestimoniumListView(PublishableMixin, ListView):
     paginate_by = 10
     model = Testimonium
 
@@ -54,12 +57,31 @@ class TestimoniumListView(ListView):
 class TestimoniumDetailView(CanLockMixin, DetailView):
     model = Testimonium
 
+    def _filter_out_unpublished_links(
+        self,
+        organised_links: list[dict[Antiquarian, tuple[list[TestimoniumLink], Any]]],
+    ):
+        return [
+            {
+                antiquarian: [
+                    [link for link in links if link.testimonium.publishable],
+                    definite,
+                ]
+                for antiquarian, [links, definite] in organised_link.items()
+                if antiquarian.publishable
+            }
+            for organised_link in organised_links
+        ]
+
     def get_context_data(self, **kwargs):
         testimonium = self.get_object()
         context = super().get_context_data(**kwargs)
         context["inline_update_url"] = "testimonium:update_testimonium_link"
 
-        context["organised_links"] = testimonium.get_organised_links()
+        organised_links = testimonium.get_organised_links()
+        if not self.request.user.is_authenticated:
+            organised_links = self._filter_out_unpublished_links(organised_links)
+        context["organised_links"] = organised_links
 
         return context
 

@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.contrib.auth.context_processors import PermWrapper
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
@@ -711,12 +713,36 @@ class RemoveAnonymousAppositumLinkView(
 class FragmentDetailView(CanLockMixin, DetailView):
     model = Fragment
 
+    link_name = "fragment"
+
+    def _filter_out_unpublished_links(
+        self, organised_links: list[dict[Antiquarian, tuple[list[FragmentLink], Any]]]
+    ):
+        return [
+            {
+                antiquarian: [
+                    [
+                        link
+                        for link in links
+                        if getattr(link, self.link_name).publishable
+                    ],
+                    definite,
+                ]
+                for antiquarian, [links, definite] in organised_link.items()
+                if antiquarian.publishable
+            }
+            for organised_link in organised_links
+        ]
+
     def get_context_data(self, **kwargs):
         fragment = self.get_object()
         context = super().get_context_data(**kwargs)
 
         context["inline_update_url"] = "fragment:update_fragment_link"
-        context["organised_links"] = fragment.get_organised_links()
+        organised_links = fragment.get_organised_links()
+        if not self.request.user.is_authenticated:
+            organised_links = self._filter_out_unpublished_links(organised_links)
+        context["organised_links"] = organised_links
         return context
 
 
@@ -724,12 +750,17 @@ class AnonymousFragmentDetailView(FragmentDetailView):
     model = AnonymousFragment
     permission_required = ("research.view_fragment",)
 
-    def get_context_data(self, **kwargs):
-        fragment = self.get_object()
-        context = super().get_context_data(**kwargs)
+    link_name = "anonymous_fragment"
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
         context["inline_update_url"] = "fragment:update_fragment_link"
-        context["organised_links"] = fragment.get_organised_links()
+        # Anonymous Fragment View doesn't seem to use organised links
+        # fragment = self.get_object()
+        # organised_links = fragment.get_organised_links()
+        # if not self.request.user.is_authenticated:
+        #    organised_links = self._filter_out_unpublished_links(organised_links)
+        # context["organised_links"] = organised_links
         return context
 
 
