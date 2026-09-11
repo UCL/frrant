@@ -5,7 +5,6 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
-from django.views.generic import ListView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
@@ -16,25 +15,23 @@ from rard.research.forms import (
     WorkIntroductionForm,
 )
 from rard.research.models import Book, TextObjectField, Work
+from rard.research.views.list import ListView
 from rard.research.views.mixins import (
     CanLockMixin,
     CheckLockMixin,
+    PublishableMixin,
     TextObjectFieldUpdateMixin,
     TextObjectFieldViewMixin,
 )
 
 
-class WorkListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class WorkListView(PublishableMixin, ListView):
     paginate_by = 10
     model = Work
-    permission_required = ("research.view_work",)
 
 
-class WorkDetailView(
-    CanLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DetailView
-):
+class WorkDetailView(CanLockMixin, DetailView):
     model = Work
-    permission_required = ("research.view_work",)
 
     def get_context_data(self, **kwargs):
         """use work model method get_ordered_materials to retrieve a dictionary of all fragments,
@@ -43,7 +40,9 @@ class WorkDetailView(
         context = super().get_context_data(**kwargs)
         work = self.get_object()
 
-        ordered_materials = work.get_ordered_materials()
+        ordered_materials = work.get_ordered_materials(
+            self.request.user.is_authenticated
+        )
 
         cleaned_ordered_materials = {
             book: materials
@@ -84,7 +83,7 @@ class WorkCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
 
 
 class WorkUpdateView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, UpdateView
 ):
     model = Work
     form_class = WorkForm
@@ -139,7 +138,7 @@ class WorkIntroductionView(TextObjectFieldViewMixin):
 
 @method_decorator(require_POST, name="dispatch")
 class WorkDeleteView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, DeleteView
 ):
     model = Work
     success_url = reverse_lazy("work:list")
@@ -164,7 +163,7 @@ def work_set_publishable(request, pk):
 
 
 class BookCreateView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, CreateView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, CreateView
 ):
     # the view attribute that needs to be checked for a lock
     check_lock_object = "work"
@@ -205,7 +204,7 @@ class BookCreateView(
 
 
 class BookUpdateView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, UpdateView
 ):
     # the view attribute that needs to be checked for a lock
     check_lock_object = "work"

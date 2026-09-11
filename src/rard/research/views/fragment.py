@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.contrib.auth.context_processors import PermWrapper
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
@@ -14,7 +16,7 @@ from django.template.loader import render_to_string
 from django.urls import resolve, reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
-from django.views.generic import FormView, ListView, TemplateView, View
+from django.views.generic import FormView, TemplateView, View
 from django.views.generic.base import RedirectView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import DeleteView, UpdateView
@@ -47,11 +49,13 @@ from rard.research.models import (
 )
 from rard.research.models.base import AppositumFragmentLink, FragmentLink
 from rard.research.models.fragment import AnonymousTopicLink
+from rard.research.views.list import ListView
 from rard.research.views.mention import MentionSearchView
 from rard.research.views.mixins import (
     CanLockMixin,
     CheckLockMixin,
     GetWorkLinkRequestDataMixin,
+    PublishableMixin,
     TextObjectFieldUpdateMixin,
     TextObjectFieldViewMixin,
 )
@@ -293,15 +297,14 @@ class AppositumCreateView(AnonymousFragmentCreateView):
         return self.owner_for
 
 
-class FragmentListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class FragmentListView(ListView):
     paginate_by = 10
     model = Fragment
-    permission_required = ("research.view_fragment",)
 
 
-class AnonymousFragmentListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class AnonymousFragmentListView(PublishableMixin, ListView):
     model = AnonymousTopicLink
-    permission_required = "research.view_fragment"
+    publishable_lookup = "fragment__publishable"
     template_name = "research/anonymousfragment_list.html"
 
     def get_selected_topic(self):
@@ -384,9 +387,8 @@ class AnonymousFragmentListView(LoginRequiredMixin, PermissionRequiredMixin, Lis
         return qs
 
 
-class UnlinkedFragmentListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class UnlinkedFragmentListView(ListView):
     model = Fragment
-    permission_required = "research.view_fragment"
     template_name = "research/unlinkedfragment_list.html"
     paginate_by = 15
 
@@ -400,7 +402,7 @@ class UnlinkedFragmentListView(LoginRequiredMixin, PermissionRequiredMixin, List
 
 
 class AddAppositumGeneralLinkView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, FormView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, FormView
 ):
     check_lock_object = "anonymous_fragment"
 
@@ -501,7 +503,7 @@ class AddAppositumGeneralLinkView(
 
 
 class AddAppositumFragmentLinkView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, FormView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, FormView
 ):
     check_lock_object = "anonymous_fragment"
 
@@ -552,7 +554,7 @@ class AddAppositumFragmentLinkView(
 
 
 class AddAppositumAnonymousLinkView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, FormView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, FormView
 ):
     check_lock_object = "appositum"
 
@@ -593,7 +595,7 @@ class AddAppositumAnonymousLinkView(
 
 @method_decorator(require_POST, name="dispatch")
 class RemoveAppositumLinkView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, RedirectView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, RedirectView
 ):
     check_lock_object = "anonymous_fragment"
     permission_required = ("research.change_anonymousfragment",)
@@ -636,7 +638,7 @@ class RemoveAppositumLinkView(
 
 @method_decorator(require_POST, name="dispatch")
 class RemoveAppositumFragmentLinkView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, RedirectView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, RedirectView
 ):
     check_lock_object = "anonymous_fragment"
     permission_required = ("research.change_anonymousfragment",)
@@ -673,7 +675,7 @@ class RemoveAppositumFragmentLinkView(
 
 @method_decorator(require_POST, name="dispatch")
 class RemoveAnonymousAppositumLinkView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, RedirectView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, RedirectView
 ):
     check_lock_object = "appositum"
     permission_required = ("research.change_anonymousfragment",)
@@ -709,18 +711,39 @@ class RemoveAnonymousAppositumLinkView(
         return redirect(self.get_success_url())
 
 
-class FragmentDetailView(
-    CanLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DetailView
-):
+class FragmentDetailView(CanLockMixin, DetailView):
     model = Fragment
-    permission_required = ("research.view_fragment",)
+
+    link_name = "fragment"
+
+    def _filter_out_unpublished_links(
+        self, organised_links: list[dict[Antiquarian, tuple[list[FragmentLink], Any]]]
+    ):
+        return [
+            {
+                antiquarian: [
+                    [
+                        link
+                        for link in links
+                        if getattr(link, self.link_name).publishable
+                    ],
+                    definite,
+                ]
+                for antiquarian, [links, definite] in organised_link.items()
+                if antiquarian.publishable
+            }
+            for organised_link in organised_links
+        ]
 
     def get_context_data(self, **kwargs):
         fragment = self.get_object()
         context = super().get_context_data(**kwargs)
 
         context["inline_update_url"] = "fragment:update_fragment_link"
-        context["organised_links"] = fragment.get_organised_links()
+        organised_links = fragment.get_organised_links()
+        if not self.request.user.is_authenticated:
+            organised_links = self._filter_out_unpublished_links(organised_links)
+        context["organised_links"] = organised_links
         return context
 
 
@@ -728,18 +751,23 @@ class AnonymousFragmentDetailView(FragmentDetailView):
     model = AnonymousFragment
     permission_required = ("research.view_fragment",)
 
-    def get_context_data(self, **kwargs):
-        fragment = self.get_object()
-        context = super().get_context_data(**kwargs)
+    link_name = "anonymous_fragment"
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
         context["inline_update_url"] = "fragment:update_fragment_link"
-        context["organised_links"] = fragment.get_organised_links()
+        # Anonymous Fragment View doesn't seem to use organised links
+        # fragment = self.get_object()
+        # organised_links = fragment.get_organised_links()
+        # if not self.request.user.is_authenticated:
+        #    organised_links = self._filter_out_unpublished_links(organised_links)
+        # context["organised_links"] = organised_links
         return context
 
 
 @method_decorator(require_POST, name="dispatch")
 class FragmentDeleteView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, DeleteView
 ):
     model = Fragment
     success_url = reverse_lazy("fragment:list")
@@ -754,7 +782,7 @@ class AnonymousFragmentDeleteView(FragmentDeleteView):
 
 
 class FragmentUpdateView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, UpdateView
 ):
     model = Fragment
     form_class = FragmentForm
@@ -837,7 +865,7 @@ class AnonymousFragmentPublicCommentaryView(TextObjectFieldViewMixin):
 
 @method_decorator(require_POST, name="dispatch")
 class AnonymousFragmentConvertToFragmentView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, View
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, View
 ):
     model = AnonymousFragment
     permission_required = "research.change_anonymousfragment"
@@ -913,9 +941,9 @@ class FragmentUpdateAntiquariansView(FragmentUpdateView):
 
 
 class FragmentAddWorkLinkView(
+    PermissionRequiredMixin,
     CheckLockMixin,
     LoginRequiredMixin,
-    PermissionRequiredMixin,
     GetWorkLinkRequestDataMixin,
     FormView,
 ):
@@ -969,7 +997,7 @@ class FragmentAddWorkLinkView(
 
 @method_decorator(require_POST, name="dispatch")
 class RemoveFragmentLinkView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, DeleteView
 ):
     """When requesting link removal, one link will be removed/reassigned if from a work link
     If from an antiquarian link, all links will be removed"""
@@ -1047,9 +1075,9 @@ class RemoveFragmentLinkView(
 
 
 class FragmentUpdateWorkLinkView(
+    PermissionRequiredMixin,
     CheckLockMixin,
     LoginRequiredMixin,
-    PermissionRequiredMixin,
     GetWorkLinkRequestDataMixin,
     UpdateView,
 ):
@@ -1130,6 +1158,7 @@ class MoveAnonymousTopicLinkView(LoginRequiredMixin, View):
 
     def render_valid_response(self, topic_id):
         view = AnonymousFragmentListView()
+        view.setup(self.request, *self.args, **self.kwargs)
         topic = Topic.objects.get(id=topic_id)
         qs = view.get_queryset(topic=topic)
         context = {

@@ -5,18 +5,18 @@ from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
-from django.views.generic import ListView, View
+from django.views.generic import View
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from rard.research.models import Topic
+from rard.research.views.list import ListView
 from rard.research.views.mixins import CanLockMixin, CheckLockMixin
 
 
-class TopicListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
+class TopicListView(ListView):
     paginate_by = 10
     model = Topic
-    permission_required = ("research.view_topic",)
 
     def post(self, *args, **kwargs):
         pk = self.request.POST.get("topic_id", None)
@@ -33,11 +33,8 @@ class TopicListView(LoginRequiredMixin, PermissionRequiredMixin, ListView):
         return HttpResponseRedirect(self.request.path)
 
 
-class TopicDetailView(
-    CanLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DetailView
-):
+class TopicDetailView(CanLockMixin, DetailView):
     model = Topic
-    permission_required = ("research.view_topic",)
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(*args, **kwargs)
@@ -81,7 +78,7 @@ class TopicCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
 
 
 class TopicUpdateView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, UpdateView
 ):
     model = Topic
     fields = ("name",)
@@ -93,7 +90,7 @@ class TopicUpdateView(
 
 @method_decorator(require_POST, name="dispatch")
 class TopicDeleteView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, DeleteView
 ):
     model = Topic
     success_url = reverse_lazy("topic:list")

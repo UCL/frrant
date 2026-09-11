@@ -67,7 +67,7 @@ NB the output will be hidden when run in the background. To inspect the logs aft
 
 (the `-f` will update the output as more log messages come in. Omit `-f` to just see a snapshot).
 
-- With the container running, browse to `localhost:8000` in your browser and you should see the project's home page.
+- With the container running, browse to `localhost:8000/frrant` in your browser and you should see the project's home page.
 
 To restart the project, e.g. if some changes have been made to code that don't need the container to be rebuilt then use:
 
@@ -382,6 +382,33 @@ Before building the nginx container we need to do the following for development 
 `sudo openssl req -x509 -nodes -days 365 -config rardselfsigned.cnf -newkey rsa:2048 -keyout rardselfsigned.key -out rardselfsigned.crt`
 
 This will generated a certificate and corresponding key file.
+
+# Statification
+
+With the local docker compose running, execute the following (from the `src` directory):
+
+```sh
+./manage distill-local --force frrant
+```
+
+(using `manage.bat` on Windows). Now if you have nginx running with default configuration
+you can see the result on your own machine like so:
+
+```sh
+sudo mkdir /var/www/html/frrant
+sudo chmod a+wr /var/www/html/frrant
+cp -r frrant/frrant/ /var/www/html/
+```
+
+And browse to [http://localhost/frrant/].
+
+To update this after altering the code (be careful with the `rm -rf`!):
+
+```sh
+./manage distill-local --force frrant
+rm -rf /var/www/html/frrant/*
+cp -r frrant/frrant/ /var/www/html/
+```
 
 # Troubleshooting
 

@@ -1,3 +1,5 @@
+import os
+
 import pytest
 from django.contrib import messages
 from django.contrib.admin.sites import AdminSite
@@ -35,7 +37,11 @@ class TestUserUpdateView(TestCase):
 
         view.request = request
 
-        self.assertEqual(view.get_success_url(), f"/users/{self.user.username}/")
+        prefix = os.environ["URL_PREFIX"]
+        self.assertEqual(
+            view.get_success_url(),
+            f"/{prefix}users/{self.user.username}/",
+        )
 
     def test_get_object(self):
         view = UserUpdateView()
@@ -82,8 +88,12 @@ class TestUserDetailView(TestCase):
 
         response = user_detail_view(request, username=self.user.username)
 
-        assert response.status_code == 302
-        assert response.url == "/accounts/login/?next=/fake-url/"
+        prefix = os.environ["URL_PREFIX"]
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(
+            response.url,
+            f"/{prefix}accounts/login/?next=/fake-url/",
+        )
 
     def test_case_sensitivity(self):
         request = self.rf.get("/fake-url/")

@@ -4,12 +4,13 @@
 
 {% block heading %}
     {{ object }}
-    {% if object.publishable %}
+    {% if user.is_authenticated and object.publishable %}
         <span class='badge badge-pill badge-success'>Published</span>
     {% endif %}
 {% endblock %}
 
 {% block action %}
+{% if perms.research.change_citingauthor %}
 
     {% with request.user|has_lock:object as has_object_lock %}
 
@@ -29,7 +30,7 @@
         {% endif %}
         </div>
     {% endwith %}
-
+{% endif %}
 {% endblock %}
 
 

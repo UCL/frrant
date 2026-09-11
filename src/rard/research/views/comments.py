@@ -4,11 +4,11 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
-from django.views.generic import ListView
 from django.views.generic.edit import DeleteView, FormMixin
 
 from rard.research.forms import CommentForm
 from rard.research.models import Comment, TextObjectField
+from rard.research.views.list import ListView
 
 
 @method_decorator(require_POST, name="dispatch")

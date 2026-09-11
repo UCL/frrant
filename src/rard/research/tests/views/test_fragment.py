@@ -1,3 +1,5 @@
+import os
+
 import pytest
 from django.core.exceptions import BadRequest, ObjectDoesNotExist
 from django.http.response import Http404
@@ -25,8 +27,6 @@ from rard.research.views import (
     AnonymousFragmentListView,
     FragmentCreateView,
     FragmentDeleteView,
-    FragmentDetailView,
-    FragmentListView,
     FragmentUpdateView,
     MoveAnonymousTopicLinkView,
     UnlinkedFragmentConvertToAnonymousView,
@@ -205,8 +205,6 @@ class TestFragmentViewPermissions(TestCase):
         self.assertIn(
             "research.delete_fragment", FragmentDeleteView.permission_required
         )
-        self.assertIn("research.view_fragment", FragmentListView.permission_required)
-        self.assertIn("research.view_fragment", FragmentDetailView.permission_required)
 
 
 class TestFragmentConvertViews(TestCase):
@@ -453,7 +451,7 @@ class TestMoveAnonymousTopicLinkView(TestCase):
             "anonymoustopiclink_id": atl3.id,
         }
         view = MoveAnonymousTopicLinkView.as_view()
-        request = RequestFactory().post("/", data=data)
+        request = RequestFactory().post(f"/{os.environ['URL_PREFIX']}", data=data)
         request.user = UserFactory.create()
         response = view(
             request,
@@ -481,7 +479,7 @@ class TestMoveAnonymousTopicLinkView(TestCase):
             "anonymoustopiclink_id": atl2.id,
         }
         view = MoveAnonymousTopicLinkView.as_view()
-        request = RequestFactory().post("/", data=data)
+        request = RequestFactory().post(f"/{os.environ['URL_PREFIX']}", data=data)
         request.user = UserFactory.create()
         response = view(
             request,

@@ -131,7 +131,7 @@ class Work(
             antiquarian_testimoniumlinks__in=links
         ).distinct()
 
-    def get_ordered_materials(self):
+    def get_ordered_materials(self, include_unpublished: bool):
         from rard.research.models import AnonymousFragment, Fragment, Testimonium
         from rard.research.models.base import (
             AppositumFragmentLink,
@@ -139,38 +139,51 @@ class Work(
             TestimoniumLink,
         )
 
+        fragment_links_unordered = self.antiquarian_work_fragmentlinks.values(
+            "definite_antiquarian",
+            "definite_work",
+            "definite_book",
+            "book",
+            "order_in_book",
+            pk=F("fragment__pk"),
+            link_id=F("id"),
+        )
+        testimonium_links_unordered = self.antiquarian_work_testimoniumlinks.values(
+            "definite_antiquarian",
+            "definite_work",
+            "definite_book",
+            "book",
+            "order_in_book",
+            pk=F("testimonium__pk"),
+            link_id=F("id"),
+        )
+        appositum_links_unordered = self.antiquarian_work_appositumfragmentlinks.values(
+            "definite_antiquarian",
+            "definite_work",
+            "definite_book",
+            "book",
+            "order_in_book",
+            pk=F("anonymous_fragment__pk"),
+            link_id=F("id"),
+        )
+        if not include_unpublished:
+            fragment_links_unordered = fragment_links_unordered.filter(
+                fragment__publishable=True
+            )
+            testimonium_links_unordered = testimonium_links_unordered.filter(
+                testimonium__publishable=True
+            )
+            appositum_links_unordered = appositum_links_unordered.filter(
+                anonymous_fragment__publishable=True
+            )
         fragment_links = list(
-            self.antiquarian_work_fragmentlinks.values(
-                "definite_antiquarian",
-                "definite_work",
-                "definite_book",
-                "book",
-                "order_in_book",
-                pk=F("fragment__pk"),
-                link_id=F("id"),
-            ).order_by("book", "order_in_book")
+            fragment_links_unordered.order_by("book", "order_in_book")
         )
         testimonium_links = list(
-            self.antiquarian_work_testimoniumlinks.values(
-                "definite_antiquarian",
-                "definite_work",
-                "definite_book",
-                "book",
-                "order_in_book",
-                pk=F("testimonium__pk"),
-                link_id=F("id"),
-            ).order_by("book", "order_in_book")
+            testimonium_links_unordered.order_by("book", "order_in_book")
         )
         appositum_links = list(
-            self.antiquarian_work_appositumfragmentlinks.values(
-                "definite_antiquarian",
-                "definite_work",
-                "definite_book",
-                "book",
-                "order_in_book",
-                pk=F("anonymous_fragment__pk"),
-                link_id=F("id"),
-            ).order_by("book", "order_in_book")
+            appositum_links_unordered.order_by("book", "order_in_book")
         )
         materials = {
             "fragments": (fragment_links, Fragment, FragmentLink),
