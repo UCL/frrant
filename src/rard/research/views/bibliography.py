@@ -8,12 +8,13 @@ from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.http import require_POST
-from django.views.generic import DetailView, ListView
+from django.views.generic import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from rard.research.forms import BibliographyItemForm, BibliographyItemInlineForm
 from rard.research.models import Antiquarian, BibliographyItem
 from rard.research.models.citing_work import CitingAuthor
+from rard.research.views.list import ListView
 from rard.research.views.mixins import CanLockMixin, CheckLockMixin
 
 

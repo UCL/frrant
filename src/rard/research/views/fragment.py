@@ -16,7 +16,7 @@ from django.template.loader import render_to_string
 from django.urls import resolve, reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
-from django.views.generic import FormView, ListView, TemplateView, View
+from django.views.generic import FormView, TemplateView, View
 from django.views.generic.base import RedirectView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import DeleteView, UpdateView
@@ -49,6 +49,7 @@ from rard.research.models import (
 )
 from rard.research.models.base import AppositumFragmentLink, FragmentLink
 from rard.research.models.fragment import AnonymousTopicLink
+from rard.research.views.list import ListView
 from rard.research.views.mention import MentionSearchView
 from rard.research.views.mixins import (
     CanLockMixin,

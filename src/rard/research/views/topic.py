@@ -5,11 +5,12 @@ from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
-from django.views.generic import ListView, View
+from django.views.generic import View
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from rard.research.models import Topic
+from rard.research.views.list import ListView
 from rard.research.views.mixins import CanLockMixin, CheckLockMixin
 
 

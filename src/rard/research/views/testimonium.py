@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404, render
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
-from django.views.generic import FormView, ListView
+from django.views.generic import FormView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import DeleteView, UpdateView
 
@@ -24,6 +24,7 @@ from rard.research.views.fragment import (
     AnonymousFragmentConvertToFragmentView,
     HistoricalBaseCreateView,
 )
+from rard.research.views.list import ListView
 from rard.research.views.mixins import (
     CanLockMixin,
     CheckLockMixin,

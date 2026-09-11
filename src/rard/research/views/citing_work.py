@@ -5,7 +5,6 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_GET, require_POST
-from django.views.generic import ListView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
@@ -17,6 +16,7 @@ from rard.research.forms import (
 )
 from rard.research.models import CitingAuthor, CitingWork, OriginalText
 from rard.research.models.text_object_field import TextObjectField
+from rard.research.views.list import ListView
 from rard.research.views.mixins import (
     CanLockMixin,
     CheckLockMixin,
