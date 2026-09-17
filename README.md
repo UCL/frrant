@@ -336,19 +336,6 @@ URL_PREFIX=history/frrant-preprod/
 
 In the above, the domain name will be e.g. `frrd-dev.addev.ucl.ac.uk` for development. If more than one are required then they can be comma-separated (NB do not put inside braces `[]`)
 
-Next
-
-`sudo vi .pgadmin`
-
-enter the following:
-
-```
-PGADMIN_DEFAULT_EMAIL=<username>
-PGADMIN_DEFAULT_PASSWORD=<password>
-```
-
-for the username/password combo to use for pgadmin. This admin interface allows you to manage backups etc.
-
 Finally
 
 `sudo vi .postgres`
