@@ -45,7 +45,7 @@ services:
     volumes:
       - type: volume
         source: development_postgres_data
-        target: /var/lib/postgresql/data
+        target: /var/lib/postgresql/18/docker
       - type: volume
         source: development_postgres_data_backups
         target: /backups
