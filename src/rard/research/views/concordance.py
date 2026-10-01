@@ -105,7 +105,8 @@ class ConcordanceListView(ListView):
         results_qs = []
 
         if antiquarian_pk:
-            # get all links that are associated with that antiquarian, regardless of concordances
+            # get all links that are associated with that antiquarian,
+            # regardless of concordances
             antiquarian = Antiquarian.objects.get(pk=antiquarian_pk)
             results = list(antiquarian.testimonia.all()) + list(
                 antiquarian.ordered_fragments()

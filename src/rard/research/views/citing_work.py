@@ -227,7 +227,10 @@ class CitingAuthorIntroductionView(TextObjectFieldViewMixin):
 @login_required
 @permission_required("research.publish_citing_author")
 def citing_author_set_publishable(request, pk):
-    """Given the pk of a CitingAuthor object, set its publishable attribute to the value of the POST request"""
+    """
+    Given the pk of a CitingAuthor object, set its publishable attribute to the
+    value of the POST request.
+    """
     try:
         citing_author = CitingAuthor.objects.get(pk=pk)
     except CitingAuthor.DoesNotExist:
@@ -329,7 +332,10 @@ def ca_refresh_bibliography_from_mentions(request, pk):
 @login_required
 @permission_required("research.publish_citing_work")
 def citing_work_set_publishable(request, pk):
-    """Given the pk of a CitingWork object, set its publishable attribute to the value of the POST request"""
+    """
+    Given the pk of a CitingWork object, set its publishable attribute to the
+    value of the POST request.
+    """
     try:
         citing_work = CitingWork.objects.get(pk=pk)
     except CitingWork.DoesNotExist:

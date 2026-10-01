@@ -288,8 +288,10 @@ class TestimoniumUpdateWorkLinkView(
 class RemoveTestimoniumLinkView(
     PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, DeleteView
 ):
-    """When requesting link removal, one link will be removed/reassigned if from a work link
-    If from an antiquarian link, all links will be removed"""
+    """
+    When requesting link removal, one link will be removed/reassigned if from a
+    work link. If from an antiquarian link, all links will be removed.
+    """
 
     check_lock_object = "testimonium"
     model = TestimoniumLink
@@ -377,7 +379,10 @@ class TestimoniumConvertToUnlinkedFragmentView(AnonymousFragmentConvertToFragmen
 @login_required
 @permission_required("research.publish_testimonium")
 def testimonium_set_publishable(request, pk):
-    """Given the pk of a Testimonium object, set its publishable attribute to the value of the POST request"""
+    """
+    Given the pk of a Testimonium object, set its publishable attribute to the
+    value of the POST request.
+    """
     try:
         testimonium = Testimonium.objects.get(pk=pk)
     except Testimonium.DoesNotExist:

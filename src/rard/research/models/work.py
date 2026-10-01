@@ -240,7 +240,8 @@ class Work(
                         link.work_order = count
                         link.save()
 
-        # There should only ever be one antiquarian, but no harm in covering all eventualities
+        # There should only ever be one antiquarian, but no harm in covering
+        # all eventualities
         for antiquarian in self.antiquarian_set.all():
             antiquarian.reindex_fragment_and_testimonium_links()
 
@@ -316,7 +317,10 @@ class Book(
 
 @disable_for_loaddata
 def collate_unknown(instance):
-    """This makes sure there's only one unknown book per work and combines contents if otherwise"""
+    """
+    This makes sure there's only one unknown book per work and combines
+    contents if otherwise.
+    """
     unknown_books = instance.book_set.filter(unknown=True)
 
     if unknown_books.count() > 1:

@@ -999,8 +999,10 @@ class FragmentAddWorkLinkView(
 class RemoveFragmentLinkView(
     PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, DeleteView
 ):
-    """When requesting link removal, one link will be removed/reassigned if from a work link
-    If from an antiquarian link, all links will be removed"""
+    """
+    When requesting link removal, one link will be removed/reassigned if from a
+    work link. If from an antiquarian link, all links will be removed.
+    """
 
     check_lock_object = "fragment"
     model = FragmentLink
@@ -1294,7 +1296,10 @@ def duplicate_fragment(request, pk, model_name):
 @login_required
 @permission_required("research.publish_fragment")
 def fragment_set_publishable(request, pk):
-    """Given the pk of a Fragment object, set its publishable attribute to the value of the POST request"""
+    """
+    Given the pk of a Fragment object, set its publishable attribute to the
+    value of the POST request.
+    """
     try:
         fragment = Fragment.objects.get(pk=pk)
     except Fragment.DoesNotExist:
@@ -1311,7 +1316,10 @@ def fragment_set_publishable(request, pk):
 @login_required
 @permission_required("research.publish_anonymous_fragment")
 def anonymous_fragment_set_publishable(request, pk):
-    """Given the pk of a AnonymousFragment object, set its publishable attribute to the value of the POST request"""
+    """
+    Given the pk of a AnonymousFragment object, set its publishable attribute
+    to the value of the POST request.
+    """
     try:
         anonymous_fragment = AnonymousFragment.objects.get(pk=pk)
     except AnonymousFragment.DoesNotExist:

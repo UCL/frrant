@@ -233,12 +233,13 @@ class TestFragmentConvertViews(TestCase):
         self.mentioning_fragment = self.create_fragment(Fragment, "f mentioner")
         self.mentioning_fragment.commentary = TextObjectField.objects.create(
             content=(
-                f"<p><span class='mention' data-denotation-char='@'' "
+                "<p><span class='mention' data-denotation-char='@'' "
                 f"data-id={self.unlinked_fragment.pk} "
-                f"data-index='0' data-target='Fragment' "
-                f"data-value='{self.unlinked_fragment.get_display_name()}'><span contenteditable='false'>"
+                "data-index='0' data-target='Fragment' "
+                f"data-value='{self.unlinked_fragment.get_display_name()}'>"
+                "<span contenteditable='false'>"
                 f"<span>@</span>{self.unlinked_fragment.get_display_name()}"
-                f"</span></span> </p>"
+                "</span></span> </p>"
             )
         )
         self.mentioning_fragment.commentary.save()
@@ -248,12 +249,13 @@ class TestFragmentConvertViews(TestCase):
         )
         self.mentioning_anonymous_fragment.commentary = TextObjectField.objects.create(
             content=(
-                f"<p><span class='mention' data-denotation-char='@'' "
+                "<p><span class='mention' data-denotation-char='@'' "
                 f"data-id={self.unlinked_anonymous_fragment.pk} "
-                f"data-index='0' data-target='AnonymousFragment' "
-                f"data-value='{self.unlinked_anonymous_fragment.get_display_name()}'><span contenteditable='false'>"
+                "data-index='0' data-target='AnonymousFragment' "
+                f"data-value='{self.unlinked_anonymous_fragment.get_display_name()}'>"
+                "<span contenteditable='false'>"
                 f"<span>@</span>{self.unlinked_anonymous_fragment.get_display_name()}"
-                f"</span></span> </p>"
+                "</span></span> </p>"
             )
         )
         self.mentioning_anonymous_fragment.commentary.save()
@@ -793,9 +795,13 @@ class TestFragmentDuplicationView(TestCase):
         )
 
     def test_duplication_updates_ot_references(self):
-        self.ot.content += f"<span class='mention' data-denotation-char='#' data-id='{self.apc.pk}' data-index='0'"
-        self.ot.content += f"data-original-text='{self.ot.pk}' data-parent='{self.ot.pk}' data-target='ApparatusCriticusItem' "
-        self.ot.content += "data-value='1'><span><span>#</span>1</span> </span>"
+        self.ot.content += (
+            "<span class='mention' data-denotation-char='#'"
+            f" data-id='{self.apc.pk}' data-index='0'"
+            f"data-original-text='{self.ot.pk}' data-parent='{self.ot.pk}'"
+            " data-target='ApparatusCriticusItem' "
+            "data-value='1'><span><span>#</span>1</span> </span>"
+        )
         self.ot.save()
         url = reverse(
             "fragment:duplicate", kwargs={"pk": self.frag.pk, "model_name": "fragment"}

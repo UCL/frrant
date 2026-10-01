@@ -401,7 +401,10 @@ class Antiquarian(
 
 @disable_for_loaddata
 def collate_unknown(instance):
-    """This makes sure there's only one unknown work per antiquarian and combines contents if otherwise"""
+    """
+    This makes sure there's only one unknown work per antiquarian
+    and combines contents if otherwise.
+    """
     unknown_works = instance.works.filter(unknown=True).order_by("pk")
 
     if unknown_works.count() > 1:
@@ -414,7 +417,10 @@ def collate_unknown(instance):
 
 @disable_for_loaddata
 def collate_bibliographic(instance):
-    """This makes sure there's only one bibliographic work per antiquarian and combines contents if otherwise"""
+    """
+    This makes sure there's only one bibliographic work per antiquarian
+    and combines contents if otherwise.
+    """
     bibliographic_works = instance.works.filter(bibliographic=True).order_by("pk")
 
     if bibliographic_works.count() > 1:

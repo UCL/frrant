@@ -34,8 +34,11 @@ class WorkDetailView(CanLockMixin, DetailView):
     model = Work
 
     def get_context_data(self, **kwargs):
-        """use work model method get_ordered_materials to retrieve a dictionary of all fragments,
-        testimonia and apposita grouped by book and add it to the context"""
+        """
+        Use work model method get_ordered_materials to retrieve a dictionary
+        of all fragments, testimonia and apposita grouped by book and add it to
+        the context.
+        """
 
         context = super().get_context_data(**kwargs)
         work = self.get_object()
@@ -149,7 +152,10 @@ class WorkDeleteView(
 @login_required
 @permission_required("research.publish_work")
 def work_set_publishable(request, pk):
-    """Given the pk of a Work object, set its publishable attribute to the value of the POST request"""
+    """
+    Given the pk of a Work object, set its publishable attribute to the value
+    of the POST request.
+    """
     try:
         work = Work.objects.get(pk=pk)
     except Work.DoesNotExist:

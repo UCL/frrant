@@ -69,9 +69,10 @@ def copy_concordances_apcrit_and_translations(original, new_original_text):
                 field_value = getattr(original_item, field.name)
                 new_model_data[field.name] = field_value
 
+            # make sure to assign new OT in place of the old one (field skipped above)
             new_model_data[
                 ot_fieldname
-            ] = new_original_text  # make sure to assign new OT in place of the old one (field skipped above)
+            ] = new_original_text
 
             model_class.objects.create(**new_model_data)
 

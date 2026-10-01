@@ -229,7 +229,10 @@ class WorkLinkBaseModel(LinkBaseModel):
             self.swap_by_book(next_)
 
     def reindex_work_by_book(self):
-        """Update order of links with respect to work, taking into account book__order and order_in_book"""
+        """
+        Update order of links with respect to work, taking into account
+        book__order and order_in_book.
+        """
         from django.db import transaction
 
         with transaction.atomic():
@@ -558,8 +561,8 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
         mentions = [m.get_related_object() for m in self.mentioned_in.all()]
         return mentions
 
-    # Duplicates are only used on (Anon)Fragments but these fields also exist on testimonia
-    # when duplicating, a new fragment is created
+    # Duplicates are only used on (Anon)Fragments but these fields also exist
+    # on testimonia when duplicating, a new fragment is created
     duplicate_frags = models.ManyToManyField(
         "Fragment", blank=True, related_name="%(class)s_duplicate_fragments"
     )

@@ -508,13 +508,17 @@ class TestWorkLinkScheme(TestCase):
         self.assertEqual(FragmentLink.objects.first().antiquarian, a0)
 
     def test_delete_work_moves_links(self):
-        """When a work is removed, the links should assign themselves to the Unknown Work of the Antiquarian"""
+        """
+        When a work is removed, the links should assign themselves to the
+        Unknown Work of the Antiquarian.
+        """
         # removing the antiquarian as work author should move
         # linked fragments to Unknown Work
         work_pk = self.work.pk
         self.work.delete()
 
-        # we should now have only links directly to the antiquarian - put in Unknown Work
+        # we should now have only links directly to the antiquarian - put in
+        # Unknown Work
         self.assertEqual(self.antiquarian.fragments.count(), self.NUM)
         for link in self.antiquarian.fragmentlinks.all():
             self.assertEqual(link.work, link.antiquarian.unknown_work)
@@ -565,8 +569,10 @@ class TestWorkLinkScheme(TestCase):
         self.assertEqual(antiquarian.fragmentlinks.count(), Fragment.objects.count())
 
     def test_add_delete_single_work_updates_links(self):
-        """After adding a work to an Antiquarian, its links should then be associated with that Antiquarian.
-        Even when the work is deleted, those links should point to Unknown Work for that Antiquarian
+        """
+        After adding a work to an Antiquarian, its links should then be
+        associated with that Antiquarian. Even when the work is deleted, those
+        links should point to Unknown Work for that Antiquarian.
         """
         self._run_test_add_del_multi_works_updates_links(self.REMOVE_SINGLE)
 
@@ -660,7 +666,9 @@ class TestWorkLinkScheme(TestCase):
 
 class TestLinkScheme(TestCase):
     def setUp(self):
-        """The new way of defining definite/possible aspects is broken down for antiquarians, works and books.
+        """
+        The new way of defining definite/possible aspects is broken down for
+        antiquarians, works and books.
         This means each link will be definite or not for each and will not be null.
         """
         # add an antiquarian with a work

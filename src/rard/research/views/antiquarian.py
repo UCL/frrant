@@ -115,7 +115,10 @@ class MoveLinkView(LoginRequiredMixin, View):
         return JsonResponse(data=ajax_data, safe=False)
 
     def post(self, *args, **kwargs):
-        """if passed a book pk and link pk, we'd want to see if there's an option to 'move to' and apply it to the book/link"""
+        """
+        If passed a book pk and link pk, we'd want to see if there's an option
+        to 'move to' and apply it to the book/link.
+        """
         link_pk = self.request.POST.get("link_id", None)
         work_pk = self.request.POST.get("work_id", None)
         book_pk = self.request.POST.get("book_id", None)
@@ -322,7 +325,10 @@ def refresh_bibliography_from_mentions(request, pk):
 @login_required
 @permission_required("research.publish_antiquarian")
 def antiquarian_set_publishable(request, pk):
-    """Given the pk of an Antiquarian object, set its publishable attribute to the value of the POST request"""
+    """
+    Given the pk of an Antiquarian object, set its publishable attribute to the
+    value of the POST request.
+    """
     try:
         antiquarian = Antiquarian.objects.get(pk=pk)
     except Antiquarian.DoesNotExist:

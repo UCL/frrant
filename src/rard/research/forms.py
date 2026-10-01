@@ -679,7 +679,12 @@ class CommentaryFormBase(forms.ModelForm):
     commentary_text = forms.CharField(
         widget=forms.Textarea(
             attrs={
-                "class": "enableMentions enableFootnotes enableApparatusCriticus enableCKEditor"
+                "class": " ".join([
+                    "enableMentions",
+                    "enableFootnotes",
+                    "enableApparatusCriticus",
+                    "enableCKEditor",
+                ])
             }
         ),
         required=False,
@@ -732,7 +737,10 @@ class PublicCommentaryFormBase(forms.ModelForm):
     approved = forms.BooleanField(
         label="approved",
         required=False,
-        help_text="By approving, you consent to the general public to view this on the final website.",
+        help_text=(
+            "By approving, you consent to the general public to view this on"
+            " the final website."
+        ),
     )
 
     def __init__(self, *args, **kwargs):
@@ -1236,8 +1244,8 @@ class EditionForm(forms.ModelForm):
         help_text="Enter full name of edition eg. Brills New Jacoby",
     )
     part_format_help_text = (
-        "Enter format in brackets, eg. [1-10 Arabic numerals] or [none] if no parts for this edition."
-        + "\n If left blank, this will default to [none]"
+        "Enter format in brackets, eg. [1-10 Arabic numerals] or [none] if no"
+        " parts for this edition.\n If left blank, this will default to [none]"
     )  # splitting to appease linter error
     part_format = forms.CharField(
         label="format of parts",
@@ -1265,11 +1273,17 @@ class ConcordanceModelCreateForm(forms.ModelForm):
     new_identifier = forms.CharField(
         label="New Part Identifier",
         required=False,
-        help_text="You do not need to include the edition name, only the relevant part identifier without brackets[ ]",
+        help_text=(
+            "You do not need to include the edition name, only the relevant"
+            " part identifier without brackets[ ]"
+        ),
     )
     display_order = forms.CharField(
         required=False,
-        help_text="When ordering alphabetically or numerically, what would you like this identifier sorted as?",
+        help_text=(
+            "When ordering alphabetically or numerically, what would you like"
+            " this identifier sorted as?"
+        ),
     )
 
     def __init__(self, *args, **kwargs):
@@ -1342,13 +1356,19 @@ class ConcordanceModelUpdateForm(forms.ModelForm):
     new_identifier = forms.CharField(
         label="New Part Identifier",
         required=False,
-        help_text="You do not need to include the edition name, only the relevant part identifier without brackets[ ]",
+        help_text=(
+            "You do not need to include the edition name, only the relevant"
+            " part identifier without brackets[ ]"
+        ),
     )
 
     display_order = forms.CharField(
         label="optional ordering",
         required=False,
-        help_text="When ordering alphabetically or numerically, what would you like this identifier sorted as?",
+        help_text=(
+            "When ordering alphabetically or numerically, what would you like"
+            " this identifier sorted as?"
+        ),
     )
 
     def __init__(self, *args, **kwargs):
