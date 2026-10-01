@@ -630,7 +630,7 @@ class TestWorkLinkScheme(TestCase):
         if method == self.REMOVE_SINGLE:
             self.antiquarian.works.remove(works.first())  # one only
         elif method == self.REMOVE_MULTI:
-            self.antiquarian.works.remove(*works.all()[:2])  # subset
+            self.antiquarian.works.remove(*works.all()[2:4])  # subset
         elif method == self.REMOVE_CLEAR:
             self.antiquarian.works.clear()  # has different signal behaviour
         elif method == self.REMOVE_SET_BLANK:

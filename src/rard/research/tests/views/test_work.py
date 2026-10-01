@@ -82,9 +82,10 @@ class TestWorkCreateView(TestCase):
     def test_create_with_books(self):
         url = reverse("work:create")
         a = Antiquarian.objects.create(name="bar", re_code=2)
+        book_name = "another name"
         data = {
             "antiquarians": [a.pk],
-            "name": "another name",
+            "name": book_name,
             "books_0_num": 2,
             "books_0_title": "deux",
             "books_0_date": "somewhen",
@@ -100,7 +101,7 @@ class TestWorkCreateView(TestCase):
         self.assertEqual(
             a.works.exclude(unknown=True).exclude(bibliographic=True).count(), 1
         )
-        w = a.works.first()
+        w = a.works.filter(name=book_name).first()
         self.assertEqual(Book.objects.filter(work=w, unknown=False).count(), 2)
         self.assertEqual(w.book_set.exclude(unknown=True).count(), 2)
 
