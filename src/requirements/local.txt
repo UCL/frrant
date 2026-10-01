@@ -22,7 +22,7 @@ flake8-isort==7.0.0  # https://github.com/gforcada/flake8-isort
 coverage==5.2.1  # https://github.com/nedbat/coveragepy
 black==26.1.0  # https://github.com/ambv/black
 pylint-django==2.3.0  # https://github.com/PyCQA/pylint-django
-pre-commit==2.20.0  # https://github.com/pre-commit/pre-commit
+pre-commit==4.6.2  # https://github.com/pre-commit/pre-commit
 debugpy==1.6.7  # https://github.com/microsoft/debugpy
 
 # Django

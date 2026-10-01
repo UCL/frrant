@@ -679,12 +679,14 @@ class CommentaryFormBase(forms.ModelForm):
     commentary_text = forms.CharField(
         widget=forms.Textarea(
             attrs={
-                "class": " ".join([
-                    "enableMentions",
-                    "enableFootnotes",
-                    "enableApparatusCriticus",
-                    "enableCKEditor",
-                ])
+                "class": " ".join(
+                    [
+                        "enableMentions",
+                        "enableFootnotes",
+                        "enableApparatusCriticus",
+                        "enableCKEditor",
+                    ]
+                )
             }
         ),
         required=False,
