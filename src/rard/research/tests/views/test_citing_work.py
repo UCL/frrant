@@ -5,13 +5,7 @@ from django.urls import reverse
 from rard.research.models import CitingAuthor, CitingWork, OriginalText
 from rard.research.models.fragment import AnonymousFragment, Fragment
 from rard.research.models.testimonium import Testimonium
-from rard.research.views import (
-    CitingAuthorDetailView,
-    CitingAuthorListView,
-    CitingWorkDeleteView,
-    CitingWorkDetailView,
-    CitingWorkUpdateView,
-)
+from rard.research.views import CitingAuthorDetailView, CitingWorkUpdateView
 from rard.users.tests.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
