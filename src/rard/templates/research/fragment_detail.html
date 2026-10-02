@@ -3,7 +3,7 @@
 {% block title %}Fragment {{object.pk}} {% endblock %}
 {% block heading %}
     {{ object.get_display_name }}
-    {% if object.publishable %}
+    {% if user.is_authenticated and object.publishable %}
         <span class='badge badge-pill badge-success'>Published</span>
     {% endif %}
 {% endblock %}
@@ -14,11 +14,13 @@
 {% endblock %}
 
 {% block action %}
+{% if perms.research.change_fragment %}
     {% with request.user|has_lock:object as has_object_lock %}
 
         {% include 'research/partials/render_locked_info.html' with is_fragment="fragment" %}
 
     {% endwith %}
+{% endif %}
 {% endblock %}
 
 {% block inner %}
@@ -42,11 +44,7 @@
             <dd class="col-sm-7">
                 {% if object.topics.count == 0%}-{% endif %}
                 {% for topic in object.topics.all %}{% if forloop.counter0 > 0 %}, {% endif %}
-                    {% if perms.research.view_topic %}
                     <a href='{% url "topic:detail" topic.slug %}'>{{ topic.name }}</a>
-                    {% else %}
-                    {{ topic.name }}
-                    {% endif %}
                 {% endfor %}
             </dd>
             <dd class='col-sm-2 actions'>
@@ -226,7 +224,9 @@
                 <h5>{% trans 'Apposita' %}</h5>
             </div>
             <div>
+                {% if perms.research.change_fragment %}
                 <a href='{% url "anonymous_fragment:create_appositum_for" "fragment" object.pk %}'>{% trans 'Create Appositum' %}</a>
+                {% endif %}
             </div>
         </div>
 

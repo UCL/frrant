@@ -1,3 +1,5 @@
+import os
+
 import pytest
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
@@ -8,7 +10,6 @@ from rard.research.views import (
     WorkCreateView,
     WorkDeleteView,
     WorkDetailView,
-    WorkListView,
     WorkUpdateIntroductionView,
     WorkUpdateView,
 )
@@ -30,7 +31,10 @@ class TestWorkSuccessUrls(TestCase):
             view.request = request
             view.object = Work()
 
-            self.assertEqual(view.get_success_url(), f"/work/{view.object.pk}/")
+            self.assertEqual(
+                view.get_success_url(),
+                f"/{os.environ['URL_PREFIX']}work/{view.object.pk}/",
+            )
 
     def test_delete_success_url(self):
         view = WorkDeleteView()
@@ -58,8 +62,6 @@ class TestWorkViewPermissions(TestCase):
         self.assertIn("research.add_work", WorkCreateView.permission_required)
         self.assertIn("research.delete_work", WorkDeleteView.permission_required)
         self.assertIn("research.change_work", WorkUpdateView.permission_required)
-        self.assertIn("research.view_work", WorkListView.permission_required)
-        self.assertIn("research.view_work", WorkDetailView.permission_required)
 
 
 class TestWorkCreateView(TestCase):
@@ -80,9 +82,10 @@ class TestWorkCreateView(TestCase):
     def test_create_with_books(self):
         url = reverse("work:create")
         a = Antiquarian.objects.create(name="bar", re_code=2)
+        book_name = "another name"
         data = {
             "antiquarians": [a.pk],
-            "name": "another name",
+            "name": book_name,
             "books_0_num": 2,
             "books_0_title": "deux",
             "books_0_date": "somewhen",
@@ -98,7 +101,7 @@ class TestWorkCreateView(TestCase):
         self.assertEqual(
             a.works.exclude(unknown=True).exclude(bibliographic=True).count(), 1
         )
-        w = a.works.first()
+        w = a.works.filter(name=book_name).first()
         self.assertEqual(Book.objects.filter(work=w, unknown=False).count(), 2)
         self.assertEqual(w.book_set.exclude(unknown=True).count(), 2)
 
@@ -389,7 +392,10 @@ class TestWorkUpdateIntroductionView(TestCase):
         # due to the conditional rendering on another view
         # // I think
         success_url = self.response.context_data["view"].get_success_url()
-        self.assertEqual(success_url, f"/work/{self.work.pk}/")
+        self.assertEqual(
+            success_url,
+            f"/{os.environ['URL_PREFIX']}work/{self.work.pk}/",
+        )
 
     def test_update_intro(self):
         """This checks that an introduction object is created

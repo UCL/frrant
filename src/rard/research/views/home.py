@@ -1,7 +1,8 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.views.generic import ListView, TemplateView
+from django.views.generic import TemplateView
 
 from rard.research.models import Fragment
+from rard.research.views.list import ListView
 
 
 class HomeView(TemplateView):

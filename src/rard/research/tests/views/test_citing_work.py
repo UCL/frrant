@@ -5,13 +5,7 @@ from django.urls import reverse
 from rard.research.models import CitingAuthor, CitingWork, OriginalText
 from rard.research.models.fragment import AnonymousFragment, Fragment
 from rard.research.models.testimonium import Testimonium
-from rard.research.views import (
-    CitingAuthorDetailView,
-    CitingAuthorListView,
-    CitingWorkDeleteView,
-    CitingWorkDetailView,
-    CitingWorkUpdateView,
-)
+from rard.research.views import CitingAuthorDetailView, CitingWorkUpdateView
 from rard.users.tests.factories import UserFactory
 
 pytestmark = pytest.mark.django_db
@@ -29,25 +23,6 @@ class TestCitingWorkUpdateView(TestCase):
         self.assertEqual(
             view.get_success_url(),
             reverse("citingauthor:work_detail", kwargs={"pk": view.object.pk}),
-        )
-
-
-class TestCitingWorkViewPermissions(TestCase):
-    def test_permissions(self):
-        self.assertIn(
-            "research.change_citingwork", CitingWorkUpdateView.permission_required
-        )
-        self.assertIn(
-            "research.delete_citingwork", CitingWorkDeleteView.permission_required
-        )
-        self.assertIn(
-            "research.view_citingwork", CitingWorkDetailView.permission_required
-        )
-        self.assertIn(
-            "research.view_citingauthor", CitingAuthorListView.permission_required
-        )
-        self.assertIn(
-            "research.view_citingwork", CitingAuthorListView.permission_required
         )
 
 

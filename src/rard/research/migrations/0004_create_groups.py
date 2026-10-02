@@ -2,7 +2,6 @@
 
 from django.db import migrations
 
-
 PROJECT_GROUP_NAME = 'Project Team'
 ADMIN_GROUP_NAME = 'Admin Team'
 ADVISORY_BOARD_NAME = 'Advisory Board'

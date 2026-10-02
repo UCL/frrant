@@ -1,6 +1,6 @@
+import os
+
 import pytest
-from django.conf import settings
-from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import PermissionDenied
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
@@ -18,7 +18,6 @@ from rard.research.models.concordance import Edition, PartIdentifier
 from rard.research.views import (
     ConcordanceCreateView,
     ConcordanceDeleteView,
-    ConcordanceListView,
     ConcordanceUpdateView,
 )
 from rard.research.views.concordance import (
@@ -70,9 +69,11 @@ class TestConcordanceViews(TestCase):
 
         # check it returns the next stage with correct details
         self.assertEqual(response.status_code, 302)
+        prefix = os.environ["URL_PREFIX"]
         self.assertEqual(
             response.url,
-            f"/concordance/create/{self.original_text.pk}/{self.edition.pk}/{self.identifier_template.pk}/",
+            f"/{prefix}concordance/create/{self.original_text.pk}"
+            f"/{self.edition.pk}/{self.identifier_template.pk}/",
         )
 
     def test_creation_concordance_step(self):
@@ -320,6 +321,23 @@ class TestConcordanceViews(TestCase):
             view.dispatch(request)
             self.assertEqual(view.top_level_object, self.original_text.owner)
 
+    def test_exception_if_not_permitted(self):
+        kw = {"pk": self.original_text.pk}
+        url = reverse("concordance:create", kwargs=kw)
+        request = RequestFactory().get(url)
+        request.user = UserFactory(is_superuser=False)
+        view = ConcordanceEditionView.as_view()
+        self.assertRaises(PermissionDenied, view, request, **kw)
+
+    def test_access_if_permitted(self):
+        kw = {"pk": self.original_text.pk}
+        url = reverse("concordance:create", kwargs=kw)
+        request = RequestFactory().get(url)
+        request.user = UserFactory(is_superuser=True)
+        view = ConcordanceEditionView.as_view()
+        response = view(request, **kw)
+        self.assertEqual(response.status_code, 200)
+
 
 class TestConcordanceViewPermissions(TestCase):
     def test_permissions(self):
@@ -332,43 +350,3 @@ class TestConcordanceViewPermissions(TestCase):
         self.assertIn(
             "research.delete_concordance", ConcordanceDeleteView.permission_required
         )
-        self.assertIn(
-            "research.view_concordance", ConcordanceListView.permission_required
-        )
-
-
-class TestConcordanceListViewPermissions(TestCase):
-    def setUp(self):
-        self.user1 = UserFactory()
-        self.user2 = UserFactory(is_superuser=False)
-        self.view = ConcordanceListView()
-
-    def test_login_required(self):
-        # remove this test when the site goes public
-        url = reverse("concordance:list")
-        request = RequestFactory().get(url)
-
-        # specify an unauthenticated user
-        request.user = AnonymousUser()
-
-        self.view.request = request
-        response = self.view.dispatch(request)
-
-        # should be redirected to the login page
-        self.assertEqual(response.status_code, 302)
-        self.assertEqual(
-            response.url, "{}?next={}".format(reverse(settings.LOGIN_URL), url)
-        )
-
-    def test_exception_if_not_permitted(self):
-        request = RequestFactory().get("/")
-        request.user = self.user2
-        self.view.request = request
-        self.assertRaises(PermissionDenied, self.view.dispatch, request)
-
-    def test_access_if_permitted(self):
-        request = RequestFactory().get("/")
-        request.user = self.user1
-        self.view.request = request
-        response = self.view.dispatch(request)
-        self.assertEqual(response.status_code, 200)

@@ -7,11 +7,13 @@
 
 {% block last_modified %}
 <hr>
+{% if user.is_authenticated %}
 <p>
     <small>
     {% include 'research/partials/render_last_modified_info.html' with object=object %}
     </small>
 </p>
+{% endif %}
 {% endblock %}
 
 {% endblock %}

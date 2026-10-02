@@ -9,14 +9,8 @@
     <div>
         <li class="unstyled">
                 {% with link_text=fragment|name_in_context:work %}
-                {% if perms.research.view_fragment %}
-
                 {% include 'research/partials/render_definite_indicators.html' with link=link %}
-
                 <a href='{% url "anonymous_fragment:detail" fragment.pk %}'>{{ link_text }}</a>
-                {% else %}
-                    {{ link_text }}
-                {% endif %}
                 {% endwith %}
                 <button class="btn btn-link toggle-element-button" type="button" data-toggles="appositumlink_{{ link.pk }}"></button>
             <br>

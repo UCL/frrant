@@ -1,3 +1,5 @@
+import os
+
 import pytest
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
@@ -97,13 +99,16 @@ class TestBibliographyCreateView(TestCase):
 
     def test_success_url(self):
         view = BibliographyCreateView()
-        request = RequestFactory().get("/")
+        request = RequestFactory().get(f"/{os.environ['URL_PREFIX']}")
         request.user = UserFactory.create()
 
         view.request = request
         view.object = BibliographyItem.objects.create()
 
-        self.assertEqual(view.get_success_url(), f"/bibliography/{view.object.pk}/")
+        self.assertEqual(
+            view.get_success_url(),
+            f"/{os.environ['URL_PREFIX']}bibliography/{view.object.pk}/",
+        )
 
     def test_bad_data(self):
         data = {"bad": "data"}
