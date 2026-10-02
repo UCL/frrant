@@ -813,10 +813,16 @@ class TestFragmentDuplicationView(TestCase):
         duplicate_pk = response.url.split("/")[-2]
         duplicate_frag = Fragment.objects.get(pk=duplicate_pk)
         duplicate_ot = duplicate_frag.original_texts.first()
-        assert (
-            str(self.ot.apparatus_criticus_items.first().pk) not in duplicate_ot.content
+        
+        # Check that the mention in the duplicated original text refers
+        # to the duplicated app criticus and not the original
+        duplicate_mention = BeautifulSoup(
+                    duplicate_ot.content, features="html.parser"
+                ).find("span", class_="mention")
+        
+        assert duplicate_mention is not None
+        assert duplicate_mention["data-id"] == str(
+            duplicate_ot.apparatus_criticus_items.first().pk
         )
-        assert (
-            str(duplicate_ot.apparatus_criticus_items.first().pk)
-            in duplicate_ot.content
-        )
+        assert duplicate_mention["data-original-text"] == str(duplicate_ot.pk)
+        assert duplicate_mention["data-parent"] == str(duplicate_ot.pk)
