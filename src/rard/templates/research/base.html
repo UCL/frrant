@@ -52,7 +52,7 @@
         {% trans 'Unlinked Fragments' %}
       </a>
       <a class='nav-link {% if "citingauthor" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
-        href='{% url "citingauthor:list" %}'>
+        href='{% url "citingauthor:all" %}'>
         {% trans 'Citing Authors' %}
       </a>
       <a class='nav-link {% if "topic" in request.resolver_match.namespaces %}active font-weight-bold{% endif %}'
