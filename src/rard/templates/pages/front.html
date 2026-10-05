@@ -1,7 +1,7 @@
-{% extends "base.html" %}
+{% extends "research/base.html" %}
 {% load i18n %}
 
-{% block content %}
+{% block outer %}
     {% if request.user.is_authenticated %}
         <p class='text-center my-5 lead'>
         {% blocktrans with name=request.user.display_name %}

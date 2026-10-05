@@ -2,7 +2,7 @@
 
 import bs4
 from django.core.exceptions import ObjectDoesNotExist
-from django.db import migrations, models, IntegrityError
+from django.db import IntegrityError, migrations, models
 from psycopg2 import errors
 
 

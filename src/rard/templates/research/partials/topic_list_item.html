@@ -8,11 +8,7 @@
     <div>
         <li class="unstyled">
             {% with topic.name as link_text %}
-                {% if perms.research.view_topic %}
                 <a href='{% url "topic:detail" topic.slug %}'>{{ link_text }}</a>
-                {% else %}
-                    {{ link_text }}
-                {% endif %}
             {% endwith %}
         </li>
     </div>

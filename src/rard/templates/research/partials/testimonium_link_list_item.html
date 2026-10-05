@@ -11,14 +11,8 @@
     <div>
         <li class="unstyled">
                 {% with link_text=testimonium|name_in_context:work %}
-                {% if perms.research.view_testimonium %}
-
                 {% include 'research/partials/render_definite_indicators.html' with link=link %}
-
                 <a href='{% url "testimonium:detail" testimonium.pk %}'>{{ link_text }}</a>
-                {% else %}
-                    {{ link_text }}
-                {% endif %}
                 {% endwith %}
                 {% for tag in link.testimonium.tags.all %}
                 <span class='badge badge-pill badge-secondary'>{{ tag }}</span>

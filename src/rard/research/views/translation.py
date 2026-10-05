@@ -9,7 +9,7 @@ from rard.research.views.mixins import CheckLockMixin
 
 
 class TranslationCreateView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, CreateView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, CreateView
 ):
     check_lock_object = "top_level_object"
 
@@ -54,7 +54,7 @@ class TranslationCreateView(
 
 
 class TranslationUpdateView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, UpdateView
 ):
     check_lock_object = "top_level_object"
 
@@ -88,7 +88,7 @@ class TranslationUpdateView(
 
 @method_decorator(require_POST, name="dispatch")
 class TranslationDeleteView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, DeleteView
 ):
     check_lock_object = "top_level_object"
 

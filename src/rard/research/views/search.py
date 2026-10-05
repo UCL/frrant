@@ -11,7 +11,7 @@ from django.db.models import Expression, Func, Q, QuerySet, TextField, Value
 from django.shortcuts import redirect
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_GET
-from django.views.generic import ListView, TemplateView
+from django.views.generic import TemplateView
 
 from rard.research.models import (
     AnonymousFragment,
@@ -25,6 +25,7 @@ from rard.research.models import (
     Topic,
     Work,
 )
+from rard.research.views.list import ListView
 from rard.utils.text_processors import fold_latin
 
 WILDCARD_SINGLE_CHAR = settings.WILDCARD_SINGLE_CHAR

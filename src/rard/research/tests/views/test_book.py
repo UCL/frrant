@@ -1,3 +1,5 @@
+import os
+
 import pytest
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
@@ -40,7 +42,9 @@ class TestBookUpdateView(TestCase):
 
         view.object = Book.objects.create(number=1, work=work)
 
-        self.assertEqual(view.get_success_url(), f"/work/{work.pk}/")
+        self.assertEqual(
+            view.get_success_url(), f"/{os.environ['URL_PREFIX']}work/{work.pk}/"
+        )
 
 
 class TestBookUpdateIntroductionView(TestCase):
@@ -68,7 +72,9 @@ class TestBookUpdateIntroductionView(TestCase):
         # due to the conditional rendering on another view
         # // I think
         success_url = self.response.context_data["view"].get_success_url()
-        self.assertEqual(success_url, f"/work/{self.work.pk}/")
+        self.assertEqual(
+            success_url, f"/{os.environ['URL_PREFIX']}work/{self.work.pk}/"
+        )
 
     def test_update_intro(self):
         """This checks that an introduction object is created
@@ -112,7 +118,7 @@ class TestBookCreateView(TestCase):
 
     def test_success_url(self):
         view = BookCreateView()
-        request = RequestFactory().get("/")
+        request = RequestFactory().get(f"/{os.environ['URL_PREFIX']}")
         request.user = UserFactory.create()
 
         view.request = request
@@ -120,7 +126,9 @@ class TestBookCreateView(TestCase):
 
         view.work.lock(request.user)
 
-        self.assertEqual(view.get_success_url(), f"/work/{view.work.pk}/")
+        self.assertEqual(
+            view.get_success_url(), f"/{os.environ['URL_PREFIX']}work/{view.work.pk}/"
+        )
 
     def test_create(self):
         work = Work.objects.create(name="name")
@@ -153,14 +161,16 @@ class TestBookDeleteView(TestCase):
 
     def test_delete_success_url(self):
         view = BookDeleteView()
-        request = RequestFactory().get("/")
+        request = RequestFactory().get(f"/{os.environ['URL_PREFIX']}")
         request.user = UserFactory.create()
 
         view.request = request
         work = Work.objects.create(name="name")
         view.object = Book.objects.create(number=1, work=work)
 
-        self.assertEqual(view.get_success_url(), f"/work/{work.pk}/")
+        self.assertEqual(
+            view.get_success_url(), f"/{os.environ['URL_PREFIX']}work/{work.pk}/"
+        )
 
 
 class TestBookViewPermissions(TestCase):

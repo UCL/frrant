@@ -208,7 +208,8 @@ class TextObjectFieldUpdateMixin(object):
         context["hide_empty"] = self.hide_empty
         model_name = self.object._meta.model_name
         context["object_class"] = model_name
-        # Horrible hack to deal with anonymous fragment namespace not being the same as model_name
+        # Horrible hack to deal with anonymous fragment namespace not being
+        # the same as model_name
         if model_name == "anonymousfragment":
             model_namespace = "anonymous_fragment"
             url_name = self.textobject_field
@@ -230,3 +231,19 @@ class TextObjectFieldUpdateMixin(object):
         if self.textobject_field:
             context["text_object"] = getattr(context["object"], self.textobject_field)
         return context
+
+
+class PublishableMixin:
+    """
+    Lets unauthorized users only see publishable links.
+
+    Can be mixed in with a ListView or DetailView.
+    """
+
+    publishable_lookup = "publishable"
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        if self.request.user.is_authenticated:
+            return qs
+        return qs.filter(**{self.publishable_lookup: True})

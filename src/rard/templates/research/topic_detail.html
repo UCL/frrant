@@ -4,6 +4,7 @@
 {% block heading %}{{ object.name }}{% endblock %}
 
 {% block action %}
+{% if perms.research.change_topic %}
     {% with request.user|has_lock:object as has_object_lock %}
 
         {% include 'research/partials/render_locked_info.html' %}
@@ -22,6 +23,7 @@
         {% endif %}
         </div>
     {% endwith %}
+{% endif %}
 {% endblock %}
 
 {% block inner %}

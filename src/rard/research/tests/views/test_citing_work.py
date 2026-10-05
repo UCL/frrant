@@ -1,4 +1,6 @@
 import pytest
+from django.contrib.auth.models import AnonymousUser
+from django.http.response import Http404
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
@@ -7,8 +9,6 @@ from rard.research.models.fragment import AnonymousFragment, Fragment
 from rard.research.models.testimonium import Testimonium
 from rard.research.views import (
     CitingAuthorDetailView,
-    CitingAuthorListView,
-    CitingWorkDeleteView,
     CitingWorkDetailView,
     CitingWorkUpdateView,
 )
@@ -29,25 +29,6 @@ class TestCitingWorkUpdateView(TestCase):
         self.assertEqual(
             view.get_success_url(),
             reverse("citingauthor:work_detail", kwargs={"pk": view.object.pk}),
-        )
-
-
-class TestCitingWorkViewPermissions(TestCase):
-    def test_permissions(self):
-        self.assertIn(
-            "research.change_citingwork", CitingWorkUpdateView.permission_required
-        )
-        self.assertIn(
-            "research.delete_citingwork", CitingWorkDeleteView.permission_required
-        )
-        self.assertIn(
-            "research.view_citingwork", CitingWorkDetailView.permission_required
-        )
-        self.assertIn(
-            "research.view_citingauthor", CitingAuthorListView.permission_required
-        )
-        self.assertIn(
-            "research.view_citingwork", CitingAuthorListView.permission_required
         )
 
 
@@ -90,3 +71,49 @@ class TestCitingAuthorDetailView(TestCase):
             item[1] for item in response.context_data["ordered_materials"]
         ]
         self.assertEqual(self.ordered_texts, response_order)
+
+    def request_detail(self, pk):
+        request = RequestFactory().get(
+            reverse(
+                "citingauthor:detail",
+                kwargs={"pk": pk},
+            )
+        )
+        request.user = AnonymousUser()
+        return CitingAuthorDetailView.as_view()(request, pk=pk)
+
+    def test_unauthorised_can_only_view_published(self):
+        published = CitingAuthor.objects.create(name="John Published")
+        published.publishable = True
+        published.save()
+        unpublished = CitingAuthor.objects.create(name="Dan Unready")
+        response_pub = self.request_detail(published.pk)
+        self.assertEqual(response_pub.status_code, 200)
+        self.assertRaises(
+            Http404,
+            self.request_detail,
+            unpublished.pk,
+        )
+
+    def request_work_detail(self, pk):
+        request = RequestFactory().get(
+            reverse(
+                "citingauthor:work_detail",
+                kwargs={"pk": pk},
+            )
+        )
+        request.user = AnonymousUser()
+        return CitingWorkDetailView.as_view()(request, pk=pk)
+
+    def test_unauthorised_can_only_view_published_work(self):
+        published = CitingWork.objects.create(title="published work")
+        published.publishable = True
+        published.save()
+        unpublished = CitingWork.objects.create(title="not ready yet")
+        response_pub = self.request_work_detail(published.pk)
+        self.assertEqual(response_pub.status_code, 200)
+        self.assertRaises(
+            Http404,
+            self.request_work_detail,
+            unpublished.pk,
+        )

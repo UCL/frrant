@@ -1,3 +1,5 @@
+import os
+
 import pytest
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
@@ -6,7 +8,6 @@ from rard.research.models import Antiquarian
 from rard.research.views import (
     AntiquarianCreateView,
     AntiquarianDeleteView,
-    AntiquarianDetailView,
     AntiquarianListView,
     AntiquarianUpdateIntroductionView,
     AntiquarianUpdateView,
@@ -33,7 +34,10 @@ class TestAntiquarianSuccessUrls(TestCase):
             view.request = request
             view.object = Antiquarian()
 
-            self.assertEqual(view.get_success_url(), f"/antiquarian/{view.object.pk}/")
+            self.assertEqual(
+                view.get_success_url(),
+                f"/{os.environ['URL_PREFIX']}antiquarian/{view.object.pk}/",
+            )
 
     def test_delete_success_url(self):
         view = AntiquarianDeleteView()
@@ -66,7 +70,10 @@ class TestAntiquarianWorkCreateView(TestCase):
         view.request = request
         view.antiquarian = Antiquarian.objects.create()
 
-        self.assertEqual(view.get_success_url(), f"/antiquarian/{view.antiquarian.pk}/")
+        self.assertEqual(
+            view.get_success_url(),
+            f"/{os.environ['URL_PREFIX']}antiquarian/{view.antiquarian.pk}/",
+        )
 
     def test_create(self):
         antiquarian = Antiquarian.objects.create()
@@ -133,12 +140,6 @@ class TestAntiquarianViewPermissions(TestCase):
             "research.change_antiquarian",
             AntiquarianWorksUpdateView.permission_required,
         )
-        self.assertIn(
-            "research.view_antiquarian", AntiquarianListView.permission_required
-        )
-        self.assertIn(
-            "research.view_antiquarian", AntiquarianDetailView.permission_required
-        )
 
 
 class TestAntiquarianListView(TestCase):
@@ -164,6 +165,7 @@ class TestAntiquarianListView(TestCase):
 
     def test_ordered_queryset(self):
         view = AntiquarianListView()
+        user = UserFactory.create()
 
         # create some data to search
         a1 = Antiquarian.objects.create(name="name", re_code="1", order_year=100)
@@ -175,6 +177,7 @@ class TestAntiquarianListView(TestCase):
         }
         url = reverse("antiquarian:list")
         request = RequestFactory().get(url, data=data)
+        request.user = user
         view.request = request
         qs = view.get_queryset()
         self.assertEqual(2, len(qs))
@@ -184,6 +187,7 @@ class TestAntiquarianListView(TestCase):
             "order": "latest",
         }
         request = RequestFactory().get(url, data=data)
+        request.user = user
         view.request = request
         qs = view.get_queryset()
         self.assertEqual(2, len(qs))
@@ -215,7 +219,10 @@ class TestAntiquarianUpdateIntroductionView(TestCase):
         # due to the conditional rendering on another view
         # // I think
         success_url = self.response.context_data["view"].get_success_url()
-        self.assertEqual(success_url, f"/antiquarian/{self.antiquarian.pk}/")
+        self.assertEqual(
+            success_url,
+            f"/{os.environ['URL_PREFIX']}antiquarian/{self.antiquarian.pk}/",
+        )
 
     def test_update_intro(self):
         """This checks that an introduction object is created
