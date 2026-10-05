@@ -55,7 +55,7 @@ class TestimoniumListView(PublishableMixin, ListView):
     model = Testimonium
 
 
-class TestimoniumDetailView(CanLockMixin, DetailView):
+class TestimoniumDetailView(CanLockMixin, PublishableMixin, DetailView):
     model = Testimonium
 
     def _filter_out_unpublished_links(

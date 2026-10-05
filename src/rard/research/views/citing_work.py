@@ -21,6 +21,7 @@ from rard.research.views.mixins import (
     CanLockMixin,
     CheckLockMixin,
     DateOrderMixin,
+    PublishableMixin,
     TextObjectFieldUpdateMixin,
     TextObjectFieldViewMixin,
 )
@@ -118,7 +119,7 @@ class CitingAuthorFullListView(DateOrderMixin, ListView):
         return CitingAuthor.objects.filter(publishable=True)
 
 
-class CitingAuthorDetailView(CanLockMixin, DetailView):
+class CitingAuthorDetailView(CanLockMixin, PublishableMixin, DetailView):
     model = CitingAuthor
 
     def get_context_data(self, **kwargs):
@@ -254,7 +255,7 @@ class CitingWorkCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateVi
         return reverse("citingauthor:work_detail", kwargs={"pk": self.object.pk})
 
 
-class CitingWorkDetailView(CanLockMixin, DetailView):
+class CitingWorkDetailView(CanLockMixin, PublishableMixin, DetailView):
     model = CitingWork
 
 

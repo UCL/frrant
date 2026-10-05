@@ -1,8 +1,12 @@
 import pytest
-from django.test import TestCase
+from django.contrib.auth.models import AnonymousUser
+from django.http.response import Http404
+from django.test import RequestFactory, TestCase
+from django.urls import reverse
 
 from rard.research.forms import AntiquarianDetailsForm, AntiquarianIntroductionForm
 from rard.research.models import Antiquarian
+from rard.research.views import AntiquarianDetailView
 
 pytestmark = pytest.mark.django_db
 
@@ -70,3 +74,28 @@ class TestAntiquarianForms(TestCase):
         }
         form = AntiquarianDetailsForm(data=data)
         self.assertTrue(form.is_valid())
+
+
+class TestAntiquarianVisibility(TestCase):
+    def request_detail(self, pk):
+        request = RequestFactory().get(
+            reverse(
+                "antiquarian:detail",
+                kwargs={"pk": pk},
+            )
+        )
+        request.user = AnonymousUser()
+        return AntiquarianDetailView.as_view()(request, pk=pk)
+
+    def test_unauthorised_can_only_view_published(self):
+        published = Antiquarian.objects.create(name="Publisticus", re_code="one")
+        published.publishable = True
+        published.save()
+        unpublished = Antiquarian.objects.create(name="Nonnius", re_code="two")
+        response_pub = self.request_detail(published.pk)
+        self.assertEqual(response_pub.status_code, 200)
+        self.assertRaises(
+            Http404,
+            self.request_detail,
+            unpublished.pk,
+        )

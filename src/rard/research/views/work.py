@@ -30,7 +30,7 @@ class WorkListView(PublishableMixin, ListView):
     model = Work
 
 
-class WorkDetailView(CanLockMixin, DetailView):
+class WorkDetailView(CanLockMixin, PublishableMixin, DetailView):
     model = Work
 
     def get_context_data(self, **kwargs):

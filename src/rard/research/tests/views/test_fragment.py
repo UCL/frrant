@@ -2,6 +2,7 @@ import os
 
 import pytest
 from bs4 import BeautifulSoup
+from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import BadRequest, ObjectDoesNotExist
 from django.http.response import Http404
 from django.test import RequestFactory, TestCase
@@ -25,9 +26,11 @@ from rard.research.models import (
 from rard.research.models.base import AppositumFragmentLink, FragmentLink
 from rard.research.views import (
     AnonymousFragmentConvertToFragmentView,
+    AnonymousFragmentDetailView,
     AnonymousFragmentListView,
     FragmentCreateView,
     FragmentDeleteView,
+    FragmentDetailView,
     FragmentUpdateView,
     MoveAnonymousTopicLinkView,
     UnlinkedFragmentConvertToAnonymousView,
@@ -185,6 +188,52 @@ class TestFragmentSuccessUrls(TestCase):
 
         self.assertEqual(response.url, expected_url)
         self.assertEqual(response.status_code, 302)
+
+    def request_detail(self, fragment_pk):
+        request = RequestFactory().get(
+            reverse(
+                "fragment:detail",
+                kwargs={"pk": fragment_pk},
+            )
+        )
+        request.user = AnonymousUser()
+        return FragmentDetailView.as_view()(request, pk=fragment_pk)
+
+    def test_unauthorised_can_only_view_published(self):
+        published_frag = Fragment.objects.create(name="published fragment")
+        published_frag.publishable = True
+        published_frag.save()
+        unpublished_frag = Fragment.objects.create(name="not ready yet")
+        response_pub = self.request_detail(published_frag.pk)
+        self.assertEqual(response_pub.status_code, 200)
+        self.assertRaises(
+            Http404,
+            self.request_detail,
+            unpublished_frag.pk,
+        )
+
+    def request_af_detail(self, fragment_pk):
+        request = RequestFactory().get(
+            reverse(
+                "anonymous_fragment:detail",
+                kwargs={"pk": fragment_pk},
+            )
+        )
+        request.user = AnonymousUser()
+        return AnonymousFragmentDetailView.as_view()(request, pk=fragment_pk)
+
+    def test_unauthorised_can_only_view_published_anonymous(self):
+        published_frag = AnonymousFragment.objects.create(name="published fragment")
+        published_frag.publishable = True
+        published_frag.save()
+        unpublished_frag = AnonymousFragment.objects.create(name="not ready yet")
+        response_pub = self.request_af_detail(published_frag.pk)
+        self.assertEqual(response_pub.status_code, 200)
+        self.assertRaises(
+            Http404,
+            self.request_af_detail,
+            unpublished_frag.pk,
+        )
 
 
 class TestFragmentDeleteView(TestCase):

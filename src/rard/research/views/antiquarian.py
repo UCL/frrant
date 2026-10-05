@@ -38,7 +38,7 @@ class AntiquarianListView(DateOrderMixin, PublishableMixin, ListView):
     model = Antiquarian
 
 
-class AntiquarianDetailView(CanLockMixin, DetailView):
+class AntiquarianDetailView(CanLockMixin, PublishableMixin, DetailView):
     model = Antiquarian
 
     def post(self, *args, **kwargs):

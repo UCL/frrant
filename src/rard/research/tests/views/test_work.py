@@ -1,6 +1,8 @@
 import os
 
 import pytest
+from django.contrib.auth.models import AnonymousUser
+from django.http.response import Http404
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
@@ -366,6 +368,29 @@ class TestWorkDetailView(TestCase):
                 materials[material] = {k: v for k, v in links_sorted}
         assert "ordered_materials" in response.context_data
         assert response.context_data["ordered_materials"] == target_materials
+
+    def request_detail(self, pk):
+        request = RequestFactory().get(
+            reverse(
+                "work:detail",
+                kwargs={"pk": pk},
+            )
+        )
+        request.user = AnonymousUser()
+        return WorkDetailView.as_view()(request, pk=pk)
+
+    def test_unauthorised_can_only_view_published(self):
+        published = Work.objects.create(name="published")
+        published.publishable = True
+        published.save()
+        unpublished = Work.objects.create(name="unpublished")
+        response_pub = self.request_detail(published.pk)
+        self.assertEqual(response_pub.status_code, 200)
+        self.assertRaises(
+            Http404,
+            self.request_detail,
+            unpublished.pk,
+        )
 
 
 class TestWorkUpdateIntroductionView(TestCase):

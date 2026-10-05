@@ -711,7 +711,7 @@ class RemoveAnonymousAppositumLinkView(
         return redirect(self.get_success_url())
 
 
-class FragmentDetailView(CanLockMixin, DetailView):
+class FragmentDetailView(CanLockMixin, PublishableMixin, DetailView):
     model = Fragment
 
     link_name = "fragment"

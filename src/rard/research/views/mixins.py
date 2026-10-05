@@ -234,7 +234,11 @@ class TextObjectFieldUpdateMixin(object):
 
 
 class PublishableMixin:
-    """Mixed in with a ListView, lets unauthorized users only see publishable links."""
+    """
+    Lets unauthorized users only see publishable links.
+
+    Can be mixed in with a ListView or DetailView.
+    """
 
     publishable_lookup = "publishable"
 
