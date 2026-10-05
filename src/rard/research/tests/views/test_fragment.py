@@ -1,6 +1,7 @@
 import os
 
 import pytest
+from bs4 import BeautifulSoup
 from django.core.exceptions import BadRequest, ObjectDoesNotExist
 from django.http.response import Http404
 from django.test import RequestFactory, TestCase
@@ -813,13 +814,13 @@ class TestFragmentDuplicationView(TestCase):
         duplicate_pk = response.url.split("/")[-2]
         duplicate_frag = Fragment.objects.get(pk=duplicate_pk)
         duplicate_ot = duplicate_frag.original_texts.first()
-        
+
         # Check that the mention in the duplicated original text refers
         # to the duplicated app criticus and not the original
         duplicate_mention = BeautifulSoup(
-                    duplicate_ot.content, features="html.parser"
-                ).find("span", class_="mention")
-        
+            duplicate_ot.content, features="html.parser"
+        ).find("span", class_="mention")
+
         assert duplicate_mention is not None
         assert duplicate_mention["data-id"] == str(
             duplicate_ot.apparatus_criticus_items.first().pk
