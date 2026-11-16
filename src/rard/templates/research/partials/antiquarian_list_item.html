@@ -6,7 +6,7 @@
     <div>
         <li class="unstyled">
             {% with antiquarian as link_text %}
-                {% if user.is_authenticated or antiquarian.is_published %}
+                {% if user.is_authenticated or antiquarian.publishable %}
                     <a href='{% url "antiquarian:detail" antiquarian.pk %}'>{{ link_text }}</a>
                 {% else %}
                     <span class='text-muted'>{{ link_text }}</span>
