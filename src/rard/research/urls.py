@@ -790,7 +790,7 @@ urlpatterns = [
                         "work/<pk>/",
                         views.CitingWorkDetailView.as_view(),
                         name="work_detail",
-                        distill_func=get_model_pks(CitingWork),
+                        distill_func=get_publishable_pks(CitingWork),
                     ),
                     path(
                         "work/<pk>/update/",
