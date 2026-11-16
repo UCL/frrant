@@ -6,6 +6,8 @@ from pathlib import Path
 if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings.local")
 
+    if "distill-local" in sys.argv:
+        os.environ["DJANGO_DISTILL"] = "True"
     ####################################
     # To attach debugger to docker container:
     from django.conf import settings

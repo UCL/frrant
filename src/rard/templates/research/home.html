@@ -24,6 +24,12 @@
     </div>
     {% endif %}
 </div>
+{% if request.user.is_authenticated %}
+        <p class='text-center my-5 lead'>
+        {% blocktrans with name=request.user.display_name %}
+            {{ name }}, welcome to the Republican Antiquarians Research Database Project.
+        {% endblocktrans %}
+        </p>
 <div class='my-5'>
     <p>
         You are currently editing {{ request.user.objectlock_set.count }} item{{ request.user.objectlock_set.count|pluralize }}
@@ -44,5 +50,12 @@
     </ul>
 
 </div>
+{% else %}
+{% blocktrans %}
+<h2 class='text-center my-5 lead'>Welcome to the Republican Antiquarians Research Database Project.</h2>
+
+<p class='text-center'>Browse our catalogue through the menu items on the left and by delving through our entries! </p>
+{% endblocktrans %}
+{% endif %}
 
 {% endblock %}

@@ -18,15 +18,10 @@
 </div>
 {% endif %}
 {% endblock %}
-<div class='row'>
-  <div class='col mt-n4 mb-1 ml-3'>
-    <div class="custom-control custom-switch toggle-switch float-right">
-      <input type="checkbox" class="custom-control-input" id='toggle-elements'>
-      <label class="custom-control-label" for="toggle-elements"><small class='text-muted'>Show Details</small></label>
-    </div>
+{% block btt %}
+<button class="scroll-button" id="back-to-top" onclick="scrollToTop()" title="Back to top"><i class="fas fa-chevron-up"></i></button>
 
-  </div>
-</div>
+{% endblock %}
 
 <div class='row'>
   <div class='col-md-2 mb-5 sidenav pr-2'>
@@ -84,9 +79,7 @@
   <div class='col-md-10 main-content'>
     {% block outer %}
     <div class="d-flex">
-      <div>
         <h3 class='historical mb-3 mr-3'>{% block heading %}{% endblock %}</h3>
-      </div>
       <div class='ml-auto'>{% block action %}{% endblock %}</div>
     </div>
     <div class='my-3'>

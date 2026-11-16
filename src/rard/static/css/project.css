@@ -138,7 +138,8 @@ table.books-widget .book-order {
   content: "-";
 }
 
-.open-button {
+.open-button,
+.scroll-button {
   background-color: #555;
   color: white;
   padding: 16px 20px;
@@ -204,16 +205,6 @@ table.books-widget .book-order {
   z-index: 13;
 }
 
-/* .ordered-list-item:first-of-type .form-group [name*='up']  {
-  opacity:0.5;
-  pointer-events:none;
-}
-
-.ordered-list-item:last-of-type .form-group [name*='down']  {
-  opacity:0.5;
-  pointer-events:none;
-} */
-
 /* Full-width textarea */
 .symbol-popup .form-container textarea {
   width: 100%;
@@ -233,7 +224,8 @@ table.books-widget .book-order {
 
 /* Add some hover effects to buttons */
 .symbol-popup .form-container .btn:hover,
-.open-button:hover {
+.open-button:hover,
+.scroll-button:hover {
   opacity: 1;
 }
 
@@ -273,7 +265,19 @@ table.books-widget .book-order {
   padding-top: 5px;
   border-radius: 0.25rem;
 }
+.scroll-button {
+  background-color: #00b3ff;
+  right: 100px;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out, visibility 0s 0.3s;
 
+  &.show {
+    visibility: visible;
+    opacity: 0.7;
+    transition: opacity 0.3s ease-in-out;
+  }
+}
 /***** other base, "temporary demo css" ******/
 
 .bad-link {
@@ -328,19 +332,15 @@ dd,
 
 .rard-list-item {
   font-family: "Alphabetum";
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
-/* .rard-list-item-actions {
-  visibility: hidden;
-}
-.rard-list-item:hover .rard-list-item-actions {
-  visibility: visible;
-} */
 .rard-list-item-actions {
   display: flex;
 }
-.rard-list-item {
-  padding-top: 10px;
-  padding-bottom: 10px;
+.rard-list-item--title {
+  padding-bottom: 3px;
+  padding-top: 12px;
 }
 .rard-list-item:hover {
   background: #f8f9fa;
@@ -384,7 +384,20 @@ button.insert {
   height: 100vh;
   background-color: #ffff00;
 }
+.title-date-range {
+  font-size: 0.55em;
+  display: inline;
+  margin-inline-end: 0;
+}
+.topic-list-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2vw;
 
+  @media (min-width: 2048px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
 /****************** editor related *********************/
 
 .mention.error {

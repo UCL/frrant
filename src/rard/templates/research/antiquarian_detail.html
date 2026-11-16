@@ -30,9 +30,7 @@
 {% endblock %}
 
 {% block inner %}
-
-      {% with request.user|has_lock:object as has_object_lock %}
-
+    {% with request.user|has_lock:object as has_object_lock %}
 
         <hr>
         <section>
@@ -50,7 +48,7 @@
             <dl class="row mb-0">
                 <dt class="col-sm-3">{% trans 'Name' %}</dt>
                 <dd class="col-sm-9">{{ object.name }}</dd>
-                {% if user.is_authorised %}
+                {% if user.is_authenticated %}
                 <dt class="col-sm-3">{% trans 'Name for Alphabetisation' %}</dt>
                 <dd class="col-sm-9">{{ object.order_name }}</dd>
 
@@ -61,7 +59,7 @@
                 <dd class="col-sm-9">
                     {{ object.display_date_range|default:'-' }}
                 </dd>
-                {% if user.is_authorised %}
+                {% if user.is_authenticated %}
                 <dt class="col-sm-3">{% trans 'Year for Ordering' %}</dt>
                 <dd class="col-sm-9">{{ object.order_year }}</dd>
                 {% endif %}
@@ -145,36 +143,34 @@
         <hr>
 
         <section id="bibliography">
-          <div class='d-flex justify-content-between mb-3'>
-            <div>
-              <h5>{% trans 'Bibliography' %}</h5>
+            <div class='d-flex justify-content-between mb-3'>
+                <div>
+                    <h5>{% trans 'Bibliography' %}</h5>
+                </div>
+
+                <div class="loader-wrapper">
+                    <div id="loader" class="loader htmx-indicator"></div>
+                </div>
+
+                <div id="bib-buttons-area" class="d-flex justify-space-between">
+
+                    {% if has_object_lock and perms.research.change_bibliographyitem %}
+
+                    <button
+                        type="button"
+                        id="bib-refresh"
+                        class='btn text-primary p-0 ml-2'
+                        hx-get="{% url "antiquarian:refresh_bibliography" pk=antiquarian.pk %}"
+                        hx-trigger="click"
+                        hx-indicator="#loader"
+                    >
+                        {% trans 'Refresh bibliography from mentions' %}
+                    </button>
+
+                    {% endif %}
+                </div>
             </div>
-
-            <div class="loader-wrapper">
-                <div id="loader" class="loader htmx-indicator"></div>
-            </div>
-
-            <div id="bib-buttons-area" class="d-flex justify-space-between">
-
-              {% if has_object_lock and perms.research.change_bibliographyitem %}
-
-              <button
-                  type="button"
-                  id="bib-refresh"
-                  class='btn text-primary p-0 ml-2'
-                  hx-get="{% url "antiquarian:refresh_bibliography" pk=antiquarian.pk %}"
-                  hx-trigger="click"
-                  hx-indicator="#loader"
-              >
-                  {% trans 'Refresh bibliography from mentions' %}
-              </button>
-
-              {% endif %}
-            </div>
-          </div>
-          {% include 'research/partials/antiquarian_bibliography_list.html' with bibliography_items=object.bibliography_items %}
+            {% include 'research/partials/antiquarian_bibliography_list.html' with bibliography_items=object.bibliography_items %}
         </section>
-
-      {% endwith %}
-
+    {% endwith %}
 {% endblock %}

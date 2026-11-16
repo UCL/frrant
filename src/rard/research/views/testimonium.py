@@ -141,7 +141,6 @@ class TestimoniumCommentaryView(TextObjectFieldViewMixin):
 
 class TestimoniumPublicCommentaryView(TextObjectFieldViewMixin):
     model = Testimonium
-    permission_required = ("research.view_testimonium",)
     textobject_field = "public_commentary_mentions"
     hide_empty = False
 

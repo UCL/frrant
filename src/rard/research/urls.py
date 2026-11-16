@@ -8,6 +8,7 @@ from rard.research.models import (
     Antiquarian,
     BibliographyItem,
     CitingAuthor,
+    CitingWork,
     Fragment,
     Testimonium,
     Topic,
@@ -76,10 +77,6 @@ def common_patterns() -> list[URLPattern]:
     ]
 
 
-# history_patterns = [
-#     path("<content_type>/<pk>/history/", views.HistoryView.as_view(), name="history"),
-# ]
-
 # app_name = "research"
 urlpatterns = [
     distill_path("", views.HomeView.as_view(), name="home"),
@@ -110,8 +107,6 @@ urlpatterns = [
         views.RefreshOriginalTextContentView.as_view(),
         name="refresh_original_text_content",
     ),
-    # path("comment/<pk>/delete/", views.CommentDeleteView.as_view(), name="delete_comment"),
-    # path("text-field/<pk>/comments/", views.TextObjectFieldCommentListView.as_view(), name="list_comments_on_text"),
     path(
         "antiquarian/",
         include(
@@ -683,7 +678,7 @@ urlpatterns = [
         include(
             (
                 [
-                    path("", views.SearchView.as_view(), name="home"),
+                    distill_path("", views.SearchView.as_view(), name="home"),
                     path(
                         "ajax/mention/",
                         views.MentionSearchView.as_view(),
@@ -791,10 +786,11 @@ urlpatterns = [
                         views.CitingWorkCreateView.as_view(),
                         name="create_work",
                     ),
-                    path(
+                    distill_path(
                         "work/<pk>/",
                         views.CitingWorkDetailView.as_view(),
                         name="work_detail",
+                        distill_func=get_publishable_pks(CitingWork),
                     ),
                     path(
                         "work/<pk>/update/",

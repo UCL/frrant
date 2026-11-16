@@ -16,7 +16,9 @@
                 {% if antiquarian.display_date_range %}
                 <span class='date-range-element text-muted'><small>[{{ antiquarian.display_date_range }}]</small></span>
                 {% endif %}
+                {% if request.user.is_authenticated %}
                 {% include 'research/partials/render_inline_lock_icon.html' with object=antiquarian %}
+                {% endif %}
             {% endwith %}
         </li>
     </div>

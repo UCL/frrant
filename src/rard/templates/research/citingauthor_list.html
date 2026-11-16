@@ -27,7 +27,6 @@
 
 
     {% for object in page_obj %}
-
         {% ifchanged %}
             {% with citingauthor=object.citing_work.author %}
                 <div class='rard-list-item d-flex justify-content-between'>
@@ -45,19 +44,20 @@
                     <hr>
                 </div>
 
-
             {% endwith %}
         {% endifchanged %}
 
         {% with item=object.owner %}
         <div class='rard-list-item d-flex justify-content-between'>
             <div>
-                <li>
+                <li class="unstyled ml-5">
                     <span>
                         {% with item.get_display_name as link_text %}
                             <a href='{{ item.get_absolute_url }}'>{{ link_text }}</a>
                         {% endwith %}
+                        {% if request.user.is_authenticated %}
                         {% include 'research/partials/render_inline_lock_icon.html' with object=item %}
+                        {% endif %}
 
                         <button class="btn btn-link toggle-element-button" type="button" data-toggles="item_{{ forloop.counter0 }}"></button>
 
@@ -75,11 +75,8 @@
                     </div>
                 </div>
             </div>
-            <div class='rard-list-item-actions'>
-            </div>
         </div>
         {% endwith %}
-
     {% endfor %}
 
 

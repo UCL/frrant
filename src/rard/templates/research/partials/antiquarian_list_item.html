@@ -6,11 +6,17 @@
     <div>
         <li class="unstyled">
             {% with antiquarian as link_text %}
-                <a href='{% url "antiquarian:detail" antiquarian.pk %}'>{{ link_text }}</a>
+                {% if user.is_authenticated or antiquarian.publishable %}
+                    <a href='{% url "antiquarian:detail" antiquarian.pk %}'>{{ link_text }}</a>
+                {% else %}
+                    <span class='text-muted'>{{ link_text }}</span>
+                {% endif %}
                 {% if antiquarian.display_date_range %}
                 <span class='date-range-element text-muted'><small>[{{ antiquarian.display_date_range }}]</small></span>
                 {% endif %}
+                {% if request.user.is_authenticated %}
                 {% include 'research/partials/render_inline_lock_icon.html' with object=antiquarian %}
+                {% endif %}
             {% endwith %}
         </li>
     </div>

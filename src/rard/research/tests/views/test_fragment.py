@@ -420,7 +420,14 @@ class TestFragmentConvertViews(TestCase):
         self.assertIn(
             new_fragment.get_display_name(), self.mentioning_fragment.commentary.content
         )
-        self.assertIn(self.mentioning_fragment, new_fragment.mentioned_in_list)
+        self.assertIn(
+            {
+                "name": self.mentioning_fragment.name,
+                "url": self.mentioning_fragment.get_absolute_url(),
+                "published": self.mentioning_fragment.publishable,
+            },
+            new_fragment.mentioned_in_list,
+        )
 
     def test_converted_anonymous_retains_mentions(self):
         """Make sure newly created frag has the same mentions as original"""
@@ -448,7 +455,12 @@ class TestFragmentConvertViews(TestCase):
             self.mentioning_anonymous_fragment.commentary.content,
         )
         self.assertIn(
-            self.mentioning_anonymous_fragment, new_fragment.mentioned_in_list
+            {
+                "name": self.mentioning_anonymous_fragment.name,
+                "url": self.mentioning_anonymous_fragment.get_absolute_url(),
+                "published": self.mentioning_anonymous_fragment.publishable,
+            },
+            new_fragment.mentioned_in_list,
         )
 
     def test_converted_anonymous_fragment_maintains_apposita(self):

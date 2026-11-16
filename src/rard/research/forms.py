@@ -15,7 +15,6 @@ from rard.research.models import (
     Book,
     CitingAuthor,
     CitingWork,
-    Comment,
     ConcordanceModel,
     Edition,
     Fragment,
@@ -442,21 +441,6 @@ class BookIntroductionForm(IntroductionFormBase):
     class Meta:
         model = Book
         fields = ()
-
-
-class CommentForm(forms.ModelForm):
-    # todo: delete this; not used
-    class Meta:
-        model = Comment
-        fields = ("content",)
-        labels = {"content": _("Add Comment")}
-        widgets = {
-            "content": forms.Textarea(
-                attrs={
-                    "rows": 3,
-                }
-            ),
-        }
 
 
 class CitingWorkForm(forms.ModelForm):

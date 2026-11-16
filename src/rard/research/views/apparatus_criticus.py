@@ -130,7 +130,7 @@ class UpdateApparatusCriticusLineView(
 
 
 @method_decorator(require_GET, name="dispatch")
-class ApparatusCriticusSearchView(LoginRequiredMixin, View):
+class ApparatusCriticusSearchView(View):
     context_object_name = "results"
 
     def get(self, request, *args, **kwargs):

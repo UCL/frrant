@@ -20,7 +20,6 @@
 
 {% block action %}
 {% if perms.research.change_citingwork %}
-
     {% with request.user|has_lock:object as has_object_lock %}
 
         {% include 'research/partials/render_locked_info.html' with is_citing_work=citingwork %}
@@ -44,7 +43,8 @@
 {% endblock %}
 
 {% block inner %}
-    {% with request.user|has_lock:object as has_object_lock %}
+{% with request.user|has_lock:object as has_object_lock %}
+{% with request.user.is_staff as can_edit %}
 
     <hr>
     <section>
@@ -53,7 +53,7 @@
                 <h5>{% trans 'Details' %}</h5>
             </div>
             <div>
-                {% if perms.research.change_citingwork and has_object_lock %}
+                {% if can_edit and has_object_lock %}
                 <a href='{% url "citingauthor:update_work" object.pk %}'>{% trans 'Edit' %}</a>
                 {% endif %}
             </div>
@@ -126,11 +126,8 @@
         {% endfor %}
 
         </ul>
-
-
     </section>
 
-
-
-    {% endwith %}
+{% endwith %}
+{% endwith %}
 {% endblock %}
