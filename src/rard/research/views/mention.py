@@ -2,6 +2,7 @@
 #     SearchVector
 
 from django.apps import apps
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.postgres.aggregates import StringAgg
 from django.db.models import CharField, F, Q, Value
 from django.db.models.functions import Concat
@@ -22,7 +23,7 @@ from rard.research.models import (
 
 
 @method_decorator(require_GET, name="dispatch")
-class MentionSearchView(View):
+class MentionSearchView(LoginRequiredMixin, View):
     context_object_name = "results"
 
     @property

@@ -6,6 +6,7 @@ from string import punctuation
 from typing import Any
 
 from django.conf import settings
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db.models import Expression, Func, Q, QuerySet, TextField, Value
 from django.shortcuts import redirect
 from django.utils.decorators import method_decorator
@@ -51,7 +52,7 @@ MatcherCallable = Callable[[QuerySet, str, bool], QuerySet]
 
 
 @method_decorator(require_GET, name="dispatch")
-class SearchView(TemplateView, ListView):
+class SearchView(LoginRequiredMixin, TemplateView, ListView):
     class Term:
         """
         The keywords for a search, together with the folds and cleaning
