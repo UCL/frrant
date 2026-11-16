@@ -1,5 +1,5 @@
 from django.conf.urls import include
-from django.urls import path
+from django.urls import URLPattern, path
 from django_distill import distill_path
 
 import rard.research.views as views
@@ -42,38 +42,40 @@ def get_topic_slugs():
 
 # common urls for both fragments and testimonia for shared views that we
 # want to expose under different namespaces
-common_patterns = [
-    path(
-        "original-text/<pk>/update/",
-        views.OriginalTextUpdateView.as_view(),
-        name="update_original_text",
-    ),
-    path(
-        "original-text/<pk>/update-author/",
-        views.OriginalTextUpdateAuthorView.as_view(),
-        name="update_author_original_text",
-    ),
-    path(
-        "original-text/<pk>/delete/",
-        views.OriginalTextDeleteView.as_view(),
-        name="delete_original_text",
-    ),
-    path(
-        "original-text/<pk>/create-translation/",
-        views.TranslationCreateView.as_view(),
-        name="create_translation",
-    ),
-    path(
-        "translation/<pk>/update/",
-        views.TranslationUpdateView.as_view(),
-        name="update_translation",
-    ),
-    path(
-        "translation/<pk>/delete/",
-        views.TranslationDeleteView.as_view(),
-        name="delete_translation",
-    ),
-]
+def common_patterns() -> list[URLPattern]:
+    return [
+        path(
+            "original-text/<pk>/update/",
+            views.OriginalTextUpdateView.as_view(),
+            name="update_original_text",
+        ),
+        path(
+            "original-text/<pk>/update-author/",
+            views.OriginalTextUpdateAuthorView.as_view(),
+            name="update_author_original_text",
+        ),
+        path(
+            "original-text/<pk>/delete/",
+            views.OriginalTextDeleteView.as_view(),
+            name="delete_original_text",
+        ),
+        path(
+            "original-text/<pk>/create-translation/",
+            views.TranslationCreateView.as_view(),
+            name="create_translation",
+        ),
+        path(
+            "translation/<pk>/update/",
+            views.TranslationUpdateView.as_view(),
+            name="update_translation",
+        ),
+        path(
+            "translation/<pk>/delete/",
+            views.TranslationDeleteView.as_view(),
+            name="delete_translation",
+        ),
+    ]
+
 
 # app_name = "research"
 urlpatterns = [
