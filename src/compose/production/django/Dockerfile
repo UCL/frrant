@@ -34,7 +34,7 @@ RUN apt-get update \
   RUN sed -i 's/\r$//g' /start
   RUN chmod +x /start
   RUN chown django /start
-  COPY . /app
+  COPY --chown=django:django . /app
   RUN chown django /app
 
   # Create folders with correct permissions

@@ -1,4 +1,8 @@
+import os
+
 import pytest
+from bs4 import BeautifulSoup
+from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import BadRequest, ObjectDoesNotExist
 from django.http.response import Http404
 from django.test import RequestFactory, TestCase
@@ -22,11 +26,11 @@ from rard.research.models import (
 from rard.research.models.base import AppositumFragmentLink, FragmentLink
 from rard.research.views import (
     AnonymousFragmentConvertToFragmentView,
+    AnonymousFragmentDetailView,
     AnonymousFragmentListView,
     FragmentCreateView,
     FragmentDeleteView,
     FragmentDetailView,
-    FragmentListView,
     FragmentUpdateView,
     MoveAnonymousTopicLinkView,
     UnlinkedFragmentConvertToAnonymousView,
@@ -185,6 +189,52 @@ class TestFragmentSuccessUrls(TestCase):
         self.assertEqual(response.url, expected_url)
         self.assertEqual(response.status_code, 302)
 
+    def request_detail(self, fragment_pk):
+        request = RequestFactory().get(
+            reverse(
+                "fragment:detail",
+                kwargs={"pk": fragment_pk},
+            )
+        )
+        request.user = AnonymousUser()
+        return FragmentDetailView.as_view()(request, pk=fragment_pk)
+
+    def test_unauthorised_can_only_view_published(self):
+        published_frag = Fragment.objects.create(name="published fragment")
+        published_frag.publishable = True
+        published_frag.save()
+        unpublished_frag = Fragment.objects.create(name="not ready yet")
+        response_pub = self.request_detail(published_frag.pk)
+        self.assertEqual(response_pub.status_code, 200)
+        self.assertRaises(
+            Http404,
+            self.request_detail,
+            unpublished_frag.pk,
+        )
+
+    def request_af_detail(self, fragment_pk):
+        request = RequestFactory().get(
+            reverse(
+                "anonymous_fragment:detail",
+                kwargs={"pk": fragment_pk},
+            )
+        )
+        request.user = AnonymousUser()
+        return AnonymousFragmentDetailView.as_view()(request, pk=fragment_pk)
+
+    def test_unauthorised_can_only_view_published_anonymous(self):
+        published_frag = AnonymousFragment.objects.create(name="published fragment")
+        published_frag.publishable = True
+        published_frag.save()
+        unpublished_frag = AnonymousFragment.objects.create(name="not ready yet")
+        response_pub = self.request_af_detail(published_frag.pk)
+        self.assertEqual(response_pub.status_code, 200)
+        self.assertRaises(
+            Http404,
+            self.request_af_detail,
+            unpublished_frag.pk,
+        )
+
 
 class TestFragmentDeleteView(TestCase):
     def test_post_only(self):
@@ -205,8 +255,6 @@ class TestFragmentViewPermissions(TestCase):
         self.assertIn(
             "research.delete_fragment", FragmentDeleteView.permission_required
         )
-        self.assertIn("research.view_fragment", FragmentListView.permission_required)
-        self.assertIn("research.view_fragment", FragmentDetailView.permission_required)
 
 
 class TestFragmentConvertViews(TestCase):
@@ -235,12 +283,13 @@ class TestFragmentConvertViews(TestCase):
         self.mentioning_fragment = self.create_fragment(Fragment, "f mentioner")
         self.mentioning_fragment.commentary = TextObjectField.objects.create(
             content=(
-                f"<p><span class='mention' data-denotation-char='@'' "
+                "<p><span class='mention' data-denotation-char='@'' "
                 f"data-id={self.unlinked_fragment.pk} "
-                f"data-index='0' data-target='Fragment' "
-                f"data-value='{self.unlinked_fragment.get_display_name()}'><span contenteditable='false'>"
+                "data-index='0' data-target='Fragment' "
+                f"data-value='{self.unlinked_fragment.get_display_name()}'>"
+                "<span contenteditable='false'>"
                 f"<span>@</span>{self.unlinked_fragment.get_display_name()}"
-                f"</span></span> </p>"
+                "</span></span> </p>"
             )
         )
         self.mentioning_fragment.commentary.save()
@@ -250,12 +299,13 @@ class TestFragmentConvertViews(TestCase):
         )
         self.mentioning_anonymous_fragment.commentary = TextObjectField.objects.create(
             content=(
-                f"<p><span class='mention' data-denotation-char='@'' "
+                "<p><span class='mention' data-denotation-char='@'' "
                 f"data-id={self.unlinked_anonymous_fragment.pk} "
-                f"data-index='0' data-target='AnonymousFragment' "
-                f"data-value='{self.unlinked_anonymous_fragment.get_display_name()}'><span contenteditable='false'>"
+                "data-index='0' data-target='AnonymousFragment' "
+                f"data-value='{self.unlinked_anonymous_fragment.get_display_name()}'>"
+                "<span contenteditable='false'>"
                 f"<span>@</span>{self.unlinked_anonymous_fragment.get_display_name()}"
-                f"</span></span> </p>"
+                "</span></span> </p>"
             )
         )
         self.mentioning_anonymous_fragment.commentary.save()
@@ -453,7 +503,7 @@ class TestMoveAnonymousTopicLinkView(TestCase):
             "anonymoustopiclink_id": atl3.id,
         }
         view = MoveAnonymousTopicLinkView.as_view()
-        request = RequestFactory().post("/", data=data)
+        request = RequestFactory().post(f"/{os.environ['URL_PREFIX']}", data=data)
         request.user = UserFactory.create()
         response = view(
             request,
@@ -481,7 +531,7 @@ class TestMoveAnonymousTopicLinkView(TestCase):
             "anonymoustopiclink_id": atl2.id,
         }
         view = MoveAnonymousTopicLinkView.as_view()
-        request = RequestFactory().post("/", data=data)
+        request = RequestFactory().post(f"/{os.environ['URL_PREFIX']}", data=data)
         request.user = UserFactory.create()
         response = view(
             request,
@@ -795,9 +845,13 @@ class TestFragmentDuplicationView(TestCase):
         )
 
     def test_duplication_updates_ot_references(self):
-        self.ot.content += f"<span class='mention' data-denotation-char='#' data-id='{self.apc.pk}' data-index='0'"
-        self.ot.content += f"data-original-text='{self.ot.pk}' data-parent='{self.ot.pk}' data-target='ApparatusCriticusItem' "
-        self.ot.content += "data-value='1'><span><span>#</span>1</span> </span>"
+        self.ot.content += (
+            "<span class='mention' data-denotation-char='#'"
+            f" data-id='{self.apc.pk}' data-index='0'"
+            f"data-original-text='{self.ot.pk}' data-parent='{self.ot.pk}'"
+            " data-target='ApparatusCriticusItem' "
+            "data-value='1'><span><span>#</span>1</span> </span>"
+        )
         self.ot.save()
         url = reverse(
             "fragment:duplicate", kwargs={"pk": self.frag.pk, "model_name": "fragment"}
@@ -809,10 +863,16 @@ class TestFragmentDuplicationView(TestCase):
         duplicate_pk = response.url.split("/")[-2]
         duplicate_frag = Fragment.objects.get(pk=duplicate_pk)
         duplicate_ot = duplicate_frag.original_texts.first()
-        assert (
-            str(self.ot.apparatus_criticus_items.first().pk) not in duplicate_ot.content
+
+        # Check that the mention in the duplicated original text refers
+        # to the duplicated app criticus and not the original
+        duplicate_mention = BeautifulSoup(
+            duplicate_ot.content, features="html.parser"
+        ).find("span", class_="mention")
+
+        assert duplicate_mention is not None
+        assert duplicate_mention["data-id"] == str(
+            duplicate_ot.apparatus_criticus_items.first().pk
         )
-        assert (
-            str(duplicate_ot.apparatus_criticus_items.first().pk)
-            in duplicate_ot.content
-        )
+        assert duplicate_mention["data-original-text"] == str(duplicate_ot.pk)
+        assert duplicate_mention["data-parent"] == str(duplicate_ot.pk)

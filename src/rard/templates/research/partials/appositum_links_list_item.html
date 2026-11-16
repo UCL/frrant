@@ -10,11 +10,7 @@
               {% with fragment=link.linked_to %}
               <span>
                   {% with fragment.get_display_name as link_text %}
-                      {% if perms.research.view_fragment %}
                       <a href='{% url "fragment:detail" fragment.pk %}'>{{ link_text }}</a>
-                      {% else %}
-                          {{ link_text }}
-                      {% endif %}
                   {% endwith %}
                   {% include 'research/partials/render_inline_lock_icon.html' with object=fragment %}
               </span>
@@ -48,11 +44,7 @@
 
               {% with antiquarian=link.antiquarian %}
                   {% with antiquarian.name as link_text %}
-                      {% if perms.research.view_antiquarian %}
                       <a href='{% url "antiquarian:detail" antiquarian.pk %}'>{{ link_text }}</a>
-                      {% else %}
-                          {{ link_text }}
-                      {% endif %}
                       {% if antiquarian.display_date_range %}
                       <span class='text-muted'><small>[{{ antiquarian.display_date_range }}]</small></span>
                       {% endif %}

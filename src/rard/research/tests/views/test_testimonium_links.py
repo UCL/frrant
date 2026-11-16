@@ -139,8 +139,10 @@ class TestTestimoniumRemoveWorkLinkView(TestCase):
         self.assertEqual(TestimoniumLink.objects.first(), link2)
 
     def test_reassign_to_unknown(self):
-        """If only one link is left, it should be reassigned to unknown work/book on delete
-        to retain the link to the antiquarian"""
+        """
+        If only one link is left, it should be reassigned to unknown work/book
+        on delete to retain the link to the antiquarian.
+        """
 
         antiquarian = Antiquarian.objects.create(name="name", re_code="re_code")
         testimonium = Testimonium.objects.create(name="name")

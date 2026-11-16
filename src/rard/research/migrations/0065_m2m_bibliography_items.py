@@ -2,6 +2,7 @@
 
 from django.db import migrations, models
 
+
 def add_antiquarian_m2m_relations_to_bibliography_items(apps,schema_editor):
     '''
     Translating Generic ForeignKey on BibliographyItems to ManyToMany on Antiquarians

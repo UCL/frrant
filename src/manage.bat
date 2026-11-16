@@ -1,1 +1,1 @@
-@docker compose -f local.yml run --rm django python manage.py %*
+@docker compose -f local.yml run --remove-orphans --rm django python manage.py %*

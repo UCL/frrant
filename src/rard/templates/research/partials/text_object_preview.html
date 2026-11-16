@@ -11,7 +11,7 @@
         </div>
 
     </div>
-    {% if not hide_last_modified %}
+    {% if not hide_last_modified and user.is_authenticated %}
         <small class='text-muted mt-2 ml-2 card-text'>{% include 'research/partials/render_last_modified_info.html' with object=text_object %}</small>
     {% endif %}
 </div>

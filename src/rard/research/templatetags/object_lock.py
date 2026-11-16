@@ -24,3 +24,5 @@ def lock_request(from_user, obj):
         )
     except AttributeError:
         return None
+    except TypeError:
+        return None

@@ -5,7 +5,6 @@ from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_GET, require_POST
-from django.views.generic import ListView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
@@ -17,10 +16,12 @@ from rard.research.forms import (
 )
 from rard.research.models import CitingAuthor, CitingWork, OriginalText
 from rard.research.models.text_object_field import TextObjectField
+from rard.research.views.list import ListView
 from rard.research.views.mixins import (
     CanLockMixin,
     CheckLockMixin,
     DateOrderMixin,
+    PublishableMixin,
     TextObjectFieldUpdateMixin,
     TextObjectFieldViewMixin,
 )
@@ -52,7 +53,7 @@ class CitingAuthorCreateView(LoginRequiredMixin, PermissionRequiredMixin, Create
 
 
 class CitingAuthorUpdateView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, UpdateView
 ):
     form_class = CitingAuthorUpdateForm
     permission_required = ("research.change_citingauthor",)
@@ -78,15 +79,12 @@ class CitingAuthorUpdateView(
 
 
 class CitingAuthorListView(
-    DateOrderMixin, LoginRequiredMixin, PermissionRequiredMixin, ListView
+    DateOrderMixin,
+    ListView,
 ):
     paginate_by = 10
     model = OriginalText
     template_name = "research/citingauthor_list.html"
-    permission_required = (
-        "research.view_citingauthor",
-        "research.view_citingwork",
-    )
 
     def get_queryset(self):
         # NB do not call super() method here as we are doing something
@@ -102,30 +100,27 @@ class CitingAuthorListView(
             "citing_work",  # group by work
             "reference_order",  # then by reference
         ]
-        return OriginalText.objects.all().order_by(*ordering)
+        if self.request.user.is_authenticated:
+            return OriginalText.objects.all().order_by(*ordering)
+        return OriginalText.objects.filter(citing_work__publishable=True).order_by(
+            *ordering
+        )
 
 
-class CitingAuthorFullListView(
-    DateOrderMixin, LoginRequiredMixin, PermissionRequiredMixin, ListView
-):
+class CitingAuthorFullListView(DateOrderMixin, ListView):
     paginate_by = 10
     model = OriginalText
     template_name = "research/citingauthor_full_list.html"
-    permission_required = (
-        "research.view_citingauthor",
-        "research.view_citingwork",
-    )
 
     def get_queryset(self):
-        # all citing authors
-        return CitingAuthor.objects.all()
+        if self.request.user.is_authenticated:
+            # all citing authors
+            return CitingAuthor.objects.all()
+        return CitingAuthor.objects.filter(publishable=True)
 
 
-class CitingAuthorDetailView(
-    CanLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DetailView
-):
+class CitingAuthorDetailView(CanLockMixin, PublishableMixin, DetailView):
     model = CitingAuthor
-    permission_required = ("research.view_citingauthor",)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -146,7 +141,7 @@ class CitingAuthorDetailView(
 
 @method_decorator(require_POST, name="dispatch")
 class CitingAuthorDeleteView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, DeleteView
 ):
     model = CitingAuthor
     success_url = reverse_lazy("citingauthor:list")
@@ -233,7 +228,10 @@ class CitingAuthorIntroductionView(TextObjectFieldViewMixin):
 @login_required
 @permission_required("research.publish_citing_author")
 def citing_author_set_publishable(request, pk):
-    """Given the pk of a CitingAuthor object, set its publishable attribute to the value of the POST request"""
+    """
+    Given the pk of a CitingAuthor object, set its publishable attribute to the
+    value of the POST request.
+    """
     try:
         citing_author = CitingAuthor.objects.get(pk=pk)
     except CitingAuthor.DoesNotExist:
@@ -257,16 +255,11 @@ class CitingWorkCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateVi
         return reverse("citingauthor:work_detail", kwargs={"pk": self.object.pk})
 
 
-class CitingWorkDetailView(
-    CanLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DetailView
-):
+class CitingWorkDetailView(CanLockMixin, PublishableMixin, DetailView):
     model = CitingWork
-    permission_required = ("research.view_citingwork",)
 
 
-class CitingWorkUpdateView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
-):
+class CitingWorkUpdateView(CheckLockMixin, UpdateView):
     model = CitingWork
     fields = (
         "author",
@@ -276,15 +269,13 @@ class CitingWorkUpdateView(
         "date_range",
     )
 
-    permission_required = ("research.change_citingwork",)
-
     def get_success_url(self, *args, **kwargs):
         return reverse("citingauthor:work_detail", kwargs={"pk": self.object.pk})
 
 
 @method_decorator(require_POST, name="dispatch")
 class CitingWorkDeleteView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, DeleteView
 ):
     model = CitingWork
     success_url = reverse_lazy("citingauthor:list")
@@ -342,7 +333,10 @@ def ca_refresh_bibliography_from_mentions(request, pk):
 @login_required
 @permission_required("research.publish_citing_work")
 def citing_work_set_publishable(request, pk):
-    """Given the pk of a CitingWork object, set its publishable attribute to the value of the POST request"""
+    """
+    Given the pk of a CitingWork object, set its publishable attribute to the
+    value of the POST request.
+    """
     try:
         citing_work = CitingWork.objects.get(pk=pk)
     except CitingWork.DoesNotExist:

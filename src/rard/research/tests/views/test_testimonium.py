@@ -1,5 +1,7 @@
 import pytest
+from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ObjectDoesNotExist
+from django.http.response import Http404
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
@@ -18,7 +20,6 @@ from rard.research.views import (
     TestimoniumCreateView,
     TestimoniumDeleteView,
     TestimoniumDetailView,
-    TestimoniumListView,
     TestimoniumUpdateView,
     duplicate_fragment,
 )
@@ -95,6 +96,29 @@ class TestTestimoniumSuccessUrls(TestCase):
             reverse("testimonium:detail", kwargs={"pk": view.object.pk}),
         )
 
+    def request_detail(self, fragment_pk):
+        request = RequestFactory().get(
+            reverse(
+                "testimonium:detail",
+                kwargs={"pk": fragment_pk},
+            )
+        )
+        request.user = AnonymousUser()
+        return TestimoniumDetailView.as_view()(request, pk=fragment_pk)
+
+    def test_unauthorised_can_only_view_published(self):
+        published_frag = Testimonium.objects.create(name="published fragment")
+        published_frag.publishable = True
+        published_frag.save()
+        unpublished_frag = Testimonium.objects.create(name="not ready yet")
+        response_pub = self.request_detail(published_frag.pk)
+        self.assertEqual(response_pub.status_code, 200)
+        self.assertRaises(
+            Http404,
+            self.request_detail,
+            unpublished_frag.pk,
+        )
+
 
 class TestTestimoniumDeleteView(TestCase):
     def test_post_only(self):
@@ -116,12 +140,6 @@ class TestTestimoniumViewPermissions(TestCase):
         )
         self.assertIn(
             "research.delete_testimonium", TestimoniumDeleteView.permission_required
-        )
-        self.assertIn(
-            "research.view_testimonium", TestimoniumListView.permission_required
-        )
-        self.assertIn(
-            "research.view_testimonium", TestimoniumDetailView.permission_required
         )
 
 

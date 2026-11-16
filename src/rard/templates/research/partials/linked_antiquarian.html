@@ -5,7 +5,6 @@
     <div>
         <li class="unstyled">
             {% with antiquarian.name as link_text %}
-                {% if perms.research.view_antiquarian %}
                 <span class="definite-indicators">
                     {% if definite_antiquarian %}
                         <i title='Definite antiquarian link' data-placement="top" data-toggle='tooltip' class='fa fa-solid fa-user fa-xs text-success'></i>
@@ -14,9 +13,6 @@
                     {% endif %}
                 </span>
                 <a href='{% url "antiquarian:detail" antiquarian.pk %}'>{{ link_text }}</a>
-                {% else %}
-                    {{ link_text }}
-                {% endif %}
                 {% if antiquarian.display_date_range %}
                 <span class='date-range-element text-muted'><small>[{{ antiquarian.display_date_range }}]</small></span>
                 {% endif %}

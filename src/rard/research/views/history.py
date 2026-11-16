@@ -3,7 +3,8 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.http import Http404, HttpResponseRedirect
-from django.views.generic import ListView
+
+from rard.research.views.list import ListView
 
 
 class HistoryListView(LoginRequiredMixin, ListView):

@@ -223,7 +223,10 @@ class TestAntiquarian(TestCase):
 
         # bib init should have been removed, and all those mentioned by related
         # objects should be added.
-        self.assertQuerysetEqual(aq1.bibliography_items.all(), target_bibs)
+        self.assertQuerysetEqual(
+            aq1.bibliography_items.order_by("pk"),
+            sorted(target_bibs, key=lambda x: x.pk),
+        )
 
     def test_collate_unknown(self):
         data = {"name": "John Smith", "re_code": "smitre001"}

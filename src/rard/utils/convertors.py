@@ -39,7 +39,8 @@ def transfer_duplicates(source, destination):
         # Create a new relationship between the suplicate and destination objects
         duplicate_to_destination_rel.add(destination)
 
-        # Now repeat, but in the opposite direction because it's not necessarily symmetrical
+        # Now repeat, but in the opposite direction because it's not
+        # necessarily symmetrical
         duplicate_type = duplicate.__class__.__name__
         destination_to_duplicate_rel = getattr(
             destination, duplicate_rel_attrs.get(duplicate_type, None)
@@ -52,7 +53,8 @@ def transfer_data_between_fragments(source, destination):
     destination.name = source.name
     destination.collection_id = source.collection_id
     # Fields requiring set method
-    # Testimonia don't have topics, date_range or order_year so ignore if it's the source or destination
+    # Testimonia don't have topics, date_range or order_year so ignore if it's
+    # the source or destination
     if not (
         destination.__class__.__name__ == "Testimonium"
         or source.__class__.__name__ == "Testimonium"
@@ -73,11 +75,14 @@ def transfer_data_between_fragments(source, destination):
 def transfer_mentions(original, new):
     if original.mentioned_in:
         for tof in original.mentioned_in.all():
-            tof.reassign_mentions(
-                original, new
-            )  # reassign the values in the TOF content from the original to the new object
-            tof.update_content_mentions()  # update the mention display text, based on the values set above
-            tof.update_mentions()  # updates the relationships on the models based on the above content being updated
+            # reassign the values in the TOF content from the original to the
+            # new object
+            tof.reassign_mentions(original, new)
+            # update the mention display text, based on the values set above
+            tof.update_content_mentions()
+            # updates the relationships on the models based on the above
+            # content being updated
+            tof.update_mentions()
 
 
 # mentions should then just update

@@ -6,7 +6,7 @@
     <div class='ordered-list'>
         <ul class='parent-ordering-group'>
 
-            {% with utlinks=object|testimonium_links_for_work:object.unknown_work %}
+            {% with utlinks=object|testimonium_links_for_work:object.unknown_work|testimonium_published:user %}
 
             {% for link in utlinks %}
                 {% include 'research/partials/testimonium_link_list_item.html' with link=link link_text=link.get_display_name|safe can_edit=can_edit has_object_lock=has_object_lock %}
@@ -20,10 +20,10 @@
     <button type='button' id="multi-collapse-control" class="btn btn-outline-secondary btn-sm mb-2 exp" data-toggle="collapse" data-target=".multi-collapse" aria-expanded="false" aria-controls="{% for work in object.ordered_works.all %}list_{{ work.pk }} {% endfor %}">{% trans "Expand all" %}</button>
 
     <div class='drop-target' data-pos='0' data-objecttype='work'></div>
-    {% for work in object.ordered_works.all %}
-        {% with tlinks=object|testimonium_links_for_work:work %}
-        {% with flinks=object|fragment_links_for_work:work %}
-        {% with alinks=object|appositum_links_for_work:work %}
+    {% for work in object.ordered_works.all|published:user %}
+        {% with tlinks=object|testimonium_links_for_work:work|testimonium_published:user %}
+        {% with flinks=object|fragment_links_for_work:work|fragment_published:user %}
+        {% with alinks=object|appositum_links_for_work:work|appositum_published:user %}
 
         <div id='work_{{ work.pk }}' class='parent-ordering-group drag-item ordered-list-item' draggable='false' data-work='{{ work.pk }}' data-antiquarian='{{ object.pk }}' data-objecttype='work' data-pos='{{ forloop.counter0 }}'>
             <div class='d-flex justify-content-between w-100'>

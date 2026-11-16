@@ -3,6 +3,7 @@
 import re
 import string
 import unicodedata
+
 from django.db import migrations
 from django.utils.html import strip_tags
 

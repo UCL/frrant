@@ -8,7 +8,9 @@
         <div class='card-text alphabetum'>
             {{ original_text.content|safe }}
         </div>
+        {% if user.is_authenticated %}
         <small class='text-muted'>{% include 'research/partials/render_last_modified_info.html' with object=original_text %}</small>
+        {% endif %}
         <div>
         </div>
 

@@ -8,6 +8,7 @@
 {% block last_modified %}{% endblock %}
 
 {% block action %}
+{% if perms.research.change_bibliographyitem %}
 
     {% with request.user|has_lock:object as has_object_lock %}
 
@@ -27,6 +28,7 @@
             {% endif %}
         </div>
     {% endwith %}
+{% endif %}
 {% endblock %}
 
 {% block inner %}
@@ -77,12 +79,13 @@
 
         </dl>
 
-
+        {% if user.is_authenticated %}
         <p>
           <small>
           {% include 'research/partials/render_last_modified_info.html' with object=object %}
           </small>
         </p>
+        {% endif %}
 
     </section>
 

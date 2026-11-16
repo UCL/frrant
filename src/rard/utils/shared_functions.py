@@ -1,5 +1,8 @@
 def organise_links(obj):
-    """This function will organise links for a fragment/testomonium by grouping the links under their common antiquarian"""
+    """
+    This function will organise links for a fragment/testomonium by grouping
+    the links under their common antiquarian.
+    """
     links = obj.get_all_links()
     organised_links = {}
     is_definite = int
@@ -43,7 +46,10 @@ def reassign_to_unknown(worklink):
 
 
 def collate_work_links(antiquarian, designated_unknown, duplicate_works):
-    """Transfer antiquarian work-level links from duplicate works to the designated work."""
+    """
+    Transfer antiquarian work-level links from duplicate works to the
+    designated work.
+    """
     transfer_links(
         antiquarian.fragmentlinks.filter(work__in=duplicate_works), designated_unknown
     )
