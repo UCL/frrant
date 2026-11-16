@@ -6,7 +6,11 @@
     <div>
         <li class="unstyled">
             {% with citingauthor as link_text %}
-                <a href='{% url "citingauthor:detail" citingauthor.pk %}'>{{ link_text }}</a>
+                {% if user.is_authenticated or citingauthor.is_published %}
+                    <a href='{% url "citingauthor:detail" citingauthor.pk %}'>{{ link_text }}</a>
+                {% else %}
+                    <span class='text-muted'>{{ link_text }}</span>
+                {% endif %}
                 {% if citingauthor.display_date_range %}
                 <span class='date-range-element text-muted'><small>[{{ citingauthor.display_date_range }}]</small></span>
                 {% endif %}
