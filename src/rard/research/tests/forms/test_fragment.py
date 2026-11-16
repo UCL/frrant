@@ -103,8 +103,8 @@ class TestFragmentLinkWorkForm(TestCase):
         self.assertIsNone(form.fields["work"].initial)
         self.assertFalse(form.fields["work"].disabled)
         self.assertEqual(
-            form.fields["work"].queryset.count(), 2
-        )  # includes unknown work
+            form.fields["work"].queryset.count(), 3
+        )  # includes unknown work and bibliographic work
         self.assertTrue(form.fields["book"].disabled)
         self.assertEqual(form.fields["book"].queryset.count(), 0)
 

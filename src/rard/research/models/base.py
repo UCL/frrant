@@ -102,7 +102,7 @@ class WorkLinkBaseModel(LinkBaseModel):
 
     def get_work_display_name_full(self):
         # to also show the antiquarian link as well as the work link
-        return "%s [= %s]" % (self.get_work_display_name(), self.get_display_name())
+        return f"{self.get_work_display_name()} [= {self.get_display_name()}]"
 
     def display_work_order_one_indexed(self):
         try:
@@ -229,7 +229,10 @@ class WorkLinkBaseModel(LinkBaseModel):
             self.swap_by_book(next_)
 
     def reindex_work_by_book(self):
-        """Update order of links with respect to work, taking into account book__order and order_in_book"""
+        """
+        Update order of links with respect to work, taking into account
+        book__order and order_in_book.
+        """
         from django.db import transaction
 
         with transaction.atomic():
@@ -306,7 +309,7 @@ class FragmentLink(WorkLinkBaseModel):
         # name of the fragment link
         rtn = []
         for o in self.fragment.original_texts.all():
-            rtn.extend([c for c in o.concordances.all()])
+            rtn.extend([c for c in o.concordance_models.all()])
         return rtn
 
 
@@ -558,8 +561,8 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
         mentions = [m.get_related_object() for m in self.mentioned_in.all()]
         return mentions
 
-    # Duplicates are only used on (Anon)Fragments but these fields also exist on testimonia
-    # when duplicating, a new fragment is created
+    # Duplicates are only used on (Anon)Fragments but these fields also exist
+    # on testimonia when duplicating, a new fragment is created
     duplicate_frags = models.ManyToManyField(
         "Fragment", blank=True, related_name="%(class)s_duplicate_fragments"
     )
@@ -649,8 +652,12 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
         names = self.get_link_names(show_certainty=False)
         return self._render_display_name(names, add_also=False)
 
-    def get_link_names(self, show_certainty=True):
+    def get_link_names(self, show_certainty=True, first_work=None):
         links = self.get_all_links().order_by("work", "antiquarian", "order")
+        if first_work:
+            first_links = links.filter(work=first_work)
+            other_links = links.exclude(work=first_work)
+            links = list(first_links) + list(other_links)
         names = []
         for link in links:
             if link.work and not link.work.unknown:
@@ -669,4 +676,9 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
     def get_display_name_option_b(self):
         # option b currently default
         names = self.get_link_names(show_certainty=False)
+        return self._render_display_name(names)
+
+    def get_display_name_for_work(self, work):
+        # put the link to the antiquarian first if it exists and then the others
+        names = self.get_link_names(show_certainty=False, first_work=work)
         return self._render_display_name(names)

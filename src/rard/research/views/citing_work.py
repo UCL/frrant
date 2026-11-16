@@ -1,15 +1,30 @@
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
-from django.views.decorators.http import require_POST
-from django.views.generic import ListView
+from django.views.decorators.http import require_GET, require_POST
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
-from rard.research.forms import CitingAuthorUpdateForm, CitingWorkCreateForm
+from rard.research.forms import (
+    CitingAuthorIntroductionForm,
+    CitingAuthorUpdateForm,
+    CitingWorkCreateForm,
+    CitingWorkIntroductionForm,
+)
 from rard.research.models import CitingAuthor, CitingWork, OriginalText
-from rard.research.views.mixins import CanLockMixin, CheckLockMixin, DateOrderMixin
+from rard.research.models.text_object_field import TextObjectField
+from rard.research.views.list import ListView
+from rard.research.views.mixins import (
+    CanLockMixin,
+    CheckLockMixin,
+    DateOrderMixin,
+    PublishableMixin,
+    TextObjectFieldUpdateMixin,
+    TextObjectFieldViewMixin,
+)
 
 
 class CitingAuthorCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
@@ -38,7 +53,7 @@ class CitingAuthorCreateView(LoginRequiredMixin, PermissionRequiredMixin, Create
 
 
 class CitingAuthorUpdateView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, UpdateView
 ):
     form_class = CitingAuthorUpdateForm
     permission_required = ("research.change_citingauthor",)
@@ -63,8 +78,11 @@ class CitingAuthorUpdateView(
         return super().form_valid(form)
 
 
-class CitingAuthorListView(DateOrderMixin, ListView):
-    paginate_by = 15
+class CitingAuthorListView(
+    DateOrderMixin,
+    ListView,
+):
+    paginate_by = 10
     model = OriginalText
     template_name = "research/citingauthor_list.html"
 
@@ -82,20 +100,26 @@ class CitingAuthorListView(DateOrderMixin, ListView):
             "citing_work",  # group by work
             "reference_order",  # then by reference
         ]
-        return OriginalText.objects.all().order_by(*ordering)
+        if self.request.user.is_authenticated:
+            return OriginalText.objects.all().order_by(*ordering)
+        return OriginalText.objects.filter(citing_work__publishable=True).order_by(
+            *ordering
+        )
 
 
-class CitingAuthorFullListView(DateOrderMixin, PermissionRequiredMixin, ListView):
-    paginate_by = 15
+class CitingAuthorFullListView(DateOrderMixin, ListView):
+    paginate_by = 10
     model = OriginalText
     template_name = "research/citingauthor_full_list.html"
 
     def get_queryset(self):
-        # all citing authors
-        return CitingAuthor.objects.all()
+        if self.request.user.is_authenticated:
+            # all citing authors
+            return CitingAuthor.objects.all()
+        return CitingAuthor.objects.filter(publishable=True)
 
 
-class CitingAuthorDetailView(CanLockMixin, DetailView):
+class CitingAuthorDetailView(CanLockMixin, PublishableMixin, DetailView):
     model = CitingAuthor
 
     def get_context_data(self, **kwargs):
@@ -117,7 +141,7 @@ class CitingAuthorDetailView(CanLockMixin, DetailView):
 
 @method_decorator(require_POST, name="dispatch")
 class CitingAuthorDeleteView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, DeleteView
 ):
     model = CitingAuthor
     success_url = reverse_lazy("citingauthor:list")
@@ -171,6 +195,55 @@ class CitingAuthorCreateWorkView(
         return reverse("citingauthor:work_detail", kwargs={"pk": self.object.pk})
 
 
+class CitingAuthorUpdateIntroductionView(
+    TextObjectFieldUpdateMixin, CitingAuthorUpdateView
+):
+    model = CitingAuthor
+    permission_required = ("research.change_citingauthor",)
+    form_class = CitingAuthorIntroductionForm
+    hx_trigger = "intro-updated"
+    textobject_field = "introduction"
+
+    def create_intro_if_does_not_exist(self, *args, **kwargs):
+        # If a TOF is not created for the introduction an error will be
+        # thrown when trying to save as it will try to save something that
+        # does not exist
+        author = self.get_object()
+        if author.introduction is None:
+            author.introduction = TextObjectField.objects.create(content="")
+            author.save()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.create_intro_if_does_not_exist()
+        return super().dispatch(request, *args, **kwargs)
+
+
+class CitingAuthorIntroductionView(TextObjectFieldViewMixin):
+    model = CitingAuthor
+    permission_required = ("research.view_citingauthor",)
+    textobject_field = "introduction"
+
+
+@require_POST
+@login_required
+@permission_required("research.publish_citing_author")
+def citing_author_set_publishable(request, pk):
+    """
+    Given the pk of a CitingAuthor object, set its publishable attribute to the
+    value of the POST request.
+    """
+    try:
+        citing_author = CitingAuthor.objects.get(pk=pk)
+    except CitingAuthor.DoesNotExist:
+        raise Http404("No Citing Authors found matching the query")
+
+    citing_author.publishable = request.POST.get("publishable", False)
+    citing_author.save()
+
+    # Refresh the page
+    return HttpResponseRedirect(reverse("citingauthor:detail", kwargs={"pk": pk}))
+
+
 class CitingWorkCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
     model = CitingWork
     permission_required = ("research.add_citingwork",)
@@ -182,13 +255,11 @@ class CitingWorkCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateVi
         return reverse("citingauthor:work_detail", kwargs={"pk": self.object.pk})
 
 
-class CitingWorkDetailView(PermissionRequiredMixin, DetailView):
+class CitingWorkDetailView(CanLockMixin, PublishableMixin, DetailView):
     model = CitingWork
 
 
-class CitingWorkUpdateView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
-):
+class CitingWorkUpdateView(CheckLockMixin, UpdateView):
     model = CitingWork
     fields = (
         "author",
@@ -198,16 +269,81 @@ class CitingWorkUpdateView(
         "date_range",
     )
 
-    permission_required = ("research.change_citingwork",)
-
     def get_success_url(self, *args, **kwargs):
         return reverse("citingauthor:work_detail", kwargs={"pk": self.object.pk})
 
 
 @method_decorator(require_POST, name="dispatch")
 class CitingWorkDeleteView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, DeleteView
 ):
     model = CitingWork
     success_url = reverse_lazy("citingauthor:list")
     permission_required = ("research.delete_citingwork",)
+
+
+class CitingWorkUpdateIntroductionView(TextObjectFieldUpdateMixin, UpdateView):
+    model = CitingWork
+    permission_required = ("research.change_citingwork",)
+    form_class = CitingWorkIntroductionForm
+    hx_trigger = "intro-updated"
+    textobject_field = "introduction"
+
+    def create_intro_if_does_not_exist(self, *args, **kwargs):
+        # If a TOF is not created for the introduction an error will be
+        # thrown when trying to save as it will try to save something that
+        # does not exist
+        work = self.get_object()
+        if work.introduction is None:
+            work.introduction = TextObjectField.objects.create(content="")
+            work.save()
+
+    def dispatch(self, request, *args, **kwargs):
+        self.create_intro_if_does_not_exist()
+        return super().dispatch(request, *args, **kwargs)
+
+
+class CitingWorkIntroductionView(TextObjectFieldViewMixin):
+    model = CitingWork
+    permission_required = ("research.view_citingwork",)
+    textobject_field = "introduction"
+
+
+@require_GET
+@login_required
+@permission_required("research.change_citingauthor")
+def ca_refresh_bibliography_from_mentions(request, pk):
+    """Given the pk of a Citing Author object, call its
+    refresh_bibliography_items_from_mentions method to
+    parse DynamicTextFields for mentions of bibliography
+    items and link these directly."""
+    try:
+        author = CitingAuthor.objects.get(pk=pk)
+    except CitingAuthor.DoesNotExist:
+        raise Http404("No Citing Authors found matching the query")
+    author.refresh_bibliography_items_from_mentions()
+    response = HttpResponse(
+        status=204,
+    )
+    response.headers["HX-Trigger"] = "refreshed-bibliography"
+    return response
+
+
+@require_POST
+@login_required
+@permission_required("research.publish_citing_work")
+def citing_work_set_publishable(request, pk):
+    """
+    Given the pk of a CitingWork object, set its publishable attribute to the
+    value of the POST request.
+    """
+    try:
+        citing_work = CitingWork.objects.get(pk=pk)
+    except CitingWork.DoesNotExist:
+        raise Http404("No Citing Works found matching the query")
+
+    citing_work.publishable = request.POST.get("publishable", False)
+    citing_work.save()
+
+    # Refresh the page
+    return HttpResponseRedirect(reverse("citingauthor:work_detail", kwargs={"pk": pk}))

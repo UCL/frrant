@@ -418,7 +418,8 @@ class TestWorkLinkScheme(TestCase):
             a.works.add(Work.objects.create(name=name))
 
         self.assertEqual(
-            [w.name for w in a.ordered_works.all()], names + ["Unknown Work"]
+            [w.name for w in a.ordered_works.all()],
+            names + ["Bibliographic Work", "Unknown Work"],
         )
         # try moving a work down in the order
         link = a.worklink_set.first()
@@ -431,11 +432,16 @@ class TestWorkLinkScheme(TestCase):
                 "work two",
                 "work one",
                 "work three",
+                "Bibliographic Work",
                 "Unknown Work",
             ],
         )
 
-        link = a.worklink_set.exclude(work__unknown=True).last()
+        link = (
+            a.worklink_set.exclude(work__unknown=True)
+            .exclude(work__bibliographic=True)
+            .last()
+        )
         link.up()
 
         # should have reordered
@@ -445,6 +451,7 @@ class TestWorkLinkScheme(TestCase):
                 "work two",
                 "work three",
                 "work one",
+                "Bibliographic Work",
                 "Unknown Work",
             ],
         )
@@ -501,13 +508,17 @@ class TestWorkLinkScheme(TestCase):
         self.assertEqual(FragmentLink.objects.first().antiquarian, a0)
 
     def test_delete_work_moves_links(self):
-        """When a work is removed, the links should assign themselves to the Unknown Work of the Antiquarian"""
+        """
+        When a work is removed, the links should assign themselves to the
+        Unknown Work of the Antiquarian.
+        """
         # removing the antiquarian as work author should move
         # linked fragments to Unknown Work
         work_pk = self.work.pk
         self.work.delete()
 
-        # we should now have only links directly to the antiquarian - put in Unknown Work
+        # we should now have only links directly to the antiquarian - put in
+        # Unknown Work
         self.assertEqual(self.antiquarian.fragments.count(), self.NUM)
         for link in self.antiquarian.fragmentlinks.all():
             self.assertEqual(link.work, link.antiquarian.unknown_work)
@@ -558,8 +569,10 @@ class TestWorkLinkScheme(TestCase):
         self.assertEqual(antiquarian.fragmentlinks.count(), Fragment.objects.count())
 
     def test_add_delete_single_work_updates_links(self):
-        """After adding a work to an Antiquarian, its links should then be associated with that Antiquarian.
-        Even when the work is deleted, those links should point to Unknown Work for that Antiquarian
+        """
+        After adding a work to an Antiquarian, its links should then be
+        associated with that Antiquarian. Even when the work is deleted, those
+        links should point to Unknown Work for that Antiquarian.
         """
         self._run_test_add_del_multi_works_updates_links(self.REMOVE_SINGLE)
 
@@ -596,8 +609,9 @@ class TestWorkLinkScheme(TestCase):
         works = Work.objects.all()
 
         # set up creates a work called 'work', we've created
-        # four others here called 'another' and there is a default Unknown Work
-        self.assertEqual(ADD + 2, works.count())
+        # four others here called 'another' and there are default
+        # Unknown and Bibliographic Works
+        self.assertEqual(ADD + 3, works.count())
 
         # set the antiquarian works all at once
         self.antiquarian.works.set(works)
@@ -605,10 +619,10 @@ class TestWorkLinkScheme(TestCase):
         ant_works = self.antiquarian.works.all()
         ant_fragmentlinks = self.antiquarian.fragmentlinks.all()
 
-        # check it worked - we should have 5 works in total
+        # check it worked - we should have 7 works in total
         self.assertEqual(works.count(), ant_works.count())
 
-        # we should at this point have 5 sets
+        # we should at this point have 5 sets of 10 fragment links
         # 4 linked via the work 'another' and one other work = 5
         expected = (self.NUM * ADD) + starting_fragmentlinks_count
         self.assertEqual(ant_fragmentlinks.count(), expected)
@@ -616,14 +630,14 @@ class TestWorkLinkScheme(TestCase):
         if method == self.REMOVE_SINGLE:
             self.antiquarian.works.remove(works.first())  # one only
         elif method == self.REMOVE_MULTI:
-            self.antiquarian.works.remove(*works.all()[:2])  # subset
+            self.antiquarian.works.remove(*works.all()[2:4])  # subset
         elif method == self.REMOVE_CLEAR:
             self.antiquarian.works.clear()  # has different signal behaviour
         elif method == self.REMOVE_SET_BLANK:
             self.antiquarian.works.set(Work.objects.none())  # set to empty
 
         # antiquarian should now have fewer links directly to it
-        expected = (ant_works.count()) * self.NUM
+        expected = (max(ant_works.count() - 1, 0)) * self.NUM
         self.assertEqual(ant_fragmentlinks.count(), expected)
         # the antiquarian links have been reordered
         for count, link in enumerate(
@@ -636,9 +650,10 @@ class TestWorkLinkScheme(TestCase):
         nworks = Work.objects.count()
 
         # there should be no stray links lying around
-        self.assertEqual(FragmentLink.objects.all().count(), nfragments * nworks)
+        expected = nfragments * (nworks - 1)  # ignore bibliographic work
+        self.assertEqual(FragmentLink.objects.all().count(), expected)
 
-        for work in Work.objects.all():
+        for work in Work.objects.exclude(bibliographic=True).exclude(unknown=True):
             self.assertEqual(FragmentLink.objects.filter(work=work).count(), nfragments)
 
         # check that orphaned works have been reordered
@@ -651,7 +666,9 @@ class TestWorkLinkScheme(TestCase):
 
 class TestLinkScheme(TestCase):
     def setUp(self):
-        """The new way of defining definite/possible aspects is broken down for antiquarians, works and books.
+        """
+        The new way of defining definite/possible aspects is broken down for
+        antiquarians, works and books.
         This means each link will be definite or not for each and will not be null.
         """
         # add an antiquarian with a work

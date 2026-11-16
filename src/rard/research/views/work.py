@@ -1,9 +1,10 @@
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
+from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
-from django.views.generic import ListView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
@@ -14,30 +15,37 @@ from rard.research.forms import (
     WorkIntroductionForm,
 )
 from rard.research.models import Book, TextObjectField, Work
+from rard.research.views.list import ListView
 from rard.research.views.mixins import (
     CanLockMixin,
     CheckLockMixin,
+    PublishableMixin,
     TextObjectFieldUpdateMixin,
     TextObjectFieldViewMixin,
 )
 
 
-class WorkListView(ListView):
-    paginate_by = 15
+class WorkListView(PublishableMixin, ListView):
+    paginate_by = 10
     model = Work
 
 
-class WorkDetailView(CanLockMixin, DetailView):
+class WorkDetailView(CanLockMixin, PublishableMixin, DetailView):
     model = Work
 
     def get_context_data(self, **kwargs):
-        """use work model method get_ordered_materials to retrieve a dictionary of all fragments,
-        testimonia and apposita grouped by book and add it to the context"""
+        """
+        Use work model method get_ordered_materials to retrieve a dictionary
+        of all fragments, testimonia and apposita grouped by book and add it to
+        the context.
+        """
 
         context = super().get_context_data(**kwargs)
         work = self.get_object()
 
-        ordered_materials = work.get_ordered_materials()
+        ordered_materials = work.get_ordered_materials(
+            self.request.user.is_authenticated
+        )
 
         cleaned_ordered_materials = {
             book: materials
@@ -78,7 +86,7 @@ class WorkCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
 
 
 class WorkUpdateView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, UpdateView
 ):
     model = Work
     form_class = WorkForm
@@ -132,15 +140,35 @@ class WorkIntroductionView(TextObjectFieldViewMixin):
 
 @method_decorator(require_POST, name="dispatch")
 class WorkDeleteView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, DeleteView
 ):
     model = Work
     success_url = reverse_lazy("work:list")
     permission_required = ("research.delete_work",)
 
 
+@require_POST
+@login_required
+@permission_required("research.publish_work")
+def work_set_publishable(request, pk):
+    """
+    Given the pk of a Work object, set its publishable attribute to the value
+    of the POST request.
+    """
+    try:
+        work = Work.objects.get(pk=pk)
+    except Work.DoesNotExist:
+        raise Http404("No Works found matching the query")
+
+    work.publishable = request.POST.get("publishable", False)
+    work.save()
+
+    # Refresh the page
+    return HttpResponseRedirect(reverse("work:detail", kwargs={"pk": pk}))
+
+
 class BookCreateView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, CreateView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, CreateView
 ):
     # the view attribute that needs to be checked for a lock
     check_lock_object = "work"
@@ -181,7 +209,7 @@ class BookCreateView(
 
 
 class BookUpdateView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, UpdateView
 ):
     # the view attribute that needs to be checked for a lock
     check_lock_object = "work"

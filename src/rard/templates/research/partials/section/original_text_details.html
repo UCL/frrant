@@ -49,15 +49,44 @@
 
 
     {% if show_concordances %}
+    {% if original_text.concordances.count != 0 %}
+    <dl class="row mb-0">
+        <dt class="col-sm-3">{% trans 'Old Concordances' %}</dt>
+        <dd class="col-sm-7">
+    <div>
+
+            {% for c in original_text.concordances.all %}
+            <div class='d-flex justify-content-between mb-3'>
+            {% if can_edit and has_object_lock %}
+            <form novalidate class='form-inline' action='{% url "concordance:delete_old" c.pk %}' method='POST'>
+                {% csrf_token %}
+                <small>{{c}}</small>
+                    {% if perms.research.delete_concordance %}
+                    <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+                        data-what='concordance'>{% trans 'Delete' %}</button>
+                    {% endif %}
+            </form>
+            {% endif %}
+            </div>
+            {% endfor %}
+
+            </div>
+        </dd>
+    </dl>
+    {% endif %}
+
+{% comment %} New Concordances {% endcomment %}
     <dl class="row mb-0">
         <dt class="col-sm-3">{% trans 'Concordances' %}</dt>
         <dd class="col-sm-7">
-            {% if original_text.concordances.count == 0 %}
+
+                {% if original_text.concordance_models.count == 0 %}
                 None
-            {% endif %}
-            {% for concordance in original_text.concordances.all %}
+                {% endif %}
+
+            {% for concordance in original_text.concordance_models.all %}
                 <div class='d-flex justify-content-between mb-3'>
-                <div>{{ concordance }}</div>
+                <div>{{ concordance }} </div>
                 <div>
                     {% if can_edit and has_object_lock %}
                     <form novalidate class='form-inline' action='{% url "concordance:delete" concordance.pk %}' method='POST'>

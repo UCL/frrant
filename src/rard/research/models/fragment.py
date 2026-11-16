@@ -62,9 +62,16 @@ class Fragment(HistoryModelMixin, HistoricalBaseModel, DatedModel):
         ]
     )
 
+    class Meta(HistoricalBaseModel.Meta):
+        permissions = [
+            ("publish_fragment", "Can publish a fragment"),
+        ]
+
     def related_lock_object(self):
         # what needs to be locked in order to change the object
         return self
+
+    publishable = models.BooleanField(default=False)
 
     # fragments can also have topics
     topics = models.ManyToManyField("Topic", blank=True, through="TopicLink")
@@ -199,8 +206,14 @@ class AnonymousFragment(
     class Meta(HistoricalBaseModel.Meta):
         ordering = ["order"]
 
+        permissions = [
+            ("publish_anonymous_fragment", "Can publish an anonymous fragment"),
+        ]
+
     def related_queryset(self):
         return self.__class__.objects.all()
+
+    publishable = models.BooleanField(default=False)
 
     # these can also have topics but ordering not yet clear
     topics = models.ManyToManyField("Topic", blank=True, through="AnonymousTopicLink")

@@ -5,16 +5,17 @@ from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
-from django.views.generic import ListView, View
+from django.views.generic import View
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from rard.research.models import Topic
+from rard.research.views.list import ListView
 from rard.research.views.mixins import CanLockMixin, CheckLockMixin
 
 
 class TopicListView(ListView):
-    paginate_by = 20
+    paginate_by = 10
     model = Topic
 
     def post(self, *args, **kwargs):
@@ -77,7 +78,7 @@ class TopicCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateView):
 
 
 class TopicUpdateView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, UpdateView
 ):
     model = Topic
     fields = ("name",)
@@ -89,7 +90,7 @@ class TopicUpdateView(
 
 @method_decorator(require_POST, name="dispatch")
 class TopicDeleteView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, DeleteView
 ):
     model = Topic
     success_url = reverse_lazy("topic:list")

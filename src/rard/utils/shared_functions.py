@@ -1,5 +1,8 @@
 def organise_links(obj):
-    """This function will organise links for a fragment/testomonium by grouping the links under their common antiquarian"""
+    """
+    This function will organise links for a fragment/testomonium by grouping
+    the links under their common antiquarian.
+    """
     links = obj.get_all_links()
     organised_links = {}
     is_definite = int
@@ -42,23 +45,50 @@ def reassign_to_unknown(worklink):
     worklink.save()
 
 
-def collate_uw_links(instance, designated_unknown):
-    """Used in the collate_unknown functions on Ant/Work models"""
-    transfer_links(instance.fragmentlinks.all(), designated_unknown)
-    transfer_links(instance.testimoniumlinks.all(), designated_unknown)
-    transfer_links(instance.appositumfragmentlinks.all(), designated_unknown)
-
-
-def collate_ub_links(instance, designated_unknown):
-    """Used in the collate_unknown functions on Ant/Work models"""
-    transfer_links(instance.antiquarian_work_fragmentlinks.all(), designated_unknown)
-    transfer_links(instance.antiquarian_work_testimoniumlinks.all(), designated_unknown)
+def collate_work_links(antiquarian, designated_unknown, duplicate_works):
+    """
+    Transfer antiquarian work-level links from duplicate works to the
+    designated work.
+    """
     transfer_links(
-        instance.antiquarian_work_appositumfragmentlinks.all(), designated_unknown
+        antiquarian.fragmentlinks.filter(work__in=duplicate_works), designated_unknown
+    )
+    transfer_links(
+        antiquarian.testimoniumlinks.filter(work__in=duplicate_works),
+        designated_unknown,
+    )
+    transfer_links(
+        antiquarian.appositumfragmentlinks.filter(work__in=duplicate_works),
+        designated_unknown,
     )
 
 
-def transfer_links(links, target_object):
+def collate_book_links(instance, designated_unknown, duplicate_books):
+    """Used in the collate_unknown functions on Ant/Work models"""
+    instance_type = instance.__class__.__name__
+    transfer_links(
+        instance.antiquarian_work_fragmentlinks.filter(book__in=duplicate_books),
+        designated_unknown,
+        instance_type,
+    )
+    transfer_links(
+        instance.antiquarian_work_testimoniumlinks.filter(book__in=duplicate_books),
+        designated_unknown,
+        instance_type,
+    )
+    transfer_links(
+        instance.antiquarian_work_appositumfragmentlinks.filter(
+            book__in=duplicate_books
+        ),
+        designated_unknown,
+        instance_type,
+    )
+
+
+def transfer_links(links, target_object, instance_type="Antiquarian"):
     for link in links:
-        link.work = target_object
+        if instance_type == "Work":
+            link.book = target_object
+        else:
+            link.work = target_object
         link.save()

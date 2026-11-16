@@ -5,6 +5,10 @@ from django.db import migrations, models
 from rard.utils.text_processors import make_plain_text
 
 
+def noop(_apps, _schema_editor):
+    return
+
+
 def save_objects_with_plain_text_fields(apps, schema_editor):
     db_alias = schema_editor.connection.alias
     Antiquarian = apps.get_model("research", "Antiquarian")
@@ -105,5 +109,8 @@ class Migration(migrations.Migration):
             name='plain_introduction',
             field=models.TextField(default=''),
         ),
-        migrations.RunPython(save_objects_with_plain_text_fields),
+        migrations.RunPython(
+            code=save_objects_with_plain_text_fields,
+            reverse_code=noop,
+        ),
     ]

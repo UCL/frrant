@@ -8,11 +8,13 @@ from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.decorators.http import require_POST
-from django.views.generic import DetailView, ListView
+from django.views.generic import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 from rard.research.forms import BibliographyItemForm, BibliographyItemInlineForm
 from rard.research.models import Antiquarian, BibliographyItem
+from rard.research.models.citing_work import CitingAuthor
+from rard.research.views.list import ListView
 from rard.research.views.mixins import CanLockMixin, CheckLockMixin
 
 
@@ -24,7 +26,7 @@ class BibliographyOverviewView(View):
 
 
 class BibliographyListView(ListView):
-    paginate_by = 15
+    paginate_by = 10
     model = BibliographyItem
     template_name = "research/partials/htmx_bibliography_list_page.html"
 
@@ -98,7 +100,7 @@ class BibliographyCreateView(LoginRequiredMixin, PermissionRequiredMixin, Create
 
 
 class BibliographyUpdateView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, UpdateView
 ):
     model = BibliographyItem
     template_name = "research/bibliographyitem_form.html"
@@ -145,7 +147,7 @@ class BibliographyUpdateView(
 
 @method_decorator(require_POST, name="dispatch")
 class BibliographyDeleteView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, DeleteView
 ):
     model = BibliographyItem
     success_url = reverse_lazy("bibliography:overview")
@@ -154,19 +156,33 @@ class BibliographyDeleteView(
 
 class BibliographySectionView(ListView):
     model = BibliographyItem
-    template_name = "research/partials/antiquarian_bibliography_list.html"
     context_object_name = "bibliography_items"
 
     def get_queryset(self) -> QuerySet[Any]:
         if self.model is not None:
             queryset = self.model._default_manager.all()
-        self.ant_pk = self.kwargs.get("pk")
-        if self.ant_pk:
-            queryset = queryset.filter(antiquarians__id=self.ant_pk)
+        self.owner_pk = self.kwargs.get("pk")
+        related_model = self.kwargs.get("related_model")
+        if self.owner_pk:
+            # use related_model to determine which model to filter on
+            if related_model == "antiquarian":
+                queryset = queryset.filter(antiquarians__id=self.owner_pk)
+            elif related_model == "citing_author":
+                queryset = queryset.filter(citing_authors__id=self.owner_pk)
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if self.ant_pk:
-            context["antiquarian"] = Antiquarian.objects.get(id=self.ant_pk)
+        related_model = self.kwargs.get("related_model")
+
+        if self.owner_pk:
+            if related_model == "antiquarian":
+                context["antiquarian"] = Antiquarian.objects.get(id=self.owner_pk)
+            elif related_model == "citing_author":
+                context["citingauthor"] = CitingAuthor.objects.get(id=self.owner_pk)
         return context
+
+    def get_template_names(self):
+        related_model = self.kwargs.get("related_model")
+        template_name = f"research/partials/{related_model}_bibliography_list.html"
+        return [template_name]

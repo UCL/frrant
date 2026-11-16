@@ -1,0 +1,53 @@
+{% extends "research/base.html" %}
+{% load i18n bootstrap4 %}
+{% block title %}
+    {% if object %}
+        {% trans 'Update Concordance for Original Text ' %}{{original_text.pk}}
+    {% else %}
+        {% trans 'Create Concordance for Original Text ' %}{{original_text.pk}}
+    {% endif %}
+{% endblock %}
+
+{% block heading %}
+    {% if object %}
+        {% trans 'Update Concordance' %}
+    {% else %}
+        {% trans 'Create Concordance' %}
+    {% endif %}
+{% endblock %}
+
+{% block inner %}
+    <label>For original text:</label>
+
+        <div>
+            {% include 'research/partials/original_text_preview.html' with original_text=original_text hide_last_modified=True %}
+        </div>
+{% if original_text.concordances.count != 0 %}
+<div>
+    This original text has some existing concordances in the old format:
+    <ul class="list-inline">
+    {% for c in original_text.concordances.all %}
+        <li class="list-inline-item">{{c}}</li>
+        <li class="list-inline-item">{% if not forloop.last %}|{% endif %}</li>
+    {% endfor %}
+    </ul>
+</div>
+<br>
+{% endif %}
+<div class="concordance-form__area">
+
+{% if edition_form %}
+    {% include 'research/partials/concordance_edition_section.html' %}
+{% endif %}
+
+{% if concordance_form %}
+    {% include 'research/partials/concordance_form_section.html' %}
+
+{% endif %}
+
+<button type="button" class="btn btn-outline-secondary mt-1 concordance-cancel" onclick="window.location.href='{{original_text.owner.get_absolute_url}}'">{% trans 'Cancel' %}</button>
+
+</div>
+
+
+{% endblock %}

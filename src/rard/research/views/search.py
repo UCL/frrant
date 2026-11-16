@@ -1,14 +1,16 @@
 import re
+from collections.abc import Callable, Iterable
 from functools import partial
 from itertools import chain
+from string import punctuation
+from typing import Any
 
 from django.conf import settings
-from django.db.models import ExpressionWrapper, Func, Q, TextField, Value
-from django.db.models.functions import Lower
+from django.db.models import Expression, Func, Q, QuerySet, TextField, Value
 from django.shortcuts import redirect
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_GET
-from django.views.generic import ListView, TemplateView
+from django.views.generic import TemplateView
 
 from rard.research.models import (
     AnonymousFragment,
@@ -22,277 +24,351 @@ from rard.research.models import (
     Topic,
     Work,
 )
-
-# Fold [X,Y] transforms all instances of Y into X before matching
-# Folds are applied in the specified order, so we don't need
-# 'uul' <- 'vul' if we already have 'u' <- 'v'
-rard_folds = [
-    ["ast", "a est"],
-    ["ost", "o est"],
-    ["umst", "um est"],
-    ["am", "an"],
-    ["ausa", "aussa"],
-    ["nn", "bn"],
-    ["tt", "bt"],
-    ["pp", "bp"],
-    ["rr", "br"],
-    ["ch", "cch"],
-    ["clu", "culu"],
-    ["claud", "clod"],
-    ["has", "hasce"],
-    ["his", "hisce"],
-    ["hos", "hosce"],
-    ["i", "ii"],
-    ["i", "j"],
-    ["um", "im"],
-    ["lagr", "lagl"],
-    ["mb", "nb"],
-    ["ll", "nl"],
-    ["mm", "nm"],
-    ["mp", "np"],
-    ["mp", "ndup"],
-    ["rr", "nr"],
-    ["um", "om"],
-    ["u", "v"],
-    ["u", "y"],
-    ["uu", "w"],
-    ["ulc", "ulch"],
-    ["uul", "uol"],
-    ["ui", "uui"],
-    ["uum", "uom"],
-    ["x", "xs"],
-]
+from rard.research.views.list import ListView
+from rard.utils.text_processors import fold_latin
 
 WILDCARD_SINGLE_CHAR = settings.WILDCARD_SINGLE_CHAR
 WILDCARD_MANY_CHAR = settings.WILDCARD_MANY_CHAR
-WILDCARD_CHARS = [WILDCARD_SINGLE_CHAR, WILDCARD_MANY_CHAR]
-PUNCTUATION_BASE = r"!£$%^&*()_+-={}:@~;\'#|\\<>?,./`¬"
+WILDCARD_PROXIMITY_IND = "~"
+WILDCARD_PROXIMITY_SEP = ":"
+QUOTE_CHAR = '"'
+CTRL_CHARS = [
+    WILDCARD_SINGLE_CHAR,
+    WILDCARD_MANY_CHAR,
+    WILDCARD_PROXIMITY_IND,
+    WILDCARD_PROXIMITY_SEP,
+    QUOTE_CHAR,
+]
+PUNCTUATION = punctuation + "£¬"
 # PUNCTUATION should include wildcard chars as it is used with content rather than
 # search terms
-PUNCTUATION = PUNCTUATION_BASE + r'[]"'
-# Remove wildcard characters from PUNCTUATION_BASE which is used to screen
+# Remove wildcard characters for PUNCTUATION_BASE which is used to screen
 # out punctuation from search terms
-PUNCTUATION_BASE = PUNCTUATION_BASE.translate({ord(c): None for c in WILDCARD_CHARS})
-PUNCTUATION_RE = re.compile(r"[\[\]{0}]".format(PUNCTUATION_BASE))
+PUNCTUATION_BASE = PUNCTUATION.translate({ord(c): None for c in CTRL_CHARS})
+PUNCTUATION_RE = re.compile("[" + re.escape(PUNCTUATION_BASE) + "]")
+
+MatcherCallable = Callable[[QuerySet, str, bool], QuerySet]
 
 
 @method_decorator(require_GET, name="dispatch")
 class SearchView(TemplateView, ListView):
     class Term:
         """
-        Initialize it with the keywords:
-        term = Term(keywords)
-        and you call:
-        results = term.match('foreign_key_1__foreign_key_2__field')
-        or:
-        results = term.match_folded('foreign_key_1__foreign_key_2__field')
+        The keywords for a search, together with the folds and cleaning
+        functions relevant to them.
         """
 
-        def __init__(self, keywords):
-            self.cleaned_number = 1
-            self.folded_number = 1
-            # Remove all punctuation except wildcard characers
-            self.keywords = PUNCTUATION_RE.sub("", keywords).lower()
+        def __init__(self, keywords: str):
+            """
+            Initialize ``Term`` with the keywords.
 
+            :param keywords: The user's query; a string of keywords.
+            """
             # Using regex for everything doesn't seem to have a big impact
             # But replace this line with the alternative code if you want to
             # only use regex for search terms containing wildcards
-            self.lookup = "regex"
+            self.lookup = "iregex"
             # # If wildcard characters appear in keywords, use regex lookup
-            # if any([char in self.keywords for char in WILDCARD_CHARS]):
-            #     self.lookup = "regex"
+            # if any([char in keywords for char in CTRL_CHARS]):
+            #     self.lookup = "iregex"
             # else:
-            #     self.lookup = "contains"
+            #     self.lookup = "icontains"
 
-            # The basic function query function will first eliminate html less than
-            # and greater than character codes, then punctuation,
-            # and lowercase the 'haystack' strings to be searched.
-            self.basic_query = lambda q: Lower(
-                Func(
-                    Func(
-                        q,
-                        Value("&[gl]t;"),
-                        Value(""),
-                        Value("g"),
-                        function="regexp_replace",
-                    ),
-                    Value(PUNCTUATION),
-                    Value(""),
-                    function="translate",
+            # Remove all punctuation except wildcard characers
+            keyword_string = PUNCTUATION_RE.sub("", keywords).lower()
+            self.keywords = self.get_keywords(keyword_string)
+
+            self.folded_keywords = [fold_latin(keyword) for keyword in self.keywords]
+
+            if self.lookup.endswith("regex"):
+                self.keywords = self.transform_keywords_to_regex(self.keywords)
+                self.folded_keywords = self.transform_keywords_to_regex(
+                    self.folded_keywords
                 )
-            )
-            self.query = self.basic_query
-            # Now we call add_fold repeatedly to add more
-            # folds to self.query
-            k = self.keywords
-            for fold_to, fold_from in rard_folds:
-                if fold_from in k:
-                    k = k.replace(fold_from, fold_to)
-                    self.add_fold(fold_from, fold_to)
-                elif fold_to in k:
-                    self.add_fold(fold_from, fold_to)
-            self.folded_keywords = k
-            self.folded_matcher = self.get_matcher(k)
+
+            self.folded_matcher = self.get_matcher(self.folded_keywords)
             self.nonfolded_matcher = self.get_matcher(self.keywords)
 
-        def get_matcher(self, keywords):
-            keyword_list = self.get_keywords(keywords)
+        def get_matcher(self, keyword_list: Iterable[str]) -> Callable[[str], Q]:
+            """
+            Get a matcher for the keyword string.
+
+            :param keywords: The user's input: a string of keywords to search for.
+            :return: A function that takes a lookup string and returns an
+              expression that matches these keywords in that lookup string.
+            """
             if len(keyword_list) == 0:
-                # want a keyword that will always succeed
-                first_keyword = ""
-            else:
-                first_keyword = keyword_list[0]
-                keyword_list = keyword_list[1:]
+                # want a query that will always succeed
+                return ~Q(pk__in=[])
 
-            def matcher(field):
-                return Q(**{field: first_keyword})
+            def matcher(field: str):
+                return Q(**{field: keyword_list[0]})
 
-            for keyword in keyword_list:
+            for keyword in keyword_list[1:]:
                 matcher = self.add_keyword(matcher, keyword)
             return matcher
 
-        def add_keyword(self, old, keyword):
+        def add_keyword(
+            self, old: Callable[[str], Q], keyword: str
+        ) -> Callable[[str], Q]:
+            """
+            Add another keyword to a matcher function.
+
+            :param old: Function taking a field name and returning a Django ORM
+              function that matches certain keywords.
+            :param keyword: New keyword to match.
+            :return: Function taking a field name and returning a Django ORM
+              function that matches all of the keywords that ``old`` matches plus
+              ``keyword`` as well.
+            """
             return lambda f: Q(**{f: keyword}) & old(f)
 
-        def add_fold(self, fold_from, fold_to):
-            old = self.query
-            self.query = lambda q: Func(
-                old(q), Value(fold_from), Value(fold_to), function="replace"
-            )
-
-        def get_keywords(self, search_string):
+        def get_keywords(self, search_string: str) -> list[str]:
             """
-            Turns a string into a series of keywords. This is mostly splittling
+            Turns a string into a series of keywords. This is mostly splitting
             by whitespace, but strings surrounded by double quotes are
-            returned verbatim. Each keywords is converted to a regular expression
-            if self.lookup is regex.
+            returned verbatim and those containing proximity wildcard consume
+            the whole search string. Each keywords is converted to a regular expression.
+
+            Regex alternatives:
+            1. Captures whole search string if it contains proximity wildcard (~)
+               between two other words.
+            2. Captures everything inside double quotes
+            3. Captures individual words
             """
-            segments = search_string.split('"')
-            single_keywords = " ".join(segments[::2]).split()
-            keywords = segments[1::2] + single_keywords
-            if self.lookup == "regex":
-                keywords = self.transform_keywords_to_regex(keywords)
+            # regex 1st alternative matches proximity, 2nd quoted phrase, 3rd word
+            keywords = re.findall(
+                r"(.+\s~\d*:?\d*\s.+|(?<=\")[^\"]*(?=\")|[^\s\"]+)", search_string
+            )
             return keywords
 
         def transform_keywords_to_regex(self, keywords):
             """Takes a list of keywords which may include wildcard characters
             and converts them into a list of equivalent regular expressions.
-            Example:
+            In the case of proximity search this function is called again to
+            handle wildcards.
+
+            Note: these regular expressions are for postgresql which has a
+            slightly different syntax to python's re module.
+
+            Examples:
             >>> transform_keywords_to_regex(["?ulius", "c*sar"])
             ["\\m\\wulius\\M", "\\mc\\w*sar\\M"]
+            >>> transform_keywords_to_regex(['qua? ~1:2 di*um'])
+            ["\\mqua\\w\\M\\s(?:\\w+\\s){1,2}di\\w*um"]
 
             :param keywords: A list of strings to search
             :type keywords: list
             :return: list of regular expressions
             :rtype: list
             """
-            for i, kw in enumerate(keywords):
-                reg_kw = r"\m"  # \m matches start of word
-                for char in kw:
-                    if char == WILDCARD_SINGLE_CHAR:
-                        reg_kw += r"\w"  # a single word char (greek chars work here)
-                    elif char == WILDCARD_MANY_CHAR:
-                        reg_kw += r"\w*"  # zero or more word characters
-                    else:
-                        reg_kw += char
-                reg_kw += r"\M"  # \M matches end of word
-                keywords[i] = reg_kw
+            # Proximity searches have one keyword and contain tilde character
+            if len(keywords) == 1 and "~" in keywords[0]:
+                # Remove any '"' characters
+                kw = keywords[0].replace('"', "")
+                # Split keyword around proximity search
+                [(fore, prox_op, aft)] = re.findall(r"(.*)\s(~\d?:?\d?)\s(.*)", kw)
+                # Fore and aft can be multi-word strings containing wildcards
+                # so loop back
+                fore = self.transform_keywords_to_regex([fore])
+                aft = self.transform_keywords_to_regex([aft])
+                [(min_words, isRange, max_words)] = re.findall(
+                    r"~(\d)?(:)?(\d)?", prox_op
+                )
+                min_words = "0" if not min_words else min_words
+                if max_words:
+                    prox_reg = rf"\s(?:\w+\s){{{min_words},{max_words}}}"
+                elif min_words:
+                    min_words = min_words + "," if isRange else min_words
+                    prox_reg = rf"\s(?:\w+\s){{{min_words}}}"
+                else:
+                    # Shouldn't happen, just ignore
+                    prox_reg = ""
+                keywords = ["".join(fore) + prox_reg + "".join(aft)]
+            else:
+                for i, kw in enumerate(keywords):
+                    reg_kw = r"\y"  # \y matches start or end of word
+                    for char in kw:
+                        if char == WILDCARD_SINGLE_CHAR:
+                            reg_kw += (
+                                r"\w"  # a single word char (greek chars work here)
+                            )
+                        elif char == WILDCARD_MANY_CHAR:
+                            reg_kw += r"\w*"  # zero or more word characters
+                        else:
+                            reg_kw += char
+                    reg_kw += r"\y"
+                    keywords[i] = reg_kw
             return keywords
 
         def do_match(
             self,
-            query_set,
-            query_string,
-            annotation_name,
-            query,
-            matcher,
-            keywords,
-            add_snippet=False,
-        ):
-            expression = ExpressionWrapper(
-                query(query_string), output_field=TextField()
+            query_set: QuerySet,
+            query_string: str,
+            matcher: Callable[[str], Q],
+            keyword_list: Iterable[str],
+            add_snippet: bool = False,
+            weight: int = 1,
+        ) -> QuerySet:
+            """
+            Get the queryset for this match portion.
+
+            :param query_set: The query set to be searched.
+            :param query_string: A lookup parameter for the field to be searched.
+            :param annotation_name: Arbitrary name for an internal variable.
+            :param query: A function that applies the appropriate folding or
+              cleaning to the searched field.
+            :param matcher: A function taking a lookup string and returning an
+              expression for whether the field matches the query.
+            :param keywords: The user's query string; a string of keywords.
+            :param add_snippet: Should we add a snippet to the resulting queryset?
+            :param weight: Weight to annotate the results with.
+            :return: The queryset of results and snippets.
+            """
+            matches = query_set.filter(matcher(f"{query_string}__{self.lookup}"))
+            snippet = (
+                self.snippet_query(keyword_list, query_string)
+                if add_snippet
+                else Value("")
             )
-            annotated = query_set.annotate(**{annotation_name: expression})
-            matches = annotated.filter(matcher(annotation_name + "__" + self.lookup))
-            if add_snippet:
-                matches = self.annotate_with_snippet(matches, keywords, query_string)
-            else:
-                matches = matches.annotate(snippet=Value(""))
+            matches = matches.annotate(snippet=snippet, weight=Value(weight))
             return matches
 
-        def annotate_with_snippet(self, qs, keywords, query_string):
-            return qs.annotate(
-                snippet=Func(
+        def snippet_query(self, keyword_list: str, query_string: str) -> Expression:
+            """
+            Get an expression for a getting a snippet.
+
+            :param keywords: A string of keywords (from the user's query)
+            :param query_string: The string for accessing the field.
+            :return: An expression for extracting the snippet from the field.
+            """
+            return Func(
+                Func(
                     Func(
                         Func(
                             Func(
-                                Func(
-                                    query_string,
-                                    Value(self.get_snippet_regex(keywords)),
-                                    Value(
-                                        r'START_SNIPPET\1<span class="search-snippet">'
-                                        r"\2</span>\3...END_SNIPPET"
-                                    ),
-                                    Value("gi"),
-                                    function="REGEXP_REPLACE",
+                                query_string,
+                                Value(self.get_snippet_regex(keyword_list)),
+                                Value(
+                                    r'START_SNIPPET\1<span class="search-snippet">'
+                                    r"\2</span>\3...END_SNIPPET"
                                 ),
-                                Value("^((?!START_SNIPPET).)*$"),
-                                Value(""),
+                                Value("gi"),
                                 function="REGEXP_REPLACE",
                             ),
-                            Value("^.*?START_SNIPPET"),
+                            Value("^((?!START_SNIPPET).)*$"),
                             Value(""),
-                            Value("gs"),
                             function="REGEXP_REPLACE",
                         ),
-                        Value("END_SNIPPET.*?(START_SNIPPET)"),
+                        Value("^.*?START_SNIPPET"),
                         Value(""),
                         Value("gs"),
                         function="REGEXP_REPLACE",
                     ),
-                    Value("END_SNIPPET.*"),
+                    Value("END_SNIPPET.*?(START_SNIPPET)"),
                     Value(""),
+                    Value("gs"),
                     function="REGEXP_REPLACE",
-                    output_field=TextField(),
-                )
+                ),
+                Value("END_SNIPPET.*"),
+                Value(""),
+                function="REGEXP_REPLACE",
+                output_field=TextField(),
             )
 
-        def get_snippet_regex(self, keywords, before=5, after=5):
-            """This regex should give us three capturing groups we can use
-            with postgres REGEXP_REPLACE to insert <span> tags around our keywords;
-            e.g. REGEXP_REPLACE('content',headline_regex,'\1 <span>\2</span>\3')
+        def get_snippet_regex(self, keywords: Iterable[str], before=5, after=5) -> str:
             """
-            keywords = self.get_keywords(keywords)
+            Get a regular expression that extracts a snippet from text.
+
+            For example we can make an HTML snippet with the Postgres SQL
+            ``REGEXP_REPLACE(content, snippet_regex, '\1<span>\2</span>\3')``.
+
+            :param keywords: Iterable of keywords (the user's query) -- they
+              have already been split by unquoted space
+            :param before: The number of words before a keyword we'd like
+              in the snippet.
+            :param after: The number of words after a keyword we'd like in the snippet.
+            :return: A regex that has three capturing groups: 1 is the previous words,
+              2 is the keyword that was matched, 3 is the subsequent words.
+            """
             words_before_group = rf"((?:\S+\s){{0,{before}}})"
             keywords_group = "|".join(keywords)
-            keywords_group = r"(" + keywords_group + r")"
-            words_after_group = rf"(\s(?:\S+\s){{0,{after}}})"
-            return words_before_group + keywords_group + words_after_group
+            keywords_group = f"({keywords_group})"
+            words_after_group = rf"(.?\s(?:\S+\s){{0,{after}}})"
+            snippet_regex = words_before_group + keywords_group + words_after_group
+            return snippet_regex
 
-        def match(self, query_set, query_string, add_snippet=False):
-            annotation_name = "cleaned{0}".format(self.cleaned_number)
-            self.cleaned_number += 1
+        def match(
+            self, query_set: QuerySet, query_string: str, add_snippet: bool = False
+        ) -> QuerySet:
+            """
+            Get the queryset for matching one type of objects, without Latin folding.
+
+            .. code-block:: python
+
+               results = terms.match('foreign_key_1__foreign_key_2__field')
+
+            :param query_set: The query set to be searched.
+            :param query_string: A lookup parameter for the field to be searched.
+            :param add_snippet: Should we add a snippet to the resulting queryset?
+            :return: The queryset of results and snippets. The snippet annotation
+              (if present) has the name ``snippet``.
+            """
             return self.do_match(
                 query_set,
                 query_string,
-                annotation_name,
-                self.basic_query,
                 self.nonfolded_matcher,
                 self.keywords,
                 add_snippet=add_snippet,
             )
 
-        def match_folded(self, query_set, query_string, add_snippet=False):
-            annotation_name = "folded{0}".format(self.folded_number)
-            self.folded_number += 1
-            keywords = self.keywords + " " + self.folded_keywords
+        def match_heavy(
+            self, query_set: QuerySet, query_string: str, add_snippet: bool = False
+        ) -> QuerySet:
+            """
+            Get the queryset for matching one type of objects, without Latin folding,
+            with extra weight (so they appear at the top of the)
+
+            .. code-block:: python
+
+               results = terms.match('foreign_key_1__foreign_key_2__field')
+
+            :param query_set: The query set to be searched.
+            :param query_string: A lookup parameter for the field to be searched.
+            :param add_snippet: Should we add a snippet to the resulting queryset?
+            :return: The queryset of results and snippets. The snippet annotation
+              (if present) has the name ``snippet``.
+            """
             return self.do_match(
                 query_set,
                 query_string,
-                annotation_name,
-                self.query,
+                self.nonfolded_matcher,
+                self.keywords,
+                add_snippet=add_snippet,
+                weight=100,
+            )
+
+        def match_folded(
+            self, query_set: QuerySet, query_string: str, add_snippet: bool = False
+        ) -> QuerySet:
+            """
+            Get the queryset for matching one type of objects, with Latin folding.
+
+            .. code-block:: python
+
+              results = terms.match_folded('foreign_key_1__foreign_key_2__field')
+
+            :param query_set: The query set to be searched.
+            :param query_string: A lookup parameter for the field to be searched.
+            :param add_snippet: Should we add a snippet to the resulting queryset?
+            :return: The queryset of results and snippets. The snippet annotation
+              (if present) has the name ``snippet``.
+            """
+            return self.do_match(
+                query_set,
+                query_string,
                 self.folded_matcher,
-                keywords,
+                self.folded_keywords,
                 add_snippet=add_snippet,
             )
 
@@ -316,17 +392,24 @@ class SearchView(TemplateView, ListView):
         [group_name, "all content", "orginal texts", "translations", "commentary"]
         """
 
-        search_types = [
+        SearchField = tuple[str, str]
+        """
+        A pair of (lookup string, foldedness); foldedness is "folded" or
+        "non-folded". This is used to override the default search fields for
+        a particular kind of search.
+        """
+
+        search_types: list[SearchField] = [
             ("all content", None),
-            ("original texts", ["original_texts__plain_content", "folded"]),
+            ("original texts", ("original_texts__folded_content", "folded")),
             (
                 "translations",
-                [
+                (
                     "original_texts__translation__plain_translated_text",
                     "non-folded",
-                ],
+                ),
             ),
-            ("commentary", ["plain_commentary", "non-folded"]),
+            ("commentary", ("plain_commentary", "non-folded")),
         ]
 
         def __init__(self, group_name, core_method):
@@ -397,10 +480,21 @@ class SearchView(TemplateView, ListView):
         }
 
     @classmethod
-    def generic_content_search(cls, qs, search_fields):
+    def generic_content_search(
+        cls,
+        qs: QuerySet,
+        search_fields: tuple[str, MatcherCallable],
+    ) -> Iterable[Any]:
+        """
+        Find all the objects that match the query.
+
+        :param qs: The query set to search.
+        :param search_fields: All the lookups to perform on the query set,
+          and the function to clean or fold the results of these lookups.
+        :return: All the objects found.
+        """
         results = []
-        for field in search_fields:
-            field_name, match_function = field
+        for field_name, match_function in search_fields:
             matches = match_function(qs, field_name, add_snippet=True)
             results.append(matches)
             # Remove objects from queryset once matched so they don't get matched twice
@@ -409,23 +503,53 @@ class SearchView(TemplateView, ListView):
 
     # move to queryset on model managers
     @classmethod
-    def antiquarian_search(cls, terms, ant_filter=None, **kwargs):
+    def antiquarian_search(
+        cls, terms: Term, ant_filter: Iterable[str] | None = None, **kwargs: Any
+    ) -> Iterable[Any]:
+        """
+        Find all the ``Antiquarian``s that match the query.
+
+        :param term: Object representing the user's query.
+        :param ant_filter: A list of antiquarians to search.
+        :param kwargs: Ignored. Here to allow compatibility with other search functions.
+        :return: The Antiquarians found.
+        """
         qs = cls.get_filtered_model_qs(Antiquarian, ant_filter=ant_filter)
         search_fields = [
-            ("name", terms.match),
+            ("name", terms.match_heavy),
             ("plain_introduction", terms.match),
-            ("re_code", terms.match),
+            ("re_code", terms.match_heavy),
         ]
         return cls.generic_content_search(qs, search_fields)
 
     @classmethod
-    def topic_search(cls, terms, **kwargs):
+    def topic_search(cls, terms: Term, **kwargs: Any) -> Iterable[Any]:
+        """
+        Find all the ``Topic``s that match the query.
+
+        :param term: Object representing the user's query.
+        :param kwargs: Ignored. Here to allow compatibility with other search functions.
+        :return: The Topics found.
+        """
         qs = Topic.objects.all()
         search_fields = [("name", terms.match)]
         return cls.generic_content_search(qs, search_fields)
 
     @classmethod
-    def work_search(cls, terms, ant_filter=None, **kwargs):
+    def work_search(
+        cls,
+        terms: Term,
+        ant_filter: Iterable[str] | None = None,
+        **kwargs: Any,
+    ) -> Iterable[Any]:
+        """
+        Find all the ``Work``s that match the query.
+
+        :param term: Object representing the user's query.
+        :param ant_filter: A list of antiquarians to include in the search.
+        :param kwargs: Ignored. Here to allow compatibility with other search functions.
+        :return: The Works found.
+        """
         qs = cls.get_filtered_model_qs(Work, ant_filter=ant_filter)
         search_fields = [
             ("name", terms.match),
@@ -437,7 +561,20 @@ class SearchView(TemplateView, ListView):
         return cls.generic_content_search(qs, search_fields)
 
     @classmethod
-    def book_search(cls, terms, ant_filter=None, **kwargs):
+    def book_search(
+        cls,
+        terms: Term,
+        ant_filter: Iterable[str] | None = None,
+        **kwargs: Any,
+    ) -> Iterable[Any]:
+        """
+        Find all the ``Book``s that match the query.
+
+        :param term: Object representing the user's query.
+        :param ant_filter: A list of antiquarians to include in the search.
+        :param kwargs: Ignored. Here to allow compatibility with other search functions.
+        :return: The Books found.
+        """
         qs = cls.get_filtered_model_qs(Book, ant_filter=ant_filter)
         search_fields = [
             ("subtitle", terms.match),
@@ -448,7 +585,22 @@ class SearchView(TemplateView, ListView):
         return cls.generic_content_search(qs, search_fields)
 
     @classmethod
-    def original_text_owner_search(cls, terms, qs, search_field=None):
+    def original_text_owner_search(
+        cls,
+        terms: Term,
+        qs: QuerySet,
+        search_field: SearchMethodGroup.SearchField | None = None,
+    ) -> Iterable[Any]:
+        """
+        Find all the ``Fragment``, ``AnonymousFragment`` or ``Testimonium``
+        objects that have original texts that match the user's query.
+
+        :param terms: The user's query.
+        :param qs: The query set to filter.
+        :param search_field: The lookup strings we want to search (and whether
+          we want folding for each).
+        :return: The objects found.
+        """
         if search_field:
             match_function = (
                 terms.match_folded if search_field[1] == "folded" else terms.match
@@ -456,7 +608,7 @@ class SearchView(TemplateView, ListView):
             search_fields = [(search_field[0], match_function)]
         else:
             search_fields = [
-                ("original_texts__plain_content", terms.match_folded),
+                ("original_texts__folded_content", terms.match_folded),
                 ("original_texts__translation__plain_translated_text", terms.match),
                 ("plain_commentary", terms.match),
                 ("original_texts__translation__translator_name", terms.match),
@@ -467,8 +619,24 @@ class SearchView(TemplateView, ListView):
 
     @classmethod
     def fragment_search(
-        cls, terms, ant_filter=None, ca_filter=None, search_field=None, **kwargs
-    ):
+        cls,
+        terms: Term,
+        ant_filter: Iterable[str] | None = None,
+        ca_filter: Iterable[str] | None = None,
+        search_field: SearchMethodGroup.SearchField | None = None,
+        **kwargs: Any,
+    ) -> Iterable[Any]:
+        """
+        Find all the ``Fragment``s that match the query.
+
+        :param term: Object representing the user's query.
+        :param ant_filter: A list of antiquarians to include in the search.
+        :param ca_filter: A list of citing authors to include in the search.
+        :param search_field: The lookup strings we want to search (and whether
+          we want folding for each).
+        :param kwargs: Ignored. Here to allow compatibility with other search functions.
+        :return: The Fragments found.
+        """
         qs = cls.get_filtered_model_qs(
             Fragment, ant_filter=ant_filter, ca_filter=ca_filter
         )
@@ -476,8 +644,24 @@ class SearchView(TemplateView, ListView):
 
     @classmethod
     def testimonium_search(
-        cls, terms, ant_filter=None, ca_filter=None, search_field=None, **kwargs
-    ):
+        cls,
+        terms: Term,
+        ant_filter: Iterable[str] | None = None,
+        ca_filter: Iterable[str] | None = None,
+        search_field: SearchMethodGroup.SearchField | None = None,
+        **kwargs: Any,
+    ) -> Iterable[Any]:
+        """
+        Find all the ``Testimonium`` objects that match the query.
+
+        :param term: Object representing the user's query.
+        :param ant_filter: A list of antiquarians to include in the search.
+        :param ca_filter: A list of citing authors to include in the search.
+        :param search_field: The lookup strings we want to search (and whether
+          we want folding for each).
+        :param kwargs: Ignored. Here to allow compatibility with other search functions.
+        :return: The Testimonia found.
+        """
         qs = cls.get_filtered_model_qs(
             Testimonium, ant_filter=ant_filter, ca_filter=ca_filter
         )
@@ -486,13 +670,24 @@ class SearchView(TemplateView, ListView):
     @classmethod
     def anonymous_fragment_search(
         cls,
-        terms,
-        ant_filter=None,
-        ca_filter=None,
-        search_field=None,
-        qs=None,
-        **kwargs,
-    ):
+        terms: Term,
+        ant_filter: Iterable[str] | None = None,
+        ca_filter: Iterable[str] | None = None,
+        search_field: SearchMethodGroup.SearchField | None = None,
+        qs: QuerySet | None = None,
+        **kwargs: Any,
+    ) -> Iterable[Any]:
+        """
+        Find all the ``AnonymousFragment``s that match the query.
+
+        :param term: Object representing the user's query.
+        :param ant_filter: A list of antiquarians to include in the search.
+        :param ca_filter: A list of citing authors to include in the search.
+        :param search_field: The lookup strings we want to search (and whether
+          we want folding for each).
+        :param kwargs: Ignored. Here to allow compatibility with other search functions.
+        :return: The Fragments found.
+        """
         if not qs:
             qs = cls.get_filtered_model_qs(
                 AnonymousFragment, ant_filter=ant_filter, ca_filter=ca_filter
@@ -501,8 +696,25 @@ class SearchView(TemplateView, ListView):
 
     @classmethod
     def appositum_search(
-        cls, terms, ant_filter=None, ca_filter=None, search_field=None, **kwargs
-    ):
+        cls,
+        terms: Term,
+        ant_filter: Iterable[str] | None = None,
+        ca_filter: Iterable[str] | None = None,
+        search_field: SearchMethodGroup.SearchField | None = None,
+        **kwargs: Any,
+    ) -> Iterable[Any]:
+        """
+        Find all the ``AnonymousFragment``s that have associated appositum
+          fragments and that match the query.
+
+        :param term: Object representing the user's query.
+        :param ant_filter: A list of antiquarians to include in the search.
+        :param ca_filter: A list of citing authors to include in the search.
+        :param search_field: The lookup strings we want to search (and whether
+          we want folding for each).
+        :param kwargs: Ignored. Here to allow compatibility with other search functions.
+        :return: The Fragments found.
+        """
         qs = AnonymousFragment.objects.exclude(appositumfragmentlinks_from=None).all()
         qs = cls.get_filtered_model_qs(
             AnonymousFragment, qs=qs, ant_filter=ant_filter, ca_filter=ca_filter
@@ -513,8 +725,22 @@ class SearchView(TemplateView, ListView):
 
     @classmethod
     def apparatus_criticus_search(
-        cls, terms, ant_filter=None, ca_filter=None, **kwargs
-    ):
+        cls,
+        terms: Term,
+        ant_filter: Iterable[str] | None = None,
+        ca_filter: Iterable[str] | None = None,
+        **kwargs: Any,
+    ) -> Iterable[Any]:
+        """
+        Find all the ``Fragment``, ``AnonymousFragment`` or ``Testimonium``
+        objects that have apparatus criticus text that match the user's query.
+
+        :param terms: The user's query.
+        :param qs: The query set to filter.
+        :param search_field: The lookup strings we want to search (and whether
+          we want folding for each).
+        :return: The objects found.
+        """
         query_string = "original_texts__apparatus_criticus_items__content"
         qst = cls.get_filtered_model_qs(
             Testimonium, ant_filter=ant_filter, ca_filter=ca_filter
@@ -532,7 +758,22 @@ class SearchView(TemplateView, ListView):
         )
 
     @classmethod
-    def bibliography_search(cls, terms, ant_filter=None, ca_filter=None, **kwargs):
+    def bibliography_search(
+        cls,
+        terms: Term,
+        ant_filter: Iterable[str] | None = None,
+        ca_filter: Iterable[str] | None = None,
+        **kwargs: Any,
+    ) -> Iterable[Any]:
+        """
+        Find all the ``BibliographyItem``s that match the query.
+
+        :param term: Object representing the user's query.
+        :param ant_filter: A list of antiquarians to include in the search.
+        :param ca_filter: A list of citing authors to include in the search.
+        :param kwargs: Ignored. Here to allow compatibility with other search functions.
+        :return: The Bibliographies found.
+        """
         qs = cls.get_filtered_model_qs(
             BibliographyItem, ant_filter=ant_filter, ca_filter=ca_filter
         )
@@ -540,19 +781,58 @@ class SearchView(TemplateView, ListView):
         return cls.generic_content_search(qs, search_fields)
 
     @classmethod
-    def citing_author_search(cls, terms, ca_filter=None, **kwargs):
+    def citing_author_search(
+        cls,
+        terms: Term,
+        ca_filter: Iterable[str] | None = None,
+        **kwargs: Any,
+    ) -> Iterable[Any]:
+        """
+        Find all the ``CitingAuthor``s that match the query.
+
+        :param term: Object representing the user's query.
+        :param ca_filter: A list of citing authors to include in the search.
+        :param kwargs: Ignored. Here to allow compatibility with other search functions.
+        :return: The Citing Authors found.
+        """
         qs = cls.get_filtered_model_qs(CitingAuthor, ca_filter=ca_filter)
         search_fields = [("name", terms.match)]
         return cls.generic_content_search(qs, search_fields)
 
     @classmethod
-    def citing_work_search(cls, terms, ca_filter=None, **kwargs):
+    def citing_work_search(
+        cls, terms: Term, ca_filter: Iterable[str] | None = None, **kwargs
+    ) -> Iterable[Any]:
+        """
+        Find all the ``CitingWork``s that match the query.
+
+        :param term: Object representing the user's query.
+        :param ca_filter: A list of citing authors to include in the search.
+        :param kwargs: Ignored. Here to allow compatibility with other search functions.
+        :return: The Citing Works found.
+        """
         qs = cls.get_filtered_model_qs(CitingWork, ca_filter=ca_filter)
         search_fields = [("title", terms.match), ("edition", terms.match)]
         return cls.generic_content_search(qs, search_fields)
 
     @classmethod
-    def get_filtered_model_qs(cls, model, qs=None, ant_filter=None, ca_filter=None):
+    def get_filtered_model_qs(
+        cls,
+        model: type,
+        qs: QuerySet | None = None,
+        ant_filter: Iterable[str] | None = None,
+        ca_filter: Iterable[str] | None = None,
+    ) -> QuerySet:
+        """
+        Get a query set filtered by antiquarian and/or citing author.
+
+        :param model: The type of the queryset results.
+        :param qs: The queryset to filter. If None then all objects of
+          the ``model`` type are filtered.
+        :param ant_filter: List of antiquarians to filter on.
+        :param ca_filter: List of citing authors to filter on.
+        :return: The filtered query set.
+        """
         if not qs:
             qs = model.objects.all()
         if ant_filter:
@@ -578,9 +858,11 @@ class SearchView(TemplateView, ListView):
         return qs
 
     def get(self, request, *args, **kwargs):
-        keywords = self.request.GET.get("q", None)
+        """Perform the search for the user."""
+        keywords = request.GET.get("q", None)
         if keywords is not None and keywords.strip() == "":
             # empty search field. Redirect to cleared page
+            # Needs to be self.request or github-advanced-security complains
             ret = redirect(self.request.path)
         else:
             ret = super().get(request, *args, **kwargs)
@@ -636,7 +918,11 @@ class SearchView(TemplateView, ListView):
         queryset_chain = chain(*result_set)
 
         # return a list...
-        return sorted(queryset_chain, key=lambda instance: instance.pk, reverse=True)
+        return sorted(
+            queryset_chain,
+            key=lambda instance: (instance.weight, instance.pk),
+            reverse=True,
+        )
 
     def antiquarians_and_authors_and_bibliographies_in_object_list(self, object_list):
         """Generate lists of Antiquarians, Citing Authors and Bibliographies

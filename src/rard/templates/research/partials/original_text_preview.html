@@ -1,6 +1,6 @@
 {# Assumes a context object named 'original_text' #}
 
-{% include 'research/partials/text_object_preview.html' with text_object=original_text %}
+{% include 'research/partials/text_object_preview.html' with text_object=original_text hide_last_modified=hide_last_modified %}
 
 {% comment %}
 <div class="card mt-3 mb-5 bg-light">
@@ -8,7 +8,9 @@
         <div class='card-text alphabetum'>
             {{ original_text.content|safe }}
         </div>
+        {% if user.is_authenticated %}
         <small class='text-muted'>{% include 'research/partials/render_last_modified_info.html' with object=original_text %}</small>
+        {% endif %}
         <div>
         </div>
 

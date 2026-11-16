@@ -16,7 +16,7 @@ from rard.research.models.base import (
 from rard.research.models.mixins import HistoryModelMixin, TextObjectFieldMixin
 from rard.utils.basemodel import BaseModel, DatedModel, LockableModel, OrderableModel
 from rard.utils.decorators import disable_for_loaddata
-from rard.utils.shared_functions import collate_ub_links
+from rard.utils.shared_functions import collate_book_links
 from rard.utils.text_processors import make_plain_text
 
 
@@ -42,6 +42,9 @@ class Work(
 
     class Meta:
         ordering = ["name"]
+        permissions = [
+            ("publish_work", "Can publish a work"),
+        ]
 
     objects = WorkManager()
 
@@ -49,9 +52,13 @@ class Work(
 
     subtitle = models.CharField(max_length=128, blank=True)
 
+    publishable = models.BooleanField(default=False)
+
     number_of_books = models.CharField(max_length=128, blank=True)
 
     unknown = models.BooleanField(default=False)
+
+    bibliographic = models.BooleanField(default=False)
 
     introduction = models.OneToOneField(
         "TextObjectField",
@@ -124,7 +131,7 @@ class Work(
             antiquarian_testimoniumlinks__in=links
         ).distinct()
 
-    def get_ordered_materials(self):
+    def get_ordered_materials(self, include_unpublished: bool):
         from rard.research.models import AnonymousFragment, Fragment, Testimonium
         from rard.research.models.base import (
             AppositumFragmentLink,
@@ -132,38 +139,51 @@ class Work(
             TestimoniumLink,
         )
 
+        fragment_links_unordered = self.antiquarian_work_fragmentlinks.values(
+            "definite_antiquarian",
+            "definite_work",
+            "definite_book",
+            "book",
+            "order_in_book",
+            pk=F("fragment__pk"),
+            link_id=F("id"),
+        )
+        testimonium_links_unordered = self.antiquarian_work_testimoniumlinks.values(
+            "definite_antiquarian",
+            "definite_work",
+            "definite_book",
+            "book",
+            "order_in_book",
+            pk=F("testimonium__pk"),
+            link_id=F("id"),
+        )
+        appositum_links_unordered = self.antiquarian_work_appositumfragmentlinks.values(
+            "definite_antiquarian",
+            "definite_work",
+            "definite_book",
+            "book",
+            "order_in_book",
+            pk=F("anonymous_fragment__pk"),
+            link_id=F("id"),
+        )
+        if not include_unpublished:
+            fragment_links_unordered = fragment_links_unordered.filter(
+                fragment__publishable=True
+            )
+            testimonium_links_unordered = testimonium_links_unordered.filter(
+                testimonium__publishable=True
+            )
+            appositum_links_unordered = appositum_links_unordered.filter(
+                anonymous_fragment__publishable=True
+            )
         fragment_links = list(
-            self.antiquarian_work_fragmentlinks.values(
-                "definite_antiquarian",
-                "definite_work",
-                "definite_book",
-                "book",
-                "order_in_book",
-                pk=F("fragment__pk"),
-                link_id=F("id"),
-            ).order_by("book", "order_in_book")
+            fragment_links_unordered.order_by("book", "order_in_book")
         )
         testimonium_links = list(
-            self.antiquarian_work_testimoniumlinks.values(
-                "definite_antiquarian",
-                "definite_work",
-                "definite_book",
-                "book",
-                "order_in_book",
-                pk=F("testimonium__pk"),
-                link_id=F("id"),
-            ).order_by("book", "order_in_book")
+            testimonium_links_unordered.order_by("book", "order_in_book")
         )
         appositum_links = list(
-            self.antiquarian_work_appositumfragmentlinks.values(
-                "definite_antiquarian",
-                "definite_work",
-                "definite_book",
-                "book",
-                "order_in_book",
-                pk=F("anonymous_fragment__pk"),
-                link_id=F("id"),
-            ).order_by("book", "order_in_book")
+            appositum_links_unordered.order_by("book", "order_in_book")
         )
         materials = {
             "fragments": (fragment_links, Fragment, FragmentLink),
@@ -220,7 +240,8 @@ class Work(
                         link.work_order = count
                         link.save()
 
-        # There should only ever be one antiquarian, but no harm in covering all eventualities
+        # There should only ever be one antiquarian, but no harm in covering
+        # all eventualities
         for antiquarian in self.antiquarian_set.all():
             antiquarian.reindex_fragment_and_testimonium_links()
 
@@ -296,14 +317,17 @@ class Book(
 
 @disable_for_loaddata
 def collate_unknown(instance):
-    """This makes sure there's only one unknown book per work and combines contents if otherwise"""
+    """
+    This makes sure there's only one unknown book per work and combines
+    contents if otherwise.
+    """
     unknown_books = instance.book_set.filter(unknown=True)
 
     if unknown_books.count() > 1:
         designated_unknown = unknown_books.first()
         other_unknown_books = unknown_books.exclude(pk=designated_unknown.pk)
 
-        collate_ub_links(instance, designated_unknown)
+        collate_book_links(instance, designated_unknown, other_unknown_books)
         other_unknown_books.delete()
 
 

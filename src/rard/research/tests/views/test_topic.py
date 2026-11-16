@@ -171,8 +171,6 @@ class TestTopicViewPermissions(TestCase):
         self.assertIn("research.add_topic", TopicCreateView.permission_required)
         self.assertIn("research.delete_topic", TopicDeleteView.permission_required)
         self.assertIn("research.change_topic", TopicUpdateView.permission_required)
-        self.assertIn("research.view_topic", TopicListView.permission_required)
-        self.assertIn("research.view_topic", TopicDetailView.permission_required)
 
 
 class TestTopicDetailView(TestCase):

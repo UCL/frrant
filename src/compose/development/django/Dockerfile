@@ -1,4 +1,4 @@
-FROM python:3.8-slim-buster
+FROM python:3.12.12-trixie
 
 ENV PYTHONUNBUFFERED 1
 ENV PYTHONDONTWRITEBYTECODE 1
@@ -33,7 +33,7 @@ COPY ./compose/development/django/start /start
 RUN sed -i 's/\r$//g' /start
 RUN chmod +x /start
 RUN chown django /start
-COPY . /app
+COPY --chown=django:django . /app
 RUN chown django /app
 
 # Create folders with correct permissions

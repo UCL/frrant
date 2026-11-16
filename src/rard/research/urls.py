@@ -1,65 +1,79 @@
-import os
-
 from django.conf.urls import include
 from django.urls import path
 from django_distill import distill_path
 
 import rard.research.views as views
+from rard.research.models import (
+    AnonymousFragment,
+    Antiquarian,
+    BibliographyItem,
+    CitingAuthor,
+    CitingWork,
+    Fragment,
+    Testimonium,
+    Topic,
+    Work,
+)
 
-IS_DISTILL = os.getenv("DJANGO_DISTILL", "False") == "True"
-common_patterns = []
 
-if IS_DISTILL:
-    from rard.research.models import Antiquarian, BibliographyItem
-    from rard.research.models.citing_work import CitingAuthor, CitingWork
-    from rard.research.models.fragment import AnonymousFragment, Fragment
-    from rard.research.models.testimonium import Testimonium
-    from rard.research.models.topic import Topic
-    from rard.research.models.work import Work
-
-    def get_model_pks(model):
+def get_model_pks(model):
+    def yield_pks():
         for instance in model.objects.all():
             yield {"pk": instance.pk}
 
-    def get_topic_slugs():
-        for topic in Topic.objects.all():
-            yield {"slug": topic.slug}
+    return yield_pks
 
-else:
-    # common urls for both fragments and testimonia for shared views that we
-    # want to expose under different namespaces
-    common_patterns = [
-        path(
-            "original-text/<pk>/update/",
-            views.OriginalTextUpdateView.as_view(),
-            name="update_original_text",
-        ),
-        path(
-            "original-text/<pk>/update-author/",
-            views.OriginalTextUpdateAuthorView.as_view(),
-            name="update_author_original_text",
-        ),
-        path(
-            "original-text/<pk>/delete/",
-            views.OriginalTextDeleteView.as_view(),
-            name="delete_original_text",
-        ),
-        path(
-            "original-text/<pk>/create-translation/",
-            views.TranslationCreateView.as_view(),
-            name="create_translation",
-        ),
-        path(
-            "translation/<pk>/update/",
-            views.TranslationUpdateView.as_view(),
-            name="update_translation",
-        ),
-        path(
-            "translation/<pk>/delete/",
-            views.TranslationDeleteView.as_view(),
-            name="delete_translation",
-        ),
-    ]
+
+def get_publishable_pks(model):
+    def yield_pks():
+        for instance in model.objects.filter(publishable=True):
+            yield {"pk": instance.pk}
+
+    return yield_pks
+
+
+get_antiquarian_pks = get_publishable_pks(Antiquarian)
+
+
+def get_topic_slugs():
+    for instance in Topic.objects.all():
+        yield {"slug": instance.slug}
+
+
+# common urls for both fragments and testimonia for shared views that we
+# want to expose under different namespaces
+common_patterns = [
+    path(
+        "original-text/<pk>/update/",
+        views.OriginalTextUpdateView.as_view(),
+        name="update_original_text",
+    ),
+    path(
+        "original-text/<pk>/update-author/",
+        views.OriginalTextUpdateAuthorView.as_view(),
+        name="update_author_original_text",
+    ),
+    path(
+        "original-text/<pk>/delete/",
+        views.OriginalTextDeleteView.as_view(),
+        name="delete_original_text",
+    ),
+    path(
+        "original-text/<pk>/create-translation/",
+        views.TranslationCreateView.as_view(),
+        name="create_translation",
+    ),
+    path(
+        "translation/<pk>/update/",
+        views.TranslationUpdateView.as_view(),
+        name="update_translation",
+    ),
+    path(
+        "translation/<pk>/delete/",
+        views.TranslationDeleteView.as_view(),
+        name="delete_translation",
+    ),
+]
 
 # app_name = "research"
 urlpatterns = [
@@ -106,7 +120,7 @@ urlpatterns = [
                         "<pk>/",
                         views.AntiquarianDetailView.as_view(),
                         name="detail",
-                        distill_func=lambda: get_model_pks(Antiquarian),
+                        distill_func=get_antiquarian_pks,
                     ),
                     path(
                         "<pk>/introduction/",
@@ -126,8 +140,9 @@ urlpatterns = [
                     distill_path(
                         "<pk>/bibliography/",
                         views.BibliographySectionView.as_view(),
+                        {"related_model": "antiquarian"},
                         name="bibliography",
-                        distill_func=lambda: get_model_pks(Antiquarian),
+                        distill_func=get_antiquarian_pks,
                     ),
                     path(
                         "<pk>/refresh_bibliography/",
@@ -155,19 +170,14 @@ urlpatterns = [
                         name="create_bibliography",
                     ),
                     path(
-                        "<pk>/concordance/create/",
-                        views.AntiquarianConcordanceCreateView.as_view(),
-                        name="create_concordance",
-                    ),
-                    path(
-                        "concordance/<pk>/update/",
-                        views.AntiquarianConcordanceUpdateView.as_view(),
-                        name="update_concordance",
-                    ),
-                    path(
                         "concordance/<pk>/delete/",
                         views.AntiquarianConcordanceDeleteView.as_view(),
                         name="delete_concordance",
+                    ),
+                    path(
+                        "<pk>/set-publishable/",
+                        views.antiquarian_set_publishable,
+                        name="set_publishable",
                     ),
                 ],
                 "research",
@@ -200,7 +210,7 @@ urlpatterns = [
                         "<pk>/",
                         views.BibliographyDetailView.as_view(),
                         name="detail",
-                        distill_func=lambda: get_model_pks(BibliographyItem),
+                        distill_func=get_model_pks(BibliographyItem),
                     ),
                     path(
                         "<pk>/update/",
@@ -229,7 +239,7 @@ urlpatterns = [
                         "<pk>/",
                         views.WorkDetailView.as_view(),
                         name="detail",
-                        distill_func=lambda: get_model_pks(Work),
+                        distill_func=get_publishable_pks(Work),
                     ),
                     path("<pk>/update/", views.WorkUpdateView.as_view(), name="update"),
                     path("<pk>/delete/", views.WorkDeleteView.as_view(), name="delete"),
@@ -272,6 +282,11 @@ urlpatterns = [
                         "fetch-books",
                         views.fetch_books,
                         name="fetch_books",
+                    ),
+                    path(
+                        "<pk>/set-publishable/",
+                        views.work_set_publishable,
+                        name="set_publishable",
                     ),
                 ],
                 "research",
@@ -353,7 +368,7 @@ urlpatterns = [
                         "<pk>/",
                         views.FragmentDetailView.as_view(),
                         name="detail",
-                        distill_func=lambda: get_model_pks(Fragment),
+                        distill_func=get_publishable_pks(Fragment),
                     ),
                     path(
                         "<pk>/create-original-text/",
@@ -365,8 +380,13 @@ urlpatterns = [
                         views.fetch_fragments,
                         name="fetch_fragments",
                     ),
+                    path(
+                        "<pk>/set-publishable/",
+                        views.fragment_set_publishable,
+                        name="set_publishable",
+                    ),
                     # include common urls here
-                    path("", include(common_patterns)),
+                    path("", include(common_patterns())),
                 ],
                 "research",
             ),
@@ -466,15 +486,20 @@ urlpatterns = [
                         "<pk>/",
                         views.AnonymousFragmentDetailView.as_view(),
                         name="detail",
-                        distill_func=lambda: get_model_pks(AnonymousFragment),
+                        distill_func=get_publishable_pks(AnonymousFragment),
                     ),
                     path(
                         "<pk>/create-original-text/",
                         views.AnonymousFragmentOriginalTextCreateView.as_view(),
                         name="create_original_text",
                     ),
+                    path(
+                        "<pk>/set-publishable/",
+                        views.anonymous_fragment_set_publishable,
+                        name="set_publishable",
+                    ),
                     # include common urls here
-                    path("", include(common_patterns)),
+                    path("", include(common_patterns())),
                 ],
                 "research",
             ),
@@ -552,14 +577,19 @@ urlpatterns = [
                         "<pk>/",
                         views.TestimoniumDetailView.as_view(),
                         name="detail",
-                        distill_func=lambda: get_model_pks(Testimonium),
+                        distill_func=get_publishable_pks(Testimonium),
                     ),
                     path(
                         "<pk>/create-original-text/",
                         views.TestimoniumOriginalTextCreateView.as_view(),
                         name="create_original_text",
                     ),
-                    path("", include(common_patterns)),
+                    path(
+                        "<pk>/set-publishable/",
+                        views.testimonium_set_publishable,
+                        name="set_publishable",
+                    ),
+                    path("", include(common_patterns())),
                     # include common urls here
                 ],
                 "research",
@@ -578,7 +608,7 @@ urlpatterns = [
                         "<slug>/",
                         views.TopicDetailView.as_view(),
                         name="detail",
-                        distill_func=lambda: get_topic_slugs(),
+                        distill_func=get_topic_slugs,
                     ),
                     path(
                         "<slug>/update/", views.TopicUpdateView.as_view(), name="update"
@@ -596,13 +626,28 @@ urlpatterns = [
         "concordance/",
         include(
             (
-                [  # TODO after new structure
+                [
                     distill_path(
                         "list/", views.ConcordanceListView.as_view(), name="list"
                     ),
                     path(
-                        "original-text/<pk>/create/",
+                        "fetch-works/",
+                        views.fetch_works,
+                        name="fetch_works",
+                    ),
+                    path(
+                        "fetch-parts/",
+                        views.fetch_parts,
+                        name="fetch_parts",
+                    ),
+                    path(
+                        "create/<ot_pk>/<e_pk>/<p_pk>/",
                         views.ConcordanceCreateView.as_view(),
+                        name="create_s2",
+                    ),
+                    path(
+                        "original-text/<pk>/create/",
+                        views.ConcordanceEditionView.as_view(),
                         name="create",
                     ),
                     path(
@@ -614,6 +659,11 @@ urlpatterns = [
                         "<pk>/delete/",
                         views.ConcordanceDeleteView.as_view(),
                         name="delete",
+                    ),
+                    path(
+                        "<pk>/delete-old/",
+                        views.OldConcordanceDeleteView.as_view(),
+                        name="delete_old",
                     ),
                 ],
                 "research",
@@ -691,7 +741,7 @@ urlpatterns = [
                         "<pk>/",
                         views.CitingAuthorDetailView.as_view(),
                         name="detail",
-                        distill_func=lambda: get_model_pks(CitingAuthor),
+                        distill_func=get_publishable_pks(CitingAuthor),
                     ),
                     path(
                         "<pk>/delete/",
@@ -702,6 +752,27 @@ urlpatterns = [
                         "<pk>/update/",
                         views.CitingAuthorUpdateView.as_view(),
                         name="update",
+                    ),
+                    path(
+                        "<pk>/introduction/",
+                        views.CitingAuthorIntroductionView.as_view(),
+                        name="introduction",
+                    ),
+                    path(
+                        "<pk>/update/introduction/",
+                        views.CitingAuthorUpdateIntroductionView.as_view(),
+                        name="update_introduction",
+                    ),
+                    path(
+                        "<pk>/bibliography/",
+                        views.BibliographySectionView.as_view(),
+                        {"related_model": "citing_author"},
+                        name="bibliography",
+                    ),
+                    path(
+                        "<pk>/refresh_bibliography/",
+                        views.ca_refresh_bibliography_from_mentions,
+                        name="refresh_bibliography",
                     ),
                     path(
                         "<pk>/work/create/",
@@ -728,6 +799,26 @@ urlpatterns = [
                         "work/<pk>/delete/",
                         views.CitingWorkDeleteView.as_view(),
                         name="delete_work",
+                    ),
+                    path(
+                        "work/<pk>/introduction/",
+                        views.CitingWorkIntroductionView.as_view(),
+                        name="introduction_for_work",
+                    ),
+                    path(
+                        "work/<pk>/update/introduction/",
+                        views.CitingWorkUpdateIntroductionView.as_view(),
+                        name="update_introduction_for_work",
+                    ),
+                    path(
+                        "<pk>/set-publishable/",
+                        views.citing_author_set_publishable,
+                        name="set_publishable",
+                    ),
+                    path(
+                        "work/<pk>/set-publishable/",
+                        views.citing_work_set_publishable,
+                        name="work_set_publishable",
                     ),
                 ],
                 "research",

@@ -2,7 +2,7 @@ from django.db import models
 from django.db.models.signals import pre_delete
 from django.urls import reverse
 
-from rard.research.mixins import TextObjectFieldMixin
+from rard.research.models.mixins import TextObjectFieldMixin
 from rard.utils.basemodel import BaseModel
 from rard.utils.decorators import disable_for_loaddata
 

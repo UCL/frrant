@@ -1,3 +1,5 @@
+import os
+
 import pytest
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
@@ -6,8 +8,8 @@ from rard.research.models import Antiquarian
 from rard.research.views import (
     AntiquarianCreateView,
     AntiquarianDeleteView,
-    AntiquarianDetailView,
     AntiquarianListView,
+    AntiquarianUpdateIntroductionView,
     AntiquarianUpdateView,
     AntiquarianWorkCreateView,
     AntiquarianWorksUpdateView,
@@ -32,7 +34,10 @@ class TestAntiquarianSuccessUrls(TestCase):
             view.request = request
             view.object = Antiquarian()
 
-            self.assertEqual(view.get_success_url(), f"/antiquarian/{view.object.pk}/")
+            self.assertEqual(
+                view.get_success_url(),
+                f"/{os.environ['URL_PREFIX']}antiquarian/{view.object.pk}/",
+            )
 
     def test_delete_success_url(self):
         view = AntiquarianDeleteView()
@@ -65,7 +70,10 @@ class TestAntiquarianWorkCreateView(TestCase):
         view.request = request
         view.antiquarian = Antiquarian.objects.create()
 
-        self.assertEqual(view.get_success_url(), f"/antiquarian/{view.antiquarian.pk}/")
+        self.assertEqual(
+            view.get_success_url(),
+            f"/{os.environ['URL_PREFIX']}antiquarian/{view.antiquarian.pk}/",
+        )
 
     def test_create(self):
         antiquarian = Antiquarian.objects.create()
@@ -77,9 +85,12 @@ class TestAntiquarianWorkCreateView(TestCase):
         antiquarian.lock(request.user)
 
         AntiquarianWorkCreateView.as_view()(request, pk=antiquarian.pk)
-        self.assertEqual(antiquarian.works.exclude(unknown=True).count(), 1)
+        self.assertEqual(
+            antiquarian.works.exclude(unknown=True).exclude(bibliographic=True).count(),
+            1,
+        )
         for key, val in data.items():
-            self.assertEqual(getattr(antiquarian.works.first(), key), val)
+            self.assertEqual(getattr(antiquarian.ordered_works.first(), key), val)
 
     def test_bad_data(self):
         antiquarian = Antiquarian.objects.create()
@@ -92,7 +103,10 @@ class TestAntiquarianWorkCreateView(TestCase):
 
         AntiquarianWorkCreateView.as_view()(request, pk=antiquarian.pk)
         # no work created
-        self.assertEqual(antiquarian.works.exclude(unknown=True).count(), 0)
+        self.assertEqual(
+            antiquarian.works.exclude(unknown=True).exclude(bibliographic=True).count(),
+            0,
+        )
 
 
 class TestAntiquarianDeleteView(TestCase):
@@ -126,12 +140,6 @@ class TestAntiquarianViewPermissions(TestCase):
             "research.change_antiquarian",
             AntiquarianWorksUpdateView.permission_required,
         )
-        self.assertIn(
-            "research.view_antiquarian", AntiquarianListView.permission_required
-        )
-        self.assertIn(
-            "research.view_antiquarian", AntiquarianDetailView.permission_required
-        )
 
 
 class TestAntiquarianListView(TestCase):
@@ -157,6 +165,7 @@ class TestAntiquarianListView(TestCase):
 
     def test_ordered_queryset(self):
         view = AntiquarianListView()
+        user = UserFactory.create()
 
         # create some data to search
         a1 = Antiquarian.objects.create(name="name", re_code="1", order_year=100)
@@ -168,6 +177,7 @@ class TestAntiquarianListView(TestCase):
         }
         url = reverse("antiquarian:list")
         request = RequestFactory().get(url, data=data)
+        request.user = user
         view.request = request
         qs = view.get_queryset()
         self.assertEqual(2, len(qs))
@@ -177,7 +187,64 @@ class TestAntiquarianListView(TestCase):
             "order": "latest",
         }
         request = RequestFactory().get(url, data=data)
+        request.user = user
         view.request = request
         qs = view.get_queryset()
         self.assertEqual(2, len(qs))
         self.assertEqual([a.pk for a in qs.all()], [a2.pk, a1.pk])
+
+
+class TestAntiquarianUpdateIntroductionView(TestCase):
+    def setUp(self):
+        self.antiquarian = Antiquarian.objects.create()
+        self.url = reverse(
+            "antiquarian:update_introduction", kwargs={"pk": self.antiquarian.pk}
+        )
+        self.request = RequestFactory().get(self.url)
+        self.request.user = UserFactory.create()
+
+        self.antiquarian.lock(self.request.user)
+        self.response = AntiquarianUpdateIntroductionView.as_view()(
+            self.request, pk=self.antiquarian.pk
+        )
+
+    def test_context_data(self):
+        self.assertEqual(
+            self.response.context_data["text_object"], self.antiquarian.introduction
+        )
+        self.assertEqual(self.response.context_data["object_class"], "antiquarian")
+
+    def test_success_url(self):
+        # this is more complicated than with other views
+        # due to the conditional rendering on another view
+        # // I think
+        success_url = self.response.context_data["view"].get_success_url()
+        self.assertEqual(
+            success_url,
+            f"/{os.environ['URL_PREFIX']}antiquarian/{self.antiquarian.pk}/",
+        )
+
+    def test_update_intro(self):
+        """This checks that an introduction object is created
+        when the book object is created but is empty
+        and will update on POST"""
+        intro = self.response.context_data["object"].introduction
+
+        self.assertTrue(bool(intro.pk))
+        self.assertFalse(bool(intro.content))
+
+        ant_pk = self.response.context_data["object"].pk
+
+        intro_text = "testing update of introduction"
+
+        data = {
+            "introduction_text": intro_text,
+        }
+        post_request = RequestFactory().post(self.url, data=data)
+        post_request.user = self.request.user
+        AntiquarianUpdateIntroductionView.as_view()(post_request, pk=ant_pk)
+
+        self.antiquarian.refresh_from_db()
+        intro = self.antiquarian.introduction
+        self.assertTrue(bool(intro.content))
+        self.assertEqual(intro.content, intro_text)

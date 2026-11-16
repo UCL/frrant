@@ -8,7 +8,9 @@ from django.template.loader import render_to_string
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_GET, require_POST
-from django.views.generic import ListView, View
+from django.views.generic import View
+
+# from django.views.generic import ListView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
@@ -20,21 +22,23 @@ from rard.research.forms import (
     WorkForm,
 )
 from rard.research.models import Antiquarian, AntiquarianConcordance, Book, Work
+from rard.research.views.list import ListView
 from rard.research.views.mixins import (
     CanLockMixin,
     CheckLockMixin,
     DateOrderMixin,
+    PublishableMixin,
     TextObjectFieldUpdateMixin,
     TextObjectFieldViewMixin,
 )
 
 
-class AntiquarianListView(DateOrderMixin, ListView):
-    paginate_by = 15
+class AntiquarianListView(DateOrderMixin, PublishableMixin, ListView):
+    paginate_by = 10
     model = Antiquarian
 
 
-class AntiquarianDetailView(CanLockMixin, DetailView):
+class AntiquarianDetailView(CanLockMixin, PublishableMixin, DetailView):
     model = Antiquarian
 
     def post(self, *args, **kwargs):
@@ -104,14 +108,17 @@ class MoveLinkView(LoginRequiredMixin, View):
             "has_object_lock": True,
             "can_edit": True,
             "perms": PermWrapper(self.request.user),
-            "ordered_materials": work.get_ordered_materials(),
+            "ordered_materials": work.get_ordered_materials(False),
         }
         html = render_to_string(template, context)
         ajax_data = {"status": 200, "html": html}
         return JsonResponse(data=ajax_data, safe=False)
 
     def post(self, *args, **kwargs):
-        """if passed a book pk and link pk, we'd want to see if there's an option to 'move to' and apply it to the book/link"""
+        """
+        If passed a book pk and link pk, we'd want to see if there's an option
+        to 'move to' and apply it to the book/link.
+        """
         link_pk = self.request.POST.get("link_id", None)
         work_pk = self.request.POST.get("work_id", None)
         book_pk = self.request.POST.get("book_id", None)
@@ -188,7 +195,7 @@ class AntiquarianCreateView(LoginRequiredMixin, PermissionRequiredMixin, CreateV
 
 
 class AntiquarianUpdateView(
-    LoginRequiredMixin, CheckLockMixin, PermissionRequiredMixin, UpdateView
+    LoginRequiredMixin, PermissionRequiredMixin, CheckLockMixin, UpdateView
 ):
     model = Antiquarian
     permission_required = ("research.change_antiquarian",)
@@ -212,7 +219,7 @@ class AntiquarianIntroductionView(TextObjectFieldViewMixin):
 
 @method_decorator(require_POST, name="dispatch")
 class AntiquarianDeleteView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, DeleteView
 ):
     model = Antiquarian
     permission_required = ("research.delete_antiquarian",)
@@ -220,7 +227,7 @@ class AntiquarianDeleteView(
 
 
 class AntiquarianWorksUpdateView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, UpdateView
 ):
     model = Antiquarian
     form_class = AntiquarianUpdateWorksForm
@@ -232,7 +239,7 @@ class AntiquarianWorksUpdateView(
 
 
 class AntiquarianWorkCreateView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, CreateView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, CreateView
 ):
     # the view attribute that needs to be checked for a lock
     check_lock_object = "antiquarian"
@@ -272,76 +279,9 @@ class AntiquarianWorkCreateView(
         return context
 
 
-class AntiquarianConcordanceCreateView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, CreateView
-):
-    check_lock_object = "antiquarian"
-
-    # create a concordance for an original text
-    model = AntiquarianConcordance
-    permission_required = ("research.add_antiquarianconcordance",)
-    fields = ("source", "identifier")
-
-    def dispatch(self, request, *args, **kwargs):
-        # need to ensure we have the lock object view attribute
-        # initialised in dispatch
-        self.get_antiquarian()
-        return super().dispatch(request, *args, **kwargs)
-
-    def get_success_url(self, *args, **kwargs):
-        return self.object.antiquarian.get_absolute_url()
-
-    def form_valid(self, form):
-        concordance = form.save(commit=False)
-        concordance.antiquarian = self.get_antiquarian()
-        return super().form_valid(form)
-
-    def get_antiquarian(self, *args, **kwargs):
-        if not getattr(self, "antiquarian", False):
-            self.antiquarian = get_object_or_404(Antiquarian, pk=self.kwargs.get("pk"))
-        return self.antiquarian
-
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
-        context.update(
-            {
-                "antiquarian": self.get_antiquarian(),
-            }
-        )
-        return context
-
-
-class AntiquarianConcordanceUpdateView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
-):
-    check_lock_object = "antiquarian"
-
-    model = AntiquarianConcordance
-    permission_required = ("research.change_antiquarianconcordance",)
-    fields = ("source", "identifier")
-
-    def dispatch(self, request, *args, **kwargs):
-        # need to ensure we have the lock object view attribute
-        # initialised in dispatch
-        self.antiquarian = self.get_object().antiquarian
-        return super().dispatch(request, *args, **kwargs)
-
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
-        context.update(
-            {
-                "antiquarian": self.antiquarian,
-            }
-        )
-        return context
-
-    def get_success_url(self, *args, **kwargs):
-        return self.object.antiquarian.get_absolute_url()
-
-
 @method_decorator(require_POST, name="dispatch")
 class AntiquarianConcordanceDeleteView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, DeleteView
 ):
     check_lock_object = "antiquarian"
 
@@ -378,3 +318,23 @@ def refresh_bibliography_from_mentions(request, pk):
     )
     response.headers["HX-Trigger"] = "refreshed-bibliography"
     return response
+
+
+@require_POST
+@login_required
+@permission_required("research.publish_antiquarian")
+def antiquarian_set_publishable(request, pk):
+    """
+    Given the pk of an Antiquarian object, set its publishable attribute to the
+    value of the POST request.
+    """
+    try:
+        antiquarian = Antiquarian.objects.get(pk=pk)
+    except Antiquarian.DoesNotExist:
+        raise Http404("No Antiquarians found matching the query")
+
+    antiquarian.publishable = request.POST.get("publishable", False)
+    antiquarian.save()
+
+    # Refresh the page
+    return HttpResponseRedirect(reverse("antiquarian:detail", kwargs={"pk": pk}))

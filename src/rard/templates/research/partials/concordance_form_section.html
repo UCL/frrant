@@ -1,0 +1,71 @@
+{% load i18n bootstrap4 %}
+
+<form novalidate enctype="multipart/form-data" autocomplete='off' action='{{ request_action }}' class="form" method='POST'>
+    {% csrf_token %}
+    <input type="hidden" name="original_text" value={{original_text.pk}}>
+    <div class="form-section">
+        <h2 class="alphabetum mt-2">{% trans 'Edition' %} </h2>
+        <p><strong>{{edition}}</strong></p>
+        {% if not is_update %}
+        <input type="hidden" name="edition" value={{edition.pk}}>
+        {% endif %}
+    </div>
+
+    <div class="form-section">
+        <div class="identifier-select">
+            {% bootstrap_field concordance_form.identifier %}
+            {% if not is_update %}
+            <p class="btn-link new-identifier-btn small">Or create a new Part Identifier >></p>
+            {% endif %}
+        </div>
+
+        {% if not is_update %}
+        <div class="new-identifier invisible">
+            <div class="d-flex flex-row justify-content-between">
+            {% bootstrap_field concordance_form.new_identifier %}
+            {% bootstrap_field concordance_form.display_order %}
+            </div>
+            <h2 class="btn-link select-identifier-btn small">Or select Part Identifier >></h2>
+        </div>
+
+        <script>
+            var newIdentifierArea = document.querySelector(".new-identifier");
+            var identifierSelectArea = document.querySelector(".identifier-select");
+
+            // Identifier select input will be disabled if none exist yet so don't show it
+            if(document.getElementById("id_identifier").disabled){
+                identifierSelectArea.classList.add("invisible");
+                newIdentifierArea.classList.remove("invisible");
+                document.querySelector(".select-identifier-btn").classList.add("invisible")
+            }
+
+            // swap between the forms
+            document.querySelector(".new-identifier-btn").onclick = ()=>{
+                identifierSelectArea.classList.add("invisible");
+                newIdentifierArea.classList.remove("invisible");
+            };
+            document.querySelector(".select-identifier-btn").onclick = ()=>{
+                identifierSelectArea.classList.remove("invisible");
+                newIdentifierArea.classList.add("invisible");
+            };
+
+        </script>
+        {% endif %}
+
+    </div>
+    <div class="form-section">
+        <div class="d-flex justify-content-between mt-3">
+            {% bootstrap_field concordance_form.content_type %}
+            {% bootstrap_field concordance_form.reference %}
+            {% bootstrap_field concordance_form.concordance_order %}
+        </div>
+    </div>
+
+        <button type="submit" class="btn btn-primary ">
+        {% if object %}
+            {% trans 'Save' %}
+        {% else %}
+            {% trans 'Create' %}
+        {% endif %}
+        </button>
+</form>

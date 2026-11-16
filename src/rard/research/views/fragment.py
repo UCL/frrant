@@ -1,5 +1,7 @@
-from bs4 import BeautifulSoup
+from typing import Any
+
 from django.contrib.auth.context_processors import PermWrapper
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
 from django.core.exceptions import BadRequest, ObjectDoesNotExist
 from django.db.models import F
@@ -14,7 +16,7 @@ from django.template.loader import render_to_string
 from django.urls import resolve, reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
-from django.views.generic import FormView, ListView, TemplateView, View
+from django.views.generic import FormView, TemplateView, View
 from django.views.generic.base import RedirectView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import DeleteView, UpdateView
@@ -37,25 +39,23 @@ from rard.research.forms import (
 from rard.research.models import (
     AnonymousFragment,
     Antiquarian,
-    ApparatusCriticusItem,
     CitingAuthor,
     CitingWork,
-    Concordance,
     Fragment,
-    OriginalText,
     Reference,
     Testimonium,
     Topic,
-    Translation,
     Work,
 )
 from rard.research.models.base import AppositumFragmentLink, FragmentLink
 from rard.research.models.fragment import AnonymousTopicLink
+from rard.research.views.list import ListView
 from rard.research.views.mention import MentionSearchView
 from rard.research.views.mixins import (
     CanLockMixin,
     CheckLockMixin,
     GetWorkLinkRequestDataMixin,
+    PublishableMixin,
     TextObjectFieldUpdateMixin,
     TextObjectFieldViewMixin,
 )
@@ -64,6 +64,11 @@ from rard.utils.convertors import (
     convert_unlinked_fragment_to_anonymous_fragment,
     convert_unlinked_fragment_to_testimonium,
     transfer_duplicates,
+)
+from rard.utils.duplication import (
+    copy_concordances_apcrit_and_translations,
+    duplicate_original_text,
+    update_ot_content_references,
 )
 from rard.utils.shared_functions import reassign_to_unknown
 
@@ -293,13 +298,13 @@ class AppositumCreateView(AnonymousFragmentCreateView):
 
 
 class FragmentListView(ListView):
-    paginate_by = 15
+    paginate_by = 10
     model = Fragment
 
 
-class AnonymousFragmentListView(ListView):
+class AnonymousFragmentListView(PublishableMixin, ListView):
     model = AnonymousTopicLink
-    permission_required = "research.view_fragment"
+    publishable_lookup = "fragment__publishable"
     template_name = "research/anonymousfragment_list.html"
 
     def get_selected_topic(self):
@@ -384,7 +389,6 @@ class AnonymousFragmentListView(ListView):
 
 class UnlinkedFragmentListView(ListView):
     model = Fragment
-    permission_required = "research.view_fragment"
     template_name = "research/unlinkedfragment_list.html"
     paginate_by = 15
 
@@ -398,7 +402,7 @@ class UnlinkedFragmentListView(ListView):
 
 
 class AddAppositumGeneralLinkView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, FormView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, FormView
 ):
     check_lock_object = "anonymous_fragment"
 
@@ -499,7 +503,7 @@ class AddAppositumGeneralLinkView(
 
 
 class AddAppositumFragmentLinkView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, FormView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, FormView
 ):
     check_lock_object = "anonymous_fragment"
 
@@ -550,7 +554,7 @@ class AddAppositumFragmentLinkView(
 
 
 class AddAppositumAnonymousLinkView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, FormView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, FormView
 ):
     check_lock_object = "appositum"
 
@@ -591,7 +595,7 @@ class AddAppositumAnonymousLinkView(
 
 @method_decorator(require_POST, name="dispatch")
 class RemoveAppositumLinkView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, RedirectView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, RedirectView
 ):
     check_lock_object = "anonymous_fragment"
     permission_required = ("research.change_anonymousfragment",)
@@ -634,7 +638,7 @@ class RemoveAppositumLinkView(
 
 @method_decorator(require_POST, name="dispatch")
 class RemoveAppositumFragmentLinkView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, RedirectView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, RedirectView
 ):
     check_lock_object = "anonymous_fragment"
     permission_required = ("research.change_anonymousfragment",)
@@ -671,7 +675,7 @@ class RemoveAppositumFragmentLinkView(
 
 @method_decorator(require_POST, name="dispatch")
 class RemoveAnonymousAppositumLinkView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, RedirectView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, RedirectView
 ):
     check_lock_object = "appositum"
     permission_required = ("research.change_anonymousfragment",)
@@ -707,33 +711,62 @@ class RemoveAnonymousAppositumLinkView(
         return redirect(self.get_success_url())
 
 
-class FragmentDetailView(CanLockMixin, DetailView):
+class FragmentDetailView(CanLockMixin, PublishableMixin, DetailView):
     model = Fragment
+
+    link_name = "fragment"
+
+    def _filter_out_unpublished_links(
+        self, organised_links: list[dict[Antiquarian, tuple[list[FragmentLink], Any]]]
+    ):
+        return [
+            {
+                antiquarian: [
+                    [
+                        link
+                        for link in links
+                        if getattr(link, self.link_name).publishable
+                    ],
+                    definite,
+                ]
+                for antiquarian, [links, definite] in organised_link.items()
+                if antiquarian.publishable
+            }
+            for organised_link in organised_links
+        ]
 
     def get_context_data(self, **kwargs):
         fragment = self.get_object()
         context = super().get_context_data(**kwargs)
 
         context["inline_update_url"] = "fragment:update_fragment_link"
-        context["organised_links"] = fragment.get_organised_links()
+        organised_links = fragment.get_organised_links()
+        if not self.request.user.is_authenticated:
+            organised_links = self._filter_out_unpublished_links(organised_links)
+        context["organised_links"] = organised_links
         return context
 
 
 class AnonymousFragmentDetailView(FragmentDetailView):
     model = AnonymousFragment
 
-    def get_context_data(self, **kwargs):
-        fragment = self.get_object()
-        context = super().get_context_data(**kwargs)
+    link_name = "anonymous_fragment"
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
         context["inline_update_url"] = "fragment:update_fragment_link"
-        context["organised_links"] = fragment.get_organised_links()
+        # Anonymous Fragment View doesn't seem to use organised links
+        # fragment = self.get_object()
+        # organised_links = fragment.get_organised_links()
+        # if not self.request.user.is_authenticated:
+        #    organised_links = self._filter_out_unpublished_links(organised_links)
+        # context["organised_links"] = organised_links
         return context
 
 
 @method_decorator(require_POST, name="dispatch")
 class FragmentDeleteView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, DeleteView
 ):
     model = Fragment
     success_url = reverse_lazy("fragment:list")
@@ -748,7 +781,7 @@ class AnonymousFragmentDeleteView(FragmentDeleteView):
 
 
 class FragmentUpdateView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, UpdateView
 ):
     model = Fragment
     form_class = FragmentForm
@@ -829,7 +862,7 @@ class AnonymousFragmentPublicCommentaryView(TextObjectFieldViewMixin):
 
 @method_decorator(require_POST, name="dispatch")
 class AnonymousFragmentConvertToFragmentView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, View
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, View
 ):
     model = AnonymousFragment
     permission_required = "research.change_anonymousfragment"
@@ -905,9 +938,9 @@ class FragmentUpdateAntiquariansView(FragmentUpdateView):
 
 
 class FragmentAddWorkLinkView(
+    PermissionRequiredMixin,
     CheckLockMixin,
     LoginRequiredMixin,
-    PermissionRequiredMixin,
     GetWorkLinkRequestDataMixin,
     FormView,
 ):
@@ -961,10 +994,12 @@ class FragmentAddWorkLinkView(
 
 @method_decorator(require_POST, name="dispatch")
 class RemoveFragmentLinkView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, DeleteView
 ):
-    """When requesting link removal, one link will be removed/reassigned if from a work link
-    If from an antiquarian link, all links will be removed"""
+    """
+    When requesting link removal, one link will be removed/reassigned if from a
+    work link. If from an antiquarian link, all links will be removed.
+    """
 
     check_lock_object = "fragment"
     model = FragmentLink
@@ -1039,9 +1074,9 @@ class RemoveFragmentLinkView(
 
 
 class FragmentUpdateWorkLinkView(
+    PermissionRequiredMixin,
     CheckLockMixin,
     LoginRequiredMixin,
-    PermissionRequiredMixin,
     GetWorkLinkRequestDataMixin,
     UpdateView,
 ):
@@ -1122,6 +1157,7 @@ class MoveAnonymousTopicLinkView(LoginRequiredMixin, View):
 
     def render_valid_response(self, topic_id):
         view = AnonymousFragmentListView()
+        view.setup(self.request, *self.args, **self.kwargs)
         topic = Topic.objects.get(id=topic_id)
         qs = view.get_queryset(topic=topic)
         context = {
@@ -1197,21 +1233,7 @@ def duplicate_fragment(request, pk, model_name):
     new_original_texts = []
 
     for text in original_original_texts:
-        # Create a dictionary to hold the values for the new OriginalText object
-        new_original_text_data = {}
-
-        # Iterate over the fields of the OriginalText model
-        for field in text._meta.fields:
-            # Exclude the ID field
-            if field.name in ["id", "created", "modified"]:
-                continue
-
-            field_value = getattr(text, field.name)
-
-            new_original_text_data[field.name] = field_value
-
-        # Create a new OT object with the copied values
-        new_original_text = OriginalText.objects.create(**new_original_text_data)
+        new_original_text = duplicate_original_text(text)
         new_original_texts.append(new_original_text)
 
         # Recreate References for new OT
@@ -1221,73 +1243,10 @@ def duplicate_fragment(request, pk, model_name):
                 reference_position=reference.reference_position,
                 original_text=new_original_text,
             )
-
-        # Copy relationships to Concordances, Ap Crit & Translations
-        model_details = {
-            Concordance: {
-                "filter_name": "original_text",
-                "filter_value": text,
-                "ot_fieldname": "original_text",
-            },
-            ApparatusCriticusItem: {
-                "filter_name": "original_text",
-                "filter_value": text.pk,
-                "ot_fieldname": "parent",
-            },
-            Translation: {
-                "filter_name": "original_text",
-                "filter_value": text,
-                "ot_fieldname": "original_text",
-            },
-        }
-
-        for model_class in model_details.keys():
-            model_info = model_details[model_class]
-            filter_name = model_info["filter_name"]
-            filter_value = model_info["filter_value"]
-            ot_fieldname = model_info["ot_fieldname"]
-
-            new_model_data = {}
-            for original_item in model_class.objects.filter(
-                **{filter_name: filter_value}
-            ):
-                for field in original_item._meta.fields:
-                    # Exclude some fields
-                    if field.name in [
-                        "id",
-                        "created",
-                        "modified",
-                        ot_fieldname,
-                        "content_type",
-                        "object_id",
-                    ]:
-                        continue
-
-                    field_value = getattr(original_item, field.name)
-                    new_model_data[field.name] = field_value
-
-                new_model_data[
-                    ot_fieldname
-                ] = new_original_text  # make sure to assign new OT in place of the old one (field skipped above)
-
-                model_class.objects.create(**new_model_data)
-
-        # use beautifulsoup to update the references in the ot content
-        soup = BeautifulSoup(new_original_text.content, features="html.parser")
-        mentions = soup.find_all(
-            "span", class_="mention", attrs={"data-denotation-char": "#"}
-        )
-        apcriti = new_original_text.apparatus_criticus_items.all()
-
-        for mention, apcrit in zip(mentions, apcriti):
-            mention["data-id"] = apcrit.pk
-            mention["data-original-text"] = new_original_text.pk
-            mention["data-parent"] = new_original_text.pk
-
-        updated_content = str(soup)
-
-        new_original_text.content = updated_content
-        new_original_text.save()
+        copy_concordances_apcrit_and_translations(text, new_original_text)
+        update_ot_content_references(
+            new_original_text
+        )  # must be called after the apcrit is copied
 
     # Create a new fragment with the same values as original
     new_fragment_data = {}
@@ -1328,3 +1287,43 @@ def duplicate_fragment(request, pk, model_name):
         new_fragment.duplicate_ts.add(original_fragment)
 
     return redirect("fragment:detail", pk=new_fragment.pk)
+
+
+@require_POST
+@login_required
+@permission_required("research.publish_fragment")
+def fragment_set_publishable(request, pk):
+    """
+    Given the pk of a Fragment object, set its publishable attribute to the
+    value of the POST request.
+    """
+    try:
+        fragment = Fragment.objects.get(pk=pk)
+    except Fragment.DoesNotExist:
+        raise Http404("No Fragments found matching the query")
+
+    fragment.publishable = request.POST.get("publishable", False)
+    fragment.save()
+
+    # Refresh the page
+    return HttpResponseRedirect(reverse("fragment:detail", kwargs={"pk": pk}))
+
+
+@require_POST
+@login_required
+@permission_required("research.publish_anonymous_fragment")
+def anonymous_fragment_set_publishable(request, pk):
+    """
+    Given the pk of a AnonymousFragment object, set its publishable attribute
+    to the value of the POST request.
+    """
+    try:
+        anonymous_fragment = AnonymousFragment.objects.get(pk=pk)
+    except AnonymousFragment.DoesNotExist:
+        raise Http404("No AnonymousFragments found matching the query")
+
+    anonymous_fragment.publishable = request.POST.get("publishable", False)
+    anonymous_fragment.save()
+
+    # Refresh the page
+    return HttpResponseRedirect(reverse("anonymous_fragment:detail", kwargs={"pk": pk}))

@@ -9,29 +9,35 @@
     </small>
 </div>
 
-<div>{{ object.title }}</div>
-
+<div>
+    {{ object.title }}
+    {% if user.is_authenticated and object.publishable %}
+        <span class='badge badge-pill badge-success'>Published</span>
+    {% endif %}
+</div>
 
 {% endblock %}
 
 {% block action %}
-{% if request.user.is_authenticated %}
+{% if perms.research.change_citingwork %}
+    {% with request.user|has_lock:object as has_object_lock %}
 
-{% include 'research/partials/render_locked_info.html' %}
+        {% include 'research/partials/render_locked_info.html' with is_citing_work=citingwork %}
 
-<div class='d-flex justify-content-end'>
-{% if has_object_lock %}
-    {% if perms.research.delete_citingwork %}
-    <form novalidate class='form-inline' action='{% url "citingauthor:delete_work" object.pk %}' method='POST'>
-        {% csrf_token %}
-        <div class='form-group'>
-            <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
-                data-what='citing work'>{% trans 'Delete' %}</button>
+        <div class='d-flex justify-content-end'>
+        {% if has_object_lock %}
+            {% if perms.research.delete_citingwork %}
+            <form novalidate class='form-inline' action='{% url "citingauthor:delete_work" object.pk %}' method='POST'>
+                {% csrf_token %}
+                <div class='form-group'>
+                    <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+                        data-what='citing work'>{% trans 'Delete' %}</button>
+                </div>
+            </form>
+            {% endif %}
+        {% endif %}
         </div>
-    </form>
-    {% endif %}
-{% endif %}
-</div>
+    {% endwith %}
 
 {% endif %}
 {% endblock %}
@@ -72,6 +78,28 @@
         </dl>
     </section>
 
+    <hr>
+    <section>
+
+        <div class='d-flex justify-content-between w-100'>
+            <div>
+                <h5 class='mb-3 mr-3'>{% trans 'Introduction' %}</h5>
+            </div>
+            <div>
+                {% if perms.research.change_citingwork and has_object_lock %}
+                <button
+                  class="btn text-primary p-0 ml-2"
+                  hx-get="{% url 'citingauthor:update_introduction_for_work' object.pk %}"
+                  hx-target=".introduction-container"
+                  hx-swap="innerHTML">{% trans 'Edit' %}</button>
+                {% endif %}
+            </div>
+        </div>
+        <div class="introduction-container rich-text-form-container">
+            {% include 'research/partials/text_object_preview.html' with text_object=object.introduction %}
+        </div>
+
+    </section>
     <hr>
 
     <section>

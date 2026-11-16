@@ -86,8 +86,10 @@ class TestTextObjectField(TestCase):
         self.assertEqual(antiquarian.bibliography_items.first(), bibliography_item)
 
     def test_update_mentions(self):
-        """When an (Anonymous) Fragment or Testimonium gets mentioned in an introduction or commentary,
-        upon saving, the mentions should be identified and relevant links should be created
+        """
+        When an (Anonymous) Fragment or Testimonium gets mentioned in an
+        introduction or commentary, upon saving, the mentions should be
+        identified and relevant links should be created.
         """
         antiquarian = Antiquarian.objects.create(name="a1", re_code="mentionsant")
         fragment = Fragment.objects.create(name="f1")

@@ -116,8 +116,10 @@ class TestFragmentRemoveWorkLinkView(TestCase):
         self.assertEqual(FragmentLink.objects.first(), link2)
 
     def test_reassign_to_unknown(self):
-        """If only one link is left, it should be reassigned to unknown work/book on delete
-        to retain the link to the antiquarian"""
+        """
+        If only one link is left, it should be reassigned to unknown work/book
+        on delete to retain the link to the antiquarian.
+        """
 
         antiquarian = Antiquarian.objects.create(name="name", re_code="re_code")
         fragment = Fragment.objects.create(name="name")
@@ -195,8 +197,10 @@ class TestAnonymousFragmentAppositaViews(TestCase):
         self.assertQuerysetEqual(self.af1.anonymous_fragments.all(), [self.af2])
 
     def test_unlink_apposita_and_anonymous_fragment(self):
-        """Use RemoveAppositumFragmentLinkView to remove an existing appositum link between
-        an anonymous fragment (af2) and its appositum (af3)"""
+        """
+        Use RemoveAppositumFragmentLinkView to remove an existing appositum
+        link between an anonymous fragment (af2) and its appositum (af3).
+        """
         self.assertEqual(self.af3.anonymous_fragments.count(), 1)
         url = reverse(
             "anonymous_fragment:unlink_anonymous_apposita",

@@ -2,8 +2,10 @@ import re
 
 from django import forms
 from django.core.exceptions import FieldDoesNotExist
+from django.db.models import Count
 from django.forms import ModelMultipleChoiceField, inlineformset_factory
 from django.urls import reverse
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
 from rard.research.models import (
@@ -13,8 +15,11 @@ from rard.research.models import (
     Book,
     CitingAuthor,
     CitingWork,
+    ConcordanceModel,
+    Edition,
     Fragment,
     OriginalText,
+    PartIdentifier,
     PublicCommentaryMentions,
     Reference,
     Testimonium,
@@ -445,6 +450,11 @@ class CitingWorkForm(forms.ModelForm):
         required=False,
         label="New Author Name",
     )
+    introduction_text = forms.CharField(
+        widget=forms.Textarea,
+        required=False,
+        label="Introduction",
+    )
 
     class Meta:
         model = CitingWork
@@ -455,6 +465,7 @@ class CitingWorkForm(forms.ModelForm):
             "new_author_name",
             "title",
             "edition",
+            "introduction_text",
         )
         labels = {
             "author": _("Choose Existing Author"),
@@ -465,6 +476,17 @@ class CitingWorkForm(forms.ModelForm):
         # this form is initially optional as the user might instead choose
         # and existing citing work from a separate form
         self.set_required(False)
+        if self.instance.introduction:
+            self.fields[
+                "introduction_text"
+            ].initial = self.instance.introduction.content
+            self.fields["introduction_text"].widget.attrs[
+                "class"
+            ] = "enableMentions enableFootnotes enableCKEditor"
+        else:
+            self.fields["introduction_text"].attrs = {
+                "placeholder": "introduction for citing work"
+            }
 
     def set_required(self, required):
         # to allow set/reset required fields dynically in the view
@@ -491,6 +513,9 @@ class CitingWorkForm(forms.ModelForm):
                 new_author_name = self.cleaned_data["new_author_name"]
                 author = CitingAuthor.objects.create(name=new_author_name)
                 instance.author = author
+            # introduction will have been created at this point
+            instance.introduction.content = self.cleaned_data["introduction_text"]
+            instance.introduction.save_without_historical_record()
             instance.save()
         return instance
 
@@ -556,9 +581,11 @@ class OriginalTextDetailsForm(forms.ModelForm):
         if original_text:
             self.fields["content"].widget.attrs["data-object"] = original_text.pk
             # Only enable apparatus criticus editing if object exists
-            self.fields["content"].widget.attrs[
-                "class"
-            ] = "enableApparatusCriticus enableCKEditor"
+            self.fields["content"].widget.attrs["class"] = "enableCKEditor"
+            if original_text.apparatus_criticus_items.count() > 0:
+                self.fields["content"].widget.attrs[
+                    "class"
+                ] += " enableApparatusCriticus"
 
     def clean_reference_order(self):
         # Reference order needs to be stored as a string with leading 0s such
@@ -617,9 +644,9 @@ class OriginalTextForm(OriginalTextAuthorForm):
         # of an existing instance to be blank and assign a newly-created
         # work to the original text instance in the view
         self.set_citing_work_required(True)
-        self.fields["content"].widget.attrs[
-            "class"
-        ] = "enableApparatusCriticus enableCKEditor"
+        self.fields["content"].widget.attrs["class"] = "enableCKEditor"
+        if original_text and original_text.apparatus_criticus_items.count() > 0:
+            self.fields["content"].widget.attrs["class"] += " enableApparatusCriticus"
 
     def set_citing_work_required(self, required):
         # to allow set/reset required fields dynically in the view
@@ -636,7 +663,14 @@ class CommentaryFormBase(forms.ModelForm):
     commentary_text = forms.CharField(
         widget=forms.Textarea(
             attrs={
-                "class": "enableMentions enableFootnotes enableApparatusCriticus enableCKEditor"
+                "class": " ".join(
+                    [
+                        "enableMentions",
+                        "enableFootnotes",
+                        "enableApparatusCriticus",
+                        "enableCKEditor",
+                    ]
+                )
             }
         ),
         required=False,
@@ -689,7 +723,10 @@ class PublicCommentaryFormBase(forms.ModelForm):
     approved = forms.BooleanField(
         label="approved",
         required=False,
-        help_text="By approving, you consent to the general public to view this on the final website.",
+        help_text=(
+            "By approving, you consent to the general public to view this on"
+            " the final website."
+        ),
     )
 
     def __init__(self, *args, **kwargs):
@@ -857,7 +894,8 @@ ReferenceFormset = inlineformset_factory(
 class TestimoniumForm(HistoricalFormBase):
     class Meta:
         model = Testimonium
-        fields = ()
+        fields = ("tags",)
+        widgets = {"tags": forms.CheckboxSelectMultiple}
 
 
 class BaseLinkWorkForm(forms.ModelForm):
@@ -1071,11 +1109,39 @@ class CitingWorkCreateForm(forms.ModelForm):
             "date_range",
         )
 
+    introduction_text = forms.CharField(
+        widget=forms.Textarea,
+        required=False,
+        label="Introduction",
+    )
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["author"].queryset = CitingAuthor.objects.exclude(
             order_name=CitingAuthor.ANONYMOUS_ORDERNAME
         )
+        self.fields["introduction_text"].widget.attrs[
+            "class"
+        ] = "enableMentions enableFootnotes enableCKEditor"
+        if self.instance.introduction:
+            self.fields[
+                "introduction_text"
+            ].initial = self.instance.introduction.content
+
+    def save(self, commit=True):
+        instance = super().save(commit)
+        if commit:
+            instance.save_without_historical_record()
+            # introduction will have been created at this point
+            instance.introduction.content = self.cleaned_data["introduction_text"]
+            instance.introduction.save_without_historical_record()
+        return instance
+
+
+class CitingWorkIntroductionForm(IntroductionFormBase):
+    class Meta:
+        model = CitingWork
+        fields = ()
 
 
 class CitingAuthorUpdateForm(forms.ModelForm):
@@ -1086,12 +1152,18 @@ class CitingAuthorUpdateForm(forms.ModelForm):
             "order_name",
             "order_year",
             "date_range",
+            "introduction_text",
         )
 
     bibliography_items = BibliographyModelMultipleChoiceField(
         widget=forms.CheckboxSelectMultiple,
         queryset=BibliographyItem.objects.all(),
         required=False,
+    )
+    introduction_text = forms.CharField(
+        widget=forms.Textarea,
+        required=False,
+        label="Introduction",
     )
 
     def __init__(self, *args, **kwargs):
@@ -1102,3 +1174,291 @@ class CitingAuthorUpdateForm(forms.ModelForm):
             ].initial = self.instance.bibliography_items.all()
             if self.instance.is_anonymous_citing_author():
                 self.fields["order_name"].disabled = True
+
+            self.fields["introduction_text"].widget.attrs[
+                "class"
+            ] = "enableMentions enableFootnotes enableCKEditor"
+            if self.instance.introduction:
+                self.fields[
+                    "introduction_text"
+                ].initial = self.instance.introduction.content
+
+    def save(self, commit=True):
+        instance = super().save(commit)
+        if commit:
+            instance.save_without_historical_record()
+            # introduction will have been created at this point
+            instance.introduction.content = self.cleaned_data["introduction_text"]
+            instance.introduction.save_without_historical_record()
+        return instance
+
+
+class CitingAuthorIntroductionForm(IntroductionFormBase):
+    class Meta:
+        model = CitingAuthor
+        fields = ()
+
+
+class EditionForm(forms.ModelForm):
+    class Meta:
+        model = Edition
+        fields = ["edition", "new_edition", "new_description", "part_format"]
+
+        readonly_fields = ["description"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["new_description"].widget.attrs.update(
+            {"style": "width:clamp(20vw,30vw,50%)"}
+        )
+        self.fields["part_format"].widget.attrs.update({"style": "max-width:35vw"})
+
+    edition = forms.ModelChoiceField(
+        queryset=Edition.objects.all().order_by("name"),
+        widget=forms.Select(attrs={"class": "form-control"}),
+        label="Select Edition",
+        required=False,
+    )
+    new_edition = forms.CharField(
+        label="Edition short name",
+        required=False,
+        help_text="Enter short name of edition eg. BNJ",
+    )
+    new_description = forms.CharField(
+        label="Edition full name",
+        required=False,
+        help_text="Enter full name of edition eg. Brills New Jacoby",
+    )
+    part_format_help_text = (
+        "Enter format in brackets, eg. [1-10 Arabic numerals] or [none] if no"
+        " parts for this edition.\n If left blank, this will default to [none]"
+    )  # splitting to appease linter error
+    part_format = forms.CharField(
+        label="format of parts",
+        required=False,
+        help_text=part_format_help_text,
+    )
+
+
+class ConcordanceModelCreateForm(forms.ModelForm):
+    class Meta:
+        model = ConcordanceModel
+        fields = [
+            "identifier",
+            "new_identifier",
+            "display_order",
+            "content_type",
+            "reference",
+            "concordance_order",
+        ]
+        labels = {
+            "identifier": "Select Part Identifier",
+            "display_order": "Optional ordering for display purposes",
+        }
+
+    new_identifier = forms.CharField(
+        label="New Part Identifier",
+        required=False,
+        help_text=(
+            "You do not need to include the edition name, only the relevant"
+            " part identifier without brackets[ ]"
+        ),
+    )
+    display_order = forms.CharField(
+        required=False,
+        help_text=(
+            "When ordering alphabetically or numerically, what would you like"
+            " this identifier sorted as?"
+        ),
+    )
+
+    def __init__(self, *args, **kwargs):
+        edition_id = kwargs.pop("edition", None)
+        if not edition_id:  # if existing selected, it comes as an arg, not a kwarg
+            data = args[0] if args else {}
+            edition_id = data.get("edition", None)
+        qs = PartIdentifier.objects.filter(edition=edition_id)
+
+        part_format = kwargs.pop("part_format", None)
+        if part_format is not None:
+            part_format = qs.get(pk=part_format)
+
+        super().__init__(*args, **kwargs)
+
+        if not part_format:
+            first_part = qs.first()
+            if first_part and first_part.is_template:
+                part_format = first_part
+
+        self.fields["reference"].required = True
+        self.fields["reference"].help_text = "Eg. 130c"
+        self.fields["concordance_order"].help_text = "Eg. 130.3"
+
+        if part_format.value == "[none]":
+            new_pi_help = "Format is [none]; this edition has no parts."
+        else:
+            new_pi_help = (
+                f"Format: {part_format}. You do not need to include the edition name, "
+                + "only the relevant part identifier without brackets[ ]"
+            )
+        self.fields["new_identifier"].help_text = new_pi_help
+
+        # baseline for identifier field
+        self.fields["identifier"].required = False
+        self.fields["identifier"].queryset = qs
+
+        # require new identifier if no options
+        if len(qs) <= 1:
+            self.fields["identifier"].disabled = True
+            self.fields["new_identifier"].required = True
+        else:
+            qs = qs.exclude(pk=qs.first().pk)
+            self.fields["identifier"].queryset = qs
+
+        # disable new identifier when relevant
+        if "none" in str(part_format):
+            self.fields["new_identifier"].disabled = True
+            self.fields["display_order"].disabled = True
+            self.fields["new_identifier"].required = False
+            self.fields["identifier"].empty_label = None
+            self.fields["identifier"].widget.attrs.update(
+                {"disable-selection": "true"}
+            )  # doing through widget so the pk is still submitted
+
+
+class ConcordanceModelUpdateForm(forms.ModelForm):
+    class Meta:
+        model = ConcordanceModel
+        fields = [
+            "identifier",
+            "new_identifier",
+            "display_order",
+            "content_type",
+            "reference",
+            "concordance_order",
+        ]
+        labels = {"identifier": "Part Identifier"}
+
+    new_identifier = forms.CharField(
+        label="New Part Identifier",
+        required=False,
+        help_text=(
+            "You do not need to include the edition name, only the relevant"
+            " part identifier without brackets[ ]"
+        ),
+    )
+
+    display_order = forms.CharField(
+        label="optional ordering",
+        required=False,
+        help_text=(
+            "When ordering alphabetically or numerically, what would you like"
+            " this identifier sorted as?"
+        ),
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance:
+            self.fields["identifier"].initial = self.instance.identifier
+            self.fields["content_type"].initial = self.instance.content_type
+            self.fields["reference"].initial = self.instance.reference
+            self.fields["concordance_order"].initial = self.instance.concordance_order
+
+            qs = PartIdentifier.objects.filter(
+                edition=self.instance.identifier.edition
+            ).order_by("edition")
+            self.fields["identifier"].queryset = qs.filter(is_template=False)
+
+
+class ConcordanceModelSearchForm(forms.Form):
+    class Meta:
+        fields = [
+            "antiquarian",
+            "work",
+            "edition",
+            "identifier",
+        ]
+        labels = {"identifier": "Part Identifier"}
+
+    a_qs = Antiquarian.objects.all()
+    w_qs = Work.objects.none()
+    e_qs = (
+        Edition.objects.annotate(
+            concordance_count=Count("partidentifier__concordancemodel")
+        )
+        .filter(concordance_count__gt=0)
+        .order_by("name")
+    )
+    i_qs = PartIdentifier.objects.none()
+
+    @staticmethod  # prevents testing error
+    def label_w_badge(model, qs):
+        return mark_safe(
+            f"{model} filter <span class='badge badge-secondary'>{qs.count()}</span>"
+        )
+
+    antiquarian = forms.ModelChoiceField(
+        queryset=a_qs,
+        required=False,
+        widget=forms.Select(),
+    )
+    work = forms.ModelChoiceField(
+        queryset=w_qs,
+        required=False,
+        help_text="Select an antiquarian to search by work",
+    )
+    edition = forms.ModelChoiceField(
+        queryset=e_qs,
+        required=False,
+        widget=forms.Select(),
+    )
+    identifier = forms.ModelChoiceField(
+        queryset=i_qs,
+        required=False,
+        help_text="Select an ediiton to search by part identifier",
+    )
+
+    def __init__(self, *args, **kwargs):
+        antiquarian = kwargs.pop("antiquarian", None)
+        edition = kwargs.pop("edition", None)
+        super().__init__(*args, **kwargs)
+        # setting labels here to avoid test errors
+        self.fields["antiquarian"].label = self.label_w_badge("Antiquarian", self.a_qs)
+        self.fields["work"].label = self.label_w_badge("Work", self.w_qs)
+        self.fields["edition"].label = self.label_w_badge("Edition", self.e_qs)
+        self.fields["identifier"].label = self.label_w_badge(
+            "Part Identifier", self.i_qs
+        )
+
+        self.fields["antiquarian"].widget.attrs.update(
+            {
+                "hx-get": reverse("concordance:fetch_works"),
+                "hx-target": "#id_work",
+                "hx-trigger": "change",
+            }
+        )
+        self.fields["edition"].widget.attrs.update(
+            {
+                "hx-get": reverse("concordance:fetch_parts"),
+                "hx-target": "#id_identifier",
+                "hx-trigger": "change",
+            }
+        )
+
+        if antiquarian:
+            self.fields["work"].queryset = Work.objects.filter(antiquarian=antiquarian)
+            self.fields["work"].help_text = ""
+        else:
+            self.fields["work"].widget.attrs.update(
+                {"disabled": "true"}
+            )  # makes it easier to update from js
+        if edition:
+            self.fields["identifier"].queryset = PartIdentifier.objects.filter(
+                edition=edition
+            )
+            self.fields["identifier"].help_text = ""
+        else:
+            self.fields["identifier"].widget.attrs.update(
+                {"disabled": "true"}
+            )  # makes it easier to update from js

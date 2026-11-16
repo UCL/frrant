@@ -1,10 +1,13 @@
+from typing import Any
+
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin, PermissionRequiredMixin
-from django.http import HttpResponseRedirect
+from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse, reverse_lazy
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_POST
-from django.views.generic import FormView, ListView
+from django.views.generic import FormView
 from django.views.generic.detail import DetailView
 from django.views.generic.edit import DeleteView, UpdateView
 
@@ -21,10 +24,12 @@ from rard.research.views.fragment import (
     AnonymousFragmentConvertToFragmentView,
     HistoricalBaseCreateView,
 )
+from rard.research.views.list import ListView
 from rard.research.views.mixins import (
     CanLockMixin,
     CheckLockMixin,
     GetWorkLinkRequestDataMixin,
+    PublishableMixin,
     TextObjectFieldUpdateMixin,
     TextObjectFieldViewMixin,
 )
@@ -45,27 +50,46 @@ class TestimoniumCreateView(PermissionRequiredMixin, HistoricalBaseCreateView):
         return context
 
 
-class TestimoniumListView(ListView):
-    paginate_by = 15
+class TestimoniumListView(PublishableMixin, ListView):
+    paginate_by = 10
     model = Testimonium
 
 
-class TestimoniumDetailView(CanLockMixin, DetailView):
+class TestimoniumDetailView(CanLockMixin, PublishableMixin, DetailView):
     model = Testimonium
+
+    def _filter_out_unpublished_links(
+        self,
+        organised_links: list[dict[Antiquarian, tuple[list[TestimoniumLink], Any]]],
+    ):
+        return [
+            {
+                antiquarian: [
+                    [link for link in links if link.testimonium.publishable],
+                    definite,
+                ]
+                for antiquarian, [links, definite] in organised_link.items()
+                if antiquarian.publishable
+            }
+            for organised_link in organised_links
+        ]
 
     def get_context_data(self, **kwargs):
         testimonium = self.get_object()
         context = super().get_context_data(**kwargs)
         context["inline_update_url"] = "testimonium:update_testimonium_link"
 
-        context["organised_links"] = testimonium.get_organised_links()
+        organised_links = testimonium.get_organised_links()
+        if not self.request.user.is_authenticated:
+            organised_links = self._filter_out_unpublished_links(organised_links)
+        context["organised_links"] = organised_links
 
         return context
 
 
 @method_decorator(require_POST, name="dispatch")
 class TestimoniumDeleteView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, DeleteView
 ):
     model = Testimonium
     success_url = reverse_lazy("testimonium:list")
@@ -73,7 +97,7 @@ class TestimoniumDeleteView(
 
 
 class TestimoniumUpdateView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, UpdateView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, UpdateView
 ):
     model = Testimonium
     form_class = TestimoniumForm
@@ -122,9 +146,9 @@ class TestimoniumPublicCommentaryView(TextObjectFieldViewMixin):
 
 
 class TestimoniumAddWorkLinkView(
+    PermissionRequiredMixin,
     CheckLockMixin,
     LoginRequiredMixin,
-    PermissionRequiredMixin,
     GetWorkLinkRequestDataMixin,
     FormView,
 ):
@@ -184,9 +208,9 @@ class TestimoniumAddWorkLinkView(
 
 
 class TestimoniumUpdateWorkLinkView(
+    PermissionRequiredMixin,
     CheckLockMixin,
     LoginRequiredMixin,
-    PermissionRequiredMixin,
     GetWorkLinkRequestDataMixin,
     UpdateView,
 ):
@@ -261,10 +285,12 @@ class TestimoniumUpdateWorkLinkView(
 
 @method_decorator(require_POST, name="dispatch")
 class RemoveTestimoniumLinkView(
-    CheckLockMixin, LoginRequiredMixin, PermissionRequiredMixin, DeleteView
+    PermissionRequiredMixin, CheckLockMixin, LoginRequiredMixin, DeleteView
 ):
-    """When requesting link removal, one link will be removed/reassigned if from a work link
-    If from an antiquarian link, all links will be removed"""
+    """
+    When requesting link removal, one link will be removed/reassigned if from a
+    work link. If from an antiquarian link, all links will be removed.
+    """
 
     check_lock_object = "testimonium"
     model = TestimoniumLink
@@ -346,3 +372,23 @@ class TestimoniumConvertToUnlinkedFragmentView(AnonymousFragmentConvertToFragmen
         fragment = convert_testimonium_to_unlinked_fragment(self.get_object())
         success_url = reverse("fragment:detail", kwargs={"pk": fragment.pk})
         return HttpResponseRedirect(success_url)
+
+
+@require_POST
+@login_required
+@permission_required("research.publish_testimonium")
+def testimonium_set_publishable(request, pk):
+    """
+    Given the pk of a Testimonium object, set its publishable attribute to the
+    value of the POST request.
+    """
+    try:
+        testimonium = Testimonium.objects.get(pk=pk)
+    except Testimonium.DoesNotExist:
+        raise Http404("No Testimoniums found matching the query")
+
+    testimonium.publishable = request.POST.get("publishable", False)
+    testimonium.save()
+
+    # Refresh the page
+    return HttpResponseRedirect(reverse("testimonium:detail", kwargs={"pk": pk}))

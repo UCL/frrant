@@ -29,17 +29,19 @@
     {% for object in page_obj %}
         {% ifchanged %}
             {% with citingauthor=object.citing_work.author %}
-                <div class='rard-list-item rard-list-item--title d-flex'>
-                    {% with citingauthor as link_text %}
-                        <h5><a href='{% url "citingauthor:detail" citingauthor.pk %}'>{{ link_text }}</a></h5>
-
-                        {% if citingauthor.display_date_range %}
-                        <span class='date-range-element text-muted'><small>[{{ citingauthor.display_date_range }}]</small></span>
-                        {% endif %}
-                        {% if request.user.is_authenticated %}
-                        {% include 'research/partials/render_inline_lock_icon.html' with object=citingauthor %}
-                        {% endif %}
-                    {% endwith %}
+                <div class='rard-list-item d-flex justify-content-between'>
+                    <div>
+                            {% with citingauthor as link_text %}
+                                <a href='{% url "citingauthor:detail" citingauthor.pk %}'>{{ link_text }}</a>
+                                {% if citingauthor.display_date_range %}
+                                <span class='date-range-element text-muted'><small>[{{ citingauthor.display_date_range }}]</small></span>
+                                {% endif %}
+                                {% include 'research/partials/render_inline_lock_icon.html' with object=citingauthor %}
+                            {% endwith %}
+                    </div>
+                    <div class='rard-list-item-actions'>
+                    </div>
+                    <hr>
                 </div>
 
             {% endwith %}

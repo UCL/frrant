@@ -1,6 +1,7 @@
 import pytest
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
+from django.http.request import HttpRequest
 from django.test import RequestFactory, TestCase
 from django.urls import reverse
 
@@ -94,8 +95,8 @@ class TestSearchView(TestCase):
         url = reverse("search:home")
         request = RequestFactory().get(url, data=data)
         view.request = request
-        # should include the unknown works for them
-        self.assertEqual(5, len(view.get_queryset()))
+        # should include the unknown and bibliographic works for them
+        self.assertEqual(7, len(view.get_queryset()))
 
     def test_empty_search_redirects(self):
         # any empty sring should be ignored
@@ -273,16 +274,37 @@ class TestSearchView(TestCase):
         w1 = Work.objects.create(name="work")
         w2 = Work.objects.create(name="nothing")
         self.assertEqual(
-            do_search(view.work_search, "work"), [w1, a1.unknown_work, a2.unknown_work]
+            do_search(view.work_search, "work"),
+            [
+                w1,
+                a1.bibliographic_work,
+                a1.unknown_work,
+                a2.bibliographic_work,
+                a2.unknown_work,
+            ],
         )
         self.assertEqual(
-            do_search(view.work_search, "WORK"), [w1, a1.unknown_work, a2.unknown_work]
+            do_search(view.work_search, "WORK"),
+            [
+                w1,
+                a1.bibliographic_work,
+                a1.unknown_work,
+                a2.bibliographic_work,
+                a2.unknown_work,
+            ],
         )
         self.assertEqual(do_search(view.work_search, "nothing"), [w2])
         self.assertEqual(do_search(view.work_search, "NothInG"), [w2])
         self.assertEqual(
             do_search(view.work_search, "*O*"),
-            [w2, w1, a1.unknown_work, a2.unknown_work],
+            [
+                w2,
+                w1,
+                a1.bibliographic_work,
+                a1.unknown_work,
+                a2.bibliographic_work,
+                a2.unknown_work,
+            ],
         )
 
         cw = CitingWork.objects.create(title="citing_work")
@@ -316,11 +338,6 @@ class TestSearchView(TestCase):
         self.assertEqual(do_search(view.fragment_search, "notme"), [f2])
         self.assertEqual(do_search(view.fragment_search, "No!TMe"), [f2])
         self.assertEqual(do_search(view.fragment_search, "*Me*"), [f1, f2])
-        self.assertEqual(do_search(view.fragment_search, "may"), [f1, f2])
-        self.assertEqual(
-            do_search(view.fragment_search, "m!£$%^&()_+-=|\\{[}]:;@'~#<,>./ay"),
-            [f1, f2],
-        )
         self.assertEqual(do_search(view.fragment_search, "mav"), [])
         self.assertEqual(do_search(view.fragment_search, 'alcott "louisa may"'), [f1])
         self.assertEqual(do_search(view.fragment_search, 'may "louisa alcott"'), [])
@@ -408,6 +425,59 @@ class TestSearchView(TestCase):
         self.assertEqual(do_search(view.citing_work_search, "*xth"), [cw2])
         self.assertCountEqual(do_search(view.citing_work_search, "?ook"), [cw1, cw2])
 
+    def search_all(self, keywords: str) -> HttpRequest:
+        req = HttpRequest()
+        req.build_absolute_uri("https://localhost/search")
+        req.GET["q"] = keywords
+        view = SearchView()
+        view.kwargs = {}
+        view.request = req
+        resp = view.get(req)
+        return resp.context_data["object_list"]
+
+    def test_search_heavy(self):
+        # Run searches where the antiquarians should come first
+        # a2 should have a lower pk than w1 and f2 so that they come first
+        # if no weighting is applied
+        a2 = Antiquarian.objects.create(name="other antiquarian", re_code="2")
+        a1 = Antiquarian.objects.create(name="antiquarian one", re_code="1")
+        a2.introduction.content = "Two is one more than one."
+        a2.save()
+        w1 = Work.objects.create(name="work one")
+        w2 = Work.objects.create(name="work other two")
+        cw = CitingWork.objects.create(title="citing_work one")
+        f2 = Fragment.objects.create()
+        f2.original_texts.create(content="fragment other two", citing_work=cw)
+        f1 = Fragment.objects.create()
+        f1.original_texts.create(content="fragment one", citing_work=cw)
+        tm1 = Testimonium.objects.create()
+        tm1.original_texts.create(content="testimonium one", citing_work=cw)
+        f3 = Fragment.objects.create()
+        o1 = f3.original_texts.create(content="content", citing_work=cw)
+        o1.apparatus_criticus_items.create(content="one stuff")
+
+        af1 = AnonymousFragment.objects.create()
+        o1 = af1.original_texts.create(content="almost one raddish", citing_work=cw)
+
+        # When searching for an antiquarian by part of his name...
+        results = self.search_all("one")
+        # All these objects are returned
+        expected = {a1, a2, w1, a1.unknown_work, cw, f1, tm1, f3, af1}
+        self.assertSetEqual(set(results), expected)
+        # But the antiquarian that matched in the name comes first
+        self.assertEqual(results[0], a1)
+        # But when finding the aquarian by a word in its introduction...
+        results2 = self.search_all("two")
+        # All these objects are returned
+        self.assertSetEqual(set(results2), {a2, w2, f2})
+        # And the antiquarian is not first
+        self.assertNotEqual(results2[0], a2)
+        results3 = self.search_all("other")
+        # All these objects are returned
+        self.assertSetEqual(set(results3), {a2, a2.unknown_work, w2, f2})
+        # But the antiquarian is first this time because "other" matches the name
+        self.assertEqual(results3[0], a2)
+
     def test_wildcards(self):
         # Run a particular search and return a list of results
         def do_search(search_function, keywords):
@@ -443,6 +513,54 @@ class TestSearchView(TestCase):
         # Punctuation should be ignored in content
         self.assertEqual(do_search(view.fragment_search, "again"), [f3])
         self.assertEqual(do_search(view.fragment_search, "again?"), [])
+
+    def test_proximity_search(self):
+        # Run a particular search and return a list of results
+        def do_search(search_function, keywords):
+            return list(search_function(SearchView.Term(keywords)))
+
+        cw = CitingWork.objects.create(title="citing_work")
+        f1 = Fragment.objects.create()
+        content1 = (
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, "
+            "sed do eiusmod tempor incididunt ut labore et dolore magna"
+            "aliqua."
+        )
+        f1.original_texts.create(**{"citing_work": cw, "content": content1})
+
+        view = SearchView()
+
+        # Test exact number of intervening words
+        self.assertEqual(do_search(view.fragment_search, "Lorem ~4 consectetur"), [f1])
+        self.assertEqual(do_search(view.fragment_search, "Lorem ~4 amet"), [])
+        self.assertEqual(do_search(view.fragment_search, "Lorem ~4 adipiscing"), [])
+
+        # Test at least N words
+        self.assertEqual(do_search(view.fragment_search, "Lorem ~:4 consectetur"), [f1])
+        self.assertEqual(do_search(view.fragment_search, "Lorem ~:4 amet"), [f1])
+        self.assertEqual(do_search(view.fragment_search, "Lorem ~:4 adipiscing"), [])
+
+        # Test N or more words
+        self.assertEqual(do_search(view.fragment_search, "Lorem ~4: consectetur"), [f1])
+        self.assertEqual(do_search(view.fragment_search, "Lorem ~4: amet"), [])
+        self.assertEqual(do_search(view.fragment_search, "Lorem ~4: adipiscing"), [f1])
+
+        # Test upper and lower bounds together
+        self.assertEqual(
+            do_search(view.fragment_search, "Lorem ~3:5 consectetur"), [f1]
+        )
+        self.assertEqual(do_search(view.fragment_search, "Lorem ~3:5 amet"), [f1])
+        self.assertEqual(do_search(view.fragment_search, "Lorem ~3:5 adipiscing"), [f1])
+        self.assertEqual(do_search(view.fragment_search, "Lorem ~3:5 sit"), [])
+        self.assertEqual(do_search(view.fragment_search, "Lorem ~3:5 elit"), [])
+
+        # Test wildcards work in combination
+        self.assertEqual(do_search(view.fragment_search, "Lor*m ~3:5 consect*"), [f1])
+
+        # Test quotation works
+        self.assertEqual(
+            do_search(view.fragment_search, 'Lorem ~3:5 "consectetur adipiscing"'), [f1]
+        )
 
     def test_search_snippets(self):
         raw_content = (
