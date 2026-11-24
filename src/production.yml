@@ -59,7 +59,7 @@ services:
       retries: 10
 
   nginx:
-    image: nginx:1.31.6-alpine3.24
+    image: nginx:1.31.10-alpine3.24
     container_name: nginx
     ports:
       - "0.0.0.0:80:80"
