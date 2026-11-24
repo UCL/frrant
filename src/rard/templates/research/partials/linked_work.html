@@ -20,7 +20,9 @@
                     {% endif %}
 
                 {% endif %}
+                {% if request.user.is_authenticated %}
                 {% include 'research/partials/render_inline_lock_icon.html' with object=work %}
+                {% endif %}
 
             </li>
         </div>

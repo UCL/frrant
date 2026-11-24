@@ -1,38 +1,47 @@
 {% extends "research/detail_base.html" %}
 {% load i18n object_lock %}
-{% block title %}Citing Author {{object.name}} {% endblock %}
-
+{% block title %}Citing Author {{object.title}} {% endblock %}
 {% block heading %}
-    {{ object }}
-    {% if user.is_authenticated and object.publishable %}
-        <span class='badge badge-pill badge-success'>Published</span>
-    {% endif %}
+
+    <div class='mb-2'>
+        <small>
+            <a href='{{ object.author.get_absolute_url }}'>{{ object.author }}</a>
+        </small>
+    </div>
+
+    <div>
+        {{ object.title }}
+        {% if user.is_authenticated and object.publishable %}
+            <span class='badge badge-pill badge-success'>Published</span>
+        {% endif %}
+    </div>
+
 {% endblock %}
 
 {% block action %}
-{% if perms.research.change_citingauthor %}
+    {% if perms.research.change_citingauthor %}
 
-    {% with request.user|has_lock:object as has_object_lock %}
+        {% with request.user|has_lock:object as has_object_lock %}
 
-        {% include 'research/partials/render_locked_info.html' with is_citing_author=citingauthor %}
+            {% include 'research/partials/render_locked_info.html' with is_citing_author=citingauthor %}
 
-        <div class='d-flex justify-content-end'>
-        {% if has_object_lock %}
-            {% if perms.research.delete_citingauthor %}
-            <form novalidate class='form-inline' action='{% url "citingauthor:delete" object.pk %}' method='POST'>
-                {% csrf_token %}
-                <div class='form-group'>
-                    <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
-                        data-what='citing author'>{% trans 'Delete' %}</button>
-                </div>
-            </form>
+            <div class='d-flex justify-content-end'>
+            {% if has_object_lock %}
+                {% if perms.research.delete_citingauthor %}
+                <form novalidate class='form-inline' action='{% url "citingauthor:delete" object.pk %}' method='POST'>
+                    {% csrf_token %}
+                    <div class='form-group'>
+                        <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+                            data-what='citing author'>{% trans 'Delete' %}</button>
+                    </div>
+                </form>
+                {% endif %}
             {% endif %}
-        {% endif %}
-        </div>
-    {% endwith %}
-{% endif %}
-{% endblock %}
+            </div>
+        {% endwith %}
 
+    {% endif %}
+{% endblock %}
 
 {% block inner %}
     {% with request.user|has_lock:object as has_object_lock %}
@@ -44,7 +53,7 @@
                 <h5>{% trans 'Details' %}</h5>
             </div>
             <div>
-                {% if perms.research.change_citingauthor and has_object_lock %}
+                {% if perms.research.change_citingwork and has_object_lock %}
                 <a href='{% url "citingauthor:update" object.pk %}'>{% trans 'Edit' %}</a>
                 {% endif %}
             </div>
@@ -96,7 +105,7 @@
                 <h5>{% trans 'Works' %}</h5>
             </div>
             <div>
-                {% if perms.research.change_citingauthor and has_object_lock %}
+                {% if can_edit and has_object_lock %}
                 <a href='{% url "citingauthor:create_work_for_author" object.pk %}'>{% trans 'New Work' %}</a>
                 {% endif %}
             </div>

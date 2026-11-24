@@ -73,7 +73,7 @@ from rard.utils.duplication import (
 from rard.utils.shared_functions import reassign_to_unknown
 
 
-class OriginalTextCitingWorkView(LoginRequiredMixin, TemplateView):
+class OriginalTextCitingWorkView(TemplateView):
     def get_forms(self):
         forms = {
             "original_text": OriginalTextForm(
@@ -749,7 +749,6 @@ class FragmentDetailView(CanLockMixin, PublishableMixin, DetailView):
 
 class AnonymousFragmentDetailView(FragmentDetailView):
     model = AnonymousFragment
-    permission_required = ("research.view_fragment",)
 
     link_name = "anonymous_fragment"
 
@@ -826,7 +825,6 @@ class FragmentCommentaryView(TextObjectFieldViewMixin):
 
 class FragmentPublicCommentaryView(TextObjectFieldViewMixin):
     model = Fragment
-    permission_required = ("research.view_fragment",)
     textobject_field = "public_commentary_mentions"
     hide_empty = False
 
@@ -858,7 +856,6 @@ class AnonymousFragmentCommentaryView(TextObjectFieldViewMixin):
 
 class AnonymousFragmentPublicCommentaryView(TextObjectFieldViewMixin):
     model = AnonymousFragment
-    permission_required = ("research.view_fragment",)
     textobject_field = "public_commentary_mentions"
     hide_empty = False
 

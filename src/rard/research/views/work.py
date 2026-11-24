@@ -134,7 +134,6 @@ class WorkUpdateIntroductionView(TextObjectFieldUpdateMixin, WorkUpdateView):
 
 class WorkIntroductionView(TextObjectFieldViewMixin):
     model = Work
-    permission_required = ("research.view_work",)
     textobject_field = "introduction"
     hide_empty = False
 
@@ -270,7 +269,6 @@ class BookUpdateIntroductionView(TextObjectFieldUpdateMixin, BookUpdateView):
 
 class BookIntroductionView(TextObjectFieldViewMixin):
     model = Book
-    permission_required = ("research.view_book",)
     textobject_field = "introduction"
     hide_empty = False
 

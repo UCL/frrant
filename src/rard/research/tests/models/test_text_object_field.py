@@ -117,9 +117,14 @@ class TestTextObjectField(TestCase):
             antiquarian.introduction.anonymousfragment_mentions.all(), [anon_frag]
         )
         # check the reverse relationship via m2m was established
-        self.assertIn((antiquarian), fragment.mentioned_in_list)
-        self.assertIn((antiquarian), anon_frag.mentioned_in_list)
-        self.assertIn((antiquarian), testimonium.mentioned_in_list)
+        ant_mention_obj = {
+            "name": antiquarian.name,
+            "url": antiquarian.get_absolute_url(),
+            "published": antiquarian.publishable,
+        }
+        self.assertIn(ant_mention_obj, fragment.mentioned_in_list)
+        self.assertIn(ant_mention_obj, anon_frag.mentioned_in_list)
+        self.assertIn(ant_mention_obj, testimonium.mentioned_in_list)
 
         # check deletion
         mention_html = (
@@ -138,6 +143,6 @@ class TestTextObjectField(TestCase):
             anon_frag, antiquarian.introduction.anonymousfragment_mentions.all()
         )
         # check the reverse relationship via m2m was established
-        self.assertIn((antiquarian), fragment.mentioned_in_list)
-        self.assertNotIn((antiquarian), anon_frag.mentioned_in_list)
-        self.assertNotIn((antiquarian), testimonium.mentioned_in_list)
+        self.assertIn(ant_mention_obj, fragment.mentioned_in_list)
+        self.assertNotIn(ant_mention_obj, anon_frag.mentioned_in_list)
+        self.assertNotIn(ant_mention_obj, testimonium.mentioned_in_list)

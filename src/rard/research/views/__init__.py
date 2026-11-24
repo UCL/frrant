@@ -50,7 +50,6 @@ from .citing_work import (
     citing_author_set_publishable,
     citing_work_set_publishable,
 )
-from .comments import CommentDeleteView, TextObjectFieldCommentListView
 from .concordance import (
     ConcordanceCreateView,
     ConcordanceDeleteView,
@@ -207,7 +206,6 @@ __all__ = [
     "CitingWorkIntroductionView",
     "citing_author_set_publishable",
     "citing_work_set_publishable",
-    "CommentDeleteView",
     "ConcordanceCreateView",
     "ConcordanceDeleteView",
     "ConcordanceEditionView",

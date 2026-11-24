@@ -214,7 +214,6 @@ class AntiquarianUpdateIntroductionView(
 
 class AntiquarianIntroductionView(TextObjectFieldViewMixin):
     model = Antiquarian
-    permission_required = ("research.view_antiquarian",)
     textobject_field = "introduction"
 
 

@@ -429,6 +429,7 @@ class TestSearchView(TestCase):
         req = HttpRequest()
         req.build_absolute_uri("https://localhost/search")
         req.GET["q"] = keywords
+        req.user = UserFactory()
         view = SearchView()
         view.kwargs = {}
         view.request = req
@@ -462,7 +463,18 @@ class TestSearchView(TestCase):
         # When searching for an antiquarian by part of his name...
         results = self.search_all("one")
         # All these objects are returned
-        expected = {a1, a2, w1, a1.unknown_work, cw, f1, tm1, f3, af1}
+        expected = {
+            a1,
+            a2,
+            w1,
+            a1.unknown_work,
+            a1.bibliographic_work,
+            cw,
+            f1,
+            tm1,
+            f3,
+            af1,
+        }
         self.assertSetEqual(set(results), expected)
         # But the antiquarian that matched in the name comes first
         self.assertEqual(results[0], a1)
@@ -474,7 +486,9 @@ class TestSearchView(TestCase):
         self.assertNotEqual(results2[0], a2)
         results3 = self.search_all("other")
         # All these objects are returned
-        self.assertSetEqual(set(results3), {a2, a2.unknown_work, w2, f2})
+        self.assertSetEqual(
+            set(results3), {a2, a2.unknown_work, a2.bibliographic_work, w2, f2}
+        )
         # But the antiquarian is first this time because "other" matches the name
         self.assertEqual(results3[0], a2)
 

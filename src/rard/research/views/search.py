@@ -373,7 +373,7 @@ class SearchView(LoginRequiredMixin, TemplateView, ListView):
                 add_snippet=add_snippet,
             )
 
-    paginate_by = 10
+    paginate_by = 15
     template_name = "research/search_results.html"
     context_object_name = "results"
 

@@ -4,20 +4,23 @@
 
 <div class='rard-list-item d-flex justify-content-between'>
   <div>
-      <li class="unstyled">
-        <span>
-            <a href='{% url "anonymous_fragment:detail" anonymous_fragment.pk %}'>{{anonymous_fragment.get_display_name}}</a>
-            {% include 'research/partials/render_inline_lock_icon.html' with object=appositum %}
-        </span>
+    <li class="unstyled">
+      <span>
+        <a href='{% url "anonymous_fragment:detail" anonymous_fragment.pk %}'>{{anonymous_fragment.get_display_name}}</a>
+        {% if request.user.is_authenticated %}
+          {% include 'research/partials/render_inline_lock_icon.html' with object=appositum %}
+        {% endif %}
+      </span>
+    </li>
   </div>
   <div class='rard-list-item-actions'>
     {% if can_edit and has_object_lock %}
       <form novalidate class='form-inline' action='{% url "anonymous_fragment:unlink_anonymous_apposita" anonymous_fragment.pk appositum.pk %}' method='POST'>
-          {% csrf_token %}
-          <div class='form-group'>
-              <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
-                  data-what='appositum link'>{% trans 'Unlink' %}</button>
-          </div>
+        {% csrf_token %}
+        <div class='form-group'>
+          <button type='submit' class='btn btn-link text-danger confirm-delete p-0 ml-2'
+            data-what='appositum link'>{% trans 'Unlink' %}</button>
+        </div>
       </form>
     {% endif %}
   </div>

@@ -1,5 +1,4 @@
 from django.apps import apps
-from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction
 from django.http import Http404, HttpResponseRedirect
@@ -7,8 +6,8 @@ from django.http import Http404, HttpResponseRedirect
 from rard.research.views.list import ListView
 
 
-class HistoryListView(LoginRequiredMixin, ListView):
-    paginate_by = 10
+class HistoryListView(ListView):
+    paginate_by = 15
     template_name = "research/history_list.html"
 
     @property

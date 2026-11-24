@@ -559,7 +559,14 @@ class HistoricalBaseModel(TextObjectFieldMixin, LockableModel, BaseModel):
     @property
     def mentioned_in_list(self):
         mentions = [m.get_related_object() for m in self.mentioned_in.all()]
-        return mentions
+        return [
+            {
+                "name": m.name,
+                "url": m.get_absolute_url(),
+                "published": m.publishable,
+            }
+            for m in mentions
+        ]
 
     # Duplicates are only used on (Anon)Fragments but these fields also exist
     # on testimonia when duplicating, a new fragment is created
